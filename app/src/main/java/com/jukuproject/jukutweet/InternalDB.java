@@ -1,18 +1,12 @@
 package com.jukuproject.jukutweet;
 
-        import android.content.ContentUris;
         import android.content.ContentValues;
         import android.content.Context;
         import android.database.Cursor;
-        import android.database.DatabaseErrorHandler;
         import android.database.sqlite.SQLiteDatabase;
         import android.database.sqlite.SQLiteException;
         import android.database.sqlite.SQLiteOpenHelper;
-        import android.graphics.Bitmap;
-        import android.net.Uri;
-        import android.provider.MediaStore;
         import android.support.annotation.NonNull;
-        import android.support.annotation.Nullable;
         import android.util.Log;
 
 
@@ -21,11 +15,13 @@ package com.jukuproject.jukutweet;
         import java.util.ArrayList;
         import java.util.List;
 
-
+/**
+ * Database helper
+ */
 public class InternalDB extends SQLiteOpenHelper {
 
     private static boolean debug = true;
-    private static String TAG = "TEST -- Internal";
+    private static String TAG = "TEST-Internal";
     private static InternalDB sInstance;
 
     public static  String DB_NAME =  "JQuiz";
@@ -94,44 +90,51 @@ public class InternalDB extends SQLiteOpenHelper {
     /**
      * Saves new user feed to DB
      * @param user user's twitter handle
-     * @return
+     * @return bool True if save worked, false if it failed
      */
-    public int saveUser(@NonNull String user) {
+    public boolean saveUser(@NonNull String user) {
 
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        if(debug) {
-            Log.d(TAG,"saving initial url: " + user );
+        try {
+            SQLiteDatabase db = this.getWritableDatabase();
+            ContentValues values = new ContentValues();
+            if(debug) {
+                Log.d(TAG,"saving user: " + user );
+            }
+            values.put(COL0, user.trim());
+            db.insert(TABLE_MAIN, null, values);
+            db.close();
+            return true;
+        } catch(SQLiteException exception) {
+        return false;
         }
 
-        values.put(COL0, user.trim());
-        long x=db.insert(TABLE_MAIN, null, values);
-        db.close();
-        if(debug) {
-            Log.d(TAG,"save inital user, return value:" + x);
-        }
-        return (int)x;
     }
 
 
+    /**
+     * Remove (i.e. "unfollow") a user from the database
+     * @param user
+     * @return bool True if operation is succesful, false if an error occurs
+     */
     public boolean deleteUser(String user) {
         try{
             SQLiteDatabase db = this.getWritableDatabase();
             db.delete(TABLE_MAIN, COL0 + "= ?", new String[]{user});
             db.close();
-            Log.d("TEST", "RETURNING TRUE");
             return true;
         } catch(SQLiteException exception) {
-            Log.d("TEST", "RETURNING FALSE");
             return false;
         }
 
     }
 
 
-    /** This pulls the RSSList dataset for the mainfragment recycler **/
-    /** IT is also chained to the attachImagestoRSSLists which matches downloaded thumbnails to the RSSList rows **/
-    public List<User> getFollowedUsers(Context context) {
+    /**
+     * Pulls followed user data from db and fills a list of User objects, to
+     * be used in the MainFragment recycler
+     * @return list of User objects, one for each followed user saved in the db
+     */
+    public List<User> getFollowedUsers() {
         List<User> followedUsers = new ArrayList<User>();
 
         String querySelectAll = "Select distinct Name From " + TABLE_MAIN;

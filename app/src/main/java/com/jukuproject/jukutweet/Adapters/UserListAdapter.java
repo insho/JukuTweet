@@ -2,7 +2,6 @@ package com.jukuproject.jukutweet.Adapters;
 
         import android.content.Context;
         import android.support.v7.widget.RecyclerView;
-        import android.util.Log;
         import android.view.LayoutInflater;
         import android.view.View;
         import android.view.ViewGroup;
@@ -11,7 +10,7 @@ package com.jukuproject.jukutweet.Adapters;
 
         import com.jukuproject.jukutweet.Models.User;
         import com.jukuproject.jukutweet.R;
-        import com.jukuproject.jukutweet.RxBus;
+        import com.jukuproject.jukutweet.Interfaces.RxBus;
 
         import java.util.List;
 

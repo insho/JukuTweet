@@ -1,4 +1,4 @@
-package com.jukuproject.jukutweet;
+package com.jukuproject.jukutweet.Interfaces;
 
 
 import rx.Observable;

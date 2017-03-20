@@ -7,52 +7,46 @@ package com.jukuproject.jukutweet;
         import android.support.v4.app.Fragment;
         import android.support.v7.widget.LinearLayoutManager;
         import android.support.v7.widget.RecyclerView;
-        import android.util.Log;
         import android.view.LayoutInflater;
         import android.view.View;
         import android.view.ViewGroup;
         import android.widget.TextView;
 
         import com.jukuproject.jukutweet.Adapters.UserListAdapter;
+        import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
+        import com.jukuproject.jukutweet.Interfaces.RxBus;
         import com.jukuproject.jukutweet.Models.User;
 
         import java.util.List;
-
         import rx.functions.Action1;
-//        import com.jukuproject.jukutweet.Adapters.UserListAdapter;
-//        import com.jukuproject.jukutweet.Adapters.RxBus;
-//        import com.jukuproject.jukutweet.DB.InternalDB;
-//        import com.jukuproject.jukutweet.XMLModel.AudioStream;
-//        import com.jukuproject.jukutweet.XMLModel.RSSList;
-//        import java.util.List;
-//        import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
-//        import rx.functions.Action1;
+
 
 public class MainFragment extends Fragment {
     FragmentInteractionListener mCallback;
+
+    /*Tracks elapsed time since last click of a recyclerview row. Used to
+    * keep from constantly recieving button clicks through the RxBus */
     private long mLastClickTime = 0;
-
-
-    public MainFragment() {
-    }
-
-    /**
-     * Returns a new instance of this fragment for the given section
-     * number.
-     */
-    public static MainFragment newInstance(int sectionNumber) {
-        MainFragment fragment = new MainFragment();
-//        Bundle args = new Bundle();
-//        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-//        fragment.setArguments(args);
-        return fragment;
-    }
-
-
     private RxBus _rxBus = new RxBus();
     private RecyclerView mRecyclerView;
     UserListAdapter mAdapter;
     private TextView mNoLists;
+
+    public MainFragment() {}
+
+    /**
+     * Returns a new instance of MainFragment
+     */
+    public static MainFragment newInstance(int sectionNumber) {
+//        MainFragment fragment = new MainFragment();
+//        Bundle args = new Bundle();
+//        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
+//        fragment.setArguments(args);
+        return new MainFragment();
+    }
+
+
+
 
 
     @Override
@@ -61,8 +55,6 @@ public class MainFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
         mRecyclerView = (RecyclerView) view.findViewById(R.id.recyclerMain);
         mNoLists = (TextView) view.findViewById(R.id.nolists);
-
-
 
         return view;
     }
@@ -85,18 +77,18 @@ public class MainFragment extends Fragment {
     }
 
 
+    //TODO replace the usage of this with an actual update, instead of a full repull?
+    /**
+     * Pulls list of followed twitter users from db and fills the adapter with them
+     */
     public void updateAdapter() {
 
-        //Initialize the rsslist;
-        List<User> rssLists = InternalDB.getInstance(getContext()).getFollowedUsers(getContext());
+        //Pull list of followed twitter users from the database
+        List<User> userList = InternalDB.getInstance(getContext()).getFollowedUsers();
 
-//        if(rssLists != null && rssLists.size()>0) {
-//            Log.d("InternalDB","Filladapterlist TITLE: " + rssLists.get(0).getImageURI());
-//        }
-
-        if(rssLists != null && rssLists.size() > 0) {
-            mAdapter = new UserListAdapter(rssLists, _rxBus, getContext());
-            Log.d("InternalDB", "count: " + mAdapter.getItemCount());
+        //Create UserListAdapter and attach rxBus click listeners to it
+        if(userList != null && userList.size() > 0) {
+            mAdapter = new UserListAdapter(userList, _rxBus, getContext());
 
             showRecyclerView(true);
 
@@ -105,16 +97,21 @@ public class MainFragment extends Fragment {
                         @Override
                         public void call(Object event) {
 
-                            //TODO -- make this a method... OR MOVE IT TO RxBus
-                            if (SystemClock.elapsedRealtime() - mLastClickTime < 1000){
-                                return;
-                            }
-                            mLastClickTime = SystemClock.elapsedRealtime();
+//                            if (SystemClock.elapsedRealtime() - mLastClickTime < 1000){
+//                                return;
+//                            }
+//                            mLastClickTime = SystemClock.elapsedRealtime();
+//
+//                            if(event instanceof User) {
+//                                User user = (User) event;
+//                                mCallback.getUserFeed(user.getName());
+//                            }
 
-                            if(event instanceof User) {
+                            if(isUniqueClick(1000) && event instanceof User) {
                                 User user = (User) event;
-                                mCallback.followUser(user.getName());
+                                mCallback.getUserFeed(user.getName());
                             }
+
                         }
 
                     });
@@ -123,16 +120,19 @@ public class MainFragment extends Fragment {
                         @Override
                         public void call(Object event) {
 
-                            //TODO -- make this a method... OR MOVE IT TO RxBus
-                            if (SystemClock.elapsedRealtime() - mLastClickTime < 1000){
-                                return;
-                            }
-                            mLastClickTime = SystemClock.elapsedRealtime();
-
-                            if(event instanceof User) {
+//                            if (SystemClock.elapsedRealtime() - mLastClickTime < 1000){
+//                                return;
+//                            }
+//                            mLastClickTime = SystemClock.elapsedRealtime();
+//                            if(event instanceof User) {
+//                                User user = (User) event;
+//                                mCallback.showRemoveUserDialog(user.getName());
+//                            }
+                            if(isUniqueClick(1000) && event instanceof User) {
                                 User user = (User) event;
-                                mCallback.showRemoveDialog(user.getName());
+                                mCallback.showRemoveUserDialog(user.getName());
                             }
+//
 
                         }
 
@@ -140,6 +140,7 @@ public class MainFragment extends Fragment {
             mRecyclerView.setAdapter(mAdapter);
 
         } else {
+            /* Hide recycler view and show "no users found" message */
             showRecyclerView(false);
         }
 
@@ -147,7 +148,11 @@ public class MainFragment extends Fragment {
     }
 
 
-    /** If there are no saved lists, hide recycler and show No Lists message **/
+    /**
+     * Toggles between showing recycler (if there are followed users in the database)
+     * and hiding the recycler while showing the "no users found" message if there are not
+     * @param show bool True to show recycler, False to hide it
+     */
     private void showRecyclerView(boolean show) {
         if(show) {
             mRecyclerView.setVisibility(View.VISIBLE);
@@ -166,6 +171,22 @@ public class MainFragment extends Fragment {
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString()
                     + " must implement OnHeadlineSelectedListener");
+        }
+    }
+
+    /**
+     * Checks how many milliseconds have elapsed since the last time "mLastClickTime" was updated
+     * If enough time has elapsed, returns True and updates mLastClickTime.
+     * This is to stop unwanted rapid clicks of the same button
+     * @param elapsedMilliSeconds threshold of elapsed milliseconds before a new button click is allowed
+     * @return bool True if enough time has elapsed, false if not
+     */
+    public boolean isUniqueClick(int elapsedMilliSeconds) {
+        if(SystemClock.elapsedRealtime() - mLastClickTime > elapsedMilliSeconds) {
+            mLastClickTime = SystemClock.elapsedRealtime();
+            return true;
+        } else {
+            return false;
         }
     }
 

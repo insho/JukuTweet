@@ -1,7 +1,8 @@
 package com.jukuproject.jukutweet.Models;
 
 /**
- * Created by JClassic on 3/20/2017.
+ * Created by JukuProject on 3/20/2017.
+ * Represents data for a single twitter user in the InternalDB database
  */
 
 public class User {

@@ -1,7 +1,6 @@
 package com.jukuproject.jukutweet;
 
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
@@ -17,11 +16,18 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import android.widget.TextView;
 import android.widget.Toast;
+
+import com.jukuproject.jukutweet.Dialogs.FollowUserDialog;
+import com.jukuproject.jukutweet.Dialogs.RemoveUserDialog;
+import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
+import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 
 import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
 
+/**
+ * Main activity fragment manager
+ */
 public class MainActivity extends AppCompatActivity implements FragmentInteractionListener, DialogInteractionListener {
 
     /**
@@ -38,11 +44,12 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
-    private AddFeedDialog addFeedDialogFragment;
-    private RemoveFeedDialog removeFeedDialogFragment;
+    private FollowUserDialog followUserDialogFragment;
+    private RemoveUserDialog removeUserDialogFragment;
     private MainFragment mainFragment;
     private SmoothProgressBar progressbar;
-    private FloatingActionButton fabAddFeed;
+    private FloatingActionButton fabAddUser;
+    private static final String TAG = "TEST-Main";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,14 +65,16 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        fabAddFeed = (FloatingActionButton) findViewById(R.id.fab);
-        fabAddFeed.setOnClickListener(new View.OnClickListener() {
+        fabAddUser = (FloatingActionButton) findViewById(R.id.fab);
+        progressbar = (SmoothProgressBar) findViewById(R.id.progressbar);
+        fabAddUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
                 if(mViewPager != null && mViewPager.getCurrentItem() == 0) {
-                    showAddDialog();
+                    showFollowUserDialog();
                 } else {
+                    //TODO replace this
                     Toast.makeText(MainActivity.this, "page: " + mViewPager.getCurrentItem() , Toast.LENGTH_SHORT).show();
                 }
 
@@ -145,7 +154,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         @Override
         public Fragment getItem(int position) {
 
-            //TODO -- REPLACE WITH OWN FRAGMENT
+            //TODO -- REPLACE WITH CUSTOM FRAGMENT
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
             switch (position) {
@@ -161,11 +170,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     return PlaceholderFragment.newInstance(position + 1);
             }
 
-//            if(position == 0) {
-//                return MainFragment.newInstance(position);
-//            } else {
-//                return PlaceholderFragment.newInstance(position + 1);
-//            }
         }
 
 
@@ -190,26 +194,32 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     }
 
 
-
-    /** The user has entered a new RSS feed into the window and clicked OK */
+    /**
+     * Shows FollowUserDialogFragment, where user can input a new twitter handle to follow
+     * Called from the fabAddUser button click
+     */
+    public void showFollowUserDialog(){
+        if (followUserDialogFragment == null || !followUserDialogFragment.isAdded()) {
+            followUserDialogFragment = FollowUserDialog.newInstance();
+            followUserDialogFragment.show(getFragmentManager(), "dialogAdd");
+        }
+    }
 
     /**
-     * Recieves input text from add user dialog, enters
+     * Recieves input text from add user dialog
+     * Checks if that user already exists in database
+     * If not, inputs user into db and updates mainFragment recycler
      * @param inputText
      */
     @Override
-    public void onAddRSSDialogPositiveClick(String inputText) {
+    public void onFollowUserDialogPositiveClick(String inputText) {
         InternalDB internalDBInstance = InternalDB.getInstance(getBaseContext());
         /** Check to DB to see if the new feed is a duplicate*/
         if(internalDBInstance.duplicateUser(inputText.trim())) {
             Toast.makeText(this, "User already exists", Toast.LENGTH_SHORT).show();
-        } else {
+        } else if(internalDBInstance.saveUser(inputText.trim()) && mainFragment!= null){
             /** Otherwise enter the URL into the DB and update the adapter */
-            internalDBInstance.saveUser(inputText.trim());
-
-            if(mainFragment!= null) {
-                mainFragment.updateAdapter();
-            }
+            mainFragment.updateAdapter();
 
             //TODO implement interaction with API
             /* Now try to pull the feed. First check for internet connection. **/
@@ -218,63 +228,78 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 //            } else {
 //                getRSSFeed(inputText.trim());
 //            }
+        } else {
+            Toast.makeText(this, "Unable to follow user", Toast.LENGTH_SHORT).show();
         }
     }
 
+    /**
+     * Sets add and remove dialog fragments to null, in order to avoid multiple instances of the fragment
+     * if the user repeatedly clicks the fab
+     */
     @Override
-    public void onRemoveRSSDialogDismiss() {
-        removeFeedDialogFragment = null;
+    public void onUserDialogDismiss() {
+        followUserDialogFragment = null;
+        removeUserDialogFragment = null;
     }
 
-    @Override
-    public void onAddRSSDialogDismiss() {
-        addFeedDialogFragment = null;
-    }
-
-    public void showRemoveDialog(String user) {
-        if (removeFeedDialogFragment == null) {
-            removeFeedDialogFragment = RemoveFeedDialog.newInstance(user);
-            removeFeedDialogFragment.show(getFragmentManager(), "dialogRemove");
+    /**
+     * Shows remove User Dialog
+     * @param user User to "unfollow" (i.e. remove from database)
+     */
+    public void showRemoveUserDialog(String user) {
+        if (removeUserDialogFragment == null) {
+            removeUserDialogFragment = RemoveUserDialog.newInstance(user);
+            removeUserDialogFragment.show(getFragmentManager(), "dialogRemove");
         }
     }
 
-    /** User has chosen to remove a feed in the RemoveFeedDialog. Delete feed and update recyclerview in MainFragment **/
+    /**
+     * Removes a username from the database and updates recyclerview in main fragment.
+     * Is called from {@link RemoveUserDialog} via the {@link DialogInteractionListener}
+     * @param user User to remove from database
+     *
+     */
     @Override
-    public void onRemoveRSSDialogPositiveClick(String user) {
+    public void onRemoveUserDialogPositiveClick(String user) {
 
-        if(mainFragment == null) {
-            Log.d("TEST", "MAIN FRAG IS NULL");
-        }
         if (InternalDB.getInstance(getBaseContext()).deleteUser(user) && mainFragment != null) {
-            if(mainFragment != null) {
                 mainFragment.updateAdapter();
-            }
         } else {
             Toast.makeText(this, "Could not remove item", Toast.LENGTH_SHORT).show();
         }
 
     }
 
+    /**
+     * Shows progress bar during API lookups, hides otherwise
+     * @param show boolean True for show, False for hide
+     */
     public void showProgressBar(Boolean show) {
         if(show) {
             progressbar.setVisibility(View.VISIBLE);
         } else {
             progressbar.setVisibility(View.INVISIBLE);
-
         }
     }
 
-    /** Try to pull the feed.  */
-    public void followUser(final String user) {
+    /**
+     * Pulls twitter feed activity for a user into a list of FeedItems
+     * @param user
+     */
+    public void getUserFeed(final String user) {
         //TODO fill in the getUser
         Toast.makeText(this, "FOLLOWING USER", Toast.LENGTH_SHORT).show();
     }
 
-    public void showAddDialog(){
-        if (addFeedDialogFragment == null || !addFeedDialogFragment.isAdded()) {
-            addFeedDialogFragment = AddFeedDialog.newInstance();
-            addFeedDialogFragment.show(getFragmentManager(), "dialogAdd");
-        }
+    /**
+     *  Initiates twitter API lookup to check if user exists
+     * @param user
+     */
+    public void checkIfUserExists(final String user) {
+
     }
+
+
 
 }
