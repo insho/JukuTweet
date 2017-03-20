@@ -16,6 +16,8 @@ package com.jukuproject.jukutweet;
         import android.util.Log;
 
 
+        import com.jukuproject.jukutweet.Models.User;
+
         import java.util.ArrayList;
         import java.util.List;
 
@@ -117,10 +119,54 @@ public class InternalDB extends SQLiteOpenHelper {
             SQLiteDatabase db = this.getWritableDatabase();
             db.delete(TABLE_MAIN, COL0 + "= ?", new String[]{user});
             db.close();
+            Log.d("TEST", "RETURNING TRUE");
             return true;
         } catch(SQLiteException exception) {
+            Log.d("TEST", "RETURNING FALSE");
             return false;
         }
 
+    }
+
+
+    /** This pulls the RSSList dataset for the mainfragment recycler **/
+    /** IT is also chained to the attachImagestoRSSLists which matches downloaded thumbnails to the RSSList rows **/
+    public List<User> getFollowedUsers(Context context) {
+        List<User> followedUsers = new ArrayList<User>();
+
+        String querySelectAll = "Select distinct Name From " + TABLE_MAIN;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(querySelectAll, null);
+
+
+        try {
+            if (c.moveToFirst()) {
+                do {
+                    User user = new User(c.getString(0));
+//                    if(debug) {
+//                        Log.d(TAG, "putting id: " + c.getInt(0));
+//                        Log.d(TAG, "putting url: " + c.getString(1));
+//                        Log.d(TAG, "putting title: " + c.getString(2));
+//                        Log.d(TAG, "putting imageURL: " + c.getString(3));
+//                        Log.d(TAG, "putting imageURI: " + c.getString(4));
+//                    }
+//                    itemData.setId(c.getInt(0));
+//                    itemData.setURL(c.getString(1));
+//                    itemData.setTitle(c.getString(2));
+//                    itemData.setImageURL(c.getString(3));
+//                    itemData.setImageURI(c.getString(4));
+                    followedUsers.add(user);
+
+                } while (c.moveToNext());
+            }
+
+            c.close();
+        } finally {
+            db.close();
+        }
+
+//        Log.d(TAG,"users count: " + followedUsers.size());
+        //Now look for and attach images to the RSS LIST
+        return followedUsers;
     }
 }

@@ -5,7 +5,8 @@ package com.jukuproject.jukutweet;
  */
 
 public interface FragmentInteractionListener {
-    void getUser(final String user);
+    void followUser(final String user);
     void showRemoveDialog(String user);
+    void showAddDialog();
     void showProgressBar(Boolean show);
 }

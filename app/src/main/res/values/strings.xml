@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">JukuTweet</string>
+    <string name="action_settings">Settings</string>
+    <string name="section_format">Hello World from section: %1$d</string>
+
+    <string name="dialog_title">Enter @UserName</string>
+    <string name="remove_dialog_title">Unfollow %1$s?</string>
+    <string name="dialog_empty">RSS feed is blank</string>
+    <string name="nolists">no saved users</string>
+</resources>

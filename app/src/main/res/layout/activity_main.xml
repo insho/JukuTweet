@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_content"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context="com.jukuproject.jukutweet.MainActivity">
+
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/appbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            app:layout_scrollFlags="scroll|enterAlways"
+            app:popupTheme="@style/AppTheme.PopupOverlay">
+
+        </android.support.v7.widget.Toolbar>
+
+    </android.support.design.widget.AppBarLayout>
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" >
+
+        <android.support.v4.view.PagerTitleStrip
+            android:id="@+id/pager_title_strip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:background="#33b5e5"
+            android:textColor="#fff"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp" />
+
+
+        <fr.castorflex.android.smoothprogressbar.SmoothProgressBar
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/progressbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:visibility="invisible"
+            app:spb_sections_count="4"
+            app:spb_color="#FF0000"
+            app:spb_speed="2.0"
+            app:spb_stroke_width="4dp"
+            app:spb_stroke_separator_length="4dp"
+            app:spb_reversed="false"
+            app:spb_mirror_mode="false"
+            app:spb_progressiveStart_activated="true"
+            app:spb_progressiveStart_speed="1.5"
+            app:spb_progressiveStop_speed="3.4"
+            />
+
+    </android.support.v4.view.ViewPager>
+
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_margin="@dimen/fab_margin"
+        android:layout_marginBottom="25dp"
+        app:srcCompat="@drawable/ic_add_white_24dp" />
+
+
+</android.support.design.widget.CoordinatorLayout>
