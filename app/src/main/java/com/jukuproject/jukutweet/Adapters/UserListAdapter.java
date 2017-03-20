@@ -8,7 +8,7 @@ package com.jukuproject.jukutweet.Adapters;
         import android.widget.ImageView;
         import android.widget.TextView;
 
-        import com.jukuproject.jukutweet.Models.User;
+        import com.jukuproject.jukutweet.Models.UserInfo;
         import com.jukuproject.jukutweet.R;
         import com.jukuproject.jukutweet.Interfaces.RxBus;
 
@@ -17,7 +17,7 @@ package com.jukuproject.jukutweet.Adapters;
 public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHolder> {
 
     private RxBus _rxbus;
-    private List<User> mDataset;
+    private List<UserInfo> mDataset;
     private Context mContext;
 
 
@@ -33,7 +33,7 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
         }
     }
 
-    public UserListAdapter(List<User> myDataset, RxBus rxBus, Context context) {
+    public UserListAdapter(List<UserInfo> myDataset, RxBus rxBus, Context context) {
         mDataset = myDataset;
         _rxbus = rxBus;
         mContext = context;
@@ -53,7 +53,7 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
 
-        holder.txtUserName.setText(getUser(position).getName());
+        holder.txtUserName.setText(getUser(position).getScreenName());
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -78,7 +78,7 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
     }
 
 
-    public User getUser(int position) {
+    public UserInfo getUser(int position) {
         return mDataset.get(position);
     }
 

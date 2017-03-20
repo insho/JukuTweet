@@ -7,4 +7,11 @@
     <string name="remove_dialog_title">Unfollow %1$s?</string>
     <string name="dialog_empty">RSS feed is blank</string>
     <string name="nolists">no saved users</string>
+
+    <string name="testUser">jukuproject</string>
+    <string name="atsign">\u0040</string>
+
+    <string name="access_token">843793669106909186-rxzRHDQGzVza0NstjljujV6cp4bpfwY</string>
+    <string name="access_token_secret">DYlvYn05mKz8otLKzQHI6naiNhDWuyoyFSrzvMDP9GYtG</string>
+
 </resources>

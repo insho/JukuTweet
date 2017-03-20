@@ -15,7 +15,7 @@ package com.jukuproject.jukutweet;
         import com.jukuproject.jukutweet.Adapters.UserListAdapter;
         import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
         import com.jukuproject.jukutweet.Interfaces.RxBus;
-        import com.jukuproject.jukutweet.Models.User;
+        import com.jukuproject.jukutweet.Models.UserInfo;
 
         import java.util.List;
         import rx.functions.Action1;
@@ -84,11 +84,11 @@ public class MainFragment extends Fragment {
     public void updateAdapter() {
 
         //Pull list of followed twitter users from the database
-        List<User> userList = InternalDB.getInstance(getContext()).getFollowedUsers();
+        List<UserInfo> savedUserInfo = InternalDB.getInstance(getContext()).getSavedUserInfo();
 
         //Create UserListAdapter and attach rxBus click listeners to it
-        if(userList != null && userList.size() > 0) {
-            mAdapter = new UserListAdapter(userList, _rxBus, getContext());
+        if(savedUserInfo != null && savedUserInfo.size() > 0) {
+            mAdapter = new UserListAdapter(savedUserInfo, _rxBus, getContext());
 
             showRecyclerView(true);
 
@@ -102,14 +102,14 @@ public class MainFragment extends Fragment {
 //                            }
 //                            mLastClickTime = SystemClock.elapsedRealtime();
 //
-//                            if(event instanceof User) {
-//                                User user = (User) event;
+//                            if(event instanceof UserInfo) {
+//                                UserInfo user = (UserInfo) event;
 //                                mCallback.getUserFeed(user.getName());
 //                            }
 
-                            if(isUniqueClick(1000) && event instanceof User) {
-                                User user = (User) event;
-                                mCallback.getUserFeed(user.getName());
+                            if(isUniqueClick(1000) && event instanceof UserInfo) {
+                                UserInfo userInfo = (UserInfo) event;
+                                mCallback.getUserFeed(userInfo.getScreenName());
                             }
 
                         }
@@ -124,13 +124,13 @@ public class MainFragment extends Fragment {
 //                                return;
 //                            }
 //                            mLastClickTime = SystemClock.elapsedRealtime();
-//                            if(event instanceof User) {
-//                                User user = (User) event;
+//                            if(event instanceof UserInfo) {
+//                                UserInfo user = (UserInfo) event;
 //                                mCallback.showRemoveUserDialog(user.getName());
 //                            }
-                            if(isUniqueClick(1000) && event instanceof User) {
-                                User user = (User) event;
-                                mCallback.showRemoveUserDialog(user.getName());
+                            if(isUniqueClick(1000) && event instanceof UserInfo) {
+                                UserInfo userInfo = (UserInfo) event;
+                                mCallback.showRemoveUserDialog(userInfo.getScreenName());
                             }
 //
 

@@ -10,7 +10,7 @@ package com.jukuproject.jukutweet;
         import android.util.Log;
 
 
-        import com.jukuproject.jukutweet.Models.User;
+        import com.jukuproject.jukutweet.Models.UserInfo;
 
         import java.util.ArrayList;
         import java.util.List;
@@ -130,12 +130,12 @@ public class InternalDB extends SQLiteOpenHelper {
 
 
     /**
-     * Pulls followed user data from db and fills a list of User objects, to
+     * Pulls user information from db and fills a list of UserInfo objects, to
      * be used in the MainFragment recycler
-     * @return list of User objects, one for each followed user saved in the db
+     * @return list of UserInfo objects, one for each followed user saved in the db
      */
-    public List<User> getFollowedUsers() {
-        List<User> followedUsers = new ArrayList<User>();
+    public List<UserInfo> getSavedUserInfo() {
+        List<UserInfo> userInfoList = new ArrayList<UserInfo>();
 
         String querySelectAll = "Select distinct Name From " + TABLE_MAIN;
         SQLiteDatabase db = this.getReadableDatabase();
@@ -145,7 +145,7 @@ public class InternalDB extends SQLiteOpenHelper {
         try {
             if (c.moveToFirst()) {
                 do {
-                    User user = new User(c.getString(0));
+                    UserInfo userInfo = new UserInfo(c.getString(0));
 //                    if(debug) {
 //                        Log.d(TAG, "putting id: " + c.getInt(0));
 //                        Log.d(TAG, "putting url: " + c.getString(1));
@@ -158,7 +158,7 @@ public class InternalDB extends SQLiteOpenHelper {
 //                    itemData.setTitle(c.getString(2));
 //                    itemData.setImageURL(c.getString(3));
 //                    itemData.setImageURI(c.getString(4));
-                    followedUsers.add(user);
+                    userInfoList.add(userInfo);
 
                 } while (c.moveToNext());
             }
@@ -170,6 +170,6 @@ public class InternalDB extends SQLiteOpenHelper {
 
 //        Log.d(TAG,"users count: " + followedUsers.size());
         //Now look for and attach images to the RSS LIST
-        return followedUsers;
+        return userInfoList;
     }
 }

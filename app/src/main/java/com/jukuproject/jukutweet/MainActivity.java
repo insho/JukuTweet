@@ -18,12 +18,16 @@ import android.view.ViewGroup;
 
 import android.widget.Toast;
 
-import com.jukuproject.jukutweet.Dialogs.FollowUserDialog;
+import com.jukuproject.jukutweet.Dialogs.AddUserDialog;
 import com.jukuproject.jukutweet.Dialogs.RemoveUserDialog;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
+import com.jukuproject.jukutweet.Models.UserInfo;
 
 import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
+import rx.Observer;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * Main activity fragment manager
@@ -44,12 +48,13 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
-    private FollowUserDialog followUserDialogFragment;
+    private AddUserDialog addUserDialogFragment;
     private RemoveUserDialog removeUserDialogFragment;
     private MainFragment mainFragment;
     private SmoothProgressBar progressbar;
     private FloatingActionButton fabAddUser;
     private static final String TAG = "TEST-Main";
+    private static final boolean debug = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -199,9 +204,9 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * Called from the fabAddUser button click
      */
     public void showFollowUserDialog(){
-        if (followUserDialogFragment == null || !followUserDialogFragment.isAdded()) {
-            followUserDialogFragment = FollowUserDialog.newInstance();
-            followUserDialogFragment.show(getFragmentManager(), "dialogAdd");
+        if (addUserDialogFragment == null || !addUserDialogFragment.isAdded()) {
+            addUserDialogFragment = AddUserDialog.newInstance();
+            addUserDialogFragment.show(getFragmentManager(), "dialogAdd");
         }
     }
 
@@ -216,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         InternalDB internalDBInstance = InternalDB.getInstance(getBaseContext());
         /** Check to DB to see if the new feed is a duplicate*/
         if(internalDBInstance.duplicateUser(inputText.trim())) {
-            Toast.makeText(this, "User already exists", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "UserInfo already exists", Toast.LENGTH_SHORT).show();
         } else if(internalDBInstance.saveUser(inputText.trim()) && mainFragment!= null){
             /** Otherwise enter the URL into the DB and update the adapter */
             mainFragment.updateAdapter();
@@ -239,13 +244,13 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      */
     @Override
     public void onUserDialogDismiss() {
-        followUserDialogFragment = null;
+        addUserDialogFragment = null;
         removeUserDialogFragment = null;
     }
 
     /**
-     * Shows remove User Dialog
-     * @param user User to "unfollow" (i.e. remove from database)
+     * Shows remove UserInfo Dialog
+     * @param user UserInfo to "unfollow" (i.e. remove from database)
      */
     public void showRemoveUserDialog(String user) {
         if (removeUserDialogFragment == null) {
@@ -255,15 +260,15 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     }
 
     /**
-     * Removes a username from the database and updates recyclerview in main fragment.
+     * Removes a users screenName from the database and updates recyclerview in main fragment.
      * Is called from {@link RemoveUserDialog} via the {@link DialogInteractionListener}
-     * @param user User to remove from database
+     * @param screenName UserInfo to remove from database
      *
      */
     @Override
-    public void onRemoveUserDialogPositiveClick(String user) {
+    public void onRemoveUserDialogPositiveClick(String screenName) {
 
-        if (InternalDB.getInstance(getBaseContext()).deleteUser(user) && mainFragment != null) {
+        if (InternalDB.getInstance(getBaseContext()).deleteUser(screenName) && mainFragment != null) {
                 mainFragment.updateAdapter();
         } else {
             Toast.makeText(this, "Could not remove item", Toast.LENGTH_SHORT).show();
@@ -285,18 +290,78 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
     /**
      * Pulls twitter feed activity for a user into a list of FeedItems
-     * @param user
+     * @param screenName
      */
-    public void getUserFeed(final String user) {
-        //TODO fill in the getUser
-        Toast.makeText(this, "FOLLOWING USER", Toast.LENGTH_SHORT).show();
+    public void getUserFeed( String screenName) {
+
+//        Toast.makeText(this, "FOLLOWING USER", Toast.LENGTH_SHORT).show();
+
+
+        String token = getResources().getString(R.string.access_token);
+        String tokenSecret = getResources().getString(R.string.access_token_secret);
+
+        TwitterUserClient.getInstance(token,tokenSecret)
+                .getUserInfo(screenName)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<UserInfo>() {
+                    UserInfo userInfoInstance;
+
+                    @Override public void onCompleted() {
+                        if(debug){
+                            Log.d(TAG, "In onCompleted()");}
+
+                        if(userInfoInstance != null) {
+
+                            //TODO DO STUFF, like pull data into db, or whatever
+
+                            Toast.makeText(MainActivity.this, "Successful pull for " + userInfoInstance.getScreenName() + "!", Toast.LENGTH_SHORT).show();
+
+//                            if (articleListFragment == null) {
+//                                articleListFragment = new ArticleListFragment();
+//
+//                                Bundle args = new Bundle();
+//                                args.putParcelableArrayList("loadedArticles",loadedArticles);
+//                                articleListFragment.setArguments(args);
+//                            }
+//
+//                            getSupportFragmentManager().beginTransaction()
+//                                    .addToBackStack("articlelistfrag")
+//                                    .replace(R.id.container, articleListFragment)
+//                                    .commit();
+
+
+//                            showToolBarBackButton(true,getArticleRequestType(requesttype));
+                        }
+                    }
+
+                    @Override public void onError(Throwable e) {
+                        e.printStackTrace();
+                        if(debug){Log.d(TAG, "In onError()");}
+                        Toast.makeText(getBaseContext(), "Unable to connect to Twitter API", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override public void onNext(UserInfo userInfo) {
+                        if(debug) {
+                            Log.d(TAG, "In onNext()");
+                            Log.d(TAG, "userInfo: " + userInfo.getId() + ", " + userInfo.getDescription());
+                        }
+
+                        /***TMP**/
+                        if(userInfoInstance == null) {
+                            userInfoInstance = userInfo;
+                        }
+
+
+                    }
+                });
     }
 
     /**
      *  Initiates twitter API lookup to check if user exists
-     * @param user
+     * @param screenName
      */
-    public void checkIfUserExists(final String user) {
+    public void checkIfUserExists(final String screenName) {
 
     }
 

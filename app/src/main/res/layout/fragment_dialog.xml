@@ -7,11 +7,22 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
 
-
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/black"
+        android:bo
+        android:text="@string/atsign"/>
     <EditText
         android:id="@+id/input"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="text"/>
+</LinearLayout>
+
 </android.support.design.widget.TextInputLayout>
 

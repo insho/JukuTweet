@@ -10,11 +10,20 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
     }
     buildTypes {
+
+        debug {
+            buildConfigField "String", "TWEET_API_KEY", "\"ShdILC9tL1Vi4w4FnU8GnZquN\""
+            buildConfigField "String", "TWEET_API_SECRET", "\"5osILKfW5bCyOyWDIIaCNa2QHPaEfLHuwoTKDqJNlZPVGBOsFf\""
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+            buildConfigField "String", "TWEET_API_KEY", "\"ShdILC9tL1Vi4w4FnU8GnZquN\""
+            buildConfigField "String", "TWEET_API_SECRET", "\"5osILKfW5bCyOyWDIIaCNa2QHPaEfLHuwoTKDqJNlZPVGBOsFf\""
         }
     }
 }
@@ -34,6 +43,10 @@ dependencies {
     compile 'com.squareup.okhttp3:logging-interceptor:3.3.0'
     compile 'io.reactivex:rxandroid:1.2.0'
     compile 'io.reactivex:rxjava:1.1.8'
+
+    compile 'se.akerfeldt:okhttp-signpost:1.1.0'
+    compile 'com.squareup.okhttp3:okhttp:3.0.0-RC1'
+    compile 'oauth.signpost:signpost-core:1.2.1.2'
 
     testCompile 'junit:junit:4.12'
 }
