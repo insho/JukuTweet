@@ -18,25 +18,24 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
 
     private RxBus _rxbus;
     private List<UserInfo> mDataset;
-    private Context mContext;
-
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
         public TextView txtUserName;
+        public TextView txtUserDescription;
         public ImageView image;
 
         public ViewHolder(View v) {
             super(v);
             txtUserName = (TextView) v.findViewById(R.id.name);
             image = (ImageView) v.findViewById(R.id.image);
+            txtUserDescription = (TextView) v.findViewById(R.id.description);
         }
     }
 
-    public UserListAdapter(List<UserInfo> myDataset, RxBus rxBus, Context context) {
+    public UserListAdapter(List<UserInfo> myDataset, RxBus rxBus) {
         mDataset = myDataset;
         _rxbus = rxBus;
-        mContext = context;
     }
 
     // Create new views (invoked by the layout manager)
@@ -53,7 +52,8 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
 
-        holder.txtUserName.setText(getUser(position).getScreenName());
+        holder.txtUserName.setText(getUser(position).getDisplayName());
+        holder.txtUserDescription.setText(getUser(position).getDescription());
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

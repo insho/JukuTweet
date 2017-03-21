@@ -5,10 +5,9 @@ package com.jukuproject.jukutweet;
         import com.google.gson.Gson;
         import com.google.gson.GsonBuilder;
         import com.jukuproject.jukutweet.Models.Tweet;
-        import com.jukuproject.jukutweet.Models.TweetCollection;
         import com.jukuproject.jukutweet.Models.UserInfo;
 
-        import java.util.ArrayList;
+        import java.util.List;
 
         import okhttp3.OkHttpClient;
         import okhttp3.logging.HttpLoggingInterceptor;
@@ -74,8 +73,8 @@ public class TwitterUserClient {
         return twitterService.getUserInfo(username);
     }
 
-    public Observable<ArrayList<Tweet>> getLatestTweets(@NonNull String username, int count) {
-        return twitterService.getLatestTweets(username, String.valueOf(count));
+    public Observable<List<Tweet>> getUserTimeline(@NonNull String username, int count) {
+        return twitterService.getUserTimeline(username, count);
     }
 
 

@@ -8,7 +8,7 @@ public class Tweet {
     private Boolean favorited;
     private Boolean truncated;
     private String created_at;
-    private Integer id;
+    private String id;
     private Integer retweet_count;
     private String text;
 
@@ -19,7 +19,7 @@ public class Tweet {
         this.text = text;
     }
 
-    public Tweet(Boolean favorited, Boolean truncated, String created_at, Integer id, Integer retweet_count, String text) {
+    public Tweet(Boolean favorited, Boolean truncated, String created_at, String id, Integer retweet_count, String text) {
         this.favorited = favorited;
         this.truncated = truncated;
         this.created_at = created_at;
@@ -52,11 +52,11 @@ public class Tweet {
         this.created_at = created_at;
     }
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 

@@ -7,6 +7,7 @@ package com.jukuproject.jukutweet;
         import android.support.v4.app.Fragment;
         import android.support.v7.widget.LinearLayoutManager;
         import android.support.v7.widget.RecyclerView;
+        import android.util.Log;
         import android.view.LayoutInflater;
         import android.view.View;
         import android.view.ViewGroup;
@@ -37,7 +38,7 @@ public class MainFragment extends Fragment {
     /**
      * Returns a new instance of MainFragment
      */
-    public static MainFragment newInstance(int sectionNumber) {
+    public static MainFragment newInstance() {
 //        MainFragment fragment = new MainFragment();
 //        Bundle args = new Bundle();
 //        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
@@ -88,7 +89,7 @@ public class MainFragment extends Fragment {
 
         //Create UserListAdapter and attach rxBus click listeners to it
         if(savedUserInfo != null && savedUserInfo.size() > 0) {
-            mAdapter = new UserListAdapter(savedUserInfo, _rxBus, getContext());
+            mAdapter = new UserListAdapter(savedUserInfo, _rxBus);
 
             showRecyclerView(true);
 
@@ -104,12 +105,20 @@ public class MainFragment extends Fragment {
 //
 //                            if(event instanceof UserInfo) {
 //                                UserInfo user = (UserInfo) event;
-//                                mCallback.getUserFeed(user.getName());
+//                                mCallback.getUserInfo(user.getName());
 //                            }
 
+                            //TODO MOVE THIS METHOD TO THE FRAGMENT, AND ONLY CALL BACK TO MAIN ACTIVITY???
+                            //TODO OR only if there is no userinfo, fill that shit in. otherwise dont
                             if(isUniqueClick(1000) && event instanceof UserInfo) {
                                 UserInfo userInfo = (UserInfo) event;
-                                mCallback.getUserFeed(userInfo.getScreenName());
+//                                mCallback.getUserInfo(userInfo.getScreenName());
+                                Log.d("TEST","MAIN FRAG SHOW TIMELINE...");
+
+//                                Fragment timeLineFragment  = TimeLineFragment.newInstance(userInfo);
+//                                getChildFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.container, timeLineFragment).commit();
+
+                                mCallback.showTimeLine(userInfo);
                             }
 
                         }

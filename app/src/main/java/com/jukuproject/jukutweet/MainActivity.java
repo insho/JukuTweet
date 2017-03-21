@@ -1,5 +1,6 @@
 package com.jukuproject.jukutweet;
 
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -24,6 +25,8 @@ import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.UserInfo;
 
+import java.sql.Time;
+
 import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
 import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
@@ -42,19 +45,21 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * may be best to switch to a
      * {@link android.support.v4.app.FragmentStatePagerAdapter}.
      */
-    private SectionsPagerAdapter mSectionsPagerAdapter;
-
+    private CustomSectionsPagerAdapter mSectionsPagerAdapter;
+    private CustomSectionsPagerAdapterUser mSectionsPagerAdapterUser;
     /**
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
     private AddUserDialog addUserDialogFragment;
     private RemoveUserDialog removeUserDialogFragment;
-    private MainFragment mainFragment;
+    private MainFragment mMainFragment;
+    private TimeLineFragment mTimeLineFragment;
     private SmoothProgressBar progressbar;
     private FloatingActionButton fabAddUser;
     private static final String TAG = "TEST-Main";
     private static final boolean debug = true;
+//    private boolean showTimeLine = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,8 +70,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         setSupportActionBar(toolbar);
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-
+        mSectionsPagerAdapter = new CustomSectionsPagerAdapter(getSupportFragmentManager());
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
@@ -111,92 +115,88 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
 
-        public PlaceholderFragment() {
-        }
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-//            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-//            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
-            return rootView;
-        }
-    }
 
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
-     */
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
-
-        public SectionsPagerAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-
-            //TODO -- REPLACE WITH CUSTOM FRAGMENT
-            // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
-            switch (position) {
-                case 0:
-//                    fabAddFeed.setVisibility(View.VISIBLE);
-                    mainFragment = MainFragment.newInstance(position);
-                    return mainFragment;
-                case 1:
-//                    fabAddFeed.setVisibility(View.GONE);
-                    return PlaceholderFragment.newInstance(position + 1);
-                default:
-//                    fabAddFeed.setVisibility(View.GONE);
-                    return PlaceholderFragment.newInstance(position + 1);
-            }
-
-        }
-
-
-        @Override
-        public int getCount() {
-            // Show 3 total pages.
-            return 3;
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            switch (position) {
-                case 0:
-                    return "Feeds";
-                case 1:
-                    return "My Lists";
-                case 2:
-                    return "Quiz All";
-            }
-            return null;
-        }
-    }
+//     */
+//    public class SectionsPagerAdapter extends FragmentPagerAdapter {
+//
+//        private UserInfo mUserInfo;
+//        public SectionsPagerAdapter(FragmentManager fm, @Nullable UserInfo userInfo) {
+//            super(fm);
+//            this.mUserInfo = userInfo;
+//        }
+//
+//        @Override
+//        public Fragment getItem(int position) {
+//
+//            //TODO -- REPLACE WITH CUSTOM FRAGMENT
+//            // getItem is called to instantiate the fragment for the given page.
+//            // Return a PlaceholderFragment (defined as a static inner class below).
+//            switch (position) {
+//                case 0:
+////                    fabAddFeed.setVisibility(View.VISIBLE);
+////                    mainFragment = MainFragment.newInstance(position);
+////                    return mainFragment;
+//                    Log.d(TAG,"mUserInfo outside: " + (mUserInfo == null));
+//                    if(mUserInfo != null) {
+//                        Log.d(TAG,"mTimeLineFragment inside: " + (mTimeLineFragment == null));
+//                       if(mTimeLineFragment == null) {
+//                           return TimeLineFragment.newInstance(mUserInfo);
+//                       } else {
+//                           return TimeLineFragment.newInstance(mUserInfo);
+//                       }
+//                    } else {
+//                        if(mMainFragment == null) {
+//                            return MainFragment.newInstance();
+//                        } else {
+//                            return mMainFragment;
+//                        }
+//                    }
+//
+//                case 1:
+////                    fabAddFeed.setVisibility(View.GONE);
+//                    return PlaceholderFragment.newInstance(position + 1);
+//                default:
+////                    fabAddFeed.setVisibility(View.GONE);
+//                    return PlaceholderFragment.newInstance(position + 1);
+//            }
+//        }
+//
+//
+//        @Override
+//        public int getCount() {
+//            // Show 3 total pages.
+//            return 3;
+//        }
+//
+//        @Override
+//        public CharSequence getPageTitle(int position) {
+//            if(mTimeLineFragment != null && mTimeLineFragment.isAdded() && mTimeLineFragment.isVisible()) {
+//                switch (position) {
+//                    case 0:
+//                        return "CURRENT TIMELINE";
+//                    case 1:
+//                        return "USERS SAVED TWEETS";
+//                    case 2:
+//                        return "Quiz THIS USER";
+//                }
+//
+//            } else {
+//                switch (position) {
+//                    case 0:
+//                        return "Feeds";
+//                    case 1:
+//                        return "My Lists";
+//                    case 2:
+//                        return "Quiz All";
+//                }
+//            }
+//            return null;
+//        }
+//    }
 
 
     /**
@@ -218,15 +218,23 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      */
     @Override
     public void onFollowUserDialogPositiveClick(String inputText) {
+
+
+        Log.d(TAG,"mMainFragment null on ADD? " + (mMainFragment == null));
+
         InternalDB internalDBInstance = InternalDB.getInstance(getBaseContext());
         /** Check to DB to see if the new feed is a duplicate*/
         if(internalDBInstance.duplicateUser(inputText.trim())) {
             Toast.makeText(this, "UserInfo already exists", Toast.LENGTH_SHORT).show();
-        } else if(internalDBInstance.saveUser(inputText.trim()) && mainFragment!= null){
+        } else if(internalDBInstance.saveUser(inputText.trim())){
             /** Otherwise enter the URL into the DB and update the adapter */
-            mainFragment.updateAdapter();
+
+        mSectionsPagerAdapter.onMainFragmentUpdate();
+//            mMainFragment.updateAdapter();
 
             //TODO implement interaction with API
+            //TODO check that its real?
+            getUserInfo(inputText.trim());
             /* Now try to pull the feed. First check for internet connection. **/
 //            if (!isOnline()) {
 //                Toast.makeText(getBaseContext(), "Device is not online", Toast.LENGTH_SHORT).show();
@@ -268,8 +276,10 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     @Override
     public void onRemoveUserDialogPositiveClick(String screenName) {
 
-        if (InternalDB.getInstance(getBaseContext()).deleteUser(screenName) && mainFragment != null) {
-                mainFragment.updateAdapter();
+        Log.d(TAG,"mMainFragment null? " + (mMainFragment == null));
+        if (InternalDB.getInstance(getBaseContext()).deleteUser(screenName) ) {
+//            mMainFragment.updateAdapter();
+            mSectionsPagerAdapter.onMainFragmentUpdate();
         } else {
             Toast.makeText(this, "Could not remove item", Toast.LENGTH_SHORT).show();
         }
@@ -292,7 +302,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * Pulls twitter feed activity for a user into a list of FeedItems
      * @param screenName
      */
-    public void getUserFeed( String screenName) {
+    public void getUserInfo(String screenName) {
 
 //        Toast.makeText(this, "FOLLOWING USER", Toast.LENGTH_SHORT).show();
 
@@ -365,6 +375,55 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
     }
 
+    public void showTimeLine(UserInfo userInfo) {
+
+//    Log.d(TAG,"mtimeline: " + (mTimeLineFragment == null) );
+        Log.d(TAG,"HERE IN SHOWTIELINE -- userInfo: " + (userInfo.getScreenName()) );
+//            if (mTimeLineFragment == null) {
+//                mTimeLineFragment = TimeLineFragment.newInstance(userInfo);
+//                //TODO -- MAKE THE PAGERVIEW THING REPRESENT THE CURRENT TIMELINE... AND THE PLUS BUTTON
+//
+//            }
+
+//        mSectionsPagerAdapter.onSwitchToTimeLineFragment(userInfo);
+
+//        getFragmentManager().beginTransaction().remove(getFragmentManager().findFragmentById(R.id.container)).commit();
+
+        //        ;
+//        mViewPager = (ViewPager) findViewById(R.id.container);
+        mViewPager.setAdapter(new CustomSectionsPagerAdapterUser(getSupportFragmentManager(),userInfo));
+
+//        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(),userInfo);
+//        mSectionsPagerAdapter.notifyDataSetChanged();
+//        mViewPager.setAdapter(mSectionsPagerAdapter);
+//        mViewPager.getCurrentItem();
+//
+//            getSupportFragmentManager().beginTransaction()
+//                    .addToBackStack("mainFragment")
+//                    .replace(R.id.container, mTimeLineFragment)
+//                    .commit();
+//            showToolBarBackButton(true, "Article Categories");
 
 
+
+
+    }
+
+
+    public Fragment getFragment() {
+        if(mTimeLineFragment != null) {
+            return mTimeLineFragment;
+        } else if(mMainFragment != null) {
+            return mMainFragment;
+        } else {
+            mMainFragment = MainFragment.newInstance();
+            return mMainFragment;
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+
+        super.onBackPressed();
+    }
 }
