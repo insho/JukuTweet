@@ -118,7 +118,18 @@ public class MainFragment extends Fragment {
 //                                Fragment timeLineFragment  = TimeLineFragment.newInstance(userInfo);
 //                                getChildFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.container, timeLineFragment).commit();
 
-                                mCallback.showTimeLine(userInfo);
+//                                mCallback.showTimeLine(userInfo);
+
+                                TimeLineFragment fragment = new TimeLineFragment();
+                                // if U need to pass some data
+                                Bundle bundle = new Bundle();
+
+//                                bundle.putString("title", "LEARN DETAIL FRAG");
+                                bundle.putParcelable("userInfo",userInfo);
+                                fragment.setArguments(bundle);
+                                ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true);
+
+
                             }
 
                         }
