@@ -7,9 +7,10 @@ import com.jukuproject.jukutweet.Models.UserInfo;
  */
 
 public interface FragmentInteractionListener {
-    void getUserInfo(final String user);
+    void tryToGetUserInfo(final String user);
     void showRemoveUserDialog(String user);
-    void showFollowUserDialog();
+    void showAddUserDialog();
     void showProgressBar(Boolean show);
     void showTimeLine(UserInfo userInfo);
+    void showActionBarBackButton(Boolean showBack, CharSequence title);
 }

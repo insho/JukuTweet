@@ -1,4 +1,4 @@
-package com.jukuproject.jukutweet;
+package com.jukuproject.jukutweet.Fragments;
 
         import android.content.Context;
         import android.os.Bundle;
@@ -14,15 +14,18 @@ package com.jukuproject.jukutweet;
         import android.widget.TextView;
 
         import com.jukuproject.jukutweet.Adapters.UserListAdapter;
+        import com.jukuproject.jukutweet.BaseContainerFragment;
         import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
         import com.jukuproject.jukutweet.Interfaces.RxBus;
+        import com.jukuproject.jukutweet.InternalDB;
         import com.jukuproject.jukutweet.Models.UserInfo;
+        import com.jukuproject.jukutweet.R;
 
         import java.util.List;
         import rx.functions.Action1;
 
 
-public class MainFragment extends Fragment {
+public class UserListFragment extends Fragment {
     FragmentInteractionListener mCallback;
 
     /*Tracks elapsed time since last click of a recyclerview row. Used to
@@ -33,17 +36,17 @@ public class MainFragment extends Fragment {
     UserListAdapter mAdapter;
     private TextView mNoLists;
 
-    public MainFragment() {}
+    public UserListFragment() {}
 
     /**
-     * Returns a new instance of MainFragment
+     * Returns a new instance of UserListFragment
      */
-    public static MainFragment newInstance() {
-//        MainFragment fragment = new MainFragment();
+    public static UserListFragment newInstance() {
+//        UserListFragment fragment = new UserListFragment();
 //        Bundle args = new Bundle();
 //        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
 //        fragment.setArguments(args);
-        return new MainFragment();
+        return new UserListFragment();
     }
 
 
@@ -127,8 +130,8 @@ public class MainFragment extends Fragment {
 //                                bundle.putString("title", "LEARN DETAIL FRAG");
                                 bundle.putParcelable("userInfo",userInfo);
                                 fragment.setArguments(bundle);
-                                ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true);
-
+                                ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"timeline");
+                                mCallback.showActionBarBackButton(true,userInfo.getDisplayName());
 
                             }
 

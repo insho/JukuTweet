@@ -1,12 +1,13 @@
 package com.jukuproject.jukutweet;
 
-import android.support.annotation.Nullable;
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
@@ -19,9 +20,11 @@ import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Dialogs.AddUserDialog;
 import com.jukuproject.jukutweet.Dialogs.RemoveUserDialog;
+import com.jukuproject.jukutweet.Fragments.UserListFragment;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.UserInfo;
+import com.jukuproject.jukutweet.TabContainers.Tab1Container;
 
 import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
 import rx.Observer;
@@ -49,8 +52,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     private ViewPager mViewPager;
     private AddUserDialog addUserDialogFragment;
     private RemoveUserDialog removeUserDialogFragment;
-    private MainFragment mMainFragment;
-    private TimeLineFragment mTimeLineFragment;
+//    private UserListFragment mUserListFragment;
+//    private TimeLineFragment mTimeLineFragment;
     private SmoothProgressBar progressbar;
     private FloatingActionButton fabAddUser;
     private static final String TAG = "TEST-Main";
@@ -77,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             public void onClick(View view) {
 
                 if(mViewPager != null && mViewPager.getCurrentItem() == 0) {
-                    showFollowUserDialog();
+                    showAddUserDialog();
                 } else {
                     //TODO replace this
                     Toast.makeText(MainActivity.this, "page: " + mViewPager.getCurrentItem() , Toast.LENGTH_SHORT).show();
@@ -113,93 +116,14 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
 
 
-    /**
-     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-//     */
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
-        private UserInfo mUserInfo;
-        public SectionsPagerAdapter(FragmentManager fm, @Nullable UserInfo userInfo) {
-            super(fm);
-            this.mUserInfo = userInfo;
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-
-            //TODO -- REPLACE WITH CUSTOM FRAGMENT
-            // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
-            switch (position) {
-                case 0:
-//                    fabAddFeed.setVisibility(View.VISIBLE);
-//                    mainFragment = MainFragment.newInstance(position);
-//                    return mainFragment;
-                    Log.d(TAG,"mUserInfo outside: " + (mUserInfo == null));
-                    if(mUserInfo != null) {
-                        Log.d(TAG,"mTimeLineFragment inside: " + (mTimeLineFragment == null));
-                       if(mTimeLineFragment == null) {
-                           return TimeLineFragment.newInstance(mUserInfo);
-                       } else {
-                           return TimeLineFragment.newInstance(mUserInfo);
-                       }
-                    } else {
-                        if(mMainFragment == null) {
-                            return MainFragment.newInstance();
-                        } else {
-                            return mMainFragment;
-                        }
-                    }
-
-                case 1:
-//                    fabAddFeed.setVisibility(View.GONE);
-                    return UserListContainer.newInstance();
-                default:
-//                    fabAddFeed.setVisibility(View.GONE);
-                    return CustomSectionsPagerAdapter.PlaceholderFragment.newInstance(position + 1);
-            }
-        }
-
-
-        @Override
-        public int getCount() {
-            // Show 3 total pages.
-            return 3;
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            if(mTimeLineFragment != null && mTimeLineFragment.isAdded() && mTimeLineFragment.isVisible()) {
-                switch (position) {
-                    case 0:
-                        return "CURRENT TIMELINE";
-                    case 1:
-                        return "USERS SAVED TWEETS";
-                    case 2:
-                        return "Quiz THIS USER";
-                }
-
-            } else {
-                switch (position) {
-                    case 0:
-                        return "Feeds";
-                    case 1:
-                        return "My Lists";
-                    case 2:
-                        return "Quiz All";
-                }
-            }
-            return null;
-        }
-    }
 
 
     /**
      * Shows FollowUserDialogFragment, where user can input a new twitter handle to follow
      * Called from the fabAddUser button click
      */
-    public void showFollowUserDialog(){
+    public void showAddUserDialog(){
         if (addUserDialogFragment == null || !addUserDialogFragment.isAdded()) {
             addUserDialogFragment = AddUserDialog.newInstance();
             addUserDialogFragment.show(getFragmentManager(), "dialogAdd");
@@ -213,33 +137,33 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * @param inputText
      */
     @Override
-    public void onFollowUserDialogPositiveClick(String inputText) {
+    public void onAddUserDialogPositiveClick(String inputText) {
 
 
-        Log.d(TAG,"mMainFragment null on ADD? " + (mMainFragment == null));
+//        Log.d(TAG,"mUserListFragment null on ADD? " + (mUserListFragment == null));
 
-        InternalDB internalDBInstance = InternalDB.getInstance(getBaseContext());
+
         /** Check to DB to see if the new feed is a duplicate*/
-        if(internalDBInstance.duplicateUser(inputText.trim())) {
+        if(InternalDB.getInstance(getBaseContext()).duplicateUser(inputText.trim())) {
             Toast.makeText(this, "UserInfo already exists", Toast.LENGTH_SHORT).show();
-        } else if(internalDBInstance.saveUser(inputText.trim())){
+        } else if (!isOnline()) {
+            Toast.makeText(getBaseContext(), "Unable to access internet", Toast.LENGTH_SHORT).show();
+            } else {
+            tryToGetUserInfo(inputText.trim());
+        }
+
+
             /** Otherwise enter the URL into the DB and update the adapter */
 
-//        mSectionsPagerAdapter.onMainFragmentUpdate();
-//            mMainFragment.updateAdapter();
 
-            //TODO implement interaction with API
-            //TODO check that its real?
-            getUserInfo(inputText.trim());
+
             /* Now try to pull the feed. First check for internet connection. **/
 //            if (!isOnline()) {
 //                Toast.makeText(getBaseContext(), "Device is not online", Toast.LENGTH_SHORT).show();
 //            } else {
 //                getRSSFeed(inputText.trim());
 //            }
-        } else {
-            Toast.makeText(this, "Unable to follow user", Toast.LENGTH_SHORT).show();
-        }
+
     }
 
     /**
@@ -272,9 +196,16 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     @Override
     public void onRemoveUserDialogPositiveClick(String screenName) {
 
-        Log.d(TAG,"mMainFragment null? " + (mMainFragment == null));
+//        Log.d(TAG,"mUserListFragment null? " + (mUserListFragment == null));
         if (InternalDB.getInstance(getBaseContext()).deleteUser(screenName) ) {
-//            mMainFragment.updateAdapter();
+
+            Log.d(TAG,"findfragbypos: " + findFragmentByPosition(0));
+
+            // Locate Tab1Continer and update the UserListInfo adapter to reflect removed item
+            if(findFragmentByPosition(0) != null && findFragmentByPosition(0) instanceof Tab1Container) {
+                ((Tab1Container) findFragmentByPosition(0)).updateUserListFragment();
+            }
+//            mUserListFragment.updateAdapter();
 //            mSectionsPagerAdapter.onMainFragmentUpdate();
         } else {
             Toast.makeText(this, "Could not remove item", Toast.LENGTH_SHORT).show();
@@ -298,69 +229,78 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * Pulls twitter feed activity for a user into a list of FeedItems
      * @param screenName
      */
-    public void getUserInfo(String screenName) {
+    public void tryToGetUserInfo(final String screenName) {
 
 //        Toast.makeText(this, "FOLLOWING USER", Toast.LENGTH_SHORT).show();
 
+            String token = getResources().getString(R.string.access_token);
+            String tokenSecret = getResources().getString(R.string.access_token_secret);
 
-        String token = getResources().getString(R.string.access_token);
-        String tokenSecret = getResources().getString(R.string.access_token_secret);
+            TwitterUserClient.getInstance(token,tokenSecret)
+                    .getUserInfo(screenName)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Observer<UserInfo>() {
+                        UserInfo userInfoInstance;
 
-        TwitterUserClient.getInstance(token,tokenSecret)
-                .getUserInfo(screenName)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<UserInfo>() {
-                    UserInfo userInfoInstance;
 
-                    @Override public void onCompleted() {
-                        if(debug){
-                            Log.d(TAG, "In onCompleted()");}
 
-                        if(userInfoInstance != null) {
 
-                            //TODO DO STUFF, like pull data into db, or whatever
+                        @Override public void onCompleted() {
+                            if(debug){
+                                Log.d(TAG, "In onCompleted()");}
 
-                            Toast.makeText(MainActivity.this, "Successful pull for " + userInfoInstance.getScreenName() + "!", Toast.LENGTH_SHORT).show();
+                            /* If the user exists and a UserInfo object has been populated,
+                            * save it to the database and update the UserInfoFragment adapter */
+                            if(userInfoInstance != null) {
 
-//                            if (articleListFragment == null) {
-//                                articleListFragment = new ArticleListFragment();
-//
-//                                Bundle args = new Bundle();
-//                                args.putParcelableArrayList("loadedArticles",loadedArticles);
-//                                articleListFragment.setArguments(args);
-//                            }
-//
-//                            getSupportFragmentManager().beginTransaction()
-//                                    .addToBackStack("articlelistfrag")
-//                                    .replace(R.id.container, articleListFragment)
-//                                    .commit();
+                                //TODO DO STUFF, like pull data into db, or whatever
+
+
+                                if(InternalDB.getInstance(getBaseContext()).saveUser(userInfoInstance)) {
+                                    Toast.makeText(MainActivity.this, "Successful pull for " + userInfoInstance.getScreenName() + "!", Toast.LENGTH_SHORT).show();
+
+                                    // Locate Tab1Continer and update the UserListInfo adapter to reflect removed item
+                                    if(findFragmentByPosition(0) != null && findFragmentByPosition(0) instanceof Tab1Container) {
+                                        ((Tab1Container) findFragmentByPosition(0)).updateUserListFragment();
+                                    }
+
+                                }
 
 
 //                            showToolBarBackButton(true,getArticleRequestType(requesttype));
-                        }
-                    }
 
-                    @Override public void onError(Throwable e) {
-                        e.printStackTrace();
-                        if(debug){Log.d(TAG, "In onError()");}
-                        Toast.makeText(getBaseContext(), "Unable to connect to Twitter API", Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override public void onNext(UserInfo userInfo) {
-                        if(debug) {
-                            Log.d(TAG, "In onNext()");
-                            Log.d(TAG, "userInfo: " + userInfo.getId() + ", " + userInfo.getDescription());
+                            } else {
+                                Toast.makeText(MainActivity.this, "Unable to add user " + screenName, Toast.LENGTH_SHORT).show();
+                            }
                         }
 
-                        /***TMP**/
-                        if(userInfoInstance == null) {
-                            userInfoInstance = userInfo;
+                        @Override public void onError(Throwable e) {
+                            e.printStackTrace();
+                            if(debug){Log.d(TAG, "In onError()");}
+                            Toast.makeText(getBaseContext(), "Unable to connect to Twitter API", Toast.LENGTH_SHORT).show();
+
+                            Log.d(TAG,"ERROR CAUSE: " + e.getCause());
                         }
 
+                        @Override public void onNext(UserInfo userInfo) {
+                            if(debug) {
+                                Log.d(TAG, "In onNext()");
+                                Log.d(TAG, "userInfo: " + userInfo.getId() + ", " + userInfo.getDescription());
+                            }
 
-                    }
-                });
+                            /***TMP**/
+                            if(userInfoInstance == null) {
+                                userInfoInstance = userInfo;
+                            }
+
+
+                        }
+                    });
+
+
+
+
     }
 
     /**
@@ -387,7 +327,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
         //        ;
 //        mViewPager = (ViewPager) findViewById(R.id.container);
-        mViewPager.setAdapter(new CustomSectionsPagerAdapterUser(getSupportFragmentManager(),userInfo));
+//        mViewPager.setAdapter(new CustomSectionsPagerAdapterUser(getSupportFragmentManager(),userInfo));
 
 //        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(),userInfo);
 //        mSectionsPagerAdapter.notifyDataSetChanged();
@@ -406,20 +346,110 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     }
 
 
-    public Fragment getFragment() {
-        if(mTimeLineFragment != null) {
-            return mTimeLineFragment;
-        } else if(mMainFragment != null) {
-            return mMainFragment;
-        } else {
-            mMainFragment = MainFragment.newInstance();
-            return mMainFragment;
-        }
-    }
+//    public Fragment getFragment() {
+//        if(mTimeLineFragment != null) {
+//            return mTimeLineFragment;
+//        } else if(mUserListFragment != null) {
+//            return mUserListFragment;
+//        } else {
+//            mUserListFragment = UserListFragment.newInstance();
+//            return mUserListFragment;
+//        }
+//    }
 
     @Override
     public void onBackPressed() {
+        boolean isPopFragment = false;
 
-        super.onBackPressed();
+//Pop backstack depending on the overall tab position (if applicable)
+
+        switch (mViewPager.getCurrentItem()) {
+            case 0:
+                isPopFragment = ((BaseContainerFragment)findFragmentByPosition(0)).popFragment();
+                    break;
+            case 1:
+                break;
+            case 2:
+                break;
+            default:
+                break;
+        }
+
+//        Log.d(TAG,"current item: " + mViewPager.getCurrentItem());
+//
+//        if(mSectionsPagerAdapter.getItem(mViewPager.getCurrentItem()) == null){
+//            Log.d(TAG,"ITS NULL.... ");
+//        } else if (mSectionsPagerAdapter.getItem(mViewPager.getCurrentItem()) instanceof TimeLineFragment) {
+//            Log.d(TAG,"YAYYYYY");
+//        }
+
+
+//        String currentTabTag = mSectionsPagerAdapter.getItem(mViewPager.getCurrentItem()).getTag();
+
+//        if (currentTabTag.equals("timeline")) {
+//            isPopFragment = ((BaseContainerFragment)getSupportFragmentManager().findFragmentByTag("timeline")).popFragment();
+//        }
+
+
+//        if (currentTab instanceof TimeLineFragment) {
+//            Log.d("TEST","ITS A TIMELINE YO");
+//            isPopFragment = ((BaseContainerFragment)getSupportFragmentManager().findFragmentByTag("timeline")).popFragment();
+//        }
+        if (!isPopFragment) {
+            finish();
+        }
+//        super.onBackPressed();
     }
+
+//    // This the important bit to make sure the back button works when you're nesting fragments. Very hacky, all it takes is some Google engineer to change that ViewPager view tag to break this in a future Android update.
+//    @Override
+//    public void onBackPressed() {
+//        Fragment fragment = (Fragment) getSupportFragmentManager().findFragmentByTag("android:switcher:" + R.id.pager + ":"+mPager.getCurrentItem());
+//        if (fragment != null) // could be null if not instantiated yet
+//        {
+//            if (fragment.getView() != null) {
+//                // Pop the backstack on the ChildManager if there is any. If not, close this activity as normal.
+//                if (!fragment.getChildFragmentManager().popBackStackImmediate()) {
+//                    finish();
+//                }
+//            }
+//        }
+//    }
+
+
+    public Fragment findFragmentByPosition(int position) {
+//        FragmentPagerAdapter fragmentPagerAdapter = mSectionsPagerAdapter;
+        return getSupportFragmentManager().findFragmentByTag(
+                "android:switcher:" + mViewPager.getId() + ":"
+                        + mSectionsPagerAdapter.getItemId(position));
+    }
+
+    private boolean isOnline() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
+    }
+
+
+    public void showActionBarBackButton(Boolean showBack, CharSequence title) {
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(showBack);
+            getSupportActionBar().setDisplayShowTitleEnabled(true);
+            getSupportActionBar().setTitle(title);
+
+//            if(showBack) {
+//                hideOption(R.id.addFeed);
+//                showOption(R.id.shareFacebook);
+//            } else {
+//
+//                hideOption(R.id.shareFacebook);
+//                showOption(R.id.addFeed);
+//
+//            }
+        }
+
+    }
+
 }

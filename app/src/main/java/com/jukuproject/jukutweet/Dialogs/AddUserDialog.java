@@ -7,8 +7,6 @@ import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -117,7 +115,7 @@ public class AddUserDialog extends DialogFragment {
                     //TODO put a possible internet verification deal here? To make sure a user handle really exists?
                     Toast.makeText(getActivity(), "Enter a user handle (without @ sign)", Toast.LENGTH_SHORT).show();
                 } else {
-                    mAddRSSDialogListener.onFollowUserDialogPositiveClick(editText.getText().toString().trim());
+                    mAddRSSDialogListener.onAddUserDialogPositiveClick(editText.getText().toString().trim());
                     dialog.dismiss();
                 }
             }

@@ -12,6 +12,20 @@ public class Tweet {
     private Integer retweet_count;
     private String text;
 
+
+    /* Each time a saved user's timeline is clicked, pull the user info
+    * (if it exists) within the api response, and check it against the userInfo from the db and
+    * update db if necessary with new user data */
+    private UserInfo user;
+    public UserInfo getUser() {
+        return user;
+    }
+
+
+
+
+
+
     public Tweet() {};
 
 

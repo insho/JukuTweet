@@ -7,7 +7,7 @@ package com.jukuproject.jukutweet.Interfaces;
  */
 
 public interface DialogInteractionListener {
-    void onFollowUserDialogPositiveClick(String user);
+    void onAddUserDialogPositiveClick(String user);
     void onRemoveUserDialogPositiveClick(String user);
     void onUserDialogDismiss();
 }

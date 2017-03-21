@@ -9,12 +9,12 @@ import android.util.Log;
 public class BaseContainerFragment extends Fragment {
 
 
-    public void replaceFragment(Fragment fragment, boolean addToBackStack) {
+    public void replaceFragment(Fragment fragment, boolean addToBackStack, String tag) {
         FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
         if (addToBackStack) {
             transaction.addToBackStack(null);
         }
-        transaction.replace(R.id.container_framelayout, fragment);
+        transaction.replace(R.id.container_framelayout, fragment, tag);
         transaction.commit();
         getChildFragmentManager().executePendingTransactions();
     }

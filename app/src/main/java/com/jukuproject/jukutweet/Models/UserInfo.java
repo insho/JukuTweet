@@ -56,7 +56,7 @@ public class UserInfo implements Parcelable  {
         this.url = url;
     }
 
-    public String getFollowers_count() {
+    public String getFollowerCountString() {
         if(followers_count == null) {
             return "";
         } else {
@@ -65,12 +65,16 @@ public class UserInfo implements Parcelable  {
 
     }
 
+    public Integer getFollowerCount() {
+            return followers_count;
 
-    public void setFollowers_count(Integer followers_count) {
+    }
+
+    public void setFollowerCount(Integer followers_count) {
         this.followers_count = followers_count;
     }
 
-    public String getFriends_count() {
+    public String getFriendCountString() {
         if(friends_count == null) {
             return "";
         } else {
@@ -78,8 +82,12 @@ public class UserInfo implements Parcelable  {
         }
 
     }
+    public Integer getFriendCount() {
+        return friends_count;
 
-    public void setFriends_count(Integer friends_count) {
+    }
+
+    public void setFriendCount(Integer friends_count) {
         this.friends_count = friends_count;
     }
 

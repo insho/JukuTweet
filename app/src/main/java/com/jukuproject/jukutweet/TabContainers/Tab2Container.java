@@ -1,4 +1,4 @@
-package com.jukuproject.jukutweet;
+package com.jukuproject.jukutweet.TabContainers;
 
 
 import android.os.Bundle;
@@ -7,22 +7,27 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.jukuproject.jukutweet.BaseContainerFragment;
+import com.jukuproject.jukutweet.Fragments.MyListFragment;
+import com.jukuproject.jukutweet.R;
+import com.jukuproject.jukutweet.Fragments.UserListFragment;
 
-public class UserListContainer extends BaseContainerFragment {
+
+public class Tab2Container extends BaseContainerFragment {
 
     private boolean mIsViewInited;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.e("test", "tab 1 oncreateview");
+        Log.e("test", "tab 2 oncreateview");
         return inflater.inflate(R.layout.container_fragment, null);
     }
 
-    public UserListContainer() {
+    public Tab2Container() {
     }
 
-    public static UserListContainer newInstance() {
-        UserListContainer fragment = new UserListContainer();
+    public static Tab2Container newInstance() {
+        Tab2Container fragment = new Tab2Container();
 //        Bundle args = new Bundle();
 //        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
 //        fragment.setArguments(args);
@@ -41,8 +46,8 @@ public class UserListContainer extends BaseContainerFragment {
     }
 
     private void initView() {
-        Log.e("test", "tab 1 init view");
-        replaceFragment(new MainFragment(), false);
+        Log.e("test", "tab 2 init view");
+        replaceFragment(new MyListFragment(), false,"mylistfragment");
     }
 
 }

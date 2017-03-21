@@ -1,5 +1,6 @@
-package com.jukuproject.jukutweet;
+package com.jukuproject.jukutweet.Fragments;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -14,20 +15,24 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.jukuproject.jukutweet.Adapters.UserListAdapter;
 import com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter;
+import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
+import com.jukuproject.jukutweet.InternalDB;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.UserInfo;
+import com.jukuproject.jukutweet.R;
+import com.jukuproject.jukutweet.TwitterUserClient;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
 import rx.schedulers.Schedulers;
+
+import static com.jukuproject.jukutweet.InternalDB.TMAIN_COL0;
 
 
 public class TimeLineFragment extends Fragment {
@@ -53,7 +58,7 @@ public class TimeLineFragment extends Fragment {
     public TimeLineFragment() {}
 
     /**
-     * Returns a new instance of MainFragment
+     * Returns a new instance of UserListFragment
      */
     public static TimeLineFragment newInstance(UserInfo userInfo) {
         TimeLineFragment fragment = new TimeLineFragment();
@@ -88,8 +93,8 @@ public class TimeLineFragment extends Fragment {
 //        super.onResume();
 //        if(mUserInfo != null) {
 //            mHeaderScreenName.setText(mUserInfo.getDisplayName());
-//            mHeaderFollowers.setText("Followers: " + mUserInfo.getFollowers_count());
-//            mHeaderFriends.setText("Friends: " + mUserInfo.getFriends_count());
+//            mHeaderFollowers.setText("Followers: " + mUserInfo.getFollowerCount());
+//            mHeaderFriends.setText("Friends: " + mUserInfo.getFriendCount());
 //            pullTimeLineData(mUserInfo.getScreenName());
 //        } else {
 //            //TODO -- put error in place if there is no userinfo
@@ -106,9 +111,9 @@ public class TimeLineFragment extends Fragment {
 
         if(mUserInfo != null) {
             mHeaderScreenName.setText(mUserInfo.getDisplayName());
-            mHeaderFollowers.setText("Followers: " + mUserInfo.getFollowers_count());
-            mHeaderFriends.setText("Friends: " + mUserInfo.getFriends_count());
-            pullTimeLineData(mUserInfo.getScreenName());
+            mHeaderFollowers.setText("Followers: " + mUserInfo.getFollowerCountString());
+            mHeaderFriends.setText("Friends: " + mUserInfo.getFriendCountString());
+            pullTimeLineData(mUserInfo);
         } else {
             //TODO -- put error in place if there is no userinfo
         }
@@ -122,7 +127,7 @@ public class TimeLineFragment extends Fragment {
     }
 
 
-    public void pullTimeLineData(String screenName){
+    public void pullTimeLineData(final UserInfo userInfo){
 
         mCallback.showProgressBar(true);
         mAdapter = new UserTimeLineAdapter(new ArrayList<Tweet>());
@@ -131,8 +136,11 @@ public class TimeLineFragment extends Fragment {
         String token = getResources().getString(R.string.access_token);
         String tokenSecret = getResources().getString(R.string.access_token_secret);
 
+        //TODO fix it so the progress bar shows up
+        //TODO make the number of twitter responses an option! not just 10
+        //TODO AND BASE EVERYTING ON THE FUCKING TWITTER ID!!! LIKE IN THE DATABASE!!! SAVE THE TWITTER ID!!
         TwitterUserClient.getInstance(token,tokenSecret)
-                .getUserTimeline(screenName,10)
+                .getUserTimeline(userInfo.getScreenName(),10)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<List<Tweet>>() {
@@ -143,6 +151,23 @@ public class TimeLineFragment extends Fragment {
                         mCallback.showProgressBar(false);
                         mAdapter = new UserTimeLineAdapter(mTimeLine);
                         mRecyclerView.setAdapter(mAdapter);
+
+                        //TODO Make this its own subscribable that we can chain!
+                        /* Check most recent user info (if it exists within timeline api response)
+                        * against the user info stored in db. update db with any changed ino */
+                        //And make it its own void
+                        if(mTimeLine != null && mTimeLine.size() > 0) {
+                            try {
+                                UserInfo recentUserInfo = mTimeLine.get(0).getUser();
+                                InternalDB.getInstance(getContext()).compareUserInfoAndUpdate(userInfo,recentUserInfo);
+
+                            } catch (NullPointerException e) {
+                                Log.e(TAG,"Timeline userinfo match problem: " + e);
+                            }
+
+
+                        }
+
                     }
 
                     @Override public void onError(Throwable e) {
@@ -157,15 +182,15 @@ public class TimeLineFragment extends Fragment {
                     @Override public void onNext(List<Tweet> timeline) {
                         if(BuildConfig.DEBUG) {
                             Log.d(TAG, "In onNext()");
-
+                            Log.d(TAG,"TIMELINE SIZE: " + timeline.size());
                         }
-                        Log.d(TAG,"TIMELINE SIZE: " + timeline.size());
+
                         for(Tweet tweet : timeline) {
                             Log.d(TAG,"timeline thing: " + tweet.getText());
                             showRecyclerView(true);
                             mTimeLine.add(tweet);
                         }
-                        mAdapter.notifyItemInserted(mTimeLine.size() - 1);
+//                        mAdapter.notifyItemInserted(mTimeLine.size() - 1);
                     }
                 });
 
