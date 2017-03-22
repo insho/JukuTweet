@@ -20,10 +20,11 @@ import com.jukuproject.jukutweet.TabContainers.Tab3Container;
  //     */
 public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
-    private UserInfo mUserInfo;
-    public SectionsPagerAdapter(FragmentManager fm, @Nullable UserInfo userInfo) {
+    public String tab1Title;
+
+    public SectionsPagerAdapter(FragmentManager fm) {
         super(fm);
-        this.mUserInfo = userInfo;
+        this.tab1Title = "Users";
     }
 
     @Override
@@ -72,12 +73,15 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
         return 3;
     }
 
+
+
+
     @Override
     public CharSequence getPageTitle(int position) {
 
             switch (position) {
                 case 0:
-                    return "Feeds";
+                    return tab1Title;
                 case 1:
                     return "My Lists";
                 case 2:
@@ -85,5 +89,10 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
                 default:
                     return "";
             }
+    }
+
+    public void updateTitleData(String title) {
+        this.tab1Title = title;
+        notifyDataSetChanged();
     }
 }

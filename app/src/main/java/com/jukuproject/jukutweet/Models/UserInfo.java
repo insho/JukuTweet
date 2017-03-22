@@ -24,13 +24,7 @@ public class UserInfo implements Parcelable  {
         this.screen_name = screen_name;
     }
 
-    public String getId() {
-        return id;
-    }
 
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getLocation() {
         return location;
@@ -133,7 +127,16 @@ public class UserInfo implements Parcelable  {
 
     private String displayName;
     private String screen_name;
-    private String id;
+
+    public Integer getUserId() {
+        return user_id;
+    }
+
+    public void setUserId(Integer user_id) {
+        this.user_id = user_id;
+    }
+
+    private Integer user_id;
     private String location;
     private String description;
     private String url;
@@ -151,7 +154,7 @@ public class UserInfo implements Parcelable  {
         in.readStringArray(data);
         this.displayName = data[0];
         this.screen_name = data[1];
-        this.id = data[2];
+        this.user_id = Integer.parseInt(data[2]);
         this.location = data[3];
         this.description = data[4];
         this.url = data[5];
@@ -175,7 +178,7 @@ public class UserInfo implements Parcelable  {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeStringArray(new String[] {this.displayName,
                 this.screen_name,
-                this.id,
+                String.valueOf(this.user_id),
                 this.location,
                 this.description,
                 this.url,

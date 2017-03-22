@@ -19,8 +19,12 @@ public class BaseContainerFragment extends Fragment {
         getChildFragmentManager().executePendingTransactions();
     }
 
+//    public int getChildStackCount() {
+//        return getChildFragmentManager().getBackStackEntryCount();
+//    }
+
     public boolean popFragment() {
-        Log.e("test", "pop fragment: " + getChildFragmentManager().getBackStackEntryCount());
+        Log.d("TEST", "pop fragment: " + getChildFragmentManager().getBackStackEntryCount());
         boolean isPop = false;
         if (getChildFragmentManager().getBackStackEntryCount() > 0) {
             isPop = true;

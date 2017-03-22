@@ -30,10 +30,11 @@ public class InternalDB extends SQLiteOpenHelper {
     public static final String TABLE_MAIN = "Users";
     public static final String COL_ID = "_id";
     public static final String TMAIN_COL0 = "ScreenName";
-    public static final String TMAIN_COL1 = "Description";
-    public static final String TMAIN_COL2 = "FollowerCount";
-    public static final String TMAIN_COL3 = "FriendCount";
-    public static final String TMAIN_COL4 = "ProfileImgUrl";
+    public static final String TMAIN_COL1 = "UserId";
+    public static final String TMAIN_COL2 = "Description";
+    public static final String TMAIN_COL3 = "FollowerCount";
+    public static final String TMAIN_COL4 = "FriendCount";
+    public static final String TMAIN_COL5 = "ProfileImgUrl";
 
     public static synchronized InternalDB getInstance(Context context) {
 
@@ -56,6 +57,7 @@ public class InternalDB extends SQLiteOpenHelper {
                 String.format("CREATE TABLE IF NOT EXISTS %s (" +
                                 "%s INTEGER PRIMARY KEY AUTOINCREMENT, " +
                                 "%s TEXT, " +
+                                "%s INTEGER, " +
                                 "%s TEXT, " +
                                 "%s INTEGER, " +
                                 "%s INTEGER, " +
@@ -65,7 +67,8 @@ public class InternalDB extends SQLiteOpenHelper {
                         TMAIN_COL1,
                         TMAIN_COL2,
                         TMAIN_COL3,
-                        TMAIN_COL4);
+                        TMAIN_COL4,
+                        TMAIN_COL5);
 
         sqlDB.execSQL(sqlQueryMain);
 
@@ -123,16 +126,19 @@ public class InternalDB extends SQLiteOpenHelper {
                 values.put(TMAIN_COL0, userInfo.getScreenName().trim());
 
                 if(userInfo.getDescription() != null) {
-                    values.put(TMAIN_COL1, userInfo.getDescription().trim());
+                    values.put(TMAIN_COL1, userInfo.getUserId());
+                }
+                if(userInfo.getDescription() != null) {
+                    values.put(TMAIN_COL2, userInfo.getDescription().trim());
                 }
                 if(userInfo.getFollowerCount() != null ) {
-                    values.put(TMAIN_COL2, userInfo.getFollowerCount());
+                    values.put(TMAIN_COL3, userInfo.getFollowerCount());
                 }
                 if(userInfo.getFriendCount() != null){
-                    values.put(TMAIN_COL3, userInfo.getFriendCount());
+                    values.put(TMAIN_COL4, userInfo.getFriendCount());
                 }
                 if(userInfo.getProfile_image_url() != null) {
-                    values.put(TMAIN_COL4, userInfo.getProfile_image_url().trim());
+                    values.put(TMAIN_COL5, userInfo.getProfile_image_url().trim());
                 }
 
                 db.insert(TABLE_MAIN, null, values);
@@ -174,7 +180,7 @@ public class InternalDB extends SQLiteOpenHelper {
     public List<UserInfo> getSavedUserInfo() {
         List<UserInfo> userInfoList = new ArrayList<UserInfo>();
 
-        String querySelectAll = "Select distinct ScreenName,IFNULL(Description,''),FollowerCount, FriendCount, IFNULL(ProfileImgUrl,'') From " + TABLE_MAIN;
+        String querySelectAll = "Select distinct ScreenName,IFNULL(Description,''),FollowerCount, FriendCount, IFNULL(ProfileImgUrl,''),UserId From " + TABLE_MAIN;
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor c = db.rawQuery(querySelectAll, null);
 
@@ -184,6 +190,14 @@ public class InternalDB extends SQLiteOpenHelper {
                 do {
                     UserInfo userInfo = new UserInfo(c.getString(0));
                     userInfo.setDescription(c.getString(1));
+
+                    try {
+                        userInfo.setUserId(c.getInt(5));
+                    } catch (SQLiteException e) {
+
+                    } catch (Exception e) {
+
+                    }
 
                     try {
                         userInfo.setFollowerCount(c.getInt(2));
@@ -202,18 +216,6 @@ public class InternalDB extends SQLiteOpenHelper {
 
                     userInfo.setProfile_image_url(c.getString(4));
 
-//                      if(debug) {
-//                        Log.d(TAG, "putting id: " + c.getInt(0));
-//                        Log.d(TAG, "putting url: " + c.getString(1));
-//                        Log.d(TAG, "putting title: " + c.getString(2));
-//                        Log.d(TAG, "putting imageURL: " + c.getString(3));
-//                        Log.d(TAG, "putting imageURI: " + c.getString(4));
-//                    }
-//                    itemData.setId(c.getInt(0));
-//                    itemData.setURL(c.getString(1));
-//                    itemData.setTitle(c.getString(2));
-//                    itemData.setImageURL(c.getString(3));
-//                    itemData.setImageURI(c.getString(4));
                     userInfoList.add(userInfo);
 
                 } while (c.moveToNext());
@@ -224,8 +226,6 @@ public class InternalDB extends SQLiteOpenHelper {
             db.close();
         }
 
-//        Log.d(TAG,"users count: " + followedUsers.size());
-        //Now look for and attach images to the RSS LIST
         return userInfoList;
     }
 
@@ -234,22 +234,33 @@ public class InternalDB extends SQLiteOpenHelper {
 
         try {
             ContentValues values = new ContentValues();
+
+            /*The user's screenName field can change, but the user id won't. So if possible user the userId as the
+              key for making updates */
+            if(oldUserInfo.getUserId() != null && !oldUserInfo.getScreenName().equals(recentUserInfo.getScreenName())) {
+                values.put(InternalDB.TMAIN_COL0, recentUserInfo.getScreenName().trim());
+            }
             if(!oldUserInfo.getDescription().equals(recentUserInfo.getDescription())) {
-                values.put(InternalDB.TMAIN_COL1, recentUserInfo.getDescription().trim());
+                values.put(InternalDB.TMAIN_COL2, recentUserInfo.getDescription().trim());
             }
             if(oldUserInfo.getFollowerCount() != recentUserInfo.getFollowerCount()) {
-                values.put(InternalDB.TMAIN_COL2, recentUserInfo.getFollowerCount());
+                values.put(InternalDB.TMAIN_COL3, recentUserInfo.getFollowerCount());
             }
             if(oldUserInfo.getFriendCount() != recentUserInfo.getFriendCount()) {
-                values.put(InternalDB.TMAIN_COL3, recentUserInfo.getFriendCount());
+                values.put(InternalDB.TMAIN_COL4, recentUserInfo.getFriendCount());
             }
             if(!oldUserInfo.getProfile_image_url().equals(recentUserInfo.getProfile_image_url())) {
-                values.put(InternalDB.TMAIN_COL4, recentUserInfo.getProfile_image_url().trim());
+                values.put(InternalDB.TMAIN_COL5, recentUserInfo.getProfile_image_url().trim());
             }
 
             if(values.size()>0) {
-                SQLiteDatabase db = this.getReadableDatabase();
-                db.update(TABLE_MAIN, values, TMAIN_COL0 + "= ?", new String[]{oldUserInfo.getScreenName()});
+                if(oldUserInfo.getUserId() != null) {
+                    SQLiteDatabase db = this.getReadableDatabase();
+                    db.update(TABLE_MAIN, values, TMAIN_COL1 + "= ?", new String[]{String.valueOf(oldUserInfo.getUserId())});
+                } else {
+                    SQLiteDatabase db = this.getReadableDatabase();
+                    db.update(TABLE_MAIN, values, TMAIN_COL0 + "= ?", new String[]{oldUserInfo.getScreenName()});
+                }
             }
 
             return true;

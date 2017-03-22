@@ -47,9 +47,9 @@ public class TimeLineFragment extends Fragment {
     private TextView mNoLists;
     private UserInfo mUserInfo;
 
-    private TextView mHeaderScreenName;
-    private TextView mHeaderFollowers;
-    private TextView mHeaderFriends;
+//    private TextView mHeaderScreenName;
+//    private TextView mHeaderFollowers;
+//    private TextView mHeaderFriends;
 
     private List<Tweet> mTimeLine;
 
@@ -81,9 +81,9 @@ public class TimeLineFragment extends Fragment {
         mRecyclerView = (RecyclerView) view.findViewById(R.id.recyclerTimeLine);
         mNoLists = (TextView) view.findViewById(R.id.notweets);
         //Fill header info
-        mHeaderScreenName = (TextView) view.findViewById(R.id.name);
-        mHeaderFollowers = (TextView) view.findViewById(R.id.followers);
-        mHeaderFriends = (TextView) view.findViewById(R.id.friends);
+//        mHeaderScreenName = (TextView) view.findViewById(R.id.name);
+//        mHeaderFollowers = (TextView) view.findViewById(R.id.followers);
+//        mHeaderFriends = (TextView) view.findViewById(R.id.friends);
         mTimeLine = new ArrayList<>();
         return view;
     }
@@ -110,9 +110,9 @@ public class TimeLineFragment extends Fragment {
         mRecyclerView.setLayoutManager(layoutManager);
 
         if(mUserInfo != null) {
-            mHeaderScreenName.setText(mUserInfo.getDisplayName());
-            mHeaderFollowers.setText("Followers: " + mUserInfo.getFollowerCountString());
-            mHeaderFriends.setText("Friends: " + mUserInfo.getFriendCountString());
+//            mHeaderScreenName.setText(mUserInfo.getDisplayName());
+//            mHeaderFollowers.setText("Followers: " + mUserInfo.getFollowerCountString());
+//            mHeaderFriends.setText("Friends: " + mUserInfo.getFriendCountString());
             pullTimeLineData(mUserInfo);
         } else {
             //TODO -- put error in place if there is no userinfo
@@ -176,7 +176,7 @@ public class TimeLineFragment extends Fragment {
                         mCallback.showProgressBar(false);
 
                         //TODO -- GET PROPER ERROR CODE!
-                        Toast.makeText(getContext(), "Unable to get timeline for " + mHeaderScreenName , Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Unable to get timeline for @" + userInfo.getScreenName(), Toast.LENGTH_SHORT).show();
                     }
 
                     @Override public void onNext(List<Tweet> timeline) {

@@ -11,6 +11,6 @@ public interface FragmentInteractionListener {
     void showRemoveUserDialog(String user);
     void showAddUserDialog();
     void showProgressBar(Boolean show);
-    void showTimeLine(UserInfo userInfo);
     void showActionBarBackButton(Boolean showBack, CharSequence title);
+    void changePagerTitle(int position,String title);
 }

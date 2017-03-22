@@ -58,7 +58,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     private FloatingActionButton fabAddUser;
     private static final String TAG = "TEST-Main";
     private static final boolean debug = true;
-//    private boolean showTimeLine = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         setSupportActionBar(toolbar);
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(),null);
+        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
@@ -113,9 +112,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
         return super.onOptionsItemSelected(item);
     }
-
-
-
 
 
 
@@ -286,7 +282,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                         @Override public void onNext(UserInfo userInfo) {
                             if(debug) {
                                 Log.d(TAG, "In onNext()");
-                                Log.d(TAG, "userInfo: " + userInfo.getId() + ", " + userInfo.getDescription());
+                                Log.d(TAG, "userInfo: " + userInfo.getUserId() + ", " + userInfo.getDescription());
                             }
 
                             /***TMP**/
@@ -366,6 +362,20 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         switch (mViewPager.getCurrentItem()) {
             case 0:
                 isPopFragment = ((BaseContainerFragment)findFragmentByPosition(0)).popFragment();
+                try {
+                   int entryCount = ((BaseContainerFragment)findFragmentByPosition(0)).getChildFragmentManager().getBackStackEntryCount();
+                    Log.d(TAG,"ENTRY IN BACKSTACK: " + entryCount);
+
+                    /*the BaseContainerFragment always should contain at least one child,
+                      so if the child count is 1 we can assume we are at the top level */
+                    if(entryCount <= 1) {
+                        showActionBarBackButton(false,getString(R.string.app_name));
+                        changePagerTitle(0,"Users");
+                    }
+                } catch (NullPointerException e) {
+                    Log.e(TAG,"OnBackPressed child entrycount null : " + e);
+                }
+
                     break;
             case 1:
                 break;
@@ -375,46 +385,12 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 break;
         }
 
-//        Log.d(TAG,"current item: " + mViewPager.getCurrentItem());
-//
-//        if(mSectionsPagerAdapter.getItem(mViewPager.getCurrentItem()) == null){
-//            Log.d(TAG,"ITS NULL.... ");
-//        } else if (mSectionsPagerAdapter.getItem(mViewPager.getCurrentItem()) instanceof TimeLineFragment) {
-//            Log.d(TAG,"YAYYYYY");
-//        }
-
-
-//        String currentTabTag = mSectionsPagerAdapter.getItem(mViewPager.getCurrentItem()).getTag();
-
-//        if (currentTabTag.equals("timeline")) {
-//            isPopFragment = ((BaseContainerFragment)getSupportFragmentManager().findFragmentByTag("timeline")).popFragment();
-//        }
-
-
-//        if (currentTab instanceof TimeLineFragment) {
-//            Log.d("TEST","ITS A TIMELINE YO");
-//            isPopFragment = ((BaseContainerFragment)getSupportFragmentManager().findFragmentByTag("timeline")).popFragment();
-//        }
         if (!isPopFragment) {
             finish();
         }
 //        super.onBackPressed();
     }
 
-//    // This the important bit to make sure the back button works when you're nesting fragments. Very hacky, all it takes is some Google engineer to change that ViewPager view tag to break this in a future Android update.
-//    @Override
-//    public void onBackPressed() {
-//        Fragment fragment = (Fragment) getSupportFragmentManager().findFragmentByTag("android:switcher:" + R.id.pager + ":"+mPager.getCurrentItem());
-//        if (fragment != null) // could be null if not instantiated yet
-//        {
-//            if (fragment.getView() != null) {
-//                // Pop the backstack on the ChildManager if there is any. If not, close this activity as normal.
-//                if (!fragment.getChildFragmentManager().popBackStackImmediate()) {
-//                    finish();
-//                }
-//            }
-//        }
-//    }
 
 
     public Fragment findFragmentByPosition(int position) {
@@ -450,6 +426,12 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 //            }
         }
 
+    }
+
+    public void changePagerTitle(int position, String title) {
+        if(mSectionsPagerAdapter != null) {
+            mSectionsPagerAdapter.updateTitleData(title);
+        }
     }
 
 }

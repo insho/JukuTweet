@@ -59,7 +59,8 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
         holder.txtTweet.setText(getTweet(position).getText());
 
         if(getTweet(position).getCreated_at() != null){
-            holder.txtCreated.setText("Created at: " + String.valueOf(getTweet(position).getCreated_at()));
+
+            holder.txtCreated.setText("Created: " + getTweet(position).getDisplayDate());
         }
         if(getTweet(position).getFavorited() != null){
             holder.txtFavorited.setText("Favorited: " + String.valueOf(getTweet(position).getFavorited()));
