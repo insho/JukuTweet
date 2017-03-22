@@ -271,7 +271,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
 
                                 if(InternalDB.getInstance(getBaseContext()).saveUser(userInfoInstance)) {
-                                    Toast.makeText(MainActivity.this, "Successful pull for " + userInfoInstance.getScreenName() + "!", Toast.LENGTH_SHORT).show();
+//                                    Toast.makeText(MainActivity.this, "Successful pull for " + userInfoInstance.getScreenName() + "!", Toast.LENGTH_SHORT).show();
 
                                     // Locate Tab1Continer and update the UserListInfo adapter to reflect removed item
                                     if(findFragmentByPosition(0) != null && findFragmentByPosition(0) instanceof Tab1Container) {

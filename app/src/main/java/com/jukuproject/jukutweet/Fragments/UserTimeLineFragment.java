@@ -1,6 +1,7 @@
 package com.jukuproject.jukutweet.Fragments;
 
 import android.content.Context;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
@@ -8,6 +9,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter;
+import com.jukuproject.jukutweet.BaseContainerFragment;
 import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
@@ -22,6 +25,7 @@ import com.jukuproject.jukutweet.InternalDB;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.R;
+import com.jukuproject.jukutweet.TweetBreakDownPopup;
 import com.jukuproject.jukutweet.TwitterUserClient;
 
 import java.util.ArrayList;
@@ -48,6 +52,8 @@ public class UserTimeLineFragment extends Fragment {
     private TextView mNoLists;
     private UserInfo mUserInfo;
     private List<Tweet> mTimeLine;
+
+    private TweetBreakDownPopup mTweetBreakDownPopup;
 
     private static final String TAG = "TEST-TimeLineFrag";
 
@@ -137,6 +143,35 @@ public class UserTimeLineFragment extends Fragment {
                                         if(isUniqueClick(1000) && event instanceof Tweet) {
 
                                             Toast.makeText(getContext(), "SHOW SENTENCE BREAKDOWN POPUP", Toast.LENGTH_SHORT).show();
+
+                                            if(mTweetBreakDownPopup == null || !mTweetBreakDownPopup.isShowing()) {
+
+//                                                Display display = getActivity().getWindowManager().getDefaultDisplay();
+//                                                Point size = new Point();
+//                                                display.getSize(size);
+//                                                int screenHeight = size.y;
+
+                                                Tweet tweet = (Tweet) event;
+                                                TweetBreakDownPopup fragment = new TweetBreakDownPopup();
+                                                Bundle bundle = new Bundle();
+                                                bundle.putParcelable("tweet",tweet);
+                                                fragment.setArguments(bundle);
+                                                ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"tweetbreakdown");
+
+
+//                                                UserInfo userInfo = (UserInfo) event;
+//                                                UserTimeLineFragment fragment = new UserTimeLineFragment();
+//                                                Bundle bundle = new Bundle();
+//                                                bundle.putParcelable("userInfo",userInfo);
+//                                                fragment.setArguments(bundle);
+//                                                ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"timelinex");
+
+//                                                ((BaseContainerFragment)getParentFragment()).replaceFragment(TweetBreakDownPopup.newInstance((Tweet)event), true,"timeline");
+//                                                mTweetBreakDownPopup = new TweetBreakDownPopup(getContext(), getView(),screenHeight,_rxBus,(Tweet)event);
+//                                                mTweetBreakDownPopup.CreateView();
+
+                                            }
+
 //                                            UserInfo userInfo = (UserInfo) event;
 //                                            UserTimeLineFragment fragment = new UserTimeLineFragment();
 //                                            Bundle bundle = new Bundle();

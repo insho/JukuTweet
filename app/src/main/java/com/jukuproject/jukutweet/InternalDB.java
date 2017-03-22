@@ -6,12 +6,15 @@ package com.jukuproject.jukutweet;
         import android.database.sqlite.SQLiteDatabase;
         import android.database.sqlite.SQLiteException;
         import android.database.sqlite.SQLiteOpenHelper;
+        import android.support.annotation.Nullable;
         import android.util.Log;
 
 
         import com.jukuproject.jukutweet.Models.UserInfo;
+        import com.jukuproject.jukutweet.Models.WordLoader;
 
         import java.util.ArrayList;
+        import java.util.HashMap;
         import java.util.List;
 
 /**
@@ -269,4 +272,111 @@ public class InternalDB extends SQLiteOpenHelper {
         }
         return false;
     }
+
+
+    public WordLoader getWordLists(@Nullable SQLiteDatabase inputDB) {
+        SQLiteDatabase db;
+        if(inputDB == null) {
+            db = this.getWritableDatabase();
+        } else {
+            db = inputDB;
+        }
+        ArrayList<String> hiragana = new ArrayList<>();
+        ArrayList<String> katakana = new ArrayList<>();
+        ArrayList<String> symbols = new ArrayList<>();
+        HashMap<String,ArrayList<String>> romajiMap = new HashMap<>();
+        ArrayList<String> verbEndingsRoot = new ArrayList<>();
+        ArrayList<String> verbEndingsConjugation = new ArrayList<>();
+        HashMap<String,ArrayList<String>> verbEndingMap = new HashMap<>();
+
+        try {
+            ArrayList<String> romaji = new ArrayList<>();
+            Cursor c = db.rawQuery("SELECT DISTINCT Type, Key, Value FROM [Characters] ORDER BY Type",null);
+            if (c.moveToFirst()) {
+                while (!c.isAfterLast()) {
+                    switch (c.getString(0)) {
+                        case "Hiragana":
+                            hiragana.add(c.getString(1));
+                            break;
+                        case "Katakana":
+                            katakana.add(c.getString(1));
+                            break;
+                        case "Symbols":
+                            symbols.add(c.getString(1));
+                            break;
+                        case "Romaji":
+                            romaji.add(c.getString(1));
+                            break;
+                        case "VerbEndings":
+                            verbEndingsRoot.add(c.getString(1));
+                            verbEndingsConjugation.add(c.getString(2));
+
+                            if(verbEndingMap.containsKey(c.getString(2))) {
+                                ArrayList<String> tmp = verbEndingMap.get(c.getString(2));
+                                tmp.add(c.getString(1));
+                                verbEndingMap.put(c.getString(1),tmp);
+                            } else {
+                                ArrayList<String> tmp = new ArrayList<>();
+                                tmp.add(c.getString(1));
+                                verbEndingMap.put(c.getString(2),tmp);
+                            }
+
+                            break;
+                    }
+                    c.moveToNext();
+                }
+                c.close();
+
+                //Add to Romaji HashMap
+                for(int i=0;i<romaji.size();i++) {
+                    ArrayList<String> tmp;
+                    if(romajiMap.containsKey(romaji.get(i))){
+                        tmp = romajiMap.get(romaji.get(i));
+                    } else {
+                        tmp = new ArrayList<>();
+                    }
+
+                    tmp.add(hiragana.get(i));
+                    tmp.add(katakana.get(i));
+                    romajiMap.put(romaji.get(i),tmp);
+
+                }
+
+
+                ArrayList<String> extratmp = new ArrayList<>();
+                extratmp.add("ん");
+                extratmp.add("ン");
+                romajiMap.put("n",extratmp);
+
+
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
+
+        if(inputDB == null && db.isOpen()) {
+            db.close();
+        }
+        return new WordLoader(hiragana,katakana,symbols,romajiMap,verbEndingMap,verbEndingsRoot,verbEndingsConjugation);
+    }
+
+
+//    public void getUserCreatedMyLists() {
+//        SQLiteDatabase db = this.getReadableDatabase();
+//
+//        if(totalactivelists == 0) {
+//            Cursor z = db.rawQuery("Select Count(Name) as [ListCount] from JFavoritesLists", null);
+//
+//            z.moveToFirst();
+//            if (z.getCount() > 0) {
+//                totalactivelists = z.getInt(0);
+//
+//            }
+//            z.close();
+//
+//
+//            totalactivelists += colors.size();
+//        };
+//    }
 }

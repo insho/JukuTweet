@@ -3,4 +3,10 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+
+    <color name="colorJukuGrey">#9e9e9e</color>
+    <color name="colorJukuRed">#f44336</color>
+    <color name="colorJukuYellow">#ffffbb33</color>
+    <color name="colorJukuGreen">#4caf50</color>
+
 </resources>

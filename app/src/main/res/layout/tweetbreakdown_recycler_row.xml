@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clickable="false"
+    android:descendantFocusability="blocksDescendants"
+    android:focusable="false"
+    android:focusableInTouchMode="false"
+    android:orientation="vertical"
+    android:background="@android:color/black"
+    >
+
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:descendantFocusability="blocksDescendants"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:weightSum="1"
+        android:orientation="horizontal"
+        android:id="@+id/browseitems_layout"
+        >
+
+
+        <TextView
+            android:layout_width="10dp"
+            android:id="@+id/colorbar"
+            android:text=""
+            android:background="@android:color/white"
+            android:layout_height="match_parent"
+            android:descendantFocusability="blocksDescendants"
+            android:clickable="false"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            />
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_weight=".9"
+            android:background="@android:color/transparent"
+            android:id="@+id/browseitems_layout2"
+            android:clickable="false"
+            android:focusable="false"
+            android:focusableInTouchMode="false">
+
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="4"
+                android:rowCount="2"
+                android:layout_marginLeft="2dp"
+                android:layout_marginStart="2dp"
+                android:layout_marginTop="1pt"
+                android:layout_marginBottom="1pt"
+                android:id="@+id/gridBrowse"
+
+                android:clickable="false"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                >
+
+
+
+
+
+                <TextView
+                    android:id="@+id/textViewBrowseAdapter_Kanji"
+                    android:gravity="start"
+                    android:layout_gravity="start"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:layout_column="1"
+                    android:layout_row="0"
+                    android:textSize="18sp"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+
+                    />
+
+
+                <TextView
+                    android:id="@+id/textViewBrowseAdapter_Furigana"
+                    android:gravity="start"
+                    android:layout_gravity="left"
+                    android:text=""
+                    android:layout_column="2"
+                    android:layout_row="0"
+                    android:layout_marginStart="2dp"
+                    android:layout_marginLeft="2pt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    />
+
+            </GridLayout>
+
+
+            <TextView
+                android:id="@+id/textViewlstDefinitions"
+                android:gravity="start"
+                android:layout_gravity="left"
+                android:text=""
+                android:layout_marginLeft="2pt"
+                android:layout_marginStart="2dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:clickable="false"
+                android:focusable="false"
+                android:textColor="@android:color/black"
+                android:focusableInTouchMode="false"
+
+                />
+
+        </LinearLayout>
+
+
+        <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/browseitems_frameLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="10dp"
+            android:layout_marginRight="10dp"
+
+            android:layout_weight=".1">
+
+            <ImageButton  android:id="@+id/favorite"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:contentDescription="star"
+
+                android:visibility="gone"
+                android:background="@android:color/transparent"
+                android:gravity="center"
+                android:clickable="false"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                />
+
+            <TextView
+                android:id="@+id/favoritenumber"
+                android:paddingLeft="2dp"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="end"
+                android:layout_gravity="center"
+                android:text=""
+                android:visibility="invisible"
+                android:textSize="12sp"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:clickable="false"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:background="@android:color/transparent"
+                />
+        </FrameLayout>
+
+
+
+    </LinearLayout>
+
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:padding="2dip"
+        android:background="?android:attr/listDivider"
+        android:visibility="visible"
+        android:alpha="50"/>
+
+</LinearLayout>

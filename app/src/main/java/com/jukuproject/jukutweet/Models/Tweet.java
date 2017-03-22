@@ -1,5 +1,7 @@
 package com.jukuproject.jukutweet.Models;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import java.text.ParseException;
@@ -11,7 +13,7 @@ import java.util.Locale;
  * Created by JClassic on 3/20/2017.
  */
 
-public class Tweet {
+public class Tweet  implements Parcelable {
     private Boolean favorited;
     private Boolean truncated;
     private String created_at;
@@ -142,6 +144,52 @@ public class Tweet {
     public void setText(String text) {
         this.text = text;
     }
+
+
+    // Parcelling part
+    public Tweet(Parcel in){
+
+        this.favorited = in.readByte() != 0;
+        this.truncated = in.readByte() != 0;
+        this.created_at = in.readString();
+        this.id = in.readString();
+        this.retweet_count = in.readInt();
+        this.text = in.readString();
+
+
+
+    }
+
+    public int describeContents(){
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+
+
+
+
+        dest.writeByte((byte) (this.favorited ? 1 : 0));
+        dest.writeByte((byte) (this.truncated ? 1 : 0));
+        dest.writeString(this.created_at);
+        dest.writeString(this.id);
+        dest.writeString(this.id);
+        dest.writeInt(this.retweet_count);
+        dest.writeString(this.text);
+
+
+    }
+
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+        public Tweet createFromParcel(Parcel in) {
+            return new Tweet(in);
+        }
+
+        public Tweet[] newArray(int size) {
+            return new Tweet[size];
+        }
+    };
 }
 
 
