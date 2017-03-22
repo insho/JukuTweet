@@ -1,4 +1,4 @@
-package com.jukuproject.jukutweet;
+package com.jukuproject.jukutweet.Fragments;
 /**
  * Created by JClassic on 2/25/2017.
  */
@@ -6,46 +6,32 @@ package com.jukuproject.jukutweet;
 
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
-import android.app.Activity;
-import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Point;
-import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.SpannableStringBuilder;
-import android.text.method.LinkMovementMethod;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.StyleSpan;
-import android.text.style.URLSpan;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.Display;
-import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.PopupWindow;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.jukuproject.jukutweet.Adapters.TweetBreakDownAdapter;
+import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
+import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Models.ParseSentenceItem;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.Models.WordLoader;
+import com.jukuproject.jukutweet.R;
+import com.jukuproject.jukutweet.SentenceParser;
 
 import java.util.ArrayList;
 
@@ -54,7 +40,7 @@ import java.util.ArrayList;
  * Created by Joe on 11/21/2015.
  */
 
-public class TweetBreakDownPopup extends Fragment  implements View.OnTouchListener {
+public class TweetBreakDownFragment extends Fragment  implements View.OnTouchListener {
 
     String TAG = "TEST-breakdownpop";
 
@@ -87,19 +73,19 @@ public class TweetBreakDownPopup extends Fragment  implements View.OnTouchListen
     private boolean isScrollingUp = false;
     private boolean isScrollingDown = false;
 
-    public TweetBreakDownPopup() {}
+    public TweetBreakDownFragment() {}
 
 
-    public static TweetBreakDownPopup newInstance(Tweet tweet) {
-        TweetBreakDownPopup fragment = new TweetBreakDownPopup();
+    public static TweetBreakDownFragment newInstance(Tweet tweet) {
+        TweetBreakDownFragment fragment = new TweetBreakDownFragment();
         Bundle args = new Bundle();
         args.putParcelable("tweet", tweet);
         fragment.setArguments(args);
-        return new TweetBreakDownPopup();
+        return new TweetBreakDownFragment();
     }
 
 
-//    public TweetBreakDownPopup(Context context, View anchorView, Integer screenheight,RxBus rxBus, Tweet tweet) {
+//    public TweetBreakDownFragment(Context context, View anchorView, Integer screenheight,RxBus rxBus, Tweet tweet) {
 //        this.mContext = context;
 //        this.mAnchorView = anchorView;
 //        this.mRxBus = rxBus;
@@ -308,6 +294,7 @@ public class TweetBreakDownPopup extends Fragment  implements View.OnTouchListen
             public void onAnimationEnd(Animator animator) {
 
                 popupWindow.dismiss();
+                //TODO call backstack
                 if(BuildConfig.DEBUG){Log.d(TAG,") Blue: popupWindow.dismiss A");}
 
                 //reset the position variables

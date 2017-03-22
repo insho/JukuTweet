@@ -22,6 +22,18 @@ public class ParseSentencePossibleKanji {
     private ArrayList<String> prefixes;
     private ArrayList<String> suffixes;
     private ArrayList<String> verbCombos;
+    private boolean foundInDictionary;
+    private boolean isKatakana;
+    public boolean isKatakana() {
+        return isKatakana;
+    }
+
+    public void setKatakana(boolean katakana) {
+        isKatakana = katakana;
+    }
+
+
+
 
     public boolean isFoundInDictionary() {
         return foundInDictionary;
@@ -31,7 +43,7 @@ public class ParseSentencePossibleKanji {
         this.foundInDictionary = foundInDictionary;
     }
 
-    private boolean foundInDictionary;
+
 
     public ArrayList<String> getBetterKanjiMatches() {
         return betterKanjiMatches;
@@ -94,8 +106,20 @@ public class ParseSentencePossibleKanji {
         this.verbCombos = new ArrayList<>();
         this.betterKanjiMatches = new ArrayList<>();
         this.foundInDictionary = false;
+        this.isKatakana = false;
     }
-
+    /** This initializer is used in the SentenceParser */
+    public ParseSentencePossibleKanji(@NonNull Integer positionInSentence, @NonNull Integer listIndex, @NonNull String possibleKanji, Boolean isKatakana) {
+        this.positionInSentence = positionInSentence;
+        this.listIndex = listIndex;
+        this.kanji = possibleKanji;
+        this.prefixes = new ArrayList<>();
+        this.suffixes = new ArrayList<>();
+        this.verbCombos = new ArrayList<>();
+        this.betterKanjiMatches = new ArrayList<>();
+        this.foundInDictionary = false;
+        this.isKatakana = isKatakana;
+    }
 
     public Integer getPositionInSentence() {
         return positionInSentence;

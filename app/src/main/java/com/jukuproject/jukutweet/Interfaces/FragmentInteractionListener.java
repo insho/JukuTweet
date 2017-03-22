@@ -13,4 +13,5 @@ public interface FragmentInteractionListener {
     void showProgressBar(Boolean show);
     void showActionBarBackButton(Boolean showBack, CharSequence title);
     void changePagerTitle(int position,String title);
+    void showFab(boolean show);
 }

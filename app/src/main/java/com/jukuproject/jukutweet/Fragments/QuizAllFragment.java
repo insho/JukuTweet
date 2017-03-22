@@ -2,27 +2,16 @@ package com.jukuproject.jukutweet.Fragments;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.jukuproject.jukutweet.Adapters.UserListAdapter;
 //import com.jukuproject.jukutweet.BaseContainerFragment;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
-import com.jukuproject.jukutweet.Interfaces.RxBus;
-import com.jukuproject.jukutweet.InternalDB;
-import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.R;
-
-import java.util.List;
-import rx.functions.Action1;
 
 
 public class QuizAllFragment extends Fragment {

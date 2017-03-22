@@ -26,4 +26,19 @@
     <string name="access_token">843793669106909186-rxzRHDQGzVza0NstjljujV6cp4bpfwY</string>
     <string name="access_token_secret">DYlvYn05mKz8otLKzQHI6naiNhDWuyoyFSrzvMDP9GYtG</string>
 
+
+    <string name="empty">empty</string>
+    <string name="empty_parenthesis">(empty)</string>
+
+
+    <string name="menuchildbrowse">Browse/Edit</string>
+    <string name="menuchildflashcards">Flash Cards</string>
+    <string name="menuchildmultiplechoice">Multiple Choice</string>
+    <string name="menuchildfillinblanks">Fill in the Blanks</string>
+    <string name="menuchildwordbuilder">Word Builder</string>
+    <string name="menuchildwordmatch">Word Match</string>
+    <string name="menuchildstats">Stats</string>
+    <string name="menuchildbrowseentries">Browse Entries</string>
+    <string name="clickanoption">Click on one of the options to select it</string>
+
 </resources>

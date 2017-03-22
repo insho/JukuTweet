@@ -129,7 +129,7 @@ public class WordEntry implements Parcelable {
                     if(sentence.length()>1) {
                         sentence = sentence.substring(0, 1).toUpperCase() + sentence.substring(1).toLowerCase();
                     }
-                    if(i>0) {
+                    if(i>1) {
                         stringBuilder.append(System.getProperty("line.separator"));
                     }
                     stringBuilder.append("\u2022 ");
@@ -139,7 +139,9 @@ public class WordEntry implements Parcelable {
                     if(sentence.length()>1) {
                         sentence = definition.substring(0, 1).toUpperCase() + definition.substring(1).toLowerCase();
                     }
-                    stringBuilder.append(System.getProperty("line.separator"));
+                    if(i>1) {
+                        stringBuilder.append(System.getProperty("line.separator"));
+                    }
                     stringBuilder.append("\u2022 ");
                     stringBuilder.append(sentence);
                 }

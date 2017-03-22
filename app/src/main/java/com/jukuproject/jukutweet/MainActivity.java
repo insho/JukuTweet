@@ -18,9 +18,10 @@ import android.view.View;
 
 import android.widget.Toast;
 
+import com.jukuproject.jukutweet.Database.ExternalDB;
+import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.AddUserDialog;
 import com.jukuproject.jukutweet.Dialogs.RemoveUserDialog;
-import com.jukuproject.jukutweet.Fragments.UserListFragment;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.UserInfo;
@@ -64,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        new ExternalDB(this);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         // Create the adapter that will return a fragment for each of the three
@@ -84,16 +85,18 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 switch (position) {
                     case 0:
                         if(isTopShowing()) {
-                            fab.setVisibility(View.VISIBLE);
+                            showFab(true);
+                        } else {
+                            showFab(false);
                         }
                         break;
                     case 1:
                         if(isTopShowing()) {
-                            fab.setVisibility(View.VISIBLE);
+                            showFab(true);
                         }
                         break;
                     default:
-                        fab.setVisibility(View.INVISIBLE);
+                        showFab(false);
                         break;
                 }
 
@@ -401,5 +404,13 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
         return true;
 
+    }
+
+    public void showFab(boolean show) {
+        if(show && fab != null) {
+            fab.setVisibility(View.VISIBLE);
+        } else {
+            fab.setVisibility(View.GONE);
+        }
     }
 }

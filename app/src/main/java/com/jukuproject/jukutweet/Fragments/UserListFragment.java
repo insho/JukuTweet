@@ -16,7 +16,7 @@ package com.jukuproject.jukutweet.Fragments;
         import com.jukuproject.jukutweet.BaseContainerFragment;
         import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
         import com.jukuproject.jukutweet.Interfaces.RxBus;
-        import com.jukuproject.jukutweet.InternalDB;
+        import com.jukuproject.jukutweet.Database.InternalDB;
         import com.jukuproject.jukutweet.Models.UserInfo;
         import com.jukuproject.jukutweet.R;
 

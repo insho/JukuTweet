@@ -87,6 +87,7 @@ public class SentenceParser {
     public static ArrayList<ParseSentencePossibleKanji> findCoreKanjiBlocksInSentence(String entireSentence, WordLoader wordLoader, ArrayList<Integer> kanjPositionArray) {
         ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence = new ArrayList<>();
         StringBuilder builder = new StringBuilder();
+        StringBuilder builder_katakana = new StringBuilder();
         StringBuilder builder_spinner = new StringBuilder();
 
         for (int i = 0; i < entireSentence.length(); i++) {
@@ -95,30 +96,50 @@ public class SentenceParser {
             /* If it is a spinner Kanji, add the character to the special spinner builder and simply pass it on to the next step */
             if (kanjPositionArray != null && kanjPositionArray.contains(i)) {
                 builder_spinner.append(entireSentence.charAt(i));
-                if (builder.length() > 0) {
-                    possibleKanjiInSentence.add(new ParseSentencePossibleKanji(i,possibleKanjiInSentence.size(),builder.toString()));
-                    builder.setLength(0);
-                }
-
+//                if (builder.length() > 0) {
+//                    possibleKanjiInSentence.add(new ParseSentencePossibleKanji(i,possibleKanjiInSentence.size(),builder.toString()));
+//                    builder.setLength(0);
+//                }
+                addOrReleaseBuilderContents(i,builder,possibleKanjiInSentence);
+                addOrReleaseBuilderContents(i,builder_katakana,possibleKanjiInSentence,true);
                 /* Determine if the character is a kanji by process of elimination. If it is not Hiragana, Katakana or a Symbol, it must be a kanji */
             } else if (!wordLoader.getHiragana().contains(char_a)
                     && !wordLoader.getKatakana().contains(char_a)
                     && !wordLoader.getSymbols().contains(char_a)) {
                 builder.append(entireSentence.charAt(i));
-                if (builder_spinner.length() > 0) {
-                    possibleKanjiInSentence.add(new ParseSentencePossibleKanji(i,possibleKanjiInSentence.size(),builder_spinner.toString()));
-                    builder_spinner.setLength(0);
-                }
-            } else {
+//                if (builder_spinner.length() > 0) {
+//                    possibleKanjiInSentence.add(new ParseSentencePossibleKanji(i,possibleKanjiInSentence.size(),builder_spinner.toString()));
+//                    builder_spinner.setLength(0);
+//                }
+
+                addOrReleaseBuilderContents(i,builder_spinner,possibleKanjiInSentence);
+                addOrReleaseBuilderContents(i,builder_katakana,possibleKanjiInSentence,true);
+            } else if (wordLoader.getKatakana().contains(char_a)) {
+                builder_katakana.append(entireSentence.charAt(i));
+//                if (builder.length() > 0) {
+//                    possibleKanjiInSentence.add(new ParseSentencePossibleKanji(i,possibleKanjiInSentence.size(),builder.toString()));
+//                    builder.setLength(0);
+//                }
+//                if (builder_spinner.length() > 0) {
+//                    possibleKanjiInSentence.add(new ParseSentencePossibleKanji(i,possibleKanjiInSentence.size(),builder_spinner.toString()));
+//                    builder_spinner.setLength(0);
+//                }
+                addOrReleaseBuilderContents(i,builder,possibleKanjiInSentence);
+                addOrReleaseBuilderContents(i,builder_spinner,possibleKanjiInSentence);
+            }  else {
                 /* If the current char is NOT a kanji, but the builder isn't empty either, move the builder contents to the final list and empty builder */
-                if (builder.length() > 0) {
-                    possibleKanjiInSentence.add(new ParseSentencePossibleKanji(i,possibleKanjiInSentence.size(),builder.toString()));
-                    builder.setLength(0);
-                }
-                if (builder_spinner.length() > 0) {
-                    possibleKanjiInSentence.add(new ParseSentencePossibleKanji(i,possibleKanjiInSentence.size(),builder_spinner.toString()));
-                    builder_spinner.setLength(0);
-                }
+//                if (builder.length() > 0) {
+//                    possibleKanjiInSentence.add(new ParseSentencePossibleKanji(i,possibleKanjiInSentence.size(),builder.toString()));
+//                    builder.setLength(0);
+//                }
+//                if (builder_spinner.length() > 0) {
+//                    possibleKanjiInSentence.add(new ParseSentencePossibleKanji(i,possibleKanjiInSentence.size(),builder_spinner.toString()));
+//                    builder_spinner.setLength(0);
+//                }
+                addOrReleaseBuilderContents(i,builder,possibleKanjiInSentence);
+                addOrReleaseBuilderContents(i,builder_spinner,possibleKanjiInSentence);
+                addOrReleaseBuilderContents(i,builder_katakana,possibleKanjiInSentence,true);
+
             }
         }
 
@@ -132,9 +153,19 @@ public class SentenceParser {
     }
 
 
+    public static void addOrReleaseBuilderContents(Integer index, StringBuilder builder, ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence) {
+        if (builder.length() > 0) {
+            possibleKanjiInSentence.add(new ParseSentencePossibleKanji(index,possibleKanjiInSentence.size(),builder.toString()));
+            builder.setLength(0);
+        }
+    };
 
-
-
+    public static void addOrReleaseBuilderContents(Integer index, StringBuilder builder, ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence, Boolean isKatakana) {
+        if (builder.length() > 0) {
+            possibleKanjiInSentence.add(new ParseSentencePossibleKanji(index,possibleKanjiInSentence.size(),builder.toString(),isKatakana));
+            builder.setLength(0);
+        }
+    };
     /** Load up lists of possible prefix, suffix and verb conjugations for each kanji
      *
      * @param possibleKanjiInSentence Array of ParseSentencePossibleKanji objects, representing possible kanji within the sentence
@@ -771,8 +802,6 @@ public class SentenceParser {
         int lastEndPosition = 0;
         for(int index = 0; index < cleanKanjiIDs.size(); index ++) {
             if(debug){Log.d(TAG, "clean_int: " + cleanKanjiIDs.get(index));}
-//            Cursor dd = db.rawQuery("SELECT [Kanji],[Furigana] FROM [Edict] WHERE [_id] = ? LIMIT 1", new String[]{String.valueOf(cleanKanjiIDs.get(index))});
-
 
             Cursor dd = db.rawQuery("SELECT [Kanji],(CASE WHEN (Furigana is null OR  Furigana = '') then \"\" else \"(\" || Furigana || \")\" end) as [Furigana],[Definition],[Total],[Percent],(CASE WHEN [Total] < " + greyThreshold + " THEN 1 WHEN [Percent] < " + redThreshold + "  THEN 2 WHEN ([Percent] >= " + redThreshold + " and [Percent] <  " + yellowThreshold + ") THEN 3 WHEN [Percent]>= " + yellowThreshold + " THEN 4 END) as [Color] FROM (SELECT [_id],[Kanji],[Furigana],[Definition],ifnull([Total],0) as [Total] ,ifnull([Correct],0)  as [Correct],CAST(ifnull([Correct],0)  as float)/[Total] as [Percent] FROM (SELECT [_id],[Kanji],[Furigana],[Definition]  FROM [Edict] where [_id] = ?) NATURAL LEFT JOIN (SELECT [_id],sum([Correct]) as [Correct],sum([Total]) as [Total] from [JScoreboard] WHERE [_id] = ? GROUP BY [_id]) )", new String[]{String.valueOf(cleanKanjiIDs.get(index)),String.valueOf(cleanKanjiIDs.get(index))});
 
@@ -857,7 +886,7 @@ public class SentenceParser {
             ParseSentenceItem dummyParseSentenceItem = new ParseSentenceItem(false,0,entireSentence.substring(0, newStartPosition),entireSentence.substring(0, newStartPosition));
             if(debug) {Log.d(TAG, "Adding to FINAL RESULT PACKAGE: " + entireSentence.substring(0, newStartPosition));}
             resultMap.add(dummyParseSentenceItem);
-        }
+        } else
 
         /* Add the non-kanji text in between ParseSetenceItem Kanjis */
         if(newStartPosition > oldEndPosition ) {

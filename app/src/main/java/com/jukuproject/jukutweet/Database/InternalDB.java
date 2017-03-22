@@ -1,4 +1,4 @@
-package com.jukuproject.jukutweet;
+package com.jukuproject.jukutweet.Database;
 
         import android.content.ContentValues;
         import android.content.Context;
@@ -39,6 +39,21 @@ public class InternalDB extends SQLiteOpenHelper {
     public static final String TMAIN_COL4 = "FriendCount";
     public static final String TMAIN_COL5 = "ProfileImgUrl";
 
+    public static final String TABLE_SCOREBOARD = "JScoreboard";
+    public static final String TSCOREBOARD_COL0 = "Total";
+    public static final String TSCOREBOARD_COL1 = "Correct";
+
+
+    public static final String TABLE_FAVORITES_LIST_ENTRIES = "JFavorites";
+
+    public static final String TABLE_FAVORITES_LISTS = "JFavoritesLists";
+    public static final String TFAVORITES_COL0 = "Name";
+    public static final String TFAVORITES_COL1 = "Sys";
+
+//    public static final String TABLE_HIGHSCORES = "JHighScore";
+
+
+
     public static synchronized InternalDB getInstance(Context context) {
 
         if (sInstance == null) {
@@ -56,7 +71,7 @@ public class InternalDB extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase sqlDB) {
-        String sqlQueryMain =
+        String sqlQueryUsers =
                 String.format("CREATE TABLE IF NOT EXISTS %s (" +
                                 "%s INTEGER PRIMARY KEY AUTOINCREMENT, " +
                                 "%s TEXT, " +
@@ -73,8 +88,38 @@ public class InternalDB extends SQLiteOpenHelper {
                         TMAIN_COL4,
                         TMAIN_COL5);
 
-        sqlDB.execSQL(sqlQueryMain);
+        sqlDB.execSQL(sqlQueryUsers);
 
+
+        String sqlQueryJScoreBoard =
+                String.format("CREATE TABLE IF NOT EXISTS %s (" +
+                                "%s INTEGER PRIMARY KEY, " +
+                                "%s INTEGER, " +
+                                "%s INTEGER)", TABLE_SCOREBOARD,
+                        COL_ID, //_id
+                        TSCOREBOARD_COL0, //Total
+                        TSCOREBOARD_COL1); // Correct
+
+        sqlDB.execSQL(sqlQueryJScoreBoard);
+
+        //The "My Lists" table
+        String sqlQueryJFavoritesLists =
+                String.format("CREATE TABLE IF NOT EXISTS %s (" +
+                                "%s TEXT)", TABLE_FAVORITES_LISTS,
+                        TFAVORITES_COL0);
+
+        sqlDB.execSQL(sqlQueryJFavoritesLists);
+
+        String sqlQueryJFavoritesListEntries =
+                String.format("CREATE TABLE IF NOT EXISTS  %s (" +
+                                "%s INTEGER, " +
+                                "%s TEXT, " +
+                                "%s INTEGER)", TABLE_FAVORITES_LIST_ENTRIES,
+                        COL_ID,
+                        TFAVORITES_COL0,
+                        TFAVORITES_COL1); // if this column = 1, it is a system table (i.e. blue, red, yellow), if user-created value is 0
+
+        sqlDB.execSQL(sqlQueryJFavoritesListEntries);
     }
 
     @Override
