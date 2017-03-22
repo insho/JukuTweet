@@ -38,10 +38,6 @@ public class AddUserDialog extends DialogFragment {
     }
 
     public static AddUserDialog newInstance() {
-//        AddUserDialog frag = new AddUserDialog();
-//        Bundle args = new Bundle();
-//        args.putBoolean("renamelist", renamelist);
-//        frag.setArguments(args);
         return new AddUserDialog();
     }
 
@@ -64,55 +60,17 @@ public class AddUserDialog extends DialogFragment {
 
         final EditText editText = (EditText) dialogView.findViewById(R.id.input);
 
-        //TODO test user, remove
+        //TODO test user, remove!!
         editText.append(getString(R.string.testUser));
 
-        /* UserInfo should not be able to delete the "@" prefix */
-//        editText.addTextChangedListener(new TextWatcher() {
-//
-//            @Override
-//            public void onTextChanged(CharSequence s, int start, int before, int count) {
-//                // TODO Auto-generated method stub
-//
-//            }
-//
-//            @Override
-//            public void beforeTextChanged(CharSequence s, int start, int count,
-//                                          int after) {
-//                // TODO Auto-generated method stub
-//
-//            }
-//
-//            @Override
-//            public void afterTextChanged(Editable s) {
-//                String prefix = "@";
-//                if (!s.toString().startsWith(prefix)) {
-//                    String cleanString;
-//                    String deletedPrefix = prefix.substring(0, prefix.length() - 1);
-//                    if (s.toString().startsWith(deletedPrefix)) {
-//                        cleanString = s.toString().replaceAll(deletedPrefix, "");
-//                    } else {
-//                        cleanString = s.toString().replaceAll(prefix, "");
-//                    }
-//                    editText.setText(prefix + cleanString);
-//                    editText.setSelection(prefix.length());
-//                }
-//            }
-//        });
-
-        // show soft keyboard
-//        editText.requestFocus();
-//        InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-//        imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
-
-        // Checks for a valid input, and if one exists, calls the
+        /* Checks for a valid input, and if one exists, passes click event through DialogInterface
+           to MainActivity */
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 Log.d(TAG,"mAddRSSDialogListener: " + mAddRSSDialogListener);
                 String cleanString = atSignCheckandRemove(editText.getText().toString().trim());
                 if(cleanString.trim().length() == 0) {
-                    //TODO put a possible internet verification deal here? To make sure a user handle really exists?
                     Toast.makeText(getActivity(), "Enter a user handle (without @ sign)", Toast.LENGTH_SHORT).show();
                 } else {
                     mAddRSSDialogListener.onAddUserDialogPositiveClick(editText.getText().toString().trim());

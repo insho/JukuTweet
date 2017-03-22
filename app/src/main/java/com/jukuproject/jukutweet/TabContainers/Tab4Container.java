@@ -8,28 +8,26 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.jukuproject.jukutweet.BaseContainerFragment;
-import com.jukuproject.jukutweet.Fragments.MyListFragment;
 import com.jukuproject.jukutweet.Fragments.QuizAllFragment;
-import com.jukuproject.jukutweet.Fragments.SavedTweetsAllFragment;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.Fragments.UserListFragment;
 
-
-public class Tab3Container extends BaseContainerFragment {
+//TODO -- possibly consolidate these into one?
+public class Tab4Container extends BaseContainerFragment {
 
     private boolean mIsViewInited;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.e("test", "tab 3 oncreateview");
+        Log.e("test", "tab 4 oncreateview");
         return inflater.inflate(R.layout.container_fragment, null);
     }
 
-    public Tab3Container() {
+    public Tab4Container() {
     }
 
-    public static Tab3Container newInstance() {
-        Tab3Container fragment = new Tab3Container();
+    public static Tab4Container newInstance() {
+        Tab4Container fragment = new Tab4Container();
 //        Bundle args = new Bundle();
 //        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
 //        fragment.setArguments(args);
@@ -40,7 +38,7 @@ public class Tab3Container extends BaseContainerFragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        Log.e("test", "tab 3 container on activity created");
+        Log.e("test", "tab 4 container on activity created");
         if (!mIsViewInited) {
             mIsViewInited = true;
             initView();
@@ -48,8 +46,19 @@ public class Tab3Container extends BaseContainerFragment {
     }
 
     private void initView() {
-        Log.e("test", "tab 3 init view");
-        replaceFragment(new SavedTweetsAllFragment(), false,"savedtweetsallfragment");
+        Log.e("test", "tab 1 init view");
+        replaceFragment(new QuizAllFragment(), false,"quizallfragment");
+
     }
+
+//    public boolean updateUserListFragment() {
+//        try {
+//            ((UserListFragment) getChildFragmentManager().findFragmentByTag("userListFragment")).updateAdapter();
+//            return true;
+//        } catch (Exception e) {
+//            Log.e("Tab4Container","Could not find userListFragment");
+//            return false;
+//        }
+//    }
 
 }

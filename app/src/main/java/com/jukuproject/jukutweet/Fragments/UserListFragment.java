@@ -7,7 +7,6 @@ package com.jukuproject.jukutweet.Fragments;
         import android.support.v4.app.Fragment;
         import android.support.v7.widget.LinearLayoutManager;
         import android.support.v7.widget.RecyclerView;
-        import android.util.Log;
         import android.view.LayoutInflater;
         import android.view.View;
         import android.view.ViewGroup;
@@ -101,39 +100,17 @@ public class UserListFragment extends Fragment {
                         @Override
                         public void call(Object event) {
 
-//                            if (SystemClock.elapsedRealtime() - mLastClickTime < 1000){
-//                                return;
-//                            }
-//                            mLastClickTime = SystemClock.elapsedRealtime();
-//
-//                            if(event instanceof UserInfo) {
-//                                UserInfo user = (UserInfo) event;
-//                                mCallback.getUserInfo(user.getName());
-//                            }
-
                             //TODO MOVE THIS METHOD TO THE FRAGMENT, AND ONLY CALL BACK TO MAIN ACTIVITY???
                             //TODO OR only if there is no userinfo, fill that shit in. otherwise dont
                             if(isUniqueClick(1000) && event instanceof UserInfo) {
                                 UserInfo userInfo = (UserInfo) event;
-//                                mCallback.getUserInfo(userInfo.getScreenName());
-                                Log.d("TEST","MAIN FRAG SHOW TIMELINE...");
-
-//                                Fragment timeLineFragment  = TimeLineFragment.newInstance(userInfo);
-//                                getChildFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.container, timeLineFragment).commit();
-
-//                                mCallback.showTimeLine(userInfo);
-
-                                TimeLineFragment fragment = new TimeLineFragment();
-                                // if U need to pass some data
+                                UserTimeLineFragment fragment = new UserTimeLineFragment();
                                 Bundle bundle = new Bundle();
-
-//                                bundle.putString("title", "LEARN DETAIL FRAG");
                                 bundle.putParcelable("userInfo",userInfo);
                                 fragment.setArguments(bundle);
                                 ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"timeline");
                                 mCallback.showActionBarBackButton(true,userInfo.getDisplayName());
                                 mCallback.changePagerTitle(0,"Timeline");
-
                             }
 
                         }
@@ -143,20 +120,10 @@ public class UserListFragment extends Fragment {
                     .subscribe(new Action1<Object>() {
                         @Override
                         public void call(Object event) {
-
-//                            if (SystemClock.elapsedRealtime() - mLastClickTime < 1000){
-//                                return;
-//                            }
-//                            mLastClickTime = SystemClock.elapsedRealtime();
-//                            if(event instanceof UserInfo) {
-//                                UserInfo user = (UserInfo) event;
-//                                mCallback.showRemoveUserDialog(user.getName());
-//                            }
                             if(isUniqueClick(1000) && event instanceof UserInfo) {
                                 UserInfo userInfo = (UserInfo) event;
                                 mCallback.showRemoveUserDialog(userInfo.getScreenName());
                             }
-//
 
                         }
 

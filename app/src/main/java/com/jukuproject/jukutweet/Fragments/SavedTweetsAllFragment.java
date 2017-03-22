@@ -27,7 +27,7 @@ import rx.functions.Action1;
 /**
  * Shows user-created lists of vocabulary
  */
-public class MyListFragment extends Fragment {
+public class SavedTweetsAllFragment extends Fragment {
     FragmentInteractionListener mCallback;
 
     /*Tracks elapsed time since last click of a recyclerview row. Used to
@@ -38,17 +38,17 @@ public class MyListFragment extends Fragment {
 //    UserListAdapter mAdapter;
 //    private TextView mNoLists;
 
-    public MyListFragment() {}
+    public SavedTweetsAllFragment() {}
 
     /**
      * Returns a new instance of UserListFragment
      */
-    public static MyListFragment newInstance() {
+    public static SavedTweetsAllFragment newInstance() {
 //        UserListFragment fragment = new UserListFragment();
 //        Bundle args = new Bundle();
 //        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
 //        fragment.setArguments(args);
-        return new MyListFragment();
+        return new SavedTweetsAllFragment();
     }
 
 
@@ -60,7 +60,7 @@ public class MyListFragment extends Fragment {
                              ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.testlayout, container, false);
         TextView test = (TextView) view.findViewById(R.id.textView);
-        test.setText("MyList FRAGMENT");
+        test.setText("SavedTweetsAll FRAGMENT");
 //        mRecyclerView = (RecyclerView) view.findViewById(R.id.recyclerMain);
 //        mNoLists = (TextView) view.findViewById(R.id.nolists);
 

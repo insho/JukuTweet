@@ -25,6 +25,7 @@ import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.TabContainers.Tab1Container;
+//import com.jukuproject.jukutweet.TabContainers.TabContainer;
 
 import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
 import rx.Observer;
@@ -53,9 +54,9 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     private AddUserDialog addUserDialogFragment;
     private RemoveUserDialog removeUserDialogFragment;
 //    private UserListFragment mUserListFragment;
-//    private TimeLineFragment mTimeLineFragment;
+//    private UserTimeLineFragment mTimeLineFragment;
     private SmoothProgressBar progressbar;
-    private FloatingActionButton fabAddUser;
+    private FloatingActionButton fab;
     private static final String TAG = "TEST-Main";
     private static final boolean debug = true;
 
@@ -72,18 +73,52 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        fabAddUser = (FloatingActionButton) findViewById(R.id.fab);
+        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                switch (position) {
+                    case 0:
+                        if(isTopShowing()) {
+                            fab.setVisibility(View.VISIBLE);
+                        }
+                        break;
+                    case 1:
+                        if(isTopShowing()) {
+                            fab.setVisibility(View.VISIBLE);
+                        }
+                        break;
+                    default:
+                        fab.setVisibility(View.INVISIBLE);
+                        break;
+                }
+
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+
+        fab = (FloatingActionButton) findViewById(R.id.fab);
         progressbar = (SmoothProgressBar) findViewById(R.id.progressbar);
-        fabAddUser.setOnClickListener(new View.OnClickListener() {
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                if(mViewPager != null && mViewPager.getCurrentItem() == 0) {
-                    showAddUserDialog();
-                } else {
-                    //TODO replace this
-                    Toast.makeText(MainActivity.this, "page: " + mViewPager.getCurrentItem() , Toast.LENGTH_SHORT).show();
-                }
+                if(mViewPager != null) {
+                   if(mViewPager.getCurrentItem() == 0 && isTopShowing()) {
+                        showAddUserDialog();
+                    } else if(mViewPager.getCurrentItem() == 1 && isTopShowing()) {
+                       showAddMyListDialog();
+                   }
+            }
+
 
             }
         });
@@ -147,19 +182,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             } else {
             tryToGetUserInfo(inputText.trim());
         }
-
-
-            /** Otherwise enter the URL into the DB and update the adapter */
-
-
-
-            /* Now try to pull the feed. First check for internet connection. **/
-//            if (!isOnline()) {
-//                Toast.makeText(getBaseContext(), "Device is not online", Toast.LENGTH_SHORT).show();
-//            } else {
-//                getRSSFeed(inputText.trim());
-//            }
-
     }
 
     /**
@@ -192,7 +214,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     @Override
     public void onRemoveUserDialogPositiveClick(String screenName) {
 
-//        Log.d(TAG,"mUserListFragment null? " + (mUserListFragment == null));
         if (InternalDB.getInstance(getBaseContext()).deleteUser(screenName) ) {
 
             Log.d(TAG,"findfragbypos: " + findFragmentByPosition(0));
@@ -201,8 +222,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             if(findFragmentByPosition(0) != null && findFragmentByPosition(0) instanceof Tab1Container) {
                 ((Tab1Container) findFragmentByPosition(0)).updateUserListFragment();
             }
-//            mUserListFragment.updateAdapter();
-//            mSectionsPagerAdapter.onMainFragmentUpdate();
         } else {
             Toast.makeText(this, "Could not remove item", Toast.LENGTH_SHORT).show();
         }
@@ -226,8 +245,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * @param screenName
      */
     public void tryToGetUserInfo(final String screenName) {
-
-//        Toast.makeText(this, "FOLLOWING USER", Toast.LENGTH_SHORT).show();
 
             String token = getResources().getString(R.string.access_token);
             String tokenSecret = getResources().getString(R.string.access_token_secret);
@@ -294,92 +311,33 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                         }
                     });
 
-
-
-
-    }
-
-    /**
-     *  Initiates twitter API lookup to check if user exists
-     * @param screenName
-     */
-    public void checkIfUserExists(final String screenName) {
-
-    }
-
-    public void showTimeLine(UserInfo userInfo) {
-
-//    Log.d(TAG,"mtimeline: " + (mTimeLineFragment == null) );
-        Log.d(TAG,"HERE IN SHOWTIELINE -- userInfo: " + (userInfo.getScreenName()) );
-//            if (mTimeLineFragment == null) {
-//                mTimeLineFragment = TimeLineFragment.newInstance(userInfo);
-//                //TODO -- MAKE THE PAGERVIEW THING REPRESENT THE CURRENT TIMELINE... AND THE PLUS BUTTON
-//
-//            }
-
-//        mSectionsPagerAdapter.onSwitchToTimeLineFragment(userInfo);
-
-//        getFragmentManager().beginTransaction().remove(getFragmentManager().findFragmentById(R.id.container)).commit();
-
-        //        ;
-//        mViewPager = (ViewPager) findViewById(R.id.container);
-//        mViewPager.setAdapter(new CustomSectionsPagerAdapterUser(getSupportFragmentManager(),userInfo));
-
-//        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(),userInfo);
-//        mSectionsPagerAdapter.notifyDataSetChanged();
-//        mViewPager.setAdapter(mSectionsPagerAdapter);
-//        mViewPager.getCurrentItem();
-//
-//            getSupportFragmentManager().beginTransaction()
-//                    .addToBackStack("mainFragment")
-//                    .replace(R.id.container, mTimeLineFragment)
-//                    .commit();
-//            showToolBarBackButton(true, "Article Categories");
-
-
-
-
     }
 
 
-//    public Fragment getFragment() {
-//        if(mTimeLineFragment != null) {
-//            return mTimeLineFragment;
-//        } else if(mUserListFragment != null) {
-//            return mUserListFragment;
-//        } else {
-//            mUserListFragment = UserListFragment.newInstance();
-//            return mUserListFragment;
-//        }
-//    }
 
     @Override
     public void onBackPressed() {
         boolean isPopFragment = false;
 
-//Pop backstack depending on the overall tab position (if applicable)
-
+        //Pop backstack depending on the overall tab position (if applicable)
         switch (mViewPager.getCurrentItem()) {
             case 0:
                 isPopFragment = ((BaseContainerFragment)findFragmentByPosition(0)).popFragment();
                 try {
-                   int entryCount = ((BaseContainerFragment)findFragmentByPosition(0)).getChildFragmentManager().getBackStackEntryCount();
-                    Log.d(TAG,"ENTRY IN BACKSTACK: " + entryCount);
-
-                    /*the BaseContainerFragment always should contain at least one child,
-                      so if the child count is 1 we can assume we are at the top level */
-                    if(entryCount <= 1) {
+                    boolean isTopShowing = ((Tab1Container)findFragmentByPosition(0)).isTopFragmentShowing();
+                    if(isTopShowing) {
                         showActionBarBackButton(false,getString(R.string.app_name));
                         changePagerTitle(0,"Users");
                     }
                 } catch (NullPointerException e) {
                     Log.e(TAG,"OnBackPressed child entrycount null : " + e);
                 }
-
                     break;
             case 1:
                 break;
             case 2:
+                break;
+            case 3:
                 break;
             default:
                 break;
@@ -388,13 +346,11 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         if (!isPopFragment) {
             finish();
         }
-//        super.onBackPressed();
     }
 
 
 
     public Fragment findFragmentByPosition(int position) {
-//        FragmentPagerAdapter fragmentPagerAdapter = mSectionsPagerAdapter;
         return getSupportFragmentManager().findFragmentByTag(
                 "android:switcher:" + mViewPager.getId() + ":"
                         + mSectionsPagerAdapter.getItemId(position));
@@ -414,16 +370,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             getSupportActionBar().setDisplayHomeAsUpEnabled(showBack);
             getSupportActionBar().setDisplayShowTitleEnabled(true);
             getSupportActionBar().setTitle(title);
-
-//            if(showBack) {
-//                hideOption(R.id.addFeed);
-//                showOption(R.id.shareFacebook);
-//            } else {
-//
-//                hideOption(R.id.shareFacebook);
-//                showOption(R.id.addFeed);
-//
-//            }
         }
 
     }
@@ -434,4 +380,26 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
     }
 
+    //TODO fill this in
+    public void showAddMyListDialog(){
+        Toast.makeText(this, "Show MyList Dialog", Toast.LENGTH_SHORT).show();
+    }
+
+    public boolean isTopShowing() {
+        switch (mViewPager.getCurrentItem()) {
+            case 0:
+                return ((Tab1Container)findFragmentByPosition(0)).isTopFragmentShowing();
+            case 1:
+                break;
+            case 2:
+                break;
+            case 3:
+                break;
+            default:
+                break;
+        }
+
+        return true;
+
+    }
 }

@@ -14,7 +14,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.jukuproject.jukutweet.Adapters.UserListAdapter;
-import com.jukuproject.jukutweet.BaseContainerFragment;
+//import com.jukuproject.jukutweet.BaseContainerFragment;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.InternalDB;
@@ -30,7 +30,7 @@ public class QuizAllFragment extends Fragment {
 
     /*Tracks elapsed time since last click of a recyclerview row. Used to
     * keep from constantly recieving button clicks through the RxBus */
-    private long mLastClickTime = 0;
+//    private long mLastClickTime = 0;
 //    private RxBus _rxBus = new RxBus();
 //    private RecyclerView mRecyclerView;
 //    UserListAdapter mAdapter;
@@ -41,12 +41,12 @@ public class QuizAllFragment extends Fragment {
     /**
      * Returns a new instance of UserListFragment
      */
-    public static MyListFragment newInstance() {
+    public static QuizAllFragment newInstance() {
 //        UserListFragment fragment = new UserListFragment();
 //        Bundle args = new Bundle();
 //        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
 //        fragment.setArguments(args);
-        return new MyListFragment();
+        return new QuizAllFragment();
     }
 
 

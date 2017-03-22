@@ -122,6 +122,15 @@ public class Tweet {
         return retweet_count;
     }
 
+    public String getDisplayRetweetCount() {
+        try {
+            return String.valueOf(retweet_count);
+        } catch (NullPointerException e) {
+            Log.e("TEST-Tweet","Tweet object displayretweetcount: " + e);
+            return "";
+        }
+    }
+
     public void setRetweet_count(Integer retweet_count) {
         this.retweet_count = retweet_count;
     }

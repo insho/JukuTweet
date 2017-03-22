@@ -14,6 +14,9 @@ package com.jukuproject.jukutweet.Adapters;
 
         import java.util.List;
 
+/**
+ * Recycler Adapter for UserListFragment, shows twitter users saved in the database
+ */
 public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHolder> {
 
     private RxBus _rxbus;
@@ -38,17 +41,13 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
         _rxbus = rxBus;
     }
 
-    // Create new views (invoked by the layout manager)
     @Override
     public UserListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
                                                          int viewType) {
-
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.userlist_recycler_row, parent, false);
         return new ViewHolder(v);
     }
 
-
-    // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
 
@@ -57,7 +56,8 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //If it's a short click, send the object (with title, image etc)
+                /*If it's a short click, send the UserInfo object back to UserInfoFragment,
+                * to trigger opening the UserTimeLine Fragment */
                 _rxbus.send(mDataset.get(holder.getAdapterPosition()));
             }
         });
@@ -65,7 +65,8 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
         holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                //If it's a long click, send the row id only, for deletion
+                /*If it's a long click, send the UserInfo object back to UserInfoFragment,
+                * to trigger opening the RemoveUser dialog */
                 _rxbus.sendLongClick(mDataset.get(holder.getAdapterPosition()));
                 return false;
             }
@@ -76,7 +77,6 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
     public int getItemCount() {
         return mDataset.size();
     }
-
 
     public UserInfo getUser(int position) {
         return mDataset.get(position);

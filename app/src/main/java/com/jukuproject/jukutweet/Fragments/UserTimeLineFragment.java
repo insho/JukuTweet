@@ -1,6 +1,5 @@
 package com.jukuproject.jukutweet.Fragments;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -30,15 +29,17 @@ import java.util.List;
 
 import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
-import static com.jukuproject.jukutweet.InternalDB.TMAIN_COL0;
-
-
-public class TimeLineFragment extends Fragment {
+/**
+ * Shows last X tweets from a twitter timeline. User can click on a tweet to bring up
+ * the WordBreakDown Popup window, save the tweet and/or specific kanji from the tweet
+ */
+public class UserTimeLineFragment extends Fragment {
     FragmentInteractionListener mCallback;
 
-    /*Tracks elapsed time since last click of a recyclerview row. Used to
+    /*mLastClickTime Tracks elapsed time since last click of a recyclerview row. Used to
     * keep from constantly recieving button clicks through the RxBus */
     private long mLastClickTime = 0;
     private RxBus _rxBus = new RxBus();
@@ -46,61 +47,33 @@ public class TimeLineFragment extends Fragment {
     private UserTimeLineAdapter mAdapter;
     private TextView mNoLists;
     private UserInfo mUserInfo;
-
-//    private TextView mHeaderScreenName;
-//    private TextView mHeaderFollowers;
-//    private TextView mHeaderFriends;
-
     private List<Tweet> mTimeLine;
 
     private static final String TAG = "TEST-TimeLineFrag";
 
-    public TimeLineFragment() {}
+    public UserTimeLineFragment() {}
 
     /**
      * Returns a new instance of UserListFragment
      */
-    public static TimeLineFragment newInstance(UserInfo userInfo) {
-        TimeLineFragment fragment = new TimeLineFragment();
+    public static UserTimeLineFragment newInstance(UserInfo userInfo) {
+        UserTimeLineFragment fragment = new UserTimeLineFragment();
         Bundle args = new Bundle();
         args.putParcelable("userInfo",userInfo);
         fragment.setArguments(args);
         return fragment;
     }
 
-
-
-
-
     @Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_timeline, container, false);
         mUserInfo = getArguments().getParcelable("userInfo");
-
         mRecyclerView = (RecyclerView) view.findViewById(R.id.recyclerTimeLine);
         mNoLists = (TextView) view.findViewById(R.id.notweets);
-        //Fill header info
-//        mHeaderScreenName = (TextView) view.findViewById(R.id.name);
-//        mHeaderFollowers = (TextView) view.findViewById(R.id.followers);
-//        mHeaderFriends = (TextView) view.findViewById(R.id.friends);
         mTimeLine = new ArrayList<>();
         return view;
     }
-
-//    @Override
-//    public void onResume() {
-//        super.onResume();
-//        if(mUserInfo != null) {
-//            mHeaderScreenName.setText(mUserInfo.getDisplayName());
-//            mHeaderFollowers.setText("Followers: " + mUserInfo.getFollowerCount());
-//            mHeaderFriends.setText("Friends: " + mUserInfo.getFriendCount());
-//            pullTimeLineData(mUserInfo.getScreenName());
-//        } else {
-//            //TODO -- put error in place if there is no userinfo
-//            Log.d(TAG,"ON RESUME!!!");
-//        }
-//    }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -110,9 +83,6 @@ public class TimeLineFragment extends Fragment {
         mRecyclerView.setLayoutManager(layoutManager);
 
         if(mUserInfo != null) {
-//            mHeaderScreenName.setText(mUserInfo.getDisplayName());
-//            mHeaderFollowers.setText("Followers: " + mUserInfo.getFollowerCountString());
-//            mHeaderFriends.setText("Friends: " + mUserInfo.getFriendCountString());
             pullTimeLineData(mUserInfo);
         } else {
             //TODO -- put error in place if there is no userinfo
@@ -123,14 +93,20 @@ public class TimeLineFragment extends Fragment {
     @Override
     public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
         super.onViewStateRestored(savedInstanceState);
-        updateAdapter();
+//        updateAdapter();
+        //TODO Put something in place to repull data on resume...
     }
 
 
+    /**
+     * Accesses twitters api and pulls the last X tweets from a user's timeline into
+     * the UserTimeLineAdapter
+     * @param userInfo UserInfo object with data from a single twitter user
+     */
     public void pullTimeLineData(final UserInfo userInfo){
 
         mCallback.showProgressBar(true);
-        mAdapter = new UserTimeLineAdapter(new ArrayList<Tweet>());
+        mAdapter = new UserTimeLineAdapter(_rxBus,new ArrayList<Tweet>());
         mRecyclerView.setAdapter(mAdapter);
 
         String token = getResources().getString(R.string.access_token);
@@ -149,7 +125,31 @@ public class TimeLineFragment extends Fragment {
                         if(BuildConfig.DEBUG){Log.d(TAG, "In onCompleted()");}
 
                         mCallback.showProgressBar(false);
-                        mAdapter = new UserTimeLineAdapter(mTimeLine);
+                        mAdapter = new UserTimeLineAdapter(_rxBus,mTimeLine);
+
+                        _rxBus.toClickObserverable()
+                                .subscribe(new Action1<Object>() {
+                                    @Override
+                                    public void call(Object event) {
+
+                                        //TODO MOVE THIS METHOD TO THE FRAGMENT, AND ONLY CALL BACK TO MAIN ACTIVITY???
+                                        //TODO OR only if there is no userinfo, fill that shit in. otherwise dont
+                                        if(isUniqueClick(1000) && event instanceof Tweet) {
+
+                                            Toast.makeText(getContext(), "SHOW SENTENCE BREAKDOWN POPUP", Toast.LENGTH_SHORT).show();
+//                                            UserInfo userInfo = (UserInfo) event;
+//                                            UserTimeLineFragment fragment = new UserTimeLineFragment();
+//                                            Bundle bundle = new Bundle();
+//                                            bundle.putParcelable("userInfo",userInfo);
+//                                            fragment.setArguments(bundle);
+//                                            ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"timeline");
+//                                            mCallback.showActionBarBackButton(true,userInfo.getDisplayName());
+//                                            mCallback.changePagerTitle(0,"Timeline");
+                                        }
+
+                                    }
+
+                                });
                         mRecyclerView.setAdapter(mAdapter);
 
                         //TODO Make this its own subscribable that we can chain!
@@ -190,79 +190,10 @@ public class TimeLineFragment extends Fragment {
                             showRecyclerView(true);
                             mTimeLine.add(tweet);
                         }
-//                        mAdapter.notifyItemInserted(mTimeLine.size() - 1);
                     }
                 });
 
     }
-
-    //TODO replace the usage of this with an actual update, instead of a full repull?
-    /**
-     * Pulls list of followed twitter users from db and fills the adapter with them
-     */
-    public void updateAdapter() {
-
-//        //Create UserListAdapter and attach rxBus click listeners to it
-//        if(mUserInfo != null) {
-//            mAdapter = new UserTimeLineAdapter(mTimeLine);
-//
-//            showRecyclerView(true);
-//
-//            _rxBus.toClickObserverable()
-//                    .subscribe(new Action1<Object>() {
-//                        @Override
-//                        public void call(Object event) {
-//
-////                            if (SystemClock.elapsedRealtime() - mLastClickTime < 1000){
-////                                return;
-////                            }
-////                            mLastClickTime = SystemClock.elapsedRealtime();
-////
-////                            if(event instanceof UserInfo) {
-////                                UserInfo user = (UserInfo) event;
-////                                mCallback.getUserInfo(user.getName());
-////                            }
-//
-//                            if(isUniqueClick(1000) && event instanceof UserInfo) {
-//                                UserInfo userInfo = (UserInfo) event;
-//                                mCallback.getUserInfo(userInfo.getScreenName());
-//                            }
-//
-//                        }
-//
-//                    });
-//            _rxBus.toLongClickObserverable()
-//                    .subscribe(new Action1<Object>() {
-//                        @Override
-//                        public void call(Object event) {
-//
-////                            if (SystemClock.elapsedRealtime() - mLastClickTime < 1000){
-////                                return;
-////                            }
-////                            mLastClickTime = SystemClock.elapsedRealtime();
-////                            if(event instanceof UserInfo) {
-////                                UserInfo user = (UserInfo) event;
-////                                mCallback.showRemoveUserDialog(user.getName());
-////                            }
-//                            if(isUniqueClick(1000) && event instanceof UserInfo) {
-//                                UserInfo userInfo = (UserInfo) event;
-//                                mCallback.showRemoveUserDialog(userInfo.getScreenName());
-//                            }
-////
-//
-//                        }
-//
-//                    });
-//            mRecyclerView.setAdapter(mAdapter);
-//
-//        } else {
-//            /* Hide recycler view and show "no users found" message */
-//            showRecyclerView(false);
-//        }
-
-
-    }
-
 
     /**
      * Toggles between showing recycler (if there are followed users in the database)
@@ -305,9 +236,6 @@ public class TimeLineFragment extends Fragment {
             return false;
         }
     }
-
-
-
 
 }
 

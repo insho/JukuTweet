@@ -1,19 +1,24 @@
 package com.jukuproject.jukutweet.Adapters;
 
+        import android.content.Context;
         import android.support.v7.widget.RecyclerView;
         import android.view.LayoutInflater;
         import android.view.View;
         import android.view.ViewGroup;
         import android.widget.TextView;
 
+        import com.jukuproject.jukutweet.Interfaces.RxBus;
         import com.jukuproject.jukutweet.Models.Tweet;
         import com.jukuproject.jukutweet.R;
 
         import java.util.List;
 
+/**
+ * Recycler adapter for UserTimeLineFragment, displays a list of users tweets
+ */
 public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapter.ViewHolder> {
 
-//    private RxBus _rxbus;
+    private RxBus _rxbus;
     private List<Tweet> mDataset;
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -33,62 +38,46 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
         }
     }
 
-    public UserTimeLineAdapter(List<Tweet> myDataset) {
+    public UserTimeLineAdapter(RxBus rxBus, List<Tweet> myDataset) {
+        _rxbus = rxBus;
         mDataset = myDataset;
     }
 
-//    public UserTimeLineAdapter(List<Tweet> myDataset, RxBus rxBus) {
-//        mDataset = myDataset;
-//        _rxbus = rxBus;
-//    }
 
-    // Create new views (invoked by the layout manager)
     @Override
     public UserTimeLineAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
                                                              int viewType) {
-
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.usertimeline_recycler_row, parent, false);
         return new ViewHolder(v);
     }
 
 
-    // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
 
+        /* Insert tweet metadata if it exists*/
+        if(getTweet(position).getDisplayDate() != null){
+            holder.txtCreated.setText(getTweet(position).getDisplayDate());
+        }
+
+        if(getTweet(position).getFavorited() != null){
+            holder.txtFavorited.setText(String.valueOf(getTweet(position).getFavorited()));
+        }
+
+        if(getTweet(position).getDisplayRetweetCount() != null){
+            holder.txtReTweeted.setText(getTweet(position).getDisplayRetweetCount());
+        }
+
         holder.txtTweet.setText(getTweet(position).getText());
 
-        if(getTweet(position).getCreated_at() != null){
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //If it's a short click, send the tweet back to UserTimeLineFragment
+                _rxbus.send(mDataset.get(holder.getAdapterPosition()));
+            }
+        });
 
-            holder.txtCreated.setText("Created: " + getTweet(position).getDisplayDate());
-        }
-        if(getTweet(position).getFavorited() != null){
-            holder.txtFavorited.setText("Favorited: " + String.valueOf(getTweet(position).getFavorited()));
-        } else {
-            holder.txtFavorited.setText("Favorited: TEST");
-        }
-        if(getTweet(position).getRetweet_count() != null){
-            holder.txtReTweeted.setText("ReTweeted: " + String.valueOf(getTweet(position).getRetweet_count()));
-        } else {
-            holder.txtFavorited.setText("ReTweeted: TEST");
-        }
-
-//        holder.itemView.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                //If it's a short click, send the object (with title, image etc)
-//                _rxbus.send(mDataset.get(holder.getAdapterPosition()));
-//            }
-//        });
-//
-//        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-//            @Override
-//            public boolean onLongClick(View v) {
-//                //If it's a long click, send the row id only, for deletion
-//                _rxbus.sendLongClick(mDataset.get(holder.getAdapterPosition()));
-//                return false;
-//            }
-//        });
     }
 
     @Override

@@ -18,10 +18,6 @@ public class RemoveUserDialog extends DialogFragment {
 
     public DialogInteractionListener mRemoveRSSDialogListener;
 
-    public interface RemoveRSSDialogListener {
-
-    }
-
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -45,7 +41,6 @@ public class RemoveUserDialog extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
-
         final String user = getArguments().getString("user");
 
         TextView title = new TextView(getActivity());
@@ -60,7 +55,6 @@ public class RemoveUserDialog extends DialogFragment {
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-//                Log.d(TAG,"mRemoveRSSDialogListener: " + mRemoveRSSDialogListener);
                 mRemoveRSSDialogListener.onRemoveUserDialogPositiveClick(user);
                 dialog.dismiss();
             }

@@ -15,6 +15,12 @@
 
 
     <string name="timeline_created">Created: %1$s</string>
+    <string name="timeline_favorited">Favorited: %1$s</string>
+    <string name="timeline_retweeted">ReTweeted: %1$s</string>
+
+    <string name="timeline_created_plain">Created: </string>
+    <string name="timeline_favorited_plain">Favorited: </string>
+    <string name="timeline_retweeted_plain">ReTweeted: </string>
 
 
     <string name="access_token">843793669106909186-rxzRHDQGzVza0NstjljujV6cp4bpfwY</string>

@@ -13,6 +13,7 @@ import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.TabContainers.Tab1Container;
 import com.jukuproject.jukutweet.TabContainers.Tab2Container;
 import com.jukuproject.jukutweet.TabContainers.Tab3Container;
+import com.jukuproject.jukutweet.TabContainers.Tab4Container;
 
 /**
  * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
@@ -36,32 +37,13 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
         switch (position) {
             case 0:
                 return Tab1Container.newInstance();
-////                    fabAddFeed.setVisibility(View.VISIBLE);
-////                    mainFragment = UserListFragment.newInstance(position);
-////                    return mainFragment;
-//                    Log.d(TAG,"mUserInfo outside: " + (mUserInfo == null));
-//                    if(mUserInfo != null) {
-//                        Log.d(TAG,"mTimeLineFragment inside: " + (mTimeLineFragment == null));
-//                       if(mTimeLineFragment == null) {
-//                           return TimeLineFragment.newInstance(mUserInfo);
-//                       } else {
-//                           return TimeLineFragment.newInstance(mUserInfo);
-//                       }
-//                    } else {
-//                        if(mUserListFragment == null) {
-//                            return UserListFragment.newInstance();
-//                        } else {
-//                            return mUserListFragment;
-//                        }
-//                    }
-
             case 1:
-//                    fabAddFeed.setVisibility(View.GONE);
                 return Tab2Container.newInstance();
             case 2:
                 return Tab3Container.newInstance();
+            case 3:
+                return Tab4Container.newInstance();
             default:
-//                    fabAddFeed.setVisibility(View.GONE);
                 return Tab1Container.newInstance();
         }
     }
@@ -69,12 +51,8 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
     @Override
     public int getCount() {
-        // Show 3 total pages.
-        return 3;
+        return 4;
     }
-
-
-
 
     @Override
     public CharSequence getPageTitle(int position) {
@@ -85,6 +63,8 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
                 case 1:
                     return "My Lists";
                 case 2:
+                    return "Saved Tweets";
+                case 3:
                     return "Quiz All";
                 default:
                     return "";
