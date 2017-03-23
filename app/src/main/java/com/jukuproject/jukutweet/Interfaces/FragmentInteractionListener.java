@@ -19,4 +19,6 @@ public interface FragmentInteractionListener {
     void changePagerTitle(int position,String title);
     void showFab(boolean show, String type);
     void showFab(boolean show);
+
+    void onBackPressed();
 }

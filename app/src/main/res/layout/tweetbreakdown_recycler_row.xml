@@ -132,8 +132,8 @@
             android:id="@+id/browseitems_frameLayout"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_marginEnd="10dp"
-            android:layout_marginRight="10dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginRight="20dp"
 
             android:layout_weight=".1">
 
@@ -142,7 +142,7 @@
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
                 android:contentDescription="star"
-
+                android:src="@drawable/ic_star_black"
                 android:visibility="gone"
                 android:background="@android:color/transparent"
                 android:gravity="center"

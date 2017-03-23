@@ -14,6 +14,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jukuproject.jukutweet.Interfaces.RxBus;
+import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
 import java.util.ArrayList;
@@ -25,13 +27,11 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
 
     private Context mContext;
     private ArrayList<WordEntry> mWords;
-    private  int mGreyThreshold;
-    private  float mRedThreshold;
-    private  float mYellowThreshold;
+    private  ColorThresholds mColorThresholds;
+    private RxBus mRxBus;
 
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-
 
         public TextView txtColorBar;
         public TextView txtKanji;
@@ -56,13 +56,11 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
     }
 
 
-    public TweetBreakDownAdapter(Context context, ArrayList<WordEntry> words, int greythreshold, float redthreshold, float yellowthreshold) {
+    public TweetBreakDownAdapter(Context context, ArrayList<WordEntry> words, ColorThresholds colorThresholds, RxBus rxBus) {
         mContext = context;
         mWords = words;
-        mGreyThreshold = greythreshold;
-        mRedThreshold = redthreshold;
-        mYellowThreshold = yellowthreshold;
-
+        mColorThresholds = colorThresholds;
+        this.mRxBus = rxBus;
     }
 
 
@@ -90,24 +88,19 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
             holder.imgStarLayout.setClickable(true);
             holder.imgStarLayout.setLongClickable(true);
 
-
-        ArrayList<String> tmpDefinitionArray = new ArrayList<>();
-
         holder.txtKanji.setText(wordEntry.getKanji());
         holder.txtFurigana.setText(wordEntry.getFurigana());
 
 
-        /**
-         * Parse the definition into an array of multiple lines, if there are multiple sub-definitions in the string
-         */
+        /* Parse the definition into an array of multiple lines, if there are multiple sub-definitions in the string */
 
 
 
-        if(wordEntry.getTotal()< mGreyThreshold) {
+        if(wordEntry.getTotal()< mColorThresholds.getGreyThreshold()) {
             holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuGrey));
-        } else if(wordEntry.getPercentage()< mRedThreshold){
+        } else if(wordEntry.getPercentage()< mColorThresholds.getRedthreshold()){
             holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuRed));
-        } else if (wordEntry.getPercentage()< mYellowThreshold){
+        } else if (wordEntry.getPercentage()< mColorThresholds.getYellowthreshold()){
             holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuYellow));
         } else {
             holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuGreen));
@@ -126,6 +119,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
             public void onClick(View v) {
                 //TODO favorite words
                 Toast.makeText(mContext, "Clicked", Toast.LENGTH_SHORT).show();
+                mRxBus.send(mWords.get(holder.getAdapterPosition()));
             }
         });
 
@@ -133,11 +127,18 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         holder.imgStarLayout.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-            //TODO multiselect words
+                mRxBus.sendLongClick(mWords.get(holder.getAdapterPosition()).getId());
                 return true;
             }
         });
 
+        holder.layout.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                //TODO multiselect words
+                return true;
+            }
+        });
 
 
 

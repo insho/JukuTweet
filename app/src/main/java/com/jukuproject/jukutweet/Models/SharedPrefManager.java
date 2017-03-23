@@ -28,6 +28,7 @@ public class SharedPrefManager {
     private Boolean mDifficultAnswers;
     private Integer mWronganswercountbeforeshow;
     private Boolean mHidethescores;
+    private ColorThresholds mColorThresholds;
 
     private static SharedPrefManager mSharedPrefManagerInstance = null;
 
@@ -58,21 +59,18 @@ public class SharedPrefManager {
             mGreyThreshold = Integer.parseInt(prefs.getString("preference_greythreshold", "3"));
             mShowlblheadercount = prefs.getBoolean("showlblheadercount", false);
             mPrefStarsHash= prefs.getStringSet("list_favoriteslistcount", new HashSet<String>());
-
             mIncludemultiplechoicecores = prefs.getBoolean("includemultiplechoicecores", true);
             mIncludefillinsentencesscores = prefs.getBoolean("includefillinsentencesscores", true);
-
             mWordbuilderintrolayout = prefs.getBoolean("wordbuilderintrolayout", true);
             mIncludewordbuilderscores  = prefs.getBoolean("includewordbuilderscores", true);
             mIncludewordmatchscores = prefs.getBoolean("includewordmatchscores", true);
-
             mPreferencewordbuilderscorethreshold = Integer.parseInt(prefs.getString("preference_wordbuilderscorethreshold", "3"));
             mSliderMultiplier = Double.parseDouble(prefs.getString("sliderMultiplier", "3"));
-
             mDifficultAnswers = prefs.getBoolean("preference_difficultanswers",false);
             mWronganswercountbeforeshow = Integer.parseInt(prefs.getString("wronganswercountBeforeShow", "2"));
-
             mHidethescores = prefs.getBoolean("hidethescores",false);
+
+            mColorThresholds = new ColorThresholds(mGreyThreshold,mRedthreshold,mYellowthreshold);
 
         }
 
@@ -147,6 +145,10 @@ public class SharedPrefManager {
 
     public Boolean getHidethescores() {
         return mHidethescores;
+    }
+
+    public ColorThresholds getColorThresholds() {
+        return mColorThresholds;
     }
 }
 

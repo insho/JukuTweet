@@ -6,11 +6,15 @@ package com.jukuproject.jukutweet.Fragments;
 
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
+import android.content.ContentValues;
+import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -19,14 +23,18 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import com.jukuproject.jukutweet.Adapters.TweetBreakDownAdapter;
 import com.jukuproject.jukutweet.BuildConfig;
+import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Database.InternalDB;
+import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.ParseSentenceItem;
+import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.Models.WordLoader;
@@ -34,6 +42,8 @@ import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SentenceParser;
 
 import java.util.ArrayList;
+
+import rx.functions.Action1;
 
 
 /**
@@ -43,24 +53,22 @@ import java.util.ArrayList;
 public class TweetBreakDownFragment extends Fragment  implements View.OnTouchListener {
 
     String TAG = "TEST-breakdownpop";
-
+    private FragmentInteractionListener mCallback;
 //    private Context mContext;
 //    private View mAnchorView;
     private RxBus mRxBus = new RxBus();
     private Tweet mTweet;
     private RecyclerView mRecyclerView;
-    private View anchorView;
+//    private View anchorView;
 
     //TODO remove these!
-    int greyThreshold = 2;
-    float redThreshold = .3f;
-    float yellowThreshold = .8f;
+    private ColorThresholds colorThresholds;
 
 
     private WordLoader wordLoader;
 
-    private ArrayList<String> colors = new ArrayList<String>();
-    private int totalactivelists;
+//    private ArrayList<String> colors = new ArrayList<String>();
+//    private int totalactivelists;
 
     private TextView mSentence;
     private View baseLayout;
@@ -72,6 +80,9 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
     private boolean isClosing = false;
     private boolean isScrollingUp = false;
     private boolean isScrollingDown = false;
+
+    /* keep from constantly recieving button clicks through the RxBus */
+    private long mLastClickTime = 0;
 
     public TweetBreakDownFragment() {}
 
@@ -99,12 +110,13 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
         popupView = LayoutInflater.from(getActivity()).inflate(R.layout.popup_sentencebreakdown_main, null);
         baseLayout = popupView.findViewById(R.id.popuptab_layout);
         baseLayout.setOnTouchListener(this);
-        anchorView = container;
+//        anchorView = container;
 //        popupView = inflater.inflate(R.layout.popup_sentencebreakdown_main, container, false);
         mTweet = getArguments().getParcelable("tweet");
         mRecyclerView = (RecyclerView) popupView.findViewById(R.id.parseSentenceRecyclerView);
         baseLayout = popupView.findViewById(R.id.popuptab_layout);
         mSentence =  (TextView) popupView.findViewById(R.id.sentence);
+        colorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
 
         return popupView;
     }
@@ -115,8 +127,8 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
 //        baseLayout.setOnTouchListener(this);
 
         //TODO REPLACE THIS WITH PREFERENCES SET
-        colors.add("Blue");
-        colors.add("Red");
+//        colors.add("Blue");
+//        colors.add("Red");
         wordLoader = InternalDB.getInstance(getContext()).getWordLists(null);
 
         mSentence.setText(mTweet.getText());
@@ -132,10 +144,40 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
             }
         }
 
-        RecyclerView.Adapter mAdapter = new TweetBreakDownAdapter(getContext(),kanjiEntriesInTweet,greyThreshold,redThreshold,yellowThreshold);
-//        RecyclerView mRecyclerView  = (RecyclerView) popupView.findViewById(R.id.parseSentenceRecyclerView);
+        RecyclerView.Adapter mAdapter = new TweetBreakDownAdapter(getContext(),kanjiEntriesInTweet,colorThresholds,mRxBus);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
+
+        mRxBus.toClickObserverable()
+                .subscribe(new Action1<Object>() {
+                    @Override
+                    public void call(Object event) {
+
+                        //TODO MOVE THIS METHOD TO THE FRAGMENT, AND ONLY CALL BACK TO MAIN ACTIVITY???
+                        //TODO OR only if there is no userinfo, fill that shit in. otherwise dont
+                        if(isUniqueClick(1000) && event instanceof Integer) {
+                            Integer kanjiID = (Integer) event;
+
+                            //TODO - toggle the star, or open the star popup
+                        }
+
+                    }
+
+                });
+        mRxBus.toLongClickObserverable()
+                .subscribe(new Action1<Object>() {
+                    @Override
+                    public void call(Object event) {
+                        if(isUniqueClick(1000) && event instanceof Integer) {
+                            Integer kanjiID = (Integer) event;
+
+                            //TODO - open the star popup
+                        }
+
+                    }
+
+                });
+
         mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.setVerticalScrollBarEnabled(true);
 
@@ -294,7 +336,7 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
             public void onAnimationEnd(Animator animator) {
 
                 popupWindow.dismiss();
-                //TODO call backstack
+                mCallback.onBackPressed();
                 if(BuildConfig.DEBUG){Log.d(TAG,") Blue: popupWindow.dismiss A");}
 
                 //reset the position variables
@@ -354,7 +396,411 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
     }
 
 
+    /**
+     * Checks how many milliseconds have elapsed since the last time "mLastClickTime" was updated
+     * If enough time has elapsed, returns True and updates mLastClickTime.
+     * This is to stop unwanted rapid clicks of the same button
+     * @param elapsedMilliSeconds threshold of elapsed milliseconds before a new button click is allowed
+     * @return bool True if enough time has elapsed, false if not
+     */
+    public boolean isUniqueClick(int elapsedMilliSeconds) {
+        if(SystemClock.elapsedRealtime() - mLastClickTime > elapsedMilliSeconds) {
+            mLastClickTime = SystemClock.elapsedRealtime();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        try {
+            mCallback = (FragmentInteractionListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()
+                    + " must implement OnHeadlineSelectedListener");
+        }
+    }
 
 
+
+
+
+//    public void starShortPress() {
+//        InternalDB helper =  InternalDB.getInstance(mActivity);
+//        SQLiteDatabase db = helper.getReadableDatabase();
+//        if (debug) {
+//            Log.d(TAG, "starting color (on star click): " + startingstate_inner);
+//            Log.d(TAG, "mcolors size: " + mcolors.size());
+//        }
+//        ;
+//
+//        if (holder.imgStarLayout.isPressed()) {
+//
+//            //retrieve the starting state of the star (which determines star color and clickability)
+//            if (mcolors == null || mcolors.size() == 0) {
+//                startingstate_inner = 5;
+//            } else if (holder.imgStar.getTag().toString() != null) {
+//                startingstate_inner = Integer.parseInt(holder.imgStar.getTag().toString());
+//            } else {
+//                startingstate_inner = 0;
+//            }
+//
+//            if (debug) {
+//                Log.d(TAG, "startingstate_inner= " + startingstate_inner);
+//            }
+//            ;
+//
+//            /** IF IT'S IN MULTIPLE LISTS, MAKE A CLICK OPEN UP THE MULTIPLE LIST DIALOG...*/
+//            if (startingstate_inner == 5) {
+//                PopupWindow popupWindowMultiFavorites = popupWindowMultiFavorites(PKey);
+//                popupWindowMultiFavorites.setOnDismissListener(new PopupWindow.OnDismissListener() {
+//                    @Override
+//                    public void onDismiss() {
+//                        updateStarColor(holder, PKey);
+//                    }
+//                });
+//
+//
+//                popupWindowMultiFavorites.showAsDropDown(holder.imgStar, -xadjustment, -yadjustment);
+//
+//
+//            } else if (startingstate_inner <= 0 && mcolors.contains("Yellow")) {
+//                holder.imgStar.setImageResource(R.drawable.ic_star_black);
+//                holder.imgStar.setColorFilter(ContextCompat.getColor(mActivity, R.color.spinnerYellowColor));
+//                ContentValues values = new ContentValues();
+//                values.clear();
+//                values.put(InternalDB.Columns.COL0, PKey);
+//                values.put(InternalDB.Columns.COL_T2_1, "Yellow");
+//                values.put(InternalDB.Columns.COL_T2_2, 1);
+//                db.insertWithOnConflict(InternalDB.TABLE2, null, values,
+//                        SQLiteDatabase.CONFLICT_REPLACE);
+//                startingstate_inner = 1;
+//
+//                /** Updating the favorites list double (i.e. mColorsHash) so view can be recreated when the user scrolls and view is recycled */
+//                ArrayList<ArrayList<String>> tmpdouble = new ArrayList<ArrayList<String>>();
+//                if (mColorsHash.containsKey(PKey)) {
+//                    ArrayList<String> colorsarray = mColorsHash.get(PKey).get(0);
+//                    colorsarray.clear();
+//                    colorsarray.add("Yellow");
+//                    ArrayList<String> otherarray = mColorsHash.get(PKey).get(1);
+//                    tmpdouble.add(colorsarray);
+//                    tmpdouble.add(otherarray);
+//
+//                    mColorsHash.remove(PKey);
+//                } else {
+//                    ArrayList<String> colorsarray = new ArrayList<String>();
+//                    ArrayList<String> otherarray = new ArrayList<String>();
+//                    colorsarray.add("Yellow");
+//                    tmpdouble.add(colorsarray);
+//                    tmpdouble.add(otherarray);
+//                }
+//                mColorsHash.put(PKey, tmpdouble);
+//
+//            } else if (startingstate_inner <= 1 && mcolors.contains("Blue")) {
+//                holder.imgStar.setImageResource(R.drawable.ic_star_black);
+//                holder.imgStar.setColorFilter(ContextCompat.getColor(mActivity, R.color.Blue_900));
+//                ContentValues values = new ContentValues();
+//                values.clear();
+//                values.put(InternalDB.Columns.COL0, PKey);
+//                values.put(InternalDB.Columns.COL_T2_1, "Blue");
+//                values.put(InternalDB.Columns.COL_T2_2, 1);
+//                db.insertWithOnConflict(InternalDB.TABLE2, null, values,
+//                        SQLiteDatabase.CONFLICT_REPLACE);
+//                switch (startingstate_inner) {
+//                    case 1:
+//                        helper.delete_favorites(db, InternalDB.TABLE2, PKey, "Yellow", 1);
+//                        break;
+//                }
+//                startingstate_inner = 2;
+//
+//                /** Updating the favorites list double (i.e. mColorsHash) so view can be recreated when the user scrolls and view is recycled */
+//                ArrayList<ArrayList<String>> tmpdouble = new ArrayList<ArrayList<String>>();
+//                if (mColorsHash.containsKey(PKey)) {
+//                    ArrayList<String> colorsarray = mColorsHash.get(PKey).get(0);
+//                    colorsarray.clear();
+//                    colorsarray.add("Blue");
+//                    ArrayList<String> otherarray = mColorsHash.get(PKey).get(1);
+//                    tmpdouble.add(colorsarray);
+//                    tmpdouble.add(otherarray);
+//
+//                    mColorsHash.remove(PKey);
+//                } else {
+//                    ArrayList<String> colorsarray = new ArrayList<String>();
+//                    ArrayList<String> otherarray = new ArrayList<String>();
+//                    colorsarray.add("Blue");
+//                    tmpdouble.add(colorsarray);
+//                    tmpdouble.add(otherarray);
+//                }
+//                mColorsHash.put(PKey, tmpdouble);
+//
+//            } else if (startingstate_inner <= 2 && mcolors.contains("Red")) {
+//                holder.imgStar.setImageResource(R.drawable.ic_star_black);
+//                holder.imgStar.setColorFilter(ContextCompat.getColor(mActivity, R.color.answerIncorrectColor));
+//                ContentValues values = new ContentValues();
+//                values.clear();
+//                values.put(InternalDB.Columns.COL0, PKey);
+//                values.put(InternalDB.Columns.COL_T2_1, "Red");
+//                values.put(InternalDB.Columns.COL_T2_2, 1);
+//                db.insertWithOnConflict(InternalDB.TABLE2, null, values,
+//                        SQLiteDatabase.CONFLICT_REPLACE);
+//
+//                switch (startingstate_inner) {
+//                    case 1:
+//                        helper.delete_favorites(db, InternalDB.TABLE2, PKey, "Yellow", 1);
+//                        break;
+//                    case 2:
+//                        helper.delete_favorites(db, InternalDB.TABLE2, PKey, "Blue", 1);
+//                        break;
+//                }
+//                startingstate_inner = 3;
+//
+//                /** Updating the favorites list double (i.e. mColorsHash) so view can be recreated when the user scrolls and view is recycled */
+//                ArrayList<ArrayList<String>> tmpdouble = new ArrayList<ArrayList<String>>();
+//                if (mColorsHash.containsKey(PKey)) {
+//                    ArrayList<String> colorsarray = mColorsHash.get(PKey).get(0);
+//                    colorsarray.clear();
+//                    colorsarray.add("Red");
+//                    ArrayList<String> otherarray = mColorsHash.get(PKey).get(1);
+//                    tmpdouble.add(colorsarray);
+//                    tmpdouble.add(otherarray);
+//
+//                    mColorsHash.remove(PKey);
+//                } else {
+//                    ArrayList<String> colorsarray = new ArrayList<String>();
+//                    ArrayList<String> otherarray = new ArrayList<String>();
+//                    colorsarray.add("red");
+//                    tmpdouble.add(colorsarray);
+//                    tmpdouble.add(otherarray);
+//
+//                }
+//                mColorsHash.put(PKey, tmpdouble);
+//
+//            } else if (startingstate_inner <= 3 && mcolors.contains("Green")) {
+//                holder.imgStar.setImageResource(R.drawable.ic_star_black);
+//                holder.imgStar.setColorFilter(ContextCompat.getColor(mActivity, R.color.answerCorrectColor));
+//                ContentValues values = new ContentValues();
+//                values.clear();
+//                values.put(InternalDB.Columns.COL0, PKey);
+//                values.put(InternalDB.Columns.COL_T2_1, "Green");
+//                values.put(InternalDB.Columns.COL_T2_2, 1);
+//                db.insertWithOnConflict(InternalDB.TABLE2, null, values,
+//                        SQLiteDatabase.CONFLICT_REPLACE);
+//
+//                switch (startingstate_inner) {
+//                    case 1:
+//                        helper.delete_favorites(db, InternalDB.TABLE2, PKey, "Yellow", 1);
+//                        break;
+//                    case 2:
+//                        helper.delete_favorites(db, InternalDB.TABLE2, PKey, "Blue", 1);
+//                        break;
+//                    case 3:
+//                        helper.delete_favorites(db, InternalDB.TABLE2, PKey, "Red", 1);
+//                        break;
+//                }
+//                startingstate_inner = 4;
+//
+//                /** Updating the favorites list double (i.e. mColorsHash) so view can be recreated when the user scrolls and view is recycled */
+//                ArrayList<ArrayList<String>> tmpdouble = new ArrayList<ArrayList<String>>();
+//                if (mColorsHash.containsKey(PKey)) {
+//                    ArrayList<String> colorsarray = mColorsHash.get(PKey).get(0);
+//                    colorsarray.clear();
+//                    colorsarray.add("Green");
+//                    ArrayList<String> otherarray = mColorsHash.get(PKey).get(1);
+//                    tmpdouble.add(colorsarray);
+//                    tmpdouble.add(otherarray);
+//
+//                    mColorsHash.remove(PKey);
+//                } else {
+//                    ArrayList<String> colorsarray = new ArrayList<String>();
+//                    ArrayList<String> otherarray = new ArrayList<String>();
+//                    colorsarray.add("Green");
+//                    tmpdouble.add(colorsarray);
+//                    tmpdouble.add(otherarray);
+//
+//
+//                }
+//                mColorsHash.put(PKey, tmpdouble);
+//
+//            } else {
+//                holder.imgStar.setImageResource(R.drawable.ic_star_black);
+//                holder.imgStar.setColorFilter(ContextCompat.getColor(mActivity, R.color.Black));
+//
+//                switch (startingstate_inner) {
+//                    case 1:
+//                        helper.delete_favorites(db, InternalDB.TABLE2, PKey, "Yellow", 1);
+//                        break;
+//                    case 2:
+//                        helper.delete_favorites(db, InternalDB.TABLE2, PKey, "Blue", 1);
+//                        break;
+//                    case 3:
+//                        helper.delete_favorites(db, InternalDB.TABLE2, PKey, "Red", 1);
+//                        break;
+//
+//                    case 4:
+//                        helper.delete_favorites(db, InternalDB.TABLE2, PKey, "Green", 1);
+//                        break;
+//                }
+//                startingstate_inner = 0;
+//
+//                /** Updating the favorites list double (i.e. mColorsHash) so view can be recreated when the user scrolls and view is recycled */
+//                ArrayList<ArrayList<String>> tmpdouble = new ArrayList<ArrayList<String>>();
+//                if (mColorsHash.containsKey(PKey)) {
+//                    ArrayList<String> colorsarray = mColorsHash.get(PKey).get(0);
+//                    colorsarray.clear();
+//                    ArrayList<String> otherarray = mColorsHash.get(PKey).get(1);
+//                    tmpdouble.add(colorsarray);
+//                    tmpdouble.add(otherarray);
+//
+//                    mColorsHash.remove(PKey);
+//                } else {
+//                    ArrayList<String> colorsarray = new ArrayList<String>();
+//                    ArrayList<String> otherarray = new ArrayList<String>();
+//                    tmpdouble.add(colorsarray);
+//                    tmpdouble.add(otherarray);
+//                }
+//                mColorsHash.put(PKey, tmpdouble);
+//            }
+//
+//        } else {
+//            holder.imgStar.setImageResource(R.drawable.ic_star_black);
+//            holder.imgStar.setColorFilter(ContextCompat.getColor(mActivity, R.color.Black));
+//            startingstate_inner = 0;
+//
+//            /** Updating the favorites list double (i.e. mColorsHash) so view can be recreated when the user scrolls and view is recycled */
+//            ArrayList<ArrayList<String>> tmpdouble = new ArrayList<ArrayList<String>>();
+//            if (mColorsHash.containsKey(PKey)) {
+//                ArrayList<String> colorsarray = mColorsHash.get(PKey).get(0);
+//                colorsarray.clear();
+//                ArrayList<String> otherarray = mColorsHash.get(PKey).get(1);
+//                tmpdouble.add(colorsarray);
+//                tmpdouble.add(otherarray);
+//
+//                mColorsHash.remove(PKey);
+//            } else {
+//                ArrayList<String> colorsarray = new ArrayList<String>();
+//                ArrayList<String> otherarray = new ArrayList<String>();
+//                tmpdouble.add(colorsarray);
+//                tmpdouble.add(otherarray);
+//            }
+//            mColorsHash.put(PKey, tmpdouble);
+//        }
+//        holder.imgStar.setTag(startingstate_inner);
+//
+//        if (debug) {
+//            Log.d(TAG, "After click startingstate_inner: (" + PKey + ") - " + startingstate_inner);
+//        }
+//
+//        db.close();
+//    }
+
+
+
+
+
+//    public void updateStarColor(ImageButton favoritesStar, WordEntry wordEntry) {
+//        /** Deal with the color star update */
+//        favoritesStar.setImageResource(R.drawable.ic_star_black);
+//
+//        if (mColorsHash.containsKey(PKey)) {
+//            /** Pull the lists that contain the  _id for that kanji  */
+//            ArrayList<String> colorListNameArray  = mColorsHash.get(PKey).get(0);
+//            ArrayList<String> totalListCountArray = mColorsHash.get(PKey).get(1);
+//
+//            if(debug) {
+//                for (int xxx = 0; xxx < totalListCountArray.size(); xxx++) {
+//                    Log.d(TAG, "otherarray item " + xxx + ": " + totalListCountArray.get(xxx));
+//                }
+//            };
+//
+//            int totalListCount = 0;
+//            if (totalListCountArray.size() > 0) {
+//                totalListCount = Integer.parseInt(totalListCountArray.get(0)); // all lists that the word is included in
+//            }
+//            String color1;
+//
+//            if(debug){
+//                Log.d(TAG, PKey + " - colorsarray size : " + colorListNameArray.size());
+//                Log.d(TAG,"debug " + totalListCount);
+//                Log.d(TAG,"mcolors: " + mcolors);
+//                Log.d(TAG, "PKey = " + PKey + " = initial color = " + startingstate_inner);
+//            }
+//
+//            /** If the _id is in more than one color list, fill the star icon with the first 2 colors  */
+//            if (colorListNameArray.size() > 1) {
+//                if(debug){Log.d(TAG, "xvx set MULTICOLOR!");}
+//                holder.imgStar.setColorFilter(null);
+//                holder.imgStar.setImageResource(R.drawable.ic_star_multicolor);
+//                startingstate_inner = 5; // MULTICOLOR
+//                holder.imgStar.setTag(5);
+//
+//                if(debug){Log.d(TAG, "starting color is now set to 5");}
+//
+//            } else if((totalListCount >0 && colorListNameArray.size()==0) || (mcolors== null || mcolors.size() ==0)){
+//                holder.imgStar.setColorFilter(null);
+//                holder.imgStar.setImageResource(R.drawable.ic_star_black);
+//                startingstate_inner = 5; // MULTICOLOR
+//                holder.imgStar.setTag(5);
+//
+//            } else if (colorListNameArray.size() == 1) {
+//
+//                if(debug){Log.d(TAG, "PKey = " + PKey + " - We're here somehow (in the one arraything)");};
+//                /** If it's in one color list, fill the star icon with that color */
+//                color1 = colorListNameArray.get(0);
+//                switch (color1.toLowerCase()) {
+//                    case "yellow":
+//                        holder.imgStar.setColorFilter(ContextCompat.getColor(mActivity, R.color.spinnerYellowColor));
+//                        startingstate_inner = 1;
+//                        holder.imgStar.setTag(1);
+//                        break;
+//                    case "blue":
+//                        holder.imgStar.setColorFilter(ContextCompat.getColor(mActivity, R.color.Blue_900));
+//                        startingstate_inner = 2;
+//                        holder.imgStar.setTag(2);
+//                        break;
+//                    case "red":
+//                        holder.imgStar.setColorFilter(ContextCompat.getColor(mActivity, R.color.answerIncorrectColor));
+//                        startingstate_inner = 3;
+//                        holder.imgStar.setTag(3);
+//                        break;
+//                    case "green":
+//                        holder.imgStar.setColorFilter(ContextCompat.getColor(mActivity, R.color.answerCorrectColor));
+//                        startingstate_inner = 4;
+//                        holder.imgStar.setTag(4);
+//                        break;
+//                }
+//
+//                /** If this value is in multiple lists (user created ones), then make hte starting color = 5*/
+//                if (totalListCount >= 1) {
+//
+//                    if(debug){Log.d(TAG, "PKey = " + PKey + " - We're making it = 5 here...");};
+//                    startingstate_inner = 5;
+//                    holder.imgStar.setTag(5);
+//                }
+//
+//            } else {
+//
+//                if(debug){Log.d(TAG, "PKey = " + PKey + " - coloring the star black...");};
+//                holder.imgStar.setColorFilter(ContextCompat.getColor(mActivity, R.color.Black));
+//                startingstate_inner = 0;
+//                holder.imgStar.setTag(0);
+//            }
+//
+//        } else {
+//            if(debug){Log.d(TAG, "xvx set 5 - colors hash doesn't contain PKEy");
+//                Log.d(TAG, "PKey = " + PKey + " - it also turned BLACK...");
+//            }
+//            holder.imgStar.setImageResource(R.drawable.ic_star_black);
+//            holder.imgStar.setColorFilter(ContextCompat.getColor(mActivity, R.color.Black));
+//            startingstate_inner = 0;
+//            holder.imgStar.setTag(0);
+//        }
+//
+//        if(debug) {
+//            Log.d(TAG, "PKey = " + PKey + " = final startstate = " + startingstate_inner);
+//            Log.d(TAG, "PKey = " + PKey + " = final tag = " + holder.imgStar.getTag());
+//        }
+//    }
 }
 

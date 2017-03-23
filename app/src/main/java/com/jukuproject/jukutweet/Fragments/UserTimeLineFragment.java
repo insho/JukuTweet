@@ -145,8 +145,7 @@ public class UserTimeLineFragment extends Fragment {
                                                 Bundle bundle = new Bundle();
                                                 bundle.putParcelable("tweet",tweet);
                                                 fragment.setArguments(bundle);
-                                                ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"tweetbreakdown");
-
+                                                ((BaseContainerFragment)getParentFragment()).addFragment(fragment, true,"tweetbreakdown");
                                                 //Hide the fab
                                                 mCallback.showFab(false,"");
                                             }

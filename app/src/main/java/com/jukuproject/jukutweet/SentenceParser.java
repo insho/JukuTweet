@@ -9,6 +9,7 @@ import com.jukuproject.jukutweet.Models.ParseSentenceMatchCombination;
 import com.jukuproject.jukutweet.Models.ParseSentencePossibleKanji;
 import com.jukuproject.jukutweet.Models.ParseSentenceItem;
 import com.jukuproject.jukutweet.Models.WordEntry;
+import com.jukuproject.jukutweet.Models.WordEntryFavorites;
 import com.jukuproject.jukutweet.Models.WordLoader;
 
 import java.util.ArrayList;
@@ -803,7 +804,93 @@ public class SentenceParser {
         for(int index = 0; index < cleanKanjiIDs.size(); index ++) {
             if(debug){Log.d(TAG, "clean_int: " + cleanKanjiIDs.get(index));}
 
-            Cursor dd = db.rawQuery("SELECT [Kanji],(CASE WHEN (Furigana is null OR  Furigana = '') then \"\" else \"(\" || Furigana || \")\" end) as [Furigana],[Definition],[Total],[Percent],(CASE WHEN [Total] < " + greyThreshold + " THEN 1 WHEN [Percent] < " + redThreshold + "  THEN 2 WHEN ([Percent] >= " + redThreshold + " and [Percent] <  " + yellowThreshold + ") THEN 3 WHEN [Percent]>= " + yellowThreshold + " THEN 4 END) as [Color] FROM (SELECT [_id],[Kanji],[Furigana],[Definition],ifnull([Total],0) as [Total] ,ifnull([Correct],0)  as [Correct],CAST(ifnull([Correct],0)  as float)/[Total] as [Percent] FROM (SELECT [_id],[Kanji],[Furigana],[Definition]  FROM [Edict] where [_id] = ?) NATURAL LEFT JOIN (SELECT [_id],sum([Correct]) as [Correct],sum([Total]) as [Total] from [JScoreboard] WHERE [_id] = ? GROUP BY [_id]) )", new String[]{String.valueOf(cleanKanjiIDs.get(index)),String.valueOf(cleanKanjiIDs.get(index))});
+//            Cursor dd = db.rawQuery("SELECT [Kanji]" +
+//                                            ",(CASE WHEN (Furigana is null OR  Furigana = '') then \"\" else \"(\" || Furigana || \")\" end) as [Furigana]" +
+//                                            ",[Definition]" +
+//                                            ",[Total]" +
+//                                            ",[Percent]" +
+//                                            ",(CASE WHEN [Total] < " + greyThreshold + " THEN 1 WHEN [Percent] < " + redThreshold + "  THEN 2 WHEN ([Percent] >= " + redThreshold + " and [Percent] <  " + yellowThreshold + ") THEN 3 WHEN [Percent]>= " + yellowThreshold + " THEN 4 END) as [Color] " +
+//                                            "FROM (" +
+//                                                    "SELECT [_id]" +
+//                                                            ",[Kanji]" +
+//                                                            ",[Furigana]" +
+//                                                            ",[Definition]" +
+//                                                            ",ifnull([Total],0) as [Total]" +
+//                                                            ",ifnull([Correct],0)  as [Correct]" +
+//                                                            ",CAST(ifnull([Correct],0)  as float)/[Total] as [Percent] " +
+//                                                            "FROM (" +
+//                                                                "SELECT [_id]" +
+//                                                                        ",[Kanji]" +
+//                                                                        ",[Furigana]" +
+//                                                                        ",[Definition]  " +
+//                                                                "FROM [Edict] where [_id] = ?" +
+//                                                                ") " +
+//                                                            "NATURAL LEFT JOIN (" +
+//                                                            "SELECT [_id]" +
+//                                                                    ",sum([Correct]) as [Correct]" +
+//                                                                    ",sum([Total]) as [Total] " +
+//                                                            "from [JScoreboard] WHERE [_id] = ? GROUP BY [_id]" +
+//                                                                                ") " +
+//                                                    ")", new String[]{String.valueOf(cleanKanjiIDs.get(index)),String.valueOf(cleanKanjiIDs.get(index))});
+
+            Cursor dd = db.rawQuery("SELECT [Kanji]" +
+                    ",(CASE WHEN (Furigana is null OR  Furigana = '') then \"\" else \"(\" || Furigana || \")\" end) as [Furigana]" +
+                    ",[Definition]" +
+                    ",[Total]" +
+                    ",[Percent]" +
+                    ",(CASE WHEN [Total] < " + greyThreshold + " THEN 1 WHEN [Percent] < " + redThreshold + "  THEN 2 WHEN ([Percent] >= " + redThreshold + " and [Percent] <  " + yellowThreshold + ") THEN 3 WHEN [Percent]>= " + yellowThreshold + " THEN 4 END) as [Color] " +
+                    " ,[Blue]" +
+                    " ,[Red] " +
+                    " ,[Green] " +
+                    " ,[Yellow] " +
+                    " ,[Other] " +
+                    "FROM (" +
+                        "SELECT [_id]" +
+                        ",[Kanji]" +
+                        ",[Furigana]" +
+                        ",[Definition]" +
+                        ",ifnull([Total],0) as [Total]" +
+                        ",ifnull([Correct],0)  as [Correct]" +
+                        ",CAST(ifnull([Correct],0)  as float)/[Total] as [Percent] " +
+                    " ,[Blue]" +
+                    " ,[Red] " +
+                    " ,[Green] " +
+                    " ,[Yellow] " +
+                    " ,[Other] " +
+                        "FROM (" +
+                                "SELECT [_id]" +
+                                ",[Kanji]" +
+                                ",[Furigana]" +
+                                ",[Definition]  " +
+                                "FROM [Edict] where [_id] = ?" +
+                            ") NATURAL LEFT JOIN (" +
+                                "SELECT [_id]" +
+                                ",sum([Correct]) as [Correct]" +
+                                ",sum([Total]) as [Total] " +
+                                "from [JScoreboard] " +
+                                "WHERE [_id] = ? GROUP BY [_id]" +
+                    ") NATURAL LEFT JOIN (" +
+                    "SELECT [_id]" +
+                    ",SUM([Blue]) as [Blue]" +
+                    ",SUM([Red]) as [Red]" +
+                    ",SUM([Green]) as [Green]" +
+                    ",SUM([Yellow]) as [Yellow]" +
+                    ", SUM([Other]) as [Other] " +
+                    "FROM (" +
+                    "SELECT [_id] " +
+                    ",(CASE WHEN ([Sys] = 1 and LOWER(Name) = \"blue\") then 1 else 0 end) as [Blue]" +
+                    ",(CASE WHEN ([Sys] = 1 AND LOWER(Name) = \"red\") then 1 else 0 end) as [Red]" +
+                    ",(CASE WHEN ([Sys] = 1 AND LOWER(Name) = \"green\") then 1 else 0 end) as [Green]" +
+                    ",(CASE WHEN ([Sys] = 1  AND LOWER(Name) = \"yellow\") then 1 else 0 end) as [Yellow]" +
+                    ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
+                    "FROM JFavorites " +
+                    "WHERE [_id] = ?) as x Group by [_id]" +
+
+                    "))", new String[]{String.valueOf(cleanKanjiIDs.get(index)),String.valueOf(cleanKanjiIDs.get(index)),String.valueOf(cleanKanjiIDs.get(index))});
+
+
+
+
 
             if (dd.getCount() > 0) {
                 dd.moveToFirst();
@@ -836,6 +923,11 @@ public class SentenceParser {
                                                                                 ,dd.getString(2)
                                                                                 ,dd.getInt(3)
                                                                                 ,dd.getFloat(4)));
+                        parseSentenceItem.getWordEntry().setWordEntryFavorites(new WordEntryFavorites(dd.getInt(6)
+                                                                                                    ,dd.getInt(7)
+                                                                                                    ,dd.getInt(8)
+                                                                                                    ,dd.getInt(9)
+                                                                                                    ,dd.getInt(10)));
                         if(debug) {
                             Log.d(TAG, "endposition: " + endposition);
                         }

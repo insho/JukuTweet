@@ -15,6 +15,40 @@ public class WordEntry implements Parcelable {
     private float percentage;
     private Integer total;
 
+
+    /* Tracks the number of lists that contain
+    * this word entry. It is necessary to know this when assigning
+    * favorite star color/behavior for a given word */
+//    private Integer includedInSystemLists;
+//    private Integer includedInUserLists;
+//    private String currentSystemList;
+//
+//    public Integer getIncludedInSystemLists() {
+//        return includedInSystemLists;
+//    }
+//
+//    public void setIncludedInSystemLists(Integer includedInSystemLists) {
+//        this.includedInSystemLists = includedInSystemLists;
+//    }
+//
+//    public Integer getIncludedInUserLists() {
+//        return includedInUserLists;
+//    }
+//
+//    public void setIncludedInUserLists(Integer includedInUserLists) {
+//        this.includedInUserLists = includedInUserLists;
+//    }
+
+    public WordEntryFavorites getWordEntryFavorites() {
+        return wordEntryFavorites;
+    }
+
+    public void setWordEntryFavorites(WordEntryFavorites wordEntryFavorites) {
+        this.wordEntryFavorites = wordEntryFavorites;
+    }
+
+    private WordEntryFavorites wordEntryFavorites;
+
     public WordEntry(Integer id, String kanji, String furigana, String definition,Integer total, float percentage ) {
         this.id = id;
         this.kanji = kanji;
@@ -22,8 +56,8 @@ public class WordEntry implements Parcelable {
         this.definition = definition;
         this.total = total;
         this.percentage = percentage;
+        this.wordEntryFavorites = new WordEntryFavorites();
     }
-
 
     public Integer getId() {
         return id;
