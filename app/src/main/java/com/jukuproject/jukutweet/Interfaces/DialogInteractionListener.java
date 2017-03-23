@@ -9,5 +9,9 @@ package com.jukuproject.jukutweet.Interfaces;
 public interface DialogInteractionListener {
     void onAddUserDialogPositiveClick(String user);
     void onRemoveUserDialogPositiveClick(String user);
-    void onUserDialogDismiss();
+    void onAddMyListDialogPositiveClick(String mylist);
+
+    void onEditMyListDialogPositiveClick(int selectedItem, String listName, boolean isStarFavorite);
+    void onDialogDismiss();
+    void onRenameMyListDialogPositiveClick(String oldListName, String listName);
 }

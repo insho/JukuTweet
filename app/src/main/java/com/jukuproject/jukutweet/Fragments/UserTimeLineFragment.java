@@ -40,7 +40,7 @@ import rx.schedulers.Schedulers;
 public class UserTimeLineFragment extends Fragment {
     FragmentInteractionListener mCallback;
 
-    /*mLastClickTime Tracks elapsed time since last click of a recyclerview row. Used to
+    /* mLastClickTime Tracks elapsed time since last click of a recyclerview row. Used to
     * keep from constantly recieving button clicks through the RxBus */
     private long mLastClickTime = 0;
     private RxBus _rxBus = new RxBus();
@@ -149,28 +149,7 @@ public class UserTimeLineFragment extends Fragment {
 
                                                 //Hide the fab
                                                 mCallback.showFab(false,"");
-
-//                                                UserInfo userInfo = (UserInfo) event;
-//                                                UserTimeLineFragment fragment = new UserTimeLineFragment();
-//                                                Bundle bundle = new Bundle();
-//                                                bundle.putParcelable("userInfo",userInfo);
-//                                                fragment.setArguments(bundle);
-//                                                ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"timelinex");
-
-//                                                ((BaseContainerFragment)getParentFragment()).replaceFragment(TweetBreakDownFragment.newInstance((Tweet)event), true,"timeline");
-//                                                mTweetBreakDownFragment = new TweetBreakDownFragment(getContext(), getView(),screenHeight,_rxBus,(Tweet)event);
-//                                                mTweetBreakDownFragment.CreateView();
-
                                             }
-
-//                                            UserInfo userInfo = (UserInfo) event;
-//                                            UserTimeLineFragment fragment = new UserTimeLineFragment();
-//                                            Bundle bundle = new Bundle();
-//                                            bundle.putParcelable("userInfo",userInfo);
-//                                            fragment.setArguments(bundle);
-//                                            ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"timeline");
-//                                            mCallback.showActionBarBackButton(true,userInfo.getDisplayName());
-//                                            mCallback.changePagerTitle(0,"Timeline");
                                         }
 
                                     }

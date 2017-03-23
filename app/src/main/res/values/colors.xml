@@ -9,4 +9,6 @@
     <color name="colorJukuYellow">#ffffbb33</color>
     <color name="colorJukuGreen">#4caf50</color>
     <color name="colorJukuBlue">#0d47a1</color>
+
+    <color name="primarylight">#BBDEFB</color>
 </resources>

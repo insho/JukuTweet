@@ -1,12 +1,14 @@
 package com.jukuproject.jukutweet;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
@@ -15,23 +17,27 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Database.ExternalDB;
 import com.jukuproject.jukutweet.Database.InternalDB;
+import com.jukuproject.jukutweet.Dialogs.AddOrRenameMyListDialog;
 import com.jukuproject.jukutweet.Dialogs.AddUserDialog;
+import com.jukuproject.jukutweet.Dialogs.EditMyListDialog;
 import com.jukuproject.jukutweet.Dialogs.RemoveUserDialog;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.TabContainers.Tab1Container;
+import com.jukuproject.jukutweet.TabContainers.Tab2Container;
 //import com.jukuproject.jukutweet.TabContainers.TabContainer;
-
-import java.util.HashSet;
 
 import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
 import rx.Observer;
@@ -59,6 +65,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     private ViewPager mViewPager;
     private AddUserDialog addUserDialogFragment;
     private RemoveUserDialog removeUserDialogFragment;
+    private AddOrRenameMyListDialog addOrRenameMyListDialogFragment;
+    private EditMyListDialog editMyListDialogFragment;
     private SmoothProgressBar progressbar;
     private FloatingActionButton fab;
     private static final String TAG = "TEST-Main";
@@ -99,7 +107,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                         if(isTopShowing()) {
                             showFab(true,"addUser");
                         } else {
-                            showFab(false,"");
+                            showFab(false);
                         }
                         break;
                     case 1:
@@ -108,7 +116,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                         }
                         break;
                     default:
-                        showFab(false,"");
+                        showFab(false);
                         break;
                 }
 
@@ -185,10 +193,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     @Override
     public void onAddUserDialogPositiveClick(String inputText) {
 
-
-//        Log.d(TAG,"mUserListFragment null on ADD? " + (mUserListFragment == null));
-
-
         /** Check to DB to see if the new feed is a duplicate*/
         if(InternalDB.getInstance(getBaseContext()).duplicateUser(inputText.trim())) {
             Toast.makeText(this, "UserInfo already exists", Toast.LENGTH_SHORT).show();
@@ -204,12 +208,14 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * if the user repeatedly clicks the fab
      */
     @Override
-    public void onUserDialogDismiss() {
+    public void onDialogDismiss() {
         addUserDialogFragment = null;
         removeUserDialogFragment = null;
+        addOrRenameMyListDialogFragment = null;
+        editMyListDialogFragment = null;
     }
 
-    /**
+    /**r
      * Shows remove UserInfo Dialog
      * @param user UserInfo to "unfollow" (i.e. remove from database)
      */
@@ -395,9 +401,140 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
     }
 
-    //TODO fill this in
+
     public void showAddMyListDialog(){
-        Toast.makeText(this, "Show MyList Dialog", Toast.LENGTH_SHORT).show();
+        if (addOrRenameMyListDialogFragment == null || !addOrRenameMyListDialogFragment.isAdded()) {
+            addOrRenameMyListDialogFragment = AddOrRenameMyListDialog.newInstance();
+            addOrRenameMyListDialogFragment.show(getFragmentManager(), "dialogAddMyList");
+        }
+    }
+
+    public void showRenameMyListDialog(String oldListName){
+        if (addOrRenameMyListDialogFragment == null || !addOrRenameMyListDialogFragment.isAdded()) {
+            addOrRenameMyListDialogFragment = AddOrRenameMyListDialog.newInstance(oldListName);
+            addOrRenameMyListDialogFragment.show(getFragmentManager(), "dialogAddMyList");
+        }
+    }
+
+    public void showEditMyListDialog(String currentListName, Boolean isStarFavorite){
+        if (editMyListDialogFragment == null || !editMyListDialogFragment.isAdded()) {
+            editMyListDialogFragment = EditMyListDialog.newInstance(currentListName, isStarFavorite);
+            editMyListDialogFragment.show(getFragmentManager(), "dialogEditMyList");
+        }
+    }
+
+    /**
+     * Recieves input text from add user dialog
+     * Checks if that user already exists in database
+     * If not, inputs user into db and updates mainFragment recycler
+     * @param inputText
+     */
+    @Override
+    public void onAddMyListDialogPositiveClick(String inputText) {
+        if(InternalDB.getInstance(getBaseContext()).saveMyList(inputText)) {
+            /* Locate Tab2Continer and update the MyList adapter to reflect removed item */
+            if(findFragmentByPosition(1) != null && findFragmentByPosition(1) instanceof Tab2Container) {
+                ((Tab2Container) findFragmentByPosition(1)).updateMyListFragment();
+            }
+        }
+
+    };
+
+
+    /**
+     * asdf
+     * selectedItem options:
+     * 1 = clear list
+     * 2 = rename list
+     * 3 = delete list
+     *
+     * @param selectedItem
+     * @param listName
+     */
+    @Override
+    public void onEditMyListDialogPositiveClick(int selectedItem, String listName, boolean isStarFavorite) {
+
+        switch (selectedItem){
+            //Clear list
+            case 1:
+                deleteOrClearDialogFinal(false,listName,isStarFavorite);
+                break;
+            //Rename list
+            case 2:
+                showRenameMyListDialog(listName);
+                break;
+            //Remove list
+            case 3:
+                deleteOrClearDialogFinal(true,listName,isStarFavorite);
+                break;
+
+        }
+
+    };
+
+    @Override
+    public void onRenameMyListDialogPositiveClick(String oldListName, String listName) {
+        if(InternalDB.getInstance(getBaseContext()).renameMyList(oldListName,listName)) {
+            if(findFragmentByPosition(1) != null && findFragmentByPosition(1) instanceof Tab2Container) {
+                ((Tab2Container) findFragmentByPosition(1)).updateMyListFragment();
+            }
+        } else {
+            Toast.makeText(this, "Unable to rename list", Toast.LENGTH_SHORT).show();
+        }
+    };
+
+    public void deleteOrClearDialogFinal(final Boolean delete,final String name, final boolean isStarFavorite) {
+
+        final  AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        final AlertDialog dialog;
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        TextView text = new TextView(this);
+        if(delete) {
+            text.setText(getString(R.string.removelistwarning,name));
+        } else if(isStarFavorite){
+            text.setText(getString(R.string.areyousure));
+        } else {
+            text.setText(getString(R.string.clearlistwarning,name));
+        }
+        text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+//        text.setTextColor(ContextCompat.getColor(getActivity(), R.color.primary_text));
+
+        text.setGravity(View.TEXT_ALIGNMENT_CENTER);
+        layout.addView(text);
+
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if(delete) {
+                    InternalDB.getInstance(getBaseContext()).deleteMyList(name);
+                } else {
+                    InternalDB.getInstance(getBaseContext()).clearMyList(name,isStarFavorite);
+                }
+
+                /* Locate Tab2Continer and update the MyList adapter to reflect removed item */
+                if(findFragmentByPosition(1) != null && findFragmentByPosition(1) instanceof Tab2Container) {
+                    ((Tab2Container) findFragmentByPosition(1)).updateMyListFragment();
+                }
+
+            }
+        });
+
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        builder.setView(layout);
+        dialog = builder.create();
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(true);
+
     }
 
     public boolean isTopShowing() {
@@ -419,23 +556,32 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     }
 
     public void showFab(boolean show, String type) {
-        if(show && fab != null) {
-            fab.setVisibility(View.VISIBLE);
-
-            switch(type) {
-                case "addUser":
-                    fab.setImageResource(R.drawable.ic_add_white_24dp);
-                    break;
-                case "addMyList":
-                    fab.setImageResource(R.drawable.ic_star_black);
-                    fab.setColorFilter(ContextCompat.getColor(getBaseContext(), android.R.color.white));
-                    break;
-                default:
-                    break;
+        try {
+            if(show && type.equals("addUser")) {
+                fab.setVisibility(View.VISIBLE);
+                fab.setImageResource(R.drawable.ic_add_white_24dp);
+            } else if(show && type.equals("addMyList")) {
+                fab.setVisibility(View.VISIBLE);
+                fab.setImageResource(R.drawable.ic_star_black);
+                fab.setColorFilter(ContextCompat.getColor(getBaseContext(), android.R.color.white));
+            } else {
+                fab.setVisibility(View.GONE);
             }
-
-        } else {
-            fab.setVisibility(View.GONE);
+        } catch (NullPointerException e) {
+            Log.e(TAG,"FAB IS NULL: "  + e);
         }
+
+    }
+    public void showFab(boolean show) {
+        try {
+            if(show) {
+                fab.setVisibility(View.VISIBLE);
+            } else {
+                fab.setVisibility(View.GONE);
+            }
+        } catch (NullPointerException e) {
+            Log.e(TAG,"FAB IS NULL: "  + e);
+        }
+
     }
 }

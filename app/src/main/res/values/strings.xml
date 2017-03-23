@@ -5,9 +5,13 @@
     <string name="preference_file_key">com.jclassic.tabbedquiz.PREFERENCE_FILE_KEY</string>
 
     <string name="dialog_title">Enter User Name</string>
-    <string name="remove_dialog_title">Unfollow %1$s?</string>
+
+    <string name="remove_dialog_title">Remove %1$s?</string>
     <string name="dialog_empty">RSS feed is blank</string>
     <string name="nolists">no saved users</string>
+
+    <string name="dialog_mylist_title">Enter My List Name</string>
+    <string name="dialog_mylist_rename_title">Enter New List Name</string>
 
     <string name="notweets">no tweets found</string>
 
@@ -40,6 +44,9 @@
     <string name="menuchildwordmatch">Word Match</string>
     <string name="menuchildstats">Stats</string>
     <string name="menuchildbrowseentries">Browse Entries</string>
+
+
+
     <string name="clickanoption">Click on one of the options to select it</string>
 
     <string name="title_favoriteslist">Favorites Lists</string>
@@ -54,6 +61,14 @@
         <item>Green</item>
     </string-array>
 
+    <string-array name="menu_mylist">
+        <item>Browse/Edit</item>
+        <item>Flash Cards</item>
+        <item>Multiple Choice</item>
+        <item>Fill in the Blanks</item>
+        <item>Stats</item>
+    </string-array>
+
     <string-array name="favoriteslistcount_default">
         <item></item>
         <item>Blue</item>
@@ -62,5 +77,13 @@
     </string-array>
 
 
+    <string name="listclearlist">Clear List?</string>
+    <string name="listoptionclearlist">1. Clear List</string>
+    <string name="listoptionrenamelist">2. Rename List</string>
+    <string name="listoptionremovelist">3. Remove List</string>
+
+    <string name="areyousure">Are you sure?</string>
+    <string name="removelistwarning">Remove %1$s?</string>
+    <string name="clearlistwarning">Clear %1$s?</string>
 
 </resources>

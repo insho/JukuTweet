@@ -110,6 +110,7 @@ public class UserListFragment extends Fragment {
                                 fragment.setArguments(bundle);
                                 ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"timeline");
                                 mCallback.showActionBarBackButton(true,userInfo.getDisplayName());
+                                mCallback.showFab(false,"");
                                 mCallback.changePagerTitle(0,"Timeline");
                             }
 

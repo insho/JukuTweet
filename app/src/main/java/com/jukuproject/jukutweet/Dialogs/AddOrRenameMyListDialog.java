@@ -7,7 +7,6 @@ import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +14,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.R;
 
@@ -22,34 +22,59 @@ import com.jukuproject.jukutweet.R;
  * Dialog for "following" a new twitter user. New user name is entered into edittext
  * and then input into the database
  */
-public class AddUserDialog extends DialogFragment {
+public class AddOrRenameMyListDialog extends DialogFragment {
 
-    public DialogInteractionListener mAddUserDialogListener;
-    String TAG = "TEST-AddUser";
+    public DialogInteractionListener mAddRSSDialogListener;
+    String TAG = "TEST-AddMyList";
 
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            mAddUserDialogListener = (DialogInteractionListener) activity;
+            mAddRSSDialogListener = (DialogInteractionListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString() + " must implement mAddUserDialogListener");
         }
     }
 
-    public static AddUserDialog newInstance() {
-        return new AddUserDialog();
+    public static AddOrRenameMyListDialog newInstance(String oldList) {
+
+        AddOrRenameMyListDialog frag = new AddOrRenameMyListDialog();
+        Bundle args = new Bundle();
+        args.putString("oldList", oldList);
+        args.putBoolean("isRename",true);
+        frag.setArguments(args);
+        return frag;
+    }
+
+    public static AddOrRenameMyListDialog newInstance() {
+
+        AddOrRenameMyListDialog frag = new AddOrRenameMyListDialog();
+        Bundle args = new Bundle();
+        args.putBoolean("isRename",false);
+        frag.setArguments(args);
+        return frag;
     }
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
+
+        final Boolean isRename = getArguments().getBoolean("isRename");
+
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.fragment_dialog, null);
 
         TextView title = new TextView(getActivity());
-        title.setText(R.string.dialog_title);
+        TextView atsign = (TextView) dialogView.findViewById(R.id.txtatsign);
+        atsign.setVisibility(View.GONE);
+        if(isRename) {
+            title.setText(R.string.dialog_mylist_rename_title);
+        } else {
+            title.setText(R.string.dialog_mylist_title);
+        }
+
         title.setTextSize(18);
         title.setMinHeight(80);
         title.setGravity(Gravity.CENTER);
@@ -60,20 +85,23 @@ public class AddUserDialog extends DialogFragment {
 
         final EditText editText = (EditText) dialogView.findViewById(R.id.input);
 
-        //TODO test user, remove!!
-        editText.append(getString(R.string.testUser));
-
         /* Checks for a valid input, and if one exists, passes click event through DialogInterface
            to MainActivity */
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Log.d(TAG,"mAddUserDialogListener: " + mAddUserDialogListener);
-                String cleanString = atSignCheckandRemove(editText.getText().toString().trim());
-                if(cleanString.trim().length() == 0) {
-                    Toast.makeText(getActivity(), "Enter a user handle (without @ sign)", Toast.LENGTH_SHORT).show();
+
+                if(editText.getText().toString().trim().length() == 0) {
+                    Toast.makeText(getActivity(), "MyList name can not be blank", Toast.LENGTH_SHORT).show();
+                } else if (editText.getText().toString().trim().length() > 30) {
+                    Toast.makeText(getActivity(), "List name should be less than 30 characters", Toast.LENGTH_LONG).show();
+                } else if(InternalDB.getInstance(getActivity()).duplicateMyList(editText.getText().toString().trim())) {
+                    Toast.makeText(getActivity(), "MyList name already exists", Toast.LENGTH_SHORT).show();
+                } else if(isRename){
+                    mAddRSSDialogListener.onRenameMyListDialogPositiveClick(getArguments().getString("oldList"),editText.getText().toString().trim());
+                    dialog.dismiss();
                 } else {
-                    mAddUserDialogListener.onAddUserDialogPositiveClick(editText.getText().toString().trim());
+                    mAddRSSDialogListener.onAddMyListDialogPositiveClick(editText.getText().toString().trim());
                     dialog.dismiss();
                 }
             }
@@ -92,21 +120,7 @@ public class AddUserDialog extends DialogFragment {
     @Override
     public void onDismiss(DialogInterface dialog) {
         super.onDismiss(dialog);
-        mAddUserDialogListener.onDialogDismiss();
-    }
-
-    /**
-     * Checks whether a string begins with the "@" sign, and removes it if it exists
-     * @param inputString raw input string (of prospective user handle)
-     * @return string without an @ sign
-     */
-    public String atSignCheckandRemove(String inputString) {
-
-        if(inputString.length() > 0 && inputString.substring(0,1).equals(getString(R.string.atsign))) {
-            return inputString.substring(1,inputString.length());
-        } else {
-            return inputString;
-        }
+        mAddRSSDialogListener.onDialogDismiss();
     }
 
 

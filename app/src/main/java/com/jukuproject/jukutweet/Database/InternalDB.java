@@ -6,6 +6,7 @@ package com.jukuproject.jukutweet.Database;
         import android.database.sqlite.SQLiteDatabase;
         import android.database.sqlite.SQLiteException;
         import android.database.sqlite.SQLiteOpenHelper;
+        import android.database.sqlite.SQLiteStatement;
         import android.support.annotation.Nullable;
         import android.util.Log;
 
@@ -44,11 +45,14 @@ public class InternalDB extends SQLiteOpenHelper {
     public static final String TSCOREBOARD_COL1 = "Correct";
 
 
-    public static final String TABLE_FAVORITES_LIST_ENTRIES = "JFavorites";
 
     public static final String TABLE_FAVORITES_LISTS = "JFavoritesLists";
     public static final String TFAVORITES_COL0 = "Name";
+
+    public static final String TABLE_FAVORITES_LIST_ENTRIES = "JFavorites";
     public static final String TFAVORITES_COL1 = "Sys";
+
+
 
 //    public static final String TABLE_HIGHSCORES = "JHighScore";
 
@@ -127,6 +131,32 @@ public class InternalDB extends SQLiteOpenHelper {
         onCreate(sqlDB);
     }
 
+
+    /**
+     * Checks for duplicate entries in the JFavoritesLists table
+     * @param mylist prospective new user-created mylist
+     * @return true if that list name already exists, false if not
+     */
+    public boolean duplicateMyList(String mylist) {
+
+        /** Before inserting record, check to see if feed already exists */
+        SQLiteDatabase db = this.getWritableDatabase();
+        String queryRecordExists = "Select Name From " + TABLE_FAVORITES_LISTS + " where " + TFAVORITES_COL0 + " = ?" ;
+        Cursor c = db.rawQuery(queryRecordExists, new String[]{mylist});
+        try {
+            if (c.moveToFirst()) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (SQLiteException e) {
+            Log.e(TAG,"Sqlite exception: " + e);
+        } finally {
+            c.close();
+            db.close();
+        }
+        return false;
+    }
 
     /**
      * Checks to see if user is already saved in table
@@ -407,21 +437,74 @@ public class InternalDB extends SQLiteOpenHelper {
     }
 
 
-//    public void getUserCreatedMyLists() {
-//        SQLiteDatabase db = this.getReadableDatabase();
-//
-//        if(totalactivelists == 0) {
-//            Cursor z = db.rawQuery("Select Count(Name) as [ListCount] from JFavoritesLists", null);
-//
-//            z.moveToFirst();
-//            if (z.getCount() > 0) {
-//                totalactivelists = z.getInt(0);
-//
-//            }
-//            z.close();
-//
-//
-//            totalactivelists += colors.size();
-//        };
-//    }
+    public boolean saveMyList(String mylist) {
+
+        try {
+
+                SQLiteDatabase db = this.getWritableDatabase();
+                ContentValues values = new ContentValues();
+                values.put(TFAVORITES_COL0, mylist.trim());
+
+                db.insert(TABLE_FAVORITES_LISTS, null, values);
+                db.close();
+                return true;
+        } catch(SQLiteException exception) {
+            Log.e(TAG,"savemylist db insert exception: " + exception);
+            return false;
+        }
+
+    }
+
+
+    public boolean clearMyList(String listName, boolean isStarFavorite) {
+        try{
+            SQLiteDatabase db = this.getWritableDatabase();
+            if(isStarFavorite) {
+                db.delete(TABLE_FAVORITES_LIST_ENTRIES, TFAVORITES_COL0 + "= ? and " + TFAVORITES_COL1 + "= 1", new String[]{listName});
+            } else {
+                db.delete(TABLE_FAVORITES_LIST_ENTRIES, TFAVORITES_COL0 + "= ? and " + TFAVORITES_COL1 + "= 0", new String[]{listName});
+            }
+            db.close();
+            return true;
+        } catch(SQLiteException exception) {
+            return false;
+        }
+
+    }
+
+    public boolean deleteMyList(String listName) {
+        try{
+            SQLiteDatabase db = this.getWritableDatabase();
+            db.delete(TABLE_FAVORITES_LISTS, TFAVORITES_COL0 + "= ?", new String[]{listName});
+                db.delete(TABLE_FAVORITES_LIST_ENTRIES, TFAVORITES_COL0 + "= ? and " + TFAVORITES_COL1 + "= 0", new String[]{listName});
+            db.close();
+            return true;
+        } catch(SQLiteException exception) {
+            return false;
+        }
+
+    }
+
+    public boolean renameMyList(String oldListName, String newList) {
+        try{
+        SQLiteDatabase db = this.getWritableDatabase();
+
+            String sql = "Update JFavoritesLists SET [Name]=? WHERE [Name]=? ";
+            SQLiteStatement statement = db.compileStatement(sql);
+            statement.bindString(1, newList);
+            statement.bindString(2, oldListName);
+            statement.executeUpdateDelete();
+
+            String sql2 = "Update JFavorites SET [Name]=? WHERE [Name]=? and [Sys] = 0";
+            SQLiteStatement statement2 = db.compileStatement(sql2);
+            statement2.bindString(1, newList);
+            statement2.bindString(2, oldListName);
+            statement2.executeUpdateDelete();
+            return true;
+        } catch(SQLiteException exception) {
+            return false;
+        }
+    }
+
+
 }

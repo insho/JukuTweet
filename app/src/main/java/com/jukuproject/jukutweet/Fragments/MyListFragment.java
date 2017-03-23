@@ -1,6 +1,7 @@
 package com.jukuproject.jukutweet.Fragments;
 
 import android.app.Activity;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Paint;
@@ -25,15 +26,14 @@ import android.widget.Toast;
 import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Adapters.MenuExpandableListAdapter;
+import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
 import com.jukuproject.jukutweet.Models.MenuHeader;
 import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.R;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.Arrays;
 
 /**
  * Shows user-created lists of vocabulary
@@ -41,53 +41,37 @@ import java.util.Map;
 
 public class MyListFragment extends Fragment {
 
-    String TAG = "MainMenuTab2";
-
-//    HashMap<String, List<Integer>> listDataHeader_extra;
-    MenuExpandableListAdapter MainMenuTab2_listAdapter;
+    String TAG = "MyListFragment";
+    FragmentInteractionListener mCallback;
+    MenuExpandableListAdapter MyListFragmentAdapter;
     ExpandableListView expListView;
     ArrayList<MenuHeader> mMenuHeader;
     private int lastExpandedPosition = 0;
-//    private ArrayList<String> mActiveStarColors;
-//    private int dimenscore = 0;
-
     private SharedPrefManager sharedPrefManager;
 
 
 
     public static MyListFragment newInstance(Bundle bundle) {
         MyListFragment fragment = new MyListFragment();
-
-//        f.setArguments(bundle);
-//        f.assignBundleVars();
         return fragment;
     }
 
-//    public void assignBundleVars(){
-//        mylistposition =  getArguments().getInt("mylistposition",0);
-//        mylistname =  getArguments().getString("mylistname");
-//        mylistsys =  getArguments().getInt("mylistsys",-1);
-//    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        //Call shared prefs to find out which star colors (i.e. favorites lists) to include
 
+        //Call shared prefs to find out which star colors (i.e. favorites lists) to include
         sharedPrefManager = SharedPrefManager.getInstance(getContext());
-//        mActiveStarColors = new ArrayList<>();
 
         View v = inflater.inflate(R.layout.fragment_mylists, container, false);
 
-        mMenuHeader = new ArrayList<>();
-//        getdimenscore();
-//        mylistposition = -1;
+
         expListView = (ExpandableListView) v.findViewById(R.id.lvMyListCategory);
         expListView.setClickable(true);
         prepareListData();
 
-        MainMenuTab2_listAdapter = new MenuExpandableListAdapter(getContext(),mMenuHeader,getdimenscore(),0);
+        MyListFragmentAdapter = new MenuExpandableListAdapter(getContext(),mMenuHeader,getdimenscore(),0);
 
-        expListView.setAdapter(MainMenuTab2_listAdapter);
+        expListView.setAdapter(MyListFragmentAdapter);
         expListView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
             @Override
             public boolean onGroupClick(ExpandableListView parent, View v,
@@ -205,6 +189,7 @@ public class MyListFragment extends Fragment {
         expListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+        mCallback.showEditMyListDialog(mMenuHeader.get(position).getHeaderTitle(),mMenuHeader.get(position).isSystemList());
 //                if (ExpandableListView.getPackedPositionType(id) == ExpandableListView.PACKED_POSITION_TYPE_GROUP) {
 //                    int groupPosition = ExpandableListView.getPackedPositionGroup(id);
 //                    int itemType = ExpandableListView.getPackedPositionType(id);
@@ -264,22 +249,13 @@ public class MyListFragment extends Fragment {
 
 
     public void prepareListData() {
-
+        mMenuHeader = new ArrayList<>();
         InternalDB helper =  InternalDB.getInstance(getActivity());
         SQLiteDatabase db = helper.getWritableDatabase();
 
         ArrayList<String> availableFavoritesStars = sharedPrefManager.getActiveFavoriteStars();
 
-        //TODO replace this with a string array
-        ArrayList<String> childOptions = new ArrayList<>();
-        childOptions.add(getString(R.string.menuchildbrowse)); // Should be its own expandable list
-        childOptions.add(getString(R.string.menuchildflashcards));
-        childOptions.add(getString(R.string.menuchildmultiplechoice));
-        childOptions.add(getString(R.string.menuchildfillinblanks));
-        childOptions.add(getString(R.string.menuchildwordbuilder));
-        childOptions.add(getString(R.string.menuchildwordmatch));
-        childOptions.add(getString(R.string.menuchildstats));
-
+       ArrayList<String> childOptions = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.menu_mylist)));
 
         Cursor c = db.rawQuery("SELECT xx.[Name]" +
                 ",xx.[Sys]" +
@@ -398,49 +374,12 @@ public class MyListFragment extends Fragment {
         db.close();
         helper.close();
 
-
-
-
-//        for ( Map.Entry<String,String> entry : listDataHeaderKeyXRef.entrySet()) {
-//            String namekey= entry.getKey();
-//            String name = entry.getValue();
-//            int count;
-//
-//            if(listDataHeader_extra.containsKey(namekey)) {
-//                count = listDataHeader_extra.get(namekey).get(0);
-//            } else {
-//                count = 0;
-//            }
-//            if(BuildConfig.DEBUG){Log.d(TAG,"adding listdatachild " +  namekey + " count: " + count);}
-//            if(name.equalsIgnoreCase("Create New List") || count == 0) {
-//                List<String> emptylist = new ArrayList<String>();
-//                listDataChild.put(name,emptylist);
-//            } else {
-//                listDataChild.put(name,myListChild);
-//            }
-//        }
     }
 
 
     @Override
     public void onResume() {
-
         super.onResume();
-
-//        prepareListData();
-//        if(dimenscore==0){getdimenscore();}
-//        MainMenuTab2_listAdapter = new MenuExpandableListAdapter(getActivity(), listDataHeader, listDataChild, listDataHeader_extra, false, addStarList,dimenscore,24,new ArrayList<String>(),sharedPrefManager.getShowlblheadercount(),true);
-//        expListView.setAdapter(MainMenuTab2_listAdapter);
-//        expListView.invalidateViews();
-//
-//        if(listDataHeader != null && listDataHeader.size()>1) {
-//            expListView.expandGroup(lastExpandedPosition);
-//            expListView.setSelectedGroup(lastExpandedPosition);
-//        } else {
-//            if(BuildConfig.DEBUG){Log.d(TAG, "NO LISTS TO EXPAND");}
-//        }
-
-
     }
 
     private int getdimenscore() {
@@ -477,6 +416,24 @@ public class MyListFragment extends Fragment {
         }
         return result;
 
+    }
+
+    public void updateMyListAdapter() {
+        prepareListData();
+        MyListFragmentAdapter = new MenuExpandableListAdapter(getContext(),mMenuHeader,getdimenscore(),0);
+        expListView.setAdapter(MyListFragmentAdapter);
+//        expListView.invalidateViews();
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        try {
+            mCallback = (FragmentInteractionListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()
+                    + " must implement OnHeadlineSelectedListener");
+        }
     }
 }
 

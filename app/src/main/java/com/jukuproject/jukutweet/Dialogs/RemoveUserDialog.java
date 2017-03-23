@@ -16,15 +16,15 @@ package com.jukuproject.jukutweet.Dialogs;
 
 public class RemoveUserDialog extends DialogFragment {
 
-    public DialogInteractionListener mRemoveRSSDialogListener;
+    public DialogInteractionListener mRemoveUserDialogListener;
 
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            mRemoveRSSDialogListener = (DialogInteractionListener) activity;
+            mRemoveUserDialogListener = (DialogInteractionListener) activity;
         } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString() + " must implement mAddRSSDialogListener");
+            throw new ClassCastException(activity.toString() + " must implement mAddUserDialogListener");
         }
     }
 
@@ -55,7 +55,7 @@ public class RemoveUserDialog extends DialogFragment {
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                mRemoveRSSDialogListener.onRemoveUserDialogPositiveClick(user);
+                mRemoveUserDialogListener.onRemoveUserDialogPositiveClick(user);
                 dialog.dismiss();
             }
         });
@@ -74,6 +74,6 @@ public class RemoveUserDialog extends DialogFragment {
     @Override
     public void onDismiss(DialogInterface dialog) {
         super.onDismiss(dialog);
-        mRemoveRSSDialogListener.onUserDialogDismiss();
+        mRemoveUserDialogListener.onDialogDismiss();
     }
 }
