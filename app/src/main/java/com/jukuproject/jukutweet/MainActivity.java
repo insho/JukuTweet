@@ -1,9 +1,12 @@
 package com.jukuproject.jukutweet;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
@@ -27,6 +30,8 @@ import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.TabContainers.Tab1Container;
 //import com.jukuproject.jukutweet.TabContainers.TabContainer;
+
+import java.util.HashSet;
 
 import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
 import rx.Observer;
@@ -54,8 +59,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     private ViewPager mViewPager;
     private AddUserDialog addUserDialogFragment;
     private RemoveUserDialog removeUserDialogFragment;
-//    private UserListFragment mUserListFragment;
-//    private UserTimeLineFragment mTimeLineFragment;
     private SmoothProgressBar progressbar;
     private FloatingActionButton fab;
     private static final String TAG = "TEST-Main";
@@ -68,8 +71,17 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         new ExternalDB(this);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
+
+
+
+
+        SharedPreferences sharedPref = getBaseContext().getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+        /* Check for the existence of sharedPreferences. Insert defaults if they don't exist */
+        if (sharedPref != null) {
+            PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+        }
+
+        // Create the adapter that will return a fragment for each of theprimary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
@@ -85,18 +97,18 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 switch (position) {
                     case 0:
                         if(isTopShowing()) {
-                            showFab(true);
+                            showFab(true,"addUser");
                         } else {
-                            showFab(false);
+                            showFab(false,"");
                         }
                         break;
                     case 1:
                         if(isTopShowing()) {
-                            showFab(true);
+                            showFab(true,"addMyList");
                         }
                         break;
                     default:
-                        showFab(false);
+                        showFab(false,"");
                         break;
                 }
 
@@ -406,9 +418,22 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
     }
 
-    public void showFab(boolean show) {
+    public void showFab(boolean show, String type) {
         if(show && fab != null) {
             fab.setVisibility(View.VISIBLE);
+
+            switch(type) {
+                case "addUser":
+                    fab.setImageResource(R.drawable.ic_add_white_24dp);
+                    break;
+                case "addMyList":
+                    fab.setImageResource(R.drawable.ic_star_black);
+                    fab.setColorFilter(ContextCompat.getColor(getBaseContext(), android.R.color.white));
+                    break;
+                default:
+                    break;
+            }
+
         } else {
             fab.setVisibility(View.GONE);
         }

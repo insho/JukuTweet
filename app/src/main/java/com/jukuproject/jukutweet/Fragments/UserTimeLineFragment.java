@@ -148,7 +148,7 @@ public class UserTimeLineFragment extends Fragment {
                                                 ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"tweetbreakdown");
 
                                                 //Hide the fab
-                                                mCallback.showFab(false);
+                                                mCallback.showFab(false,"");
 
 //                                                UserInfo userInfo = (UserInfo) event;
 //                                                UserTimeLineFragment fragment = new UserTimeLineFragment();

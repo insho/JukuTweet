@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -97,6 +98,16 @@ public class SharedPrefManager {
         return mPrefStarsHash;
     }
 
+    public ArrayList<String> getActiveFavoriteStars() {
+        ArrayList<String> activeFavoriteStars = new ArrayList<>();
+        for (String favoriteStar : mPrefStarsHash) {
+            if(favoriteStar.length() > 0){
+//                String upperS = s.substring(0,1).toUpperCase() + s.substring(1).toLowerCase();
+                activeFavoriteStars.add(favoriteStar);
+            }
+        }
+        return activeFavoriteStars;
+    }
 
     public Boolean getIncludemultiplechoicecores() {
         return mIncludemultiplechoicecores;
