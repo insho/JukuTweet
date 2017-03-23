@@ -507,4 +507,48 @@ public class InternalDB extends SQLiteOpenHelper {
     }
 
 
+    public boolean changeFavoriteListEntry(int kanjiID,String originalColor,String updatedColor) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        try {
+            if(originalColor.equals("Black") && updatedColor.equals("Black")) {
+                Log.e(TAG,"ERROR! changefavoritelistentry Both entries are BLACK. So do nothing.");
+                return false;
+            } else if(originalColor.equals("Black")) {
+                //Insert statement only
+                ContentValues values = new ContentValues();
+                values.put(COL_ID,kanjiID);
+                values.put(TFAVORITES_COL0, updatedColor);
+                values.put(TFAVORITES_COL1, 1);
+                db.insert(TABLE_FAVORITES_LIST_ENTRIES, null, values);
+                return true;
+            } else if(updatedColor.equals("Black")) {
+                //Delete statement only
+                db.delete(TABLE_FAVORITES_LIST_ENTRIES, TFAVORITES_COL0 + "= ? and [Sys] = 1 and [_id] = ? ", new String[]{originalColor,String.valueOf(kanjiID)});
+                return true;
+
+            } else {
+                String sql = "Update "  + TABLE_FAVORITES_LIST_ENTRIES + " SET [Name]=? WHERE [Name]=? and [Sys] = 1 and [_id] = ?";
+                SQLiteStatement statement = db.compileStatement(sql);
+                statement.bindString(1, updatedColor);
+                statement.bindString(2, originalColor);
+                statement.bindString(3, String.valueOf(kanjiID));
+                statement.executeUpdateDelete();
+
+                return true;
+            }
+
+
+        }  catch (SQLiteException e) {
+            Log.e(TAG,"changefavoritelistentry sqlite exception: " + e);
+        }  catch (NullPointerException e) {
+            Log.e(TAG,"changefavoritelistentry something was null: " + e);
+        } finally {
+            db.close();
+        }
+
+        return false;
+
+    }
+
 }

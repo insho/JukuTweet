@@ -1,5 +1,9 @@
 package com.jukuproject.jukutweet.Models;
 
+import com.jukuproject.jukutweet.Database.InternalDB;
+
+import java.util.ArrayList;
+
 /**
  * Created by JClassic on 3/23/2017.
  * Tracks which favorites lists contain a given word entry
@@ -9,7 +13,11 @@ package com.jukuproject.jukutweet.Models;
 public class WordEntryFavorites {
 
     public int getSystemBlueCount() {
-        return systemBlueCount;
+        if(systemBlueCount>0) {
+            return 1;
+        } else {
+            return 0;
+        }
     }
 
     public void setSystemBlueCount(int systemBlueCount) {
@@ -17,7 +25,13 @@ public class WordEntryFavorites {
     }
 
     public int getSystemRedCount() {
-        return systemRedCount;
+
+        if(systemRedCount>0) {
+            return 1;
+        } else {
+            return 0;
+        }
+
     }
 
     public void setSystemRedCount(int systemRedCount) {
@@ -25,7 +39,13 @@ public class WordEntryFavorites {
     }
 
     public int getSystemYellowCount() {
-        return systemYellowCount;
+
+        if(systemYellowCount>0) {
+            return 1;
+        } else {
+            return 0;
+        }
+
     }
 
     public void setSystemYellowCount(int systemYellowCount) {
@@ -33,7 +53,13 @@ public class WordEntryFavorites {
     }
 
     public int getSystemGreenCount() {
-        return systemGreenCount;
+
+        if(systemGreenCount>0) {
+            return 1;
+        } else {
+            return 0;
+        }
+
     }
 
     public void setSystemGreenCount(int systemGreenCount) {
@@ -72,7 +98,64 @@ public class WordEntryFavorites {
         this.userListCount = 0;
     }
 
+    /**
+     * Determines whether, on a favorites star being clicked, the star should toggle
+     * through the system lists (blue->green->red->yellow), or have the "favorites popup" window
+     * open. The favorites window opens if there are user lists which include this entry, or if there are
+     * more than one system list that includes the entry.
+     * @return true if should open the favorites popup, false to toggle
+     */
+    public boolean shouldOpenFavoritePopup(){
+        if(userListCount > 0 || getSystemBlueCount() + getSystemRedCount() + getSystemGreenCount() + getSystemYellowCount() > 1 ) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    public boolean isEmpty(){
+        if(userListCount + getSystemBlueCount() + getSystemRedCount() + getSystemGreenCount() + getSystemYellowCount() == 0 ) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
+    public int getOnStarPressedNextPosition(ArrayList<String> preferenceFavorites){
+        if(userListCount > 0 || getSystemBlueCount() + getSystemRedCount() + getSystemGreenCount() + getSystemYellowCount() > 1 ) {
+            return 5; // A "multifavorite"
+        } else if(systemBlueCount + systemRedCount + systemGreenCount + systemYellowCount == 0) {
+            return 0;
+        } else if(preferenceFavorites.contains("Blue") && getSystemBlueCount() > 0) {
+            return 1;
+        } else if(preferenceFavorites.contains("Green") && getSystemGreenCount() > 0) {
+            return 2;
+        } else if(preferenceFavorites.contains("Red") && getSystemRedCount() > 0) {
+            return 3;
+        } else if(preferenceFavorites.contains("Yellow") && getSystemYellowCount() > 0) {
+            return 4;
+        } else {
+            return 0;
+        }
+    }
+
+    public void setSystemColor(String updatedColor) {
+        switch (updatedColor) {
+            case "Blue":
+                systemBlueCount = 1;
+                break;
+            case "Green":
+                systemGreenCount = 1;
+                break;
+            case "Red":
+                systemRedCount  = 1;
+                break;
+            case "Yellow":
+                systemYellowCount =1;
+                break;
+            default:
+                break;
+        }
+    }
 
 
 }
