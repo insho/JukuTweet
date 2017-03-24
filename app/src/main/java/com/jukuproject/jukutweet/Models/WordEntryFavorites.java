@@ -175,6 +175,7 @@ public class WordEntryFavorites {
         }
     }
 
+
     public boolean isEmpty(){
         if(userListCount + getSystemBlueCount() + getSystemRedCount() + getSystemGreenCount() + getSystemYellowCount() == 0 ) {
             return true;

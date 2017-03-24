@@ -12,6 +12,7 @@ package com.jukuproject.jukutweet.Database;
 
 
         import com.jukuproject.jukutweet.Fragments.MyListFragment;
+        import com.jukuproject.jukutweet.Models.ColorThresholds;
         import com.jukuproject.jukutweet.Models.MyListEntry;
         import com.jukuproject.jukutweet.Models.SharedPrefManager;
         import com.jukuproject.jukutweet.Models.UserInfo;
@@ -364,7 +365,7 @@ public class InternalDB extends SQLiteOpenHelper {
      * @param inputDB Sqlite database connection
      * @return WordLoader object with array lists and maps of various japanse characters
      *
-     * @see com.jukuproject.jukutweet.SentenceParser#parseSentence(String, SQLiteDatabase, ArrayList, ArrayList, WordLoader)
+     * @see com.jukuproject.jukutweet.SentenceParser#parseSentence(String, SQLiteDatabase, ArrayList, ArrayList, WordLoader, ColorThresholds, ArrayList)
      */
     public WordLoader getWordLists(@Nullable SQLiteDatabase inputDB) {
         SQLiteDatabase db;
@@ -630,10 +631,10 @@ public class InternalDB extends SQLiteOpenHelper {
         return  false;
     }
 
-    public ArrayList<MyListEntry> getFavoritesListsForAKanji(Context context,int kanjiId) {
-
+    public ArrayList<MyListEntry> getFavoritesListsForAKanji(ArrayList<String> activeFavoriteStars,int kanjiId) {
+//        Log.d(TAG,"HERE IN GETFAVORITES");
         ArrayList<MyListEntry> myListEntries = new ArrayList<>();
-        ArrayList<String> activePreferences = SharedPrefManager.getInstance(context).getActiveFavoriteStars();
+//        ArrayList<String> activePreferences = SharedPrefManager.getInstance(context).getActiveFavoriteStars();
         SQLiteDatabase db = this.getWritableDatabase();
         try {
             //Get a list of distinct favorites lists and their selection levels for the given kanji
@@ -671,11 +672,13 @@ public class InternalDB extends SQLiteOpenHelper {
 
                     //Add all user lists (where sys == 0)
                     //Only add system lists (sys==1), but only if the system lists are actived in user preferences
-                    if(c.getInt(1) == 0 || activePreferences.contains(c.getString(0))) {
+                    if(c.getInt(1) == 0 || activeFavoriteStars.contains(c.getString(0))) {
                         MyListEntry entry = new MyListEntry(c.getString(0),c.getInt(1),c.getInt(2));
                         myListEntries.add(entry);
-                        c.moveToNext();
+//                        Log.d(TAG,"GETFAVS adding : " + entry.getListName());
+
                     }
+                    c.moveToNext();
                 }
             }
             c.close();
@@ -687,6 +690,7 @@ public class InternalDB extends SQLiteOpenHelper {
     } finally {
         db.close();
     }
+        Log.d(TAG,"GETFAVS returning mylist entries: " + myListEntries.size());
         return myListEntries;
     }
 

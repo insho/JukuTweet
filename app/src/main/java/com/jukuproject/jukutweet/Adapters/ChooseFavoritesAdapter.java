@@ -7,7 +7,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.RecyclerView;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -97,7 +96,7 @@ public class ChooseFavoritesAdapter extends RecyclerView.Adapter<ChooseFavorites
                 (int) (2.0f * mDensity + 0.5f));
 
 
-        setAppCompatCheckBoxColors(holder.checkbox, android.R.color.black, android.R.color.black);
+        setAppCompatCheckBoxColors(holder.checkbox, ContextCompat.getColor(mContext, android.R.color.black), ContextCompat.getColor(mContext, android.R.color.black));
         if(initialMyListEntry.getListsSys() == 1){
 
             switch (initialMyListEntry.getListName()) {
@@ -132,10 +131,7 @@ public class ChooseFavoritesAdapter extends RecyclerView.Adapter<ChooseFavorites
         holder.checkbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-
                 rowSelected(holder, mMyListEntries.get(holder.getAdapterPosition()));
-
-
             }
         });
 
@@ -143,9 +139,7 @@ public class ChooseFavoritesAdapter extends RecyclerView.Adapter<ChooseFavorites
         holder.gridLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 rowSelected(holder, mMyListEntries.get(holder.getAdapterPosition()));
-
             }
         });
 
@@ -193,6 +187,7 @@ public class ChooseFavoritesAdapter extends RecyclerView.Adapter<ChooseFavorites
         int[] colors = new int[]{_uncheckedColor, _checkedColor};
         _checkbox.setSupportButtonTintList(new ColorStateList(states, colors));
     }
+
 }
 
 

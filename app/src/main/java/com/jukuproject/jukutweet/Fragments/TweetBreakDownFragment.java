@@ -29,7 +29,9 @@ import com.jukuproject.jukutweet.Adapters.TweetBreakDownAdapter;
 import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Database.InternalDB;
+import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
+import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.ParseSentenceItem;
 import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.Models.Tweet;
@@ -44,6 +46,7 @@ import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
 import rx.Single;
 import rx.SingleSubscriber;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
 
@@ -57,7 +60,7 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
     private FragmentInteractionListener mCallback;
 //    private Context mContext;
 //    private View mAnchorView;
-//    private RxBus mRxBus = new RxBus();
+    private RxBus mRxBusTweetBreak= new RxBus();
     private Tweet mTweet;
     private RecyclerView mRecyclerView;
 //    private View anchorView;
@@ -392,23 +395,23 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
 
-        RecyclerView.Adapter mAdapter = new TweetBreakDownAdapter(getContext(),metrics.density,kanjiEntriesInTweet,colorThresholds,activeFavoriteStars);
+        RecyclerView.Adapter mAdapter = new TweetBreakDownAdapter(getContext(),mRxBusTweetBreak,metrics.density,kanjiEntriesInTweet,colorThresholds,activeFavoriteStars);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-//        mRxBus.toClickObserverable()
-//                .subscribe(new Action1<Object>() {
-//                    @Override
-//                    public void call(Object event) {
-//
-//                        /* Recieve a MyListEntry (containing an updated list entry for this row kanji) from
-//                        * the ChooseFavoritesAdapter in the ChooseFavorites popup window */
-//                        if(event instanceof MyListEntry) {
-//                            MyListEntry myListEntry = (MyListEntry) event;
-//                            Log.d(TAG,"MylistEntry name: " + myListEntry.getListName());
-//                            Log.d(TAG,"MylistEntry sys: " + myListEntry.getListsSys());
-//                            Log.d(TAG,"MylistEntry level: " + myListEntry.getSelectionLevel());
-//
+        mRxBusTweetBreak.toClickObserverable()
+                .subscribe(new Action1<Object>() {
+                    @Override
+                    public void call(Object event) {
+
+                        /* Recieve a MyListEntry (containing an updated list entry for this row kanji) from
+                        * the ChooseFavoritesAdapter in the ChooseFavorites popup window */
+                        if(event instanceof MyListEntry) {
+                            MyListEntry myListEntry = (MyListEntry) event;
+                            Log.d(TAG,"MylistEntry name: " + myListEntry.getListName());
+                            Log.d(TAG,"MylistEntry sys: " + myListEntry.getListsSys());
+                            Log.d(TAG,"MylistEntry selectionlevel: " + myListEntry.getSelectionLevel());
+
 //                            Log.d(TAG,"Word entry favs test output: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().testOutput());
 //
 //                            /*Ascertain the type of list that the kanji was added to (or subtracted from),
@@ -446,13 +449,13 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
 //                            }
 //                            mAdapter.assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
 //
-//
-//
-//                        }
-//
-//                    }
-//
-//                });
+
+
+                        }
+
+                    }
+
+                });
 //
 //        mRxBus.toClickObserverable()
 //                .subscribe(new Action1<Object>() {

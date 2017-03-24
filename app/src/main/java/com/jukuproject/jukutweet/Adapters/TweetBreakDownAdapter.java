@@ -41,7 +41,8 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
     private ArrayList<WordEntry> mWords;
     private  ColorThresholds mColorThresholds;
     private ArrayList<String> mActiveFavoriteStars;
-//    private RxBus mRxBus = new RxBus();
+    private PopupWindow chooseFavoritesPopup = null;
+    private RxBus mRxBusTweetBreak;
 //    /*Tracks elapsed time since last click of a recyclerview row. Used to
 //        * keep from constantly recieving button clicks through the RxBus */
 //    private long mLastClickTime = 0;
@@ -71,13 +72,13 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
     }
 
 
-    public TweetBreakDownAdapter(Context context, float density, ArrayList<WordEntry> words, ColorThresholds colorThresholds, ArrayList<String> activeFavoriteStars) {
+    public TweetBreakDownAdapter(Context context, RxBus rxBus, float density, ArrayList<WordEntry> words, ColorThresholds colorThresholds, ArrayList<String> activeFavoriteStars) {
         mContext = context;
         mDensity = density;
         mWords = words;
         mColorThresholds = colorThresholds;
         this.mActiveFavoriteStars = activeFavoriteStars;
-//        this.mRxBus = rxBus;
+        this.mRxBusTweetBreak = rxBus;
     }
 
 
@@ -143,12 +144,71 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                     int xadjustment = -50;
                     int yadjustment = -300;
 
-                    PopupWindow popup = new PopupChooseFavoriteLists(mContext,mDensity,mWords.get(holder.getAdapterPosition())).onCreateView();
-                    popup.showAsDropDown(holder.imgStar, xadjustment, yadjustment);
-                    popup.setOnDismissListener(new PopupWindow.OnDismissListener() {
+                    RxBus rxBus = new RxBus();
+                    rxBus.toClickObserverable()
+                            .subscribe(new Action1<Object>() {
+                                @Override
+                                public void call(Object event) {
+
+                        /* Recieve a MyListEntry (containing an updated list entry for this row kanji) from
+                        * the ChooseFavoritesAdapter in the ChooseFavorites popup window */
+                                    if(event instanceof MyListEntry) {
+                                        MyListEntry myListEntry = (MyListEntry) event;
+                                        Log.d(TAG,"MylistEntry name: " + myListEntry.getListName());
+                                        Log.d(TAG,"MylistEntry sys: " + myListEntry.getListsSys());
+                                        Log.d(TAG,"MylistEntry selectionlevel: " + myListEntry.getSelectionLevel());
+
+                            Log.d(TAG,"Word entry favs test output: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().testOutput());
+
+                            /*Ascertain the type of list that the kanji was added to (or subtracted from),
+                              and update that list's count */
+                            if(myListEntry.getListsSys() == 1) {
+                                switch (myListEntry.getListName()) {
+                                    case "Blue":
+
+                                        Log.d(TAG,"OLD blue count: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().getSystemBlueCount());
+                                        Log.d(TAG,"OLD should open popup: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().shouldOpenFavoritePopup());
+                                        Log.d(TAG,"mylist selection level: " + myListEntry.getSelectionLevel());
+
+                                        mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemBlueCount(myListEntry.getSelectionLevel());
+                                        Log.d(TAG,"NEW blue count: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().getSystemBlueCount());
+                                        Log.d(TAG,"NEW should open popup: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().shouldOpenFavoritePopup());
+                                        break;
+                                    case "Green":
+                                        mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemGreenCount(myListEntry.getSelectionLevel());
+                                        break;
+                                    case "Red":
+                                        mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemRedCount(myListEntry.getSelectionLevel());
+                                        break;
+                                    case "Yellow":
+                                        mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemYellowCount(myListEntry.getSelectionLevel());
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            } else {
+                                if(myListEntry.getSelectionLevel() == 1) {
+                                    mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().addToUserListCount(1);
+                                } else {
+                                    mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().subtractFromUserListCount(1);
+                                }
+                            }
+                            assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
+
+
+
+                                    }
+
+                                }
+
+                            });
+                    chooseFavoritesPopup = new PopupChooseFavoriteLists(mContext,mDensity,rxBus,mActiveFavoriteStars,mWords.get(holder.getAdapterPosition()).getId()).onCreateView();
+                    chooseFavoritesPopup.showAsDropDown(holder.imgStar, xadjustment, yadjustment);
+                    chooseFavoritesPopup.setOnDismissListener(new PopupWindow.OnDismissListener() {
                         @Override
                         public void onDismiss() {
                             assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
+                            chooseFavoritesPopup = null;
                         }
                     });
 
@@ -169,44 +229,110 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         holder.imgStarLayout.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
+//TODO favorite words
 
-                //TODO make the big popup show
-
-                int xadjustment = -400;
-                int yadjustment = -100;
-
-//                popup.setOnDismissListener(new PopupWindow.OnDismissListener() {
-//                    @Override
-//                    public void onDismiss() {
-//                        assignStarColor(wordEntry,holder.imgStar);
-//                    }
-//                });
+//                Log.d(TAG,"mActiveFavoriteStars: " + mActiveFavoriteStars);
+//                Log.d(TAG,"should open: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().shouldOpenFavoritePopup(mActiveFavoriteStars));
 
 
+                    //TODO make the big popup show
+                    int xadjustment = -300;
+                    int yadjustment = -200;
 
-                PopupWindow popup = new PopupChooseFavoriteLists(mContext,mDensity,mWords.get(holder.getAdapterPosition())).onCreateView();
-                popup.showAsDropDown(holder.imgStar, xadjustment, yadjustment);
-//                //TODO change width thing
-//                popup.setWidth(300);
-//                popup.setHeight(400);
-////                int mscreenheight = 600;
-////                if(favoritesLists.size()>12) {
-////                    this.setHeight((int)((float)mscreenheight/2.0f));
-////                } else {
-////                    this.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-////                }
+                    RxBus rxBus = new RxBus();
+                    rxBus.toClickObserverable()
+                            .subscribe(new Action1<Object>() {
+                                @Override
+                                public void call(Object event) {
+
+                        /* Recieve a MyListEntry (containing an updated list entry for this row kanji) from
+                        * the ChooseFavoritesAdapter in the ChooseFavorites popup window */
+                                    if(event instanceof MyListEntry) {
+                                        MyListEntry myListEntry = (MyListEntry) event;
+                                        Log.d(TAG,"MylistEntry name: " + myListEntry.getListName());
+                                        Log.d(TAG,"MylistEntry sys: " + myListEntry.getListsSys());
+                                        Log.d(TAG,"MylistEntry selectionlevel: " + myListEntry.getSelectionLevel());
+
+                                        Log.d(TAG,"Word entry favs test output: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().testOutput());
+
+                            /*Ascertain the type of list that the kanji was added to (or subtracted from),
+                              and update that list's count */
+                                        if(myListEntry.getListsSys() == 1) {
+                                            switch (myListEntry.getListName()) {
+                                                case "Blue":
+
+                                                    Log.d(TAG,"OLD blue count: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().getSystemBlueCount());
+                                                    Log.d(TAG,"OLD should open popup: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().shouldOpenFavoritePopup());
+                                                    Log.d(TAG,"mylist selection level: " + myListEntry.getSelectionLevel());
+
+                                                    mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemBlueCount(myListEntry.getSelectionLevel());
+                                                    Log.d(TAG,"NEW blue count: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().getSystemBlueCount());
+                                                    Log.d(TAG,"NEW should open popup: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().shouldOpenFavoritePopup());
+                                                    break;
+                                                case "Green":
+                                                    mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemGreenCount(myListEntry.getSelectionLevel());
+                                                    break;
+                                                case "Red":
+                                                    mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemRedCount(myListEntry.getSelectionLevel());
+                                                    break;
+                                                case "Yellow":
+                                                    mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemYellowCount(myListEntry.getSelectionLevel());
+                                                    break;
+                                                default:
+                                                    break;
+                                            }
+                                        } else {
+                                            if(myListEntry.getSelectionLevel() == 1) {
+                                                mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().addToUserListCount(1);
+                                            } else {
+                                                mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().subtractFromUserListCount(1);
+                                            }
+                                        }
+                                        assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
+
+
+
+                                    }
+
+                                }
+
+                            });
+                    if(chooseFavoritesPopup == null) {
+                        chooseFavoritesPopup= new PopupChooseFavoriteLists(mContext,mDensity,rxBus,mActiveFavoriteStars,mWords.get(holder.getAdapterPosition()).getId()).onCreateView();
+                        chooseFavoritesPopup.showAsDropDown(holder.imgStar, xadjustment, yadjustment);
+                        chooseFavoritesPopup.setOnDismissListener(new PopupWindow.OnDismissListener() {
+                            @Override
+                            public void onDismiss() {
+                                assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
+                                chooseFavoritesPopup = null;
+
+                            }
+                        });
+
+                    }
+
+
+
+//                //TODO make the big popup show
 //
-//                popup.setFocusable(true);
+//                int xadjustment = -400;
+//                int yadjustment = -100;
 //
-//                popup.setClippingEnabled(false);
+////                popup.setOnDismissListener(new PopupWindow.OnDismissListener() {
+////                    @Override
+////                    public void onDismiss() {
+////                        assignStarColor(wordEntry,holder.imgStar);
+////                    }
+////                });
 //
-//                popup.setBackgroundDrawable(ContextCompat.getDrawable(mContext, R.drawable.popup_drawable));
-//                popup.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
-//                popup.setWidth(WindowManager.LayoutParams.WRAP_CONTENT);
-//                popup.setContentView(view);
-//                popup.showAtLocation(holder.itemView, Gravity.CENTER,0,0);
-                popup.showAsDropDown(holder.imgStar, xadjustment, yadjustment);
-                Log.d(TAG,"SHOWING POPUP " + popup.isShowing());
+//
+//
+//                if(chooseFavoritesPopup == null) {
+//                    chooseFavoritesPopup = new PopupChooseFavoriteLists(mContext,mDensity,mRxBusTweetBreak,mActiveFavoriteStars,mWords.get(holder.getAdapterPosition()).getId()).onCreateView();
+//                    chooseFavoritesPopup.showAsDropDown(holder.imgStar, xadjustment, yadjustment);
+//                    Log.d(TAG,"SHOWING POPUP " + chooseFavoritesPopup.isShowing());
+//
+//                }
 
                 return true;
             }
