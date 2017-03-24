@@ -1,15 +1,11 @@
 package com.jukuproject.jukutweet.Adapters;
 
-/**
- * Created by JClassic on 3/23/2017.
- */
+
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.preference.PreferenceManager;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.util.TypedValue;
@@ -28,30 +24,30 @@ import com.jukuproject.jukutweet.Models.MenuHeader;
 import com.jukuproject.jukutweet.R;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 
+/**
+ * Created by JukuProject on 3/23/2017
+ * List adapter with group entries and sub lists of child entries that expand
+ * when list is clicked
+ */
 public class MenuExpandableListAdapter extends BaseExpandableListAdapter {
-    String TAG = "Menu_Ex_ListAdapter";
-
+    private String TAG = "Menu_Ex_ListAdapter";
     private Context mContext;
     private ArrayList<MenuHeader> mMenuHeader;
     private int mTextsize;
-//    private ArrayList<String> mPrefsFavoritesStars;
 
-    /**This correspond to textsize values of color blocks, so we have a minimum value*/
-
-    private final int dimenscore_supertotal;
+    /* Maximum width that the color blocks can occupy on the screen(in total) */
+    private final int mMaxWidthForColorBlocks;
 
 
     public MenuExpandableListAdapter(Context context
                                     ,ArrayList<MenuHeader> menuHeader
-                                    ,int dimenscore_total
+                                    ,int maxWidthForColorBlocks
                                     ,int fontsize
     ) {
         this.mContext = context;
         this.mMenuHeader = menuHeader;
-        this.dimenscore_supertotal = dimenscore_total;
+        this.mMaxWidthForColorBlocks = maxWidthForColorBlocks;
         this.mTextsize = fontsize;
     }
 
@@ -80,18 +76,14 @@ public class MenuExpandableListAdapter extends BaseExpandableListAdapter {
     public View getChildView(int groupPosition, final int childPosition,
                              boolean isLastChild, View convertView, ViewGroup parent) {
 
-        int dimenscore_total = dimenscore_supertotal;
+        int availableWidth = mMaxWidthForColorBlocks;
         final String childText = (String) getChild(groupPosition, childPosition);
-        final String HeaderText = getGroup(groupPosition).toString();
-        if(BuildConfig.DEBUG){
-            Log.d(TAG,"HeaderText: " + HeaderText);}
         if (convertView == null) {
             convertView = LayoutInflater.from(mContext).inflate(R.layout.expandablelistadapter_listitem, parent, false);
         }
         LinearLayout layout = (LinearLayout) convertView.findViewById(R.id.layoutcontainer);
 
-        TextView txtListChild = (TextView) convertView
-                .findViewById(R.id.lblListItem);
+        TextView txtListChild = (TextView) convertView.findViewById(R.id.lblListItem);
         txtListChild.setText(childText);
 
         ImageButton imageButton = (ImageButton) convertView.findViewById(R.id.favorite_icon);
@@ -110,10 +102,12 @@ public class MenuExpandableListAdapter extends BaseExpandableListAdapter {
             Log.d(TAG, "childText: " + childText);
         }
 
-        if(mMenuHeader.get(groupPosition).getColorBlockMeasurables() != null && childText.equalsIgnoreCase("Browse/Edit")) {
+        /* For the child entries of the adapter, only show the "colorblocks" in the first row of a mylist. This is differentiated
+        * here by the string "Browse/Edit" which only appears in the "MyListFragment" fragment */
+        if(mMenuHeader.get(groupPosition).getColorBlockMeasurables() != null && childText.equalsIgnoreCase(mContext.getString(R.string.menuchildbrowse))) {
 
             setColorBlocks(mMenuHeader.get(groupPosition).getColorBlockMeasurables()
-                        ,dimenscore_total
+                        ,availableWidth
                         ,textViewColorBlock_grey
                         ,textViewColorBlock_red
                         ,textViewColorBlock_yellow
@@ -154,7 +148,8 @@ public class MenuExpandableListAdapter extends BaseExpandableListAdapter {
     public View getGroupView(int groupPosition, boolean isExpanded,
                              View convertView, ViewGroup parent) {
 
-        int dimenscore_total = dimenscore_supertotal;
+        int availableWidth = mMaxWidthForColorBlocks;
+
         if (convertView == null) {
             LayoutInflater infalInflater = (LayoutInflater) this.mContext
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -171,10 +166,10 @@ public class MenuExpandableListAdapter extends BaseExpandableListAdapter {
             lblListHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP, mTextsize);
         }
 
-        LinearLayout background = (LinearLayout) convertView.findViewById(R.id.balls2);
+//        LinearLayout background = (LinearLayout) convertView.findViewById(R.id.balls2);
         lblListHeader.setBackgroundColor(ContextCompat.getColor(mContext, android.R.color.white));
         lblListHeader.setTextColor(ContextCompat.getColor(mContext, android.R.color.black));
-        background.setBackgroundColor(ContextCompat.getColor(mContext, android.R.color.white));
+//        background.setBackgroundColor(ContextCompat.getColor(mContext, android.R.color.white));
         lblListHeader.setGravity(Gravity.START);
 
         TextView lblColorBar = (TextView) convertView.findViewById(R.id.lblcolorbar);
@@ -185,36 +180,38 @@ public class MenuExpandableListAdapter extends BaseExpandableListAdapter {
         * drawable, with the count of entries for that color in the middle. No title, no label. */
         if(mMenuHeader.get(groupPosition).isColorList()) {
             if(BuildConfig.DEBUG){Log.d(TAG,"USING COLORBAR"  );}
-            final Drawable drawable = ContextCompat.getDrawable(mContext, R.drawable.colorblock);
-            switch(mMenuHeader.get(groupPosition).getHeaderTitle()) {
-                case "Grey":
-                    drawable.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuGrey), PorterDuff.Mode.MULTIPLY);
-                    lblColorBar.setText(String.valueOf(colorBlockMeasurables.getGreyCount()));
-                    break;
-                case "Red":
-                    drawable.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuRed), PorterDuff.Mode.MULTIPLY);
-                    lblColorBar.setText(String.valueOf(colorBlockMeasurables.getRedCount()));
-                    break;
-                case "Yellow":
-                    drawable.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuYellow), PorterDuff.Mode.MULTIPLY);
-                    lblColorBar.setText(String.valueOf(colorBlockMeasurables.getYellowCount()));
-                    break;
-                case "Green":
-                    drawable.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuGreen), PorterDuff.Mode.MULTIPLY);
-                    lblColorBar.setText(String.valueOf(colorBlockMeasurables.getGreenCount()));
-                    break;
-            }
-
-                if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    lblColorBar.setBackground(drawable);
-                } else {
-                    lblColorBar.setBackgroundDrawable(drawable);
-                }
+            setBigColorBar(groupPosition,lblColorBar,colorBlockMeasurables);
+//            final Drawable drawable = ContextCompat.getDrawable(mContext, R.drawable.colorblock);
+//            switch(mMenuHeader.get(groupPosition).getHeaderTitle()) {
+//                case "Grey":
+//                    drawable.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuGrey), PorterDuff.Mode.MULTIPLY);
+//                    lblColorBar.setText(String.valueOf(colorBlockMeasurables.getGreyCount()));
+//                    break;
+//                case "Red":
+//                    drawable.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuRed), PorterDuff.Mode.MULTIPLY);
+//                    lblColorBar.setText(String.valueOf(colorBlockMeasurables.getRedCount()));
+//                    break;
+//                case "Yellow":
+//                    drawable.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuYellow), PorterDuff.Mode.MULTIPLY);
+//                    lblColorBar.setText(String.valueOf(colorBlockMeasurables.getYellowCount()));
+//                    break;
+//                case "Green":
+//                    drawable.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuGreen), PorterDuff.Mode.MULTIPLY);
+//                    lblColorBar.setText(String.valueOf(colorBlockMeasurables.getGreenCount()));
+//                    break;
+//            }
+//
+//                if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+//                    lblColorBar.setBackground(drawable);
+//                } else {
+//                    lblColorBar.setBackgroundDrawable(drawable);
+//                }
 
         }  else {
 
-            lblColorBar = (TextView) convertView.findViewById(R.id.lblcolorbar);
-            lblColorBar.setVisibility(TextView.GONE);
+            //Hide the big color bar
+            ((TextView) convertView.findViewById(R.id.lblcolorbar)).setVisibility(TextView.GONE);
+
             TextView  textViewColorBlock_grey = (TextView) convertView.findViewById(R.id.listitem_colors_1);
             TextView textViewColorBlock_red = (TextView) convertView.findViewById(R.id.listitem_colors_2);
             TextView textViewColorBlock_yellow = (TextView) convertView.findViewById(R.id.listitem_colors_3);
@@ -276,7 +273,7 @@ public class MenuExpandableListAdapter extends BaseExpandableListAdapter {
                     final TextView lblListHeaderCount = (TextView) convertView.findViewById(R.id.lblListHeaderCount);
 
                     if(mMenuHeader.get(groupPosition).isShowLblHeaderCount()) {
-                        lblListHeaderCount.setVisibility(TextView.VISIBLE); /**SET TO VISIBLE TO SEE*/
+                        lblListHeaderCount.setVisibility(TextView.VISIBLE);
                     } else {
                         lblListHeaderCount.setVisibility(TextView.GONE);
                     }
@@ -301,7 +298,7 @@ public class MenuExpandableListAdapter extends BaseExpandableListAdapter {
                 lblListHeader.setText(mMenuHeader.get(groupPosition).getHeaderTitle());
 
                 setColorBlocks(mMenuHeader.get(groupPosition).getColorBlockMeasurables()
-                        ,dimenscore_total
+                        ,availableWidth
                         ,textViewColorBlock_grey
                         ,textViewColorBlock_red
                         ,textViewColorBlock_yellow
@@ -309,7 +306,7 @@ public class MenuExpandableListAdapter extends BaseExpandableListAdapter {
             }
         }
 
-        if(BuildConfig.DEBUG){Log.d(TAG,"dimenscore at end of group: " + dimenscore_total);}
+        if(BuildConfig.DEBUG){Log.d(TAG,"dimenscore at end of group: " + availableWidth);}
         return convertView;
     }
 
@@ -327,7 +324,7 @@ public class MenuExpandableListAdapter extends BaseExpandableListAdapter {
 
 
     public void setColorBlocks(ColorBlockMeasurables colorBlockMeasurables
-            ,int dimenscoreTotal
+            ,int availableWidth
             , TextView txtGrey
             , TextView txtRed
             , TextView txtYellow
@@ -373,30 +370,30 @@ public class MenuExpandableListAdapter extends BaseExpandableListAdapter {
                 + colorBlockMeasurables.getGreenCount() == 0) {
             txtGrey.setText(String.valueOf(colorBlockMeasurables.getTotalCount()));
             txtGrey.setVisibility(View.VISIBLE);
-            txtGrey.setMinimumWidth(dimenscoreTotal);
+            txtGrey.setMinimumWidth(availableWidth);
 
         } else {
 
-            int dimenscoreremaining = dimenscoreTotal;
+            int availableWidthRemaining = availableWidth;
             if(colorBlockMeasurables.getGreyCount()>0){
                 txtGrey.setText(String.valueOf(colorBlockMeasurables.getGreyCount()));
-                int dimenscore = colorBlockMeasurables.getGreyDimenscore(dimenscoreTotal);
+                int dimenscore = colorBlockMeasurables.getGreyDimenscore(availableWidth);
                 if(BuildConfig.DEBUG) {
-                    Log.i(TAG,"dimenscoretotal: " + dimenscoreTotal);
+                    Log.i(TAG,"dimenscoretotal: " + availableWidth);
                     Log.i(TAG,"grey/count: " + colorBlockMeasurables.getGreyCount() + "/" + colorBlockMeasurables.getTotalCount());
                     Log.i(TAG,"((float) grey / (float) count): " + ((float) colorBlockMeasurables.getGreyCount() / (float) colorBlockMeasurables.getTotalCount()));
                     Log.i(TAG,"Rounded score: " + dimenscore);
                 }
-                dimenscoreremaining = dimenscoreTotal-dimenscore;
+                availableWidthRemaining = availableWidth-dimenscore;
                 txtGrey.setMinimumWidth(dimenscore);
                 txtGrey.setVisibility(View.VISIBLE);
             }
 
             if(colorBlockMeasurables.getRedCount()>0){
                 txtRed.setText(String.valueOf(colorBlockMeasurables.getRedCount()));
-                int dimenscore = colorBlockMeasurables.getRedDimenscore(dimenscoreTotal,dimenscoreremaining);
+                int dimenscore = colorBlockMeasurables.getRedDimenscore(availableWidth,availableWidthRemaining);
 
-                dimenscoreremaining = dimenscoreremaining -dimenscore;
+                availableWidthRemaining = availableWidthRemaining -dimenscore;
                 txtRed.setMinimumWidth(dimenscore);
                 txtRed.setVisibility(View.VISIBLE);
 
@@ -404,8 +401,8 @@ public class MenuExpandableListAdapter extends BaseExpandableListAdapter {
 
             if(colorBlockMeasurables.getYellowCount()>0){
                 txtYellow.setText(String.valueOf(colorBlockMeasurables.getYellowCount()));
-                int dimenscore = colorBlockMeasurables.getYellowDimenscore(dimenscoreTotal,dimenscoreremaining);
-                dimenscoreremaining = dimenscoreremaining -dimenscore;
+                int dimenscore = colorBlockMeasurables.getYellowDimenscore(availableWidth,availableWidthRemaining);
+                availableWidthRemaining = availableWidthRemaining -dimenscore;
                 txtYellow.setMinimumWidth(dimenscore);
                 txtYellow.setVisibility(View.VISIBLE);
 
@@ -413,9 +410,9 @@ public class MenuExpandableListAdapter extends BaseExpandableListAdapter {
 
             if(colorBlockMeasurables.getGreenCount()>0){
                 txtGreen.setText(String.valueOf(colorBlockMeasurables.getGreenCount()));
-                int dimenscore = colorBlockMeasurables.getGreenDimenscore(dimenscoreTotal,dimenscoreremaining);
+                int dimenscore = colorBlockMeasurables.getGreenDimenscore(availableWidth,availableWidthRemaining);
                 if(BuildConfig.DEBUG) {
-                    Log.i(TAG,"dimenscoretotal: " + dimenscoreTotal);
+                    Log.i(TAG,"dimenscoretotal: " + availableWidth);
                     Log.i(TAG,"grey/count: " + colorBlockMeasurables.getGreenCount() + "/" + colorBlockMeasurables.getTotalCount());
                     Log.i(TAG,"((float) grey / (float) count): " + ((float) colorBlockMeasurables.getGreenCount() / (float) colorBlockMeasurables.getTotalCount()));
                     Log.i(TAG,"Rounded score: " + dimenscore);
@@ -424,8 +421,6 @@ public class MenuExpandableListAdapter extends BaseExpandableListAdapter {
                 txtGreen.setMinimumWidth(dimenscore);
                 txtGreen.setVisibility(View.VISIBLE);
             }
-
-
         }
 
         if (colorBlockMeasurables.getTotalCount() == 0) {
@@ -444,5 +439,34 @@ public class MenuExpandableListAdapter extends BaseExpandableListAdapter {
         }
 
 }
+
+
+    public void setBigColorBar(int groupPosition, TextView lblColorBar, ColorBlockMeasurables colorBlockMeasurables){
+        final Drawable drawable = ContextCompat.getDrawable(mContext, R.drawable.colorblock);
+        switch(mMenuHeader.get(groupPosition).getHeaderTitle()) {
+            case "Grey":
+                drawable.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuGrey), PorterDuff.Mode.MULTIPLY);
+                lblColorBar.setText(String.valueOf(colorBlockMeasurables.getGreyCount()));
+                break;
+            case "Red":
+                drawable.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuRed), PorterDuff.Mode.MULTIPLY);
+                lblColorBar.setText(String.valueOf(colorBlockMeasurables.getRedCount()));
+                break;
+            case "Yellow":
+                drawable.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuYellow), PorterDuff.Mode.MULTIPLY);
+                lblColorBar.setText(String.valueOf(colorBlockMeasurables.getYellowCount()));
+                break;
+            case "Green":
+                drawable.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuGreen), PorterDuff.Mode.MULTIPLY);
+                lblColorBar.setText(String.valueOf(colorBlockMeasurables.getGreenCount()));
+                break;
+        }
+
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            lblColorBar.setBackground(drawable);
+        } else {
+            lblColorBar.setBackgroundDrawable(drawable);
+        }
+    }
 
 }

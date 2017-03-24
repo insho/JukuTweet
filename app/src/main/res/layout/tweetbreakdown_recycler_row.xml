@@ -132,8 +132,6 @@
             android:id="@+id/browseitems_frameLayout"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_marginEnd="20dp"
-            android:layout_marginRight="20dp"
 
             android:layout_weight=".1">
 
@@ -149,24 +147,13 @@
                 android:clickable="false"
                 android:focusable="false"
                 android:focusableInTouchMode="false"
+                android:layout_marginEnd="15dp"
+                android:layout_marginRight="15dp"
+                android:layout_marginStart="15dp"
+                android:layout_marginLeft="15dp"
                 />
 
-            <TextView
-                android:id="@+id/favoritenumber"
-                android:paddingLeft="2dp"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:gravity="end"
-                android:layout_gravity="center"
-                android:text=""
-                android:visibility="invisible"
-                android:textSize="12sp"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:clickable="false"
-                android:focusable="false"
-                android:focusableInTouchMode="false"
-                android:background="@android:color/transparent"
-                />
+
         </FrameLayout>
 
 

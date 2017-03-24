@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:id="@+id/layoutlistitem"
+
+    android:layout_height="wrap_content">
+
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/listitemgridview"
+        android:rowCount="1"
+        android:columnCount="3"
+        >
+
+
+        <android.support.v7.widget.AppCompatCheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:id="@+id/listitemcheckbox"
+            android:layout_gravity="left"
+            android:layout_column="0"
+            />
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:id="@+id/listitemstar"
+            android:layout_height="match_parent"
+            android:layout_gravity="left"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_star_black"
+            android:layout_column="1"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_gravity="left"
+            android:layout_height="match_parent"
+            android:id="@+id/listitemtextview"
+            android:textColor="@android:color/black"
+            android:layout_column="2"
+            />
+
+    </GridLayout>
+
+</LinearLayout>

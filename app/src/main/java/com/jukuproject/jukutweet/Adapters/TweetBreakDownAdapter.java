@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Typeface;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +20,7 @@ import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.Models.WordEntryFavorites;
+import com.jukuproject.jukutweet.PopupChooseFavoriteLists;
 import com.jukuproject.jukutweet.R;
 import java.util.ArrayList;
 
@@ -28,6 +30,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
     private static final boolean debug = false;
 
     private Context mContext;
+    private float mDensity;
     private ArrayList<WordEntry> mWords;
     private  ColorThresholds mColorThresholds;
     private ArrayList<String> mActiveFavoriteStars;
@@ -42,7 +45,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         public TextView lstDefinitions;
         public ImageButton imgStar;
         public FrameLayout imgStarLayout;
-        public TextView txtimgStarNumber;
+//        public TextView txtimgStarNumber;
         public LinearLayout layout;
 
         public ViewHolder(View v) {
@@ -52,15 +55,16 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
             txtFurigana  = (TextView) v.findViewById(R.id.textViewBrowseAdapter_Furigana);
             lstDefinitions = (TextView) v.findViewById(R.id.textViewlstDefinitions);
             imgStar = (ImageButton) v.findViewById(R.id.favorite);
-            txtimgStarNumber = (TextView) v.findViewById(R.id.favoritenumber);
+//            txtimgStarNumber = (TextView) v.findViewById(R.id.favoritenumber);
             layout = (LinearLayout) v.findViewById(R.id.browseitems_layout);
             imgStarLayout = (FrameLayout) v.findViewById(R.id.browseitems_frameLayout);
         }
     }
 
 
-    public TweetBreakDownAdapter(Context context, ArrayList<WordEntry> words, ColorThresholds colorThresholds, ArrayList<String> activeFavoriteStars, RxBus rxBus) {
+    public TweetBreakDownAdapter(Context context, float density, ArrayList<WordEntry> words, ColorThresholds colorThresholds, ArrayList<String> activeFavoriteStars, RxBus rxBus) {
         mContext = context;
+        mDensity = density;
         mWords = words;
         mColorThresholds = colorThresholds;
         this.mActiveFavoriteStars = activeFavoriteStars;
@@ -86,7 +90,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
 
         final WordEntry wordEntry = mWords.get(holder.getAdapterPosition());
 
-            holder.txtimgStarNumber.setVisibility(View.GONE);
+//            holder.txtimgStarNumber.setVisibility(View.GONE);
             holder.layout.setSelected(false);
             holder.imgStar.setVisibility(View.VISIBLE);
             holder.imgStarLayout.setClickable(true);
@@ -130,10 +134,17 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
             public void onClick(View v) {
                 //TODO favorite words
 //                Toast.makeText(mContext, "Clicked", Toast.LENGTH_SHORT).show();
-//                mRxBus.send(mWords.get(holder.getAdapterPosition()));
+//
 
                 if(wordEntry.getWordEntryFavorites().shouldOpenFavoritePopup()) {
                 //TODO make the big popup show
+                    int xadjustment = -50;
+                    int yadjustment = 0;
+
+//                    mRxBus.send(mWords.get(holder.getAdapterPosition()).getId());
+                    PopupChooseFavoriteLists popup = new PopupChooseFavoriteLists(mContext,mDensity,mWords.get(holder.getAdapterPosition()).getId());
+                    popup.showAsDropDown(holder.imgStar, -xadjustment, -yadjustment);
+
                 } else {
                     if(onFavoriteStarToggle(mActiveFavoriteStars,wordEntry)) {
                         holder.imgStar.setImageResource(R.drawable.ic_star_black);
@@ -150,7 +161,15 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         holder.imgStarLayout.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                mRxBus.sendLongClick(mWords.get(holder.getAdapterPosition()).getId());
+//                mRxBus.sendLongClick(mWords.get(holder.getAdapterPosition()).getId());
+                //TODO make the big popup show
+
+                int xadjustment = -100;
+                int yadjustment = -100;
+                PopupChooseFavoriteLists popup = new PopupChooseFavoriteLists(mContext,mDensity,mWords.get(holder.getAdapterPosition()).getId());
+                popup.showAsDropDown(holder.imgStar, -xadjustment, -yadjustment);
+                Log.d(TAG,"SHOWING POPUP " + popup.isShowing());
+
                 return true;
             }
         });
@@ -184,287 +203,16 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
     }
 
 
-
-
-
-//        public void starShortPress() {
-//
-//        if (holder.imgStarLayout.isPressed()) {
-//
-//            //retrieve the starting state of the star (which determines star color and clickability)
-//            if (mcolors == null || mcolors.size() == 0) {
-//                startingstate_inner = 5;
-//            } else if (holder.imgStar.getTag().toString() != null) {
-//                startingstate_inner = Integer.parseInt(holder.imgStar.getTag().toString());
-//            } else {
-//                startingstate_inner = 0;
-//            }
-//
-//            if (debug) {
-//                Log.d(TAG, "startingstate_inner= " + startingstate_inner);
-//            }
-//            ;
-//
-//            /** IF IT'S IN MULTIPLE LISTS, MAKE A CLICK OPEN UP THE MULTIPLE LIST DIALOG...*/
-//            if (startingstate_inner == 5) {
-//                PopupWindow popupWindowMultiFavorites = popupWindowMultiFavorites(PKey);
-//                popupWindowMultiFavorites.setOnDismissListener(new PopupWindow.OnDismissListener() {
-//                    @Override
-//                    public void onDismiss() {
-//                        updateStarColor(holder, PKey);
-//                    }
-//                });
-//
-//
-//                popupWindowMultiFavorites.showAsDropDown(holder.imgStar, -xadjustment, -yadjustment);
-//
-//
-//            } else if (startingstate_inner <= 0 && mcolors.contains("Yellow")) {
-//                holder.imgStar.setImageResource(R.drawable.ic_star_black);
-//                holder.imgStar.setColorFilter(ContextCompat.getColor(mActivity, R.color.spinnerYellowColor));
-//                ContentValues values = new ContentValues();
-//                values.clear();
-//                values.put(InternalDB.Columns.COL0, PKey);
-//                values.put(InternalDB.Columns.COL_T2_1, "Yellow");
-//                values.put(InternalDB.Columns.COL_T2_2, 1);
-//                db.insertWithOnConflict(InternalDB.TABLE2, null, values,
-//                        SQLiteDatabase.CONFLICT_REPLACE);
-//                startingstate_inner = 1;
-//
-//                /** Updating the favorites list double (i.e. mColorsHash) so view can be recreated when the user scrolls and view is recycled */
-//                ArrayList<ArrayList<String>> tmpdouble = new ArrayList<ArrayList<String>>();
-//                if (mColorsHash.containsKey(PKey)) {
-//                    ArrayList<String> colorsarray = mColorsHash.get(PKey).get(0);
-//                    colorsarray.clear();
-//                    colorsarray.add("Yellow");
-//                    ArrayList<String> otherarray = mColorsHash.get(PKey).get(1);
-//                    tmpdouble.add(colorsarray);
-//                    tmpdouble.add(otherarray);
-//
-//                    mColorsHash.remove(PKey);
-//                } else {
-//                    ArrayList<String> colorsarray = new ArrayList<String>();
-//                    ArrayList<String> otherarray = new ArrayList<String>();
-//                    colorsarray.add("Yellow");
-//                    tmpdouble.add(colorsarray);
-//                    tmpdouble.add(otherarray);
-//                }
-//                mColorsHash.put(PKey, tmpdouble);
-//
-//            } else if (startingstate_inner <= 1 && mcolors.contains("Blue")) {
-//                holder.imgStar.setImageResource(R.drawable.ic_star_black);
-//                holder.imgStar.setColorFilter(ContextCompat.getColor(mActivity, R.color.Blue_900));
-//                ContentValues values = new ContentValues();
-//                values.clear();
-//                values.put(InternalDB.Columns.COL0, PKey);
-//                values.put(InternalDB.Columns.COL_T2_1, "Blue");
-//                values.put(InternalDB.Columns.COL_T2_2, 1);
-//                db.insertWithOnConflict(InternalDB.TABLE2, null, values,
-//                        SQLiteDatabase.CONFLICT_REPLACE);
-//                switch (startingstate_inner) {
-//                    case 1:
-//                        helper.delete_favorites(db, InternalDB.TABLE2, PKey, "Yellow", 1);
-//                        break;
-//                }
-//                startingstate_inner = 2;
-//
-//                /** Updating the favorites list double (i.e. mColorsHash) so view can be recreated when the user scrolls and view is recycled */
-//                ArrayList<ArrayList<String>> tmpdouble = new ArrayList<ArrayList<String>>();
-//                if (mColorsHash.containsKey(PKey)) {
-//                    ArrayList<String> colorsarray = mColorsHash.get(PKey).get(0);
-//                    colorsarray.clear();
-//                    colorsarray.add("Blue");
-//                    ArrayList<String> otherarray = mColorsHash.get(PKey).get(1);
-//                    tmpdouble.add(colorsarray);
-//                    tmpdouble.add(otherarray);
-//
-//                    mColorsHash.remove(PKey);
-//                } else {
-//                    ArrayList<String> colorsarray = new ArrayList<String>();
-//                    ArrayList<String> otherarray = new ArrayList<String>();
-//                    colorsarray.add("Blue");
-//                    tmpdouble.add(colorsarray);
-//                    tmpdouble.add(otherarray);
-//                }
-//                mColorsHash.put(PKey, tmpdouble);
-//
-//            } else if (startingstate_inner <= 2 && mcolors.contains("Red")) {
-//                holder.imgStar.setImageResource(R.drawable.ic_star_black);
-//                holder.imgStar.setColorFilter(ContextCompat.getColor(mActivity, R.color.answerIncorrectColor));
-//                ContentValues values = new ContentValues();
-//                values.clear();
-//                values.put(InternalDB.Columns.COL0, PKey);
-//                values.put(InternalDB.Columns.COL_T2_1, "Red");
-//                values.put(InternalDB.Columns.COL_T2_2, 1);
-//                db.insertWithOnConflict(InternalDB.TABLE2, null, values,
-//                        SQLiteDatabase.CONFLICT_REPLACE);
-//
-//                switch (startingstate_inner) {
-//                    case 1:
-//                        helper.delete_favorites(db, InternalDB.TABLE2, PKey, "Yellow", 1);
-//                        break;
-//                    case 2:
-//                        helper.delete_favorites(db, InternalDB.TABLE2, PKey, "Blue", 1);
-//                        break;
-//                }
-//                startingstate_inner = 3;
-//
-//                /** Updating the favorites list double (i.e. mColorsHash) so view can be recreated when the user scrolls and view is recycled */
-//                ArrayList<ArrayList<String>> tmpdouble = new ArrayList<ArrayList<String>>();
-//                if (mColorsHash.containsKey(PKey)) {
-//                    ArrayList<String> colorsarray = mColorsHash.get(PKey).get(0);
-//                    colorsarray.clear();
-//                    colorsarray.add("Red");
-//                    ArrayList<String> otherarray = mColorsHash.get(PKey).get(1);
-//                    tmpdouble.add(colorsarray);
-//                    tmpdouble.add(otherarray);
-//
-//                    mColorsHash.remove(PKey);
-//                } else {
-//                    ArrayList<String> colorsarray = new ArrayList<String>();
-//                    ArrayList<String> otherarray = new ArrayList<String>();
-//                    colorsarray.add("red");
-//                    tmpdouble.add(colorsarray);
-//                    tmpdouble.add(otherarray);
-//
-//                }
-//                mColorsHash.put(PKey, tmpdouble);
-//
-//            } else if (startingstate_inner <= 3 && mcolors.contains("Green")) {
-//                holder.imgStar.setImageResource(R.drawable.ic_star_black);
-//                holder.imgStar.setColorFilter(ContextCompat.getColor(mActivity, R.color.answerCorrectColor));
-//                ContentValues values = new ContentValues();
-//                values.clear();
-//                values.put(InternalDB.Columns.COL0, PKey);
-//                values.put(InternalDB.Columns.COL_T2_1, "Green");
-//                values.put(InternalDB.Columns.COL_T2_2, 1);
-//                db.insertWithOnConflict(InternalDB.TABLE2, null, values,
-//                        SQLiteDatabase.CONFLICT_REPLACE);
-//
-//                switch (startingstate_inner) {
-//                    case 1:
-//                        helper.delete_favorites(db, InternalDB.TABLE2, PKey, "Yellow", 1);
-//                        break;
-//                    case 2:
-//                        helper.delete_favorites(db, InternalDB.TABLE2, PKey, "Blue", 1);
-//                        break;
-//                    case 3:
-//                        helper.delete_favorites(db, InternalDB.TABLE2, PKey, "Red", 1);
-//                        break;
-//                }
-//                startingstate_inner = 4;
-//
-//                /** Updating the favorites list double (i.e. mColorsHash) so view can be recreated when the user scrolls and view is recycled */
-//                ArrayList<ArrayList<String>> tmpdouble = new ArrayList<ArrayList<String>>();
-//                if (mColorsHash.containsKey(PKey)) {
-//                    ArrayList<String> colorsarray = mColorsHash.get(PKey).get(0);
-//                    colorsarray.clear();
-//                    colorsarray.add("Green");
-//                    ArrayList<String> otherarray = mColorsHash.get(PKey).get(1);
-//                    tmpdouble.add(colorsarray);
-//                    tmpdouble.add(otherarray);
-//
-//                    mColorsHash.remove(PKey);
-//                } else {
-//                    ArrayList<String> colorsarray = new ArrayList<String>();
-//                    ArrayList<String> otherarray = new ArrayList<String>();
-//                    colorsarray.add("Green");
-//                    tmpdouble.add(colorsarray);
-//                    tmpdouble.add(otherarray);
-//
-//
-//                }
-//                mColorsHash.put(PKey, tmpdouble);
-//
-//            } else {
-//                holder.imgStar.setImageResource(R.drawable.ic_star_black);
-//                holder.imgStar.setColorFilter(ContextCompat.getColor(mActivity, R.color.Black));
-//
-//                switch (startingstate_inner) {
-//                    case 1:
-//                        helper.delete_favorites(db, InternalDB.TABLE2, PKey, "Yellow", 1);
-//                        break;
-//                    case 2:
-//                        helper.delete_favorites(db, InternalDB.TABLE2, PKey, "Blue", 1);
-//                        break;
-//                    case 3:
-//                        helper.delete_favorites(db, InternalDB.TABLE2, PKey, "Red", 1);
-//                        break;
-//
-//                    case 4:
-//                        helper.delete_favorites(db, InternalDB.TABLE2, PKey, "Green", 1);
-//                        break;
-//                }
-//                startingstate_inner = 0;
-//
-//                /** Updating the favorites list double (i.e. mColorsHash) so view can be recreated when the user scrolls and view is recycled */
-//                ArrayList<ArrayList<String>> tmpdouble = new ArrayList<ArrayList<String>>();
-//                if (mColorsHash.containsKey(PKey)) {
-//                    ArrayList<String> colorsarray = mColorsHash.get(PKey).get(0);
-//                    colorsarray.clear();
-//                    ArrayList<String> otherarray = mColorsHash.get(PKey).get(1);
-//                    tmpdouble.add(colorsarray);
-//                    tmpdouble.add(otherarray);
-//
-//                    mColorsHash.remove(PKey);
-//                } else {
-//                    ArrayList<String> colorsarray = new ArrayList<String>();
-//                    ArrayList<String> otherarray = new ArrayList<String>();
-//                    tmpdouble.add(colorsarray);
-//                    tmpdouble.add(otherarray);
-//                }
-//                mColorsHash.put(PKey, tmpdouble);
-//            }
-//
-//        } else {
-//            holder.imgStar.setImageResource(R.drawable.ic_star_black);
-//            holder.imgStar.setColorFilter(ContextCompat.getColor(mActivity, R.color.Black));
-//            startingstate_inner = 0;
-//
-//            /** Updating the favorites list double (i.e. mColorsHash) so view can be recreated when the user scrolls and view is recycled */
-//            ArrayList<ArrayList<String>> tmpdouble = new ArrayList<ArrayList<String>>();
-//            if (mColorsHash.containsKey(PKey)) {
-//                ArrayList<String> colorsarray = mColorsHash.get(PKey).get(0);
-//                colorsarray.clear();
-//                ArrayList<String> otherarray = mColorsHash.get(PKey).get(1);
-//                tmpdouble.add(colorsarray);
-//                tmpdouble.add(otherarray);
-//
-//                mColorsHash.remove(PKey);
-//            } else {
-//                ArrayList<String> colorsarray = new ArrayList<String>();
-//                ArrayList<String> otherarray = new ArrayList<String>();
-//                tmpdouble.add(colorsarray);
-//                tmpdouble.add(otherarray);
-//            }
-//            mColorsHash.put(PKey, tmpdouble);
-//        }
-//        holder.imgStar.setTag(startingstate_inner);
-//
-//        if (debug) {
-//            Log.d(TAG, "After click startingstate_inner: (" + PKey + ") - " + startingstate_inner);
-//        }
-//
-//        db.close();
-//    }
-
-
-
-    //TODO fix this description
     /**
-     *
-     * Note: This should be used AFTER the shouldOpenFavoritePopup method, when we know the star
-     * isn't going to be a "multicolor" star, and instead will only have one color
-     * @param preferenceFavorites
+     * Assigns a color to the favorites star based on 2 things:
+     *         1. whether or not the word is contained in the system list of that color
+     *            (i.e. WordEntryFavorites "getsystemcount" for the word returns a "1")
+     *         2. whether or not the system list is "activated" in the user prefences (since
+     *            (users can turn system lists on and off)
+     * @param preferenceFavorites array of current "activated" system list names
      * @return the color (int) that the current star imagebutton should be tinted
      */
     public int getFavoritesStarColor(ArrayList<String> preferenceFavorites, WordEntryFavorites wordEntryFavorites){
-//        if(wordEntryFavorites.getUserListCount() > 0 || wordEntryFavorites.getSystemBlueCount()
-//                + wordEntryFavorites.getSystemRedCount()
-//                + wordEntryFavorites.getSystemGreenCount()
-//                + wordEntryFavorites.getSystemYellowCount() > 1 ) {
-//            return 5; // A "multifavorite"
-//        } else
         if(preferenceFavorites.contains("Blue") && wordEntryFavorites.getSystemBlueCount() > 0) {
             return R.color.colorJukuBlue;
         } else if(preferenceFavorites.contains("Green") && wordEntryFavorites.getSystemGreenCount() > 0) {
@@ -477,22 +225,28 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
             return android.R.color.black;
         }
     }
-//
-//    public int getNextFavoritesPosition(ArrayList<String> preferenceFavorites, WordEntryFavorites wordEntryFavorites, int CurrentPosition){
-//
-//        if(preferenceFavorites.contains("Blue") && wordEntryFavorites.getSystemBlueCount() > 0) {
-//            return R.color.colorJukuBlue;
-//        } else if(preferenceFavorites.contains("Green") && wordEntryFavorites.getSystemGreenCount() > 0) {
-//            return R.color.colorJukuGreen;
-//        } else if(preferenceFavorites.contains("Red") && wordEntryFavorites.getSystemRedCount() > 0) {
-//            return R.color.colorJukuRed;
-//        } else if(preferenceFavorites.contains("Yellow") && wordEntryFavorites.getSystemYellowCount() > 0) {
-//            return R.color.colorJukuYellow;
-//        } else {
-//            return android.R.color.black;
-//        }
-//    }
 
+    /**
+     * Updates the wordEntry object for a row, as well as the JFavorites table in database, to reflect a
+     * new saved "system list" for a word. When the user clicks on the favorites star for a word, and that
+     * word is ONLY contained in one system list, the user should be able to toggle through available system
+     * lists with a single click (ex: blue-->red-->yellow--> black (i.e. unassigned to a list)-->blue-->red etc)
+     *
+     * There is an order to system list toggling. It goes:
+     *         0. Unassigned (black)
+     *         1. Blue
+     *         2. Green
+     *         3. Red
+     *         4. Yellow
+     *
+     * The user can cycle through this list. hatever the initial color is for a word, that is where we start in the cycle.
+     * If the word is initially Red, for example, and the star is clicked, it should change to yellow. But if yellow is unavailable
+     * in the preferences, the star should become black (unassigned) (and reference to red should be removed from the db).
+     *
+     * @param preferenceFavorites  array of current "activated" system list names
+     * @param wordEntry WordEntry object containing data for a single kanji (including what lists that kanji is included in)
+     * @return boolean true if operation succesful, false if not
+     */
     public boolean onFavoriteStarToggle(ArrayList<String> preferenceFavorites, WordEntry wordEntry){
 
         try {
@@ -505,9 +259,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                 }
 
             } else if(preferenceFavorites.contains("Blue") && wordEntryFavorites.getSystemBlueCount() > 0) {
-                Log.d(TAG,"In blue!");
                 String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Green","Red","Yellow"});
-                Log.d(TAG,"In blue, NEXTCOLOR:  " + nextColor);
                 if(InternalDB.getInstance(mContext).changeFavoriteListEntry(wordEntry.getId(),"Blue",nextColor)) {
                     wordEntryFavorites.setSystemBlueCount(0);
                     wordEntryFavorites.setSystemColor(nextColor);
@@ -541,6 +293,14 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
 
     }
 
+    /**
+     * Cycles through an array of possible color entries, looking for a match in the preferenceFavorites.
+     * If one is found, that color is the "next" favorites color during a {@link #onFavoriteStarToggle(ArrayList, WordEntry)}
+     * If nothing is found, the star reverts to unassigned (colored black)
+     * @param preferenceFavorites array of current "activated" system list names
+     * @param options array of possible next color entries that a favorites star could toggle to
+     * @return the name of the next available color entry
+     */
     public String findNextFavoritesColor(ArrayList<String> preferenceFavorites,String[] options) {
         for (String option: options) {
             if(preferenceFavorites.contains(option)) {

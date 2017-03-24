@@ -382,8 +382,15 @@ public class MyListFragment extends Fragment {
         super.onResume();
     }
 
+    /**
+     * Maximum width of the color bars in the MenuExpandableListAdapter. Right that vlue is set
+     * to half of the screenwidth
+     * @return maximum width in pixels of colored bars
+     *
+     * @see MenuExpandableListAdapter
+     */
     private int getdimenscore() {
-        /** Get width of screen */
+
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
       return Math.round((float)metrics.widthPixels*(float).5);

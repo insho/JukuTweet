@@ -18,8 +18,10 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -39,6 +41,7 @@ import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.Models.WordLoader;
+import com.jukuproject.jukutweet.PopupChooseFavoriteLists;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SentenceParser;
 
@@ -65,11 +68,6 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
     private ColorThresholds colorThresholds;
     private ArrayList<String> activeFavoriteStars;
 
-    private WordLoader wordLoader;
-
-//    private ArrayList<String> colors = new ArrayList<String>();
-//    private int totalactivelists;
-
     private TextView mSentence;
     private View baseLayout;
     private View popupView;
@@ -86,7 +84,6 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
 
     public TweetBreakDownFragment() {}
 
-
     public static TweetBreakDownFragment newInstance(Tweet tweet) {
         TweetBreakDownFragment fragment = new TweetBreakDownFragment();
         Bundle args = new Bundle();
@@ -94,15 +91,6 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
         fragment.setArguments(args);
         return new TweetBreakDownFragment();
     }
-
-
-//    public TweetBreakDownFragment(Context context, View anchorView, Integer screenheight,RxBus rxBus, Tweet tweet) {
-//        this.mContext = context;
-//        this.mAnchorView = anchorView;
-//        this.mRxBus = rxBus;
-//        this.mTweet = tweet;
-//        this.mScreenHeight = screenheight;
-//    }
 
     @Override
     public View onCreateView(LayoutInflater inflater,
@@ -125,18 +113,15 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-//        baseLayout.setOnTouchListener(this);
-
-        //TODO REPLACE THIS WITH PREFERENCES SET
-//        colors.add("Blue");
-//        colors.add("Red");
-        wordLoader = InternalDB.getInstance(getContext()).getWordLists(null);
 
         mSentence.setText(mTweet.getText());
-
         InternalDB helper = InternalDB.getInstance(getContext());
         SQLiteDatabase db = helper.getReadableDatabase();
-        ArrayList<ParseSentenceItem> brokenUpTweet = SentenceParser.getInstance().parseSentence(mTweet.getText(),db,new ArrayList<Integer>(),new ArrayList<String>(),wordLoader);
+        ArrayList<ParseSentenceItem> brokenUpTweet = SentenceParser.getInstance().parseSentence(mTweet.getText()
+                ,db
+                ,new ArrayList<Integer>()
+                ,new ArrayList<String>()
+                ,helper.getWordLists(db));
 
         ArrayList<WordEntry> kanjiEntriesInTweet = new ArrayList<>();
         for(ParseSentenceItem parseSentenceItem : brokenUpTweet) {
@@ -145,7 +130,11 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
             }
         }
 
-        RecyclerView.Adapter mAdapter = new TweetBreakDownAdapter(getContext(),kanjiEntriesInTweet,colorThresholds,activeFavoriteStars,mRxBus);
+        /** Get width of screen */
+        DisplayMetrics metrics = new DisplayMetrics();
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+
+        RecyclerView.Adapter mAdapter = new TweetBreakDownAdapter(getContext(),metrics.density,kanjiEntriesInTweet,colorThresholds,activeFavoriteStars,mRxBus);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
 
@@ -157,9 +146,9 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
                         //TODO MOVE THIS METHOD TO THE FRAGMENT, AND ONLY CALL BACK TO MAIN ACTIVITY???
                         //TODO OR only if there is no userinfo, fill that shit in. otherwise dont
                         if(isUniqueClick(1000) && event instanceof Integer) {
-                            Integer kanjiID = (Integer) event;
+                            Integer kanjiId = (Integer) event;
 
-                            //TODO - toggle the star, or open the star popup
+
                         }
 
                     }
@@ -194,17 +183,6 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
         popupWindow.getContentView().setFocusableInTouchMode(true);
         popupWindow.setFocusable(true);
         popupWindow.setOutsideTouchable(true);
-
-
-        //TODO is this necessary???
-//        int location[] = new int[2];
-//        anchorView.getLocationOnScreen(new int[2]);
-//        popupWindow.showAtLocation(baseLayout, Gravity.NO_GRAVITY, 0, 180);
-//        int location[] = new int[2];
-//
-//        anchorView.getLocationOnScreen(location);
-//        popupWindow.showAtLocation(anchorView, Gravity.NO_GRAVITY, 0, 180);
-//        return popupView;
     }
 
     public boolean isShowing() {
@@ -352,6 +330,10 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
         positionAnimator.start();
     }
 
+    /**
+     *
+     * @param currentPosition
+     */
     private void closeUpAndDismissDialog(int currentPosition) {
 
 
@@ -423,119 +405,5 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
                     + " must implement OnHeadlineSelectedListener");
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-//    public void updateStarColor(ImageButton favoritesStar, WordEntry wordEntry) {
-//        /** Deal with the color star update */
-//        favoritesStar.setImageResource(R.drawable.ic_star_black);
-//
-//        if (mColorsHash.containsKey(PKey)) {
-//            /** Pull the lists that contain the  _id for that kanji  */
-//            ArrayList<String> colorListNameArray  = mColorsHash.get(PKey).get(0);
-//            ArrayList<String> totalListCountArray = mColorsHash.get(PKey).get(1);
-//
-//            if(debug) {
-//                for (int xxx = 0; xxx < totalListCountArray.size(); xxx++) {
-//                    Log.d(TAG, "otherarray item " + xxx + ": " + totalListCountArray.get(xxx));
-//                }
-//            };
-//
-//            int totalListCount = 0;
-//            if (totalListCountArray.size() > 0) {
-//                totalListCount = Integer.parseInt(totalListCountArray.get(0)); // all lists that the word is included in
-//            }
-//            String color1;
-//
-//            if(debug){
-//                Log.d(TAG, PKey + " - colorsarray size : " + colorListNameArray.size());
-//                Log.d(TAG,"debug " + totalListCount);
-//                Log.d(TAG,"mcolors: " + mcolors);
-//                Log.d(TAG, "PKey = " + PKey + " = initial color = " + startingstate_inner);
-//            }
-//
-//            /** If the _id is in more than one color list, fill the star icon with the first 2 colors  */
-//            if (colorListNameArray.size() > 1) {
-//                if(debug){Log.d(TAG, "xvx set MULTICOLOR!");}
-//                holder.imgStar.setColorFilter(null);
-//                holder.imgStar.setImageResource(R.drawable.ic_star_multicolor);
-//                startingstate_inner = 5; // MULTICOLOR
-//                holder.imgStar.setTag(5);
-//
-//                if(debug){Log.d(TAG, "starting color is now set to 5");}
-//
-//            } else if((totalListCount >0 && colorListNameArray.size()==0) || (mcolors== null || mcolors.size() ==0)){
-//                holder.imgStar.setColorFilter(null);
-//                holder.imgStar.setImageResource(R.drawable.ic_star_black);
-//                startingstate_inner = 5; // MULTICOLOR
-//                holder.imgStar.setTag(5);
-//
-//            } else if (colorListNameArray.size() == 1) {
-//
-//                if(debug){Log.d(TAG, "PKey = " + PKey + " - We're here somehow (in the one arraything)");};
-//                /** If it's in one color list, fill the star icon with that color */
-//                color1 = colorListNameArray.get(0);
-//                switch (color1.toLowerCase()) {
-//                    case "yellow":
-//                        holder.imgStar.setColorFilter(ContextCompat.getColor(mActivity, R.color.spinnerYellowColor));
-//                        startingstate_inner = 1;
-//                        holder.imgStar.setTag(1);
-//                        break;
-//                    case "blue":
-//                        holder.imgStar.setColorFilter(ContextCompat.getColor(mActivity, R.color.Blue_900));
-//                        startingstate_inner = 2;
-//                        holder.imgStar.setTag(2);
-//                        break;
-//                    case "red":
-//                        holder.imgStar.setColorFilter(ContextCompat.getColor(mActivity, R.color.answerIncorrectColor));
-//                        startingstate_inner = 3;
-//                        holder.imgStar.setTag(3);
-//                        break;
-//                    case "green":
-//                        holder.imgStar.setColorFilter(ContextCompat.getColor(mActivity, R.color.answerCorrectColor));
-//                        startingstate_inner = 4;
-//                        holder.imgStar.setTag(4);
-//                        break;
-//                }
-//
-//                /** If this value is in multiple lists (user created ones), then make hte starting color = 5*/
-//                if (totalListCount >= 1) {
-//
-//                    if(debug){Log.d(TAG, "PKey = " + PKey + " - We're making it = 5 here...");};
-//                    startingstate_inner = 5;
-//                    holder.imgStar.setTag(5);
-//                }
-//
-//            } else {
-//
-//                if(debug){Log.d(TAG, "PKey = " + PKey + " - coloring the star black...");};
-//                holder.imgStar.setColorFilter(ContextCompat.getColor(mActivity, R.color.Black));
-//                startingstate_inner = 0;
-//                holder.imgStar.setTag(0);
-//            }
-//
-//        } else {
-//            if(debug){Log.d(TAG, "xvx set 5 - colors hash doesn't contain PKEy");
-//                Log.d(TAG, "PKey = " + PKey + " - it also turned BLACK...");
-//            }
-//            holder.imgStar.setImageResource(R.drawable.ic_star_black);
-//            holder.imgStar.setColorFilter(ContextCompat.getColor(mActivity, R.color.Black));
-//            startingstate_inner = 0;
-//            holder.imgStar.setTag(0);
-//        }
-//
-//        if(debug) {
-//            Log.d(TAG, "PKey = " + PKey + " = final startstate = " + startingstate_inner);
-//            Log.d(TAG, "PKey = " + PKey + " = final tag = " + holder.imgStar.getTag());
-//        }
-//    }
 }
 

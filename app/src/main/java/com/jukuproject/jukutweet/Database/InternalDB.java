@@ -11,6 +11,8 @@ package com.jukuproject.jukutweet.Database;
         import android.util.Log;
 
 
+        import com.jukuproject.jukutweet.Fragments.MyListFragment;
+        import com.jukuproject.jukutweet.Models.MyListEntry;
         import com.jukuproject.jukutweet.Models.UserInfo;
         import com.jukuproject.jukutweet.Models.WordLoader;
 
@@ -43,8 +45,6 @@ public class InternalDB extends SQLiteOpenHelper {
     public static final String TABLE_SCOREBOARD = "JScoreboard";
     public static final String TSCOREBOARD_COL0 = "Total";
     public static final String TSCOREBOARD_COL1 = "Correct";
-
-
 
     public static final String TABLE_FAVORITES_LISTS = "JFavoritesLists";
     public static final String TFAVORITES_COL0 = "Name";
@@ -121,7 +121,7 @@ public class InternalDB extends SQLiteOpenHelper {
                                 "%s INTEGER)", TABLE_FAVORITES_LIST_ENTRIES,
                         COL_ID,
                         TFAVORITES_COL0,
-                        TFAVORITES_COL1); // if this column = 1, it is a system table (i.e. blue, red, yellow), if user-created value is 0
+                        TFAVORITES_COL1); // if this column = 1, it is a system table (i.e. blue, red, yellow), if user-created the value is 0
 
         sqlDB.execSQL(sqlQueryJFavoritesListEntries);
     }
@@ -133,7 +133,7 @@ public class InternalDB extends SQLiteOpenHelper {
 
 
     /**
-     * Checks for duplicate entries in the JFavoritesLists table
+     * Checks for duplicate entries for a user-created list in the JFavoritesLists table
      * @param mylist prospective new user-created mylist
      * @return true if that list name already exists, false if not
      */
@@ -184,7 +184,6 @@ public class InternalDB extends SQLiteOpenHelper {
       return false;
     }
 
-    //TODO figure out what the hell the saveUser int returns...
     /**
      * Saves new user feed to DB
      * @param userInfo UserInfo object with user data pulled from twitter api
@@ -193,8 +192,6 @@ public class InternalDB extends SQLiteOpenHelper {
     public boolean saveUser(UserInfo userInfo) {
 
         try {
-
-
             if(userInfo.getScreenName() != null) {
                 SQLiteDatabase db = this.getWritableDatabase();
                 ContentValues values = new ContentValues();
@@ -233,8 +230,8 @@ public class InternalDB extends SQLiteOpenHelper {
 
 
     /**
-     * Remove (i.e. "unfollow") a user from the database
-     * @param user
+     * Removes a user from the database
+     * @param user user screen_name to remove
      * @return bool True if operation is succesful, false if an error occurs
      */
     public boolean deleteUser(String user) {
@@ -272,30 +269,28 @@ public class InternalDB extends SQLiteOpenHelper {
                     try {
                         userInfo.setUserId(c.getInt(5));
                     } catch (SQLiteException e) {
-
+                        Log.e(TAG,"getSavedUserInfo adding user ID sqlite problem: " + e);
                     } catch (Exception e) {
-
+                        Log.e(TAG,"getSavedUserInfo adding user ID other exception... " + e);
                     }
 
                     try {
                         userInfo.setFollowerCount(c.getInt(2));
                     } catch (SQLiteException e) {
-
+                        Log.e(TAG,"getSavedUserInfo adding followers count sqlite problem: " + e);
                     } catch (Exception e) {
-
+                        Log.e(TAG,"getSavedUserInfo adding followers count other exception... " + e);
                     }
                     try {
                         userInfo.setFriendCount(c.getInt(3));
-                    } catch (SQLiteException e) {
-
+                    }  catch (SQLiteException e) {
+                        Log.e(TAG,"getSavedUserInfo adding setFriendCount sqlite problem: " + e);
                     } catch (Exception e) {
-
+                        Log.e(TAG,"getSavedUserInfo adding setFriendCount other exception... " + e);
                     }
 
                     userInfo.setProfile_image_url(c.getString(4));
-
                     userInfoList.add(userInfo);
-
                 } while (c.moveToNext());
             }
 
@@ -307,7 +302,18 @@ public class InternalDB extends SQLiteOpenHelper {
         return userInfoList;
     }
 
-//TODO the screenname is not unique! for any of these. it can change... use twitter ID where possible!
+
+    //TODO instead use some kind of custom comparator? OR no?
+    /**
+     * Compares two UserInfo objects, and overwrites the old object in the database if values
+     * have changed. Used when user timeline info is pulled, to check the user metadata attached to the tweets
+     * against the saved data in the db
+     * @param oldUserInfo old UserInfo object (saved info in db)
+     * @param recentUserInfo new UserInfo object (pulled from tweet metadata)
+     * @return
+     *
+     * @see com.jukuproject.jukutweet.Fragments.UserTimeLineFragment#pullTimeLineData(UserInfo)
+     */
     public boolean compareUserInfoAndUpdate(UserInfo oldUserInfo, UserInfo recentUserInfo) {
 
         try {
@@ -318,16 +324,16 @@ public class InternalDB extends SQLiteOpenHelper {
             if(oldUserInfo.getUserId() != null && !oldUserInfo.getScreenName().equals(recentUserInfo.getScreenName())) {
                 values.put(InternalDB.TMAIN_COL0, recentUserInfo.getScreenName().trim());
             }
-            if(!oldUserInfo.getDescription().equals(recentUserInfo.getDescription())) {
+            if(recentUserInfo.getDescription() != null && !oldUserInfo.getDescription().equals(recentUserInfo.getDescription())) {
                 values.put(InternalDB.TMAIN_COL2, recentUserInfo.getDescription().trim());
             }
-            if(oldUserInfo.getFollowerCount() != recentUserInfo.getFollowerCount()) {
+            if(recentUserInfo.getFollowerCount() != null && oldUserInfo.getFollowerCount() != recentUserInfo.getFollowerCount()) {
                 values.put(InternalDB.TMAIN_COL3, recentUserInfo.getFollowerCount());
             }
-            if(oldUserInfo.getFriendCount() != recentUserInfo.getFriendCount()) {
+            if(recentUserInfo.getFriendCount() != null && oldUserInfo.getFriendCount() != recentUserInfo.getFriendCount()) {
                 values.put(InternalDB.TMAIN_COL4, recentUserInfo.getFriendCount());
             }
-            if(!oldUserInfo.getProfile_image_url().equals(recentUserInfo.getProfile_image_url())) {
+            if(recentUserInfo.getProfile_image_url() != null && !oldUserInfo.getProfile_image_url().equals(recentUserInfo.getProfile_image_url())) {
                 values.put(InternalDB.TMAIN_COL5, recentUserInfo.getProfile_image_url().trim());
             }
 
@@ -349,6 +355,16 @@ public class InternalDB extends SQLiteOpenHelper {
     }
 
 
+    /**
+     * Pulls lists of hiragana/katakana/symbols and verb endings stored in the "Characters" table
+     * in the database, and populates a WordLoader object with them.
+     *
+     * Note: the nullable input db is used for testing. In test scenario the db has to be passed into the method (?)
+     * @param inputDB Sqlite database connection
+     * @return WordLoader object with array lists and maps of various japanse characters
+     *
+     * @see com.jukuproject.jukutweet.SentenceParser#parseSentence(String, SQLiteDatabase, ArrayList, ArrayList, WordLoader)
+     */
     public WordLoader getWordLists(@Nullable SQLiteDatabase inputDB) {
         SQLiteDatabase db;
         if(inputDB == null) {
@@ -414,21 +430,17 @@ public class InternalDB extends SQLiteOpenHelper {
                     tmp.add(hiragana.get(i));
                     tmp.add(katakana.get(i));
                     romajiMap.put(romaji.get(i),tmp);
-
                 }
-
 
                 ArrayList<String> extratmp = new ArrayList<>();
                 extratmp.add("ん");
                 extratmp.add("ン");
                 romajiMap.put("n",extratmp);
 
-
             }
         }catch(Exception e){
             e.printStackTrace();
         }
-
 
         if(inputDB == null && db.isOpen()) {
             db.close();
@@ -437,14 +449,16 @@ public class InternalDB extends SQLiteOpenHelper {
     }
 
 
+    /**
+     * Adds a new mylist to the JFavoritesLists table in the db
+     * @param mylist list name to add
+     * @return boolean true if success, false if not
+     */
     public boolean saveMyList(String mylist) {
-
         try {
-
                 SQLiteDatabase db = this.getWritableDatabase();
                 ContentValues values = new ContentValues();
                 values.put(TFAVORITES_COL0, mylist.trim());
-
                 db.insert(TABLE_FAVORITES_LISTS, null, values);
                 db.close();
                 return true;
@@ -452,10 +466,20 @@ public class InternalDB extends SQLiteOpenHelper {
             Log.e(TAG,"savemylist db insert exception: " + exception);
             return false;
         }
-
     }
 
-
+    /**
+     * Erases kanji from a mylist (deleting their associated rows from JFavorites table)
+     * The list itself is maintained in the JFavoritesLists table, and is untouched
+     * @param listName list to clear
+     * @param isStarFavorite boolean, true if the list is a "system list", meaning it is a colored star favorites list.
+     *                       System have a 1 in the "system" column of JFavorites, and this must be accounted for in the delete statement.
+     * @return boolean true if successful, false if not
+     *
+     * @see com.jukuproject.jukutweet.Dialogs.EditMyListDialog
+     * @see com.jukuproject.jukutweet.MainActivity#onEditMyListDialogPositiveClick(int, String, boolean)
+     * @see com.jukuproject.jukutweet.MainActivity#deleteOrClearDialogFinal(Boolean, String, boolean)
+     */
     public boolean clearMyList(String listName, boolean isStarFavorite) {
         try{
             SQLiteDatabase db = this.getWritableDatabase();
@@ -472,6 +496,16 @@ public class InternalDB extends SQLiteOpenHelper {
 
     }
 
+    /**
+     * Removes a list from the JFavoritesList table and all associated rows from JFavorites Table
+     *
+     * @param listName name of list to remove
+     * @return boolean true if successful, false if not
+     *
+     * @see com.jukuproject.jukutweet.Dialogs.EditMyListDialog
+     * @see com.jukuproject.jukutweet.MainActivity#onEditMyListDialogPositiveClick(int, String, boolean)
+     * @see com.jukuproject.jukutweet.MainActivity#deleteOrClearDialogFinal(Boolean, String, boolean)
+     */
     public boolean deleteMyList(String listName) {
         try{
             SQLiteDatabase db = this.getWritableDatabase();
@@ -482,9 +516,18 @@ public class InternalDB extends SQLiteOpenHelper {
         } catch(SQLiteException exception) {
             return false;
         }
-
     }
 
+    /**
+     * Changes the name of a user-created list
+     * @param oldListName current list name in JFavoritesLists and JFavorites tables
+     * @param newList new list name
+     * @return boolea true if successful, false if not
+     *
+     * @see com.jukuproject.jukutweet.Dialogs.EditMyListDialog
+     * @see com.jukuproject.jukutweet.MainActivity#onEditMyListDialogPositiveClick(int, String, boolean)
+     * @see com.jukuproject.jukutweet.MainActivity#showRenameMyListDialog(String)
+     */
     public boolean renameMyList(String oldListName, String newList) {
         try{
         SQLiteDatabase db = this.getWritableDatabase();
@@ -506,7 +549,13 @@ public class InternalDB extends SQLiteOpenHelper {
         }
     }
 
-
+    /**
+     *
+     * @param kanjiID
+     * @param originalColor
+     * @param updatedColor
+     * @return
+     */
     public boolean changeFavoriteListEntry(int kanjiID,String originalColor,String updatedColor) {
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -516,16 +565,10 @@ public class InternalDB extends SQLiteOpenHelper {
                 return false;
             } else if(originalColor.equals("Black")) {
                 //Insert statement only
-                ContentValues values = new ContentValues();
-                values.put(COL_ID,kanjiID);
-                values.put(TFAVORITES_COL0, updatedColor);
-                values.put(TFAVORITES_COL1, 1);
-                db.insert(TABLE_FAVORITES_LIST_ENTRIES, null, values);
-                return true;
+                return addKanjiToMyList(kanjiID,updatedColor,1);
             } else if(updatedColor.equals("Black")) {
                 //Delete statement only
-                db.delete(TABLE_FAVORITES_LIST_ENTRIES, TFAVORITES_COL0 + "= ? and [Sys] = 1 and [_id] = ? ", new String[]{originalColor,String.valueOf(kanjiID)});
-                return true;
+                return removeKanjiFromMyList(kanjiID,originalColor,1);
 
             } else {
                 String sql = "Update "  + TABLE_FAVORITES_LIST_ENTRIES + " SET [Name]=? WHERE [Name]=? and [Sys] = 1 and [_id] = ?";
@@ -538,7 +581,6 @@ public class InternalDB extends SQLiteOpenHelper {
                 return true;
             }
 
-
         }  catch (SQLiteException e) {
             Log.e(TAG,"changefavoritelistentry sqlite exception: " + e);
         }  catch (NullPointerException e) {
@@ -550,5 +592,97 @@ public class InternalDB extends SQLiteOpenHelper {
         return false;
 
     }
+
+    public boolean addKanjiToMyList(int kanjiId, String listName, int listSys) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        try {
+            ContentValues values = new ContentValues();
+            values.put(COL_ID, kanjiId);
+            values.put(TFAVORITES_COL0, listName);
+            values.put(TFAVORITES_COL1, listSys);
+            db.insert(TABLE_FAVORITES_LIST_ENTRIES, null, values);
+            return true;
+        } catch (SQLiteException e) {
+            Log.e(TAG, "addKanjiToMyList sqlite exception: " + e);
+        } catch (NullPointerException e) {
+            Log.e(TAG, "addKanjiToMyList something was null: " + e);
+        } finally {
+            db.close();
+        }
+
+        return  false;
+    }
+
+    public boolean removeKanjiFromMyList(int kanjiId, String listName, int listSys) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        try {
+            db.delete(TABLE_FAVORITES_LIST_ENTRIES,
+                    TFAVORITES_COL0 + " = ? and "  + TFAVORITES_COL1 + " = ? and " + COL_ID + " = ? ", new String[]{listName,String.valueOf(listSys),String.valueOf(kanjiId)});
+            return true;
+        } catch (SQLiteException e) {
+            Log.e(TAG, "removeKanjiFromMyList sqlite exception: " + e);
+        } catch (NullPointerException e) {
+            Log.e(TAG, "removeKanjiFromMyList something was null: " + e);
+        } finally {
+            db.close();
+        }
+        return  false;
+    }
+
+    public ArrayList<MyListEntry> getFavoritesListsForAKanji(int kanjiId) {
+
+        ArrayList<MyListEntry> myListEntries = new ArrayList<>();
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        try {
+            //Get a list of distinct favorites lists and their selection levels for the given kanji
+            Cursor c = db.rawQuery("Select [Lists].[Name] "    +
+                    ",[Lists].[Sys] "    +
+                    ",(Case when UserEntries.Name is null then 0 else 1 END) as SelectionLevel "    +
+                    " "    +
+                    "from "    +
+                    "( "    +
+                    "Select distinct Name "    +
+                    ", 0 as Sys "    +
+                    "From " + TABLE_FAVORITES_LISTS + " "    +
+                    "UNION "    +
+                    "Select 'Blue' as Name, 1 as Sys "    +
+                    "UNION "    +
+                    "Select 'Green' as Name, 1 as Sys "    +
+                    "UNION "    +
+                    "Select 'Red' as Name, 1 as Sys "    +
+                    "UNION "    +
+                    "Select 'Yellow' as Name, 1 as Sys "    +
+                    ") as Lists "    +
+                    "LEFT JOIN "    +
+                    "( "    +
+                    "Select Distinct Name "    +
+                    ",Sys "    +
+                    "FROM " + TABLE_FAVORITES_LIST_ENTRIES + " "    +
+                    "WHERE _id = ? "    +
+                    ") as UserEntries "    +
+                    " "    +
+                    "ON Lists.Name = UserEntries.Name ", new String[]{String.valueOf(kanjiId)});
+
+            c.moveToFirst();
+            if(c.getCount()>0) {
+                while (!c.isAfterLast()) {
+                    MyListEntry entry = new MyListEntry(c.getString(0),c.getInt(1),c.getInt(2));
+                    myListEntries.add(entry);
+                    c.moveToNext();
+                }
+            }
+            c.close();
+
+        }  catch (SQLiteException e) {
+        Log.e(TAG,"getlist sqlite exception: " + e);
+    }  catch (NullPointerException e) {
+        Log.e(TAG,"getlist something was null: " + e);
+    } finally {
+        db.close();
+    }
+        return myListEntries;
+    }
+
 
 }

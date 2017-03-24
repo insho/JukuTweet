@@ -27,6 +27,8 @@
 
 
     </android.support.design.widget.AppBarLayout>
+
+
     <fr.castorflex.android.smoothprogressbar.SmoothProgressBar
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -44,6 +46,8 @@
         app:spb_mirror_mode="false"
         app:spb_progressiveStart_activated="true"
         app:spb_progressiveStart_speed="1.5"
+        app:layout_anchor="@id/appbar"
+        app:layout_anchorGravity="bottom"
         app:spb_progressiveStop_speed="3.4"
         />
     <android.support.v4.view.ViewPager
