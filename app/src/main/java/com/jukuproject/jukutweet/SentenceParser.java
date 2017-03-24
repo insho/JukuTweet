@@ -5,6 +5,8 @@ import android.database.sqlite.SQLiteDatabase;
 
 import android.support.annotation.Nullable;
 import android.util.Log;
+
+import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.ParseSentenceMatchCombination;
 import com.jukuproject.jukutweet.Models.ParseSentencePossibleKanji;
 import com.jukuproject.jukutweet.Models.ParseSentenceItem;
@@ -23,11 +25,6 @@ import java.util.TreeMap;
 
 public class SentenceParser {
 
-    //TODO remove these!
-    int greyThreshold = 2;
-    float redThreshold = .3f;
-    float yellowThreshold = .8f;
-
 
     private static boolean debug = true;
     private static String TAG = "TEST -- splitSent";
@@ -35,6 +32,8 @@ public class SentenceParser {
     private String entireSentence;
     private WordLoader wordLoader;
     private ArrayList<String> wordvalues;
+    private ColorThresholds mColorThresholds;
+//    private ArrayList<String> mActiveFavoritesLists;
 
     private HashMap<String, String> VerbChunksAndPositions = new HashMap<>();
     private ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence;
@@ -49,11 +48,15 @@ public class SentenceParser {
             , ArrayList<Integer> kanjPositionArray
             , ArrayList<String> wordvalues
             ,WordLoader wordLoader
+            ,ColorThresholds colorThresholds
+            ,ArrayList<String> activeFavoritesLists
 
     ) {
         this.entireSentence = entireSentence;
         this.wordLoader = wordLoader;
         this.wordvalues = wordvalues;
+        this.mColorThresholds = colorThresholds;
+//        this.mActiveFavoritesLists = activeFavoritesLists;
 
         possibleKanjiInSentence = findCoreKanjiBlocksInSentence(entireSentence,wordLoader,kanjPositionArray);
         if(debug){
@@ -68,6 +71,7 @@ public class SentenceParser {
         createBetterMatchesForPossibleKanji(possibleKanjiInSentence,db);
         if(debug){Log.e(TAG,"CHECKING/CHOPPING POSSIBLE VERB COMBOS, ADDING TO KANJIFINALARRAY");}
         ArrayList<Integer> cleanKanjiIds = getCleanKanjiIDsFromBetterMatches(db,possibleKanjiInSentence);
+
 
         return compileFinalSentenceMap(db,cleanKanjiIds);
     }
@@ -838,7 +842,7 @@ public class SentenceParser {
                     ",[Definition]" +
                     ",[Total]" +
                     ",[Percent]" +
-                    ",(CASE WHEN [Total] < " + greyThreshold + " THEN 1 WHEN [Percent] < " + redThreshold + "  THEN 2 WHEN ([Percent] >= " + redThreshold + " and [Percent] <  " + yellowThreshold + ") THEN 3 WHEN [Percent]>= " + yellowThreshold + " THEN 4 END) as [Color] " +
+                    ",(CASE WHEN [Total] < " + mColorThresholds.getGreyThreshold() + " THEN 1 WHEN [Percent] < " + mColorThresholds.getRedthreshold() + "  THEN 2 WHEN ([Percent] >= " + mColorThresholds.getRedthreshold() + " and [Percent] <  " + mColorThresholds.getYellowthreshold() + ") THEN 3 WHEN [Percent]>= " + mColorThresholds.getYellowthreshold() + " THEN 4 END) as [Color] " +
                     " ,[Blue]" +
                     " ,[Red] " +
                     " ,[Green] " +
@@ -928,6 +932,8 @@ public class SentenceParser {
                                                                                                     ,dd.getInt(8)
                                                                                                     ,dd.getInt(9)
                                                                                                     ,dd.getInt(10)));
+
+
                         if(debug) {
                             Log.d(TAG, "endposition: " + endposition);
                         }
@@ -954,6 +960,10 @@ public class SentenceParser {
             }
 
             dd.close();
+        }
+
+        if(db.isOpen()) {
+            db.close();
         }
         return resultMap;
     }
@@ -1292,6 +1302,8 @@ public class SentenceParser {
                 prefixsuffixKanjiCombos.add(possibleKanji.getKanji() + suffix);
             }
         }
+
+
         return prefixsuffixKanjiCombos;
     }
 

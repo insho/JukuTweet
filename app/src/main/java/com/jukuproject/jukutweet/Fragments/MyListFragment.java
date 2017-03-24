@@ -46,7 +46,7 @@ public class MyListFragment extends Fragment {
     MenuExpandableListAdapter MyListFragmentAdapter;
     ExpandableListView expListView;
     ArrayList<MenuHeader> mMenuHeader;
-    private int lastExpandedPosition = 0;
+    private int lastExpandedPosition = -1;
     private SharedPrefManager sharedPrefManager;
 
 

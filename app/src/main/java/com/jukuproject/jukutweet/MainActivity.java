@@ -377,7 +377,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                         + mSectionsPagerAdapter.getItemId(position));
     }
 
-    private boolean isOnline() {
+    public boolean isOnline() {
         ConnectivityManager cm =
                 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = cm.getActiveNetworkInfo();

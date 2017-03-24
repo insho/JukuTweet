@@ -19,6 +19,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.jukuproject.jukutweet.Database.InternalDB;
+import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.R;
 
@@ -34,6 +35,7 @@ public class ChooseFavoritesAdapter extends RecyclerView.Adapter<ChooseFavorites
     private Context mContext;
     private int mKanjiId;
     private float mDensity;
+    private RxBus mRxBusTweetBreakdownAdapter;
     private String TAG = "TEST-choosefavsadapter";
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -54,11 +56,12 @@ public class ChooseFavoritesAdapter extends RecyclerView.Adapter<ChooseFavorites
 
     }
 
-    public ChooseFavoritesAdapter(Context context, float density, ArrayList<MyListEntry> myListEntries, int kanjiId) {
+    public ChooseFavoritesAdapter(Context context, float density, RxBus rxBus, ArrayList<MyListEntry> myListEntries, int kanjiId) {
         mMyListEntries = myListEntries;
         mContext =context;
         mKanjiId = kanjiId;
         mDensity = density;
+        mRxBusTweetBreakdownAdapter = rxBus;
     }
 
     // Create new views (invoked by the layout manager)
@@ -163,6 +166,9 @@ public class ChooseFavoritesAdapter extends RecyclerView.Adapter<ChooseFavorites
             if(InternalDB.getInstance(mContext).addKanjiToMyList(mKanjiId,myListEntry.getListName(),myListEntry.getListsSys())) {
                 holder.checkbox.setChecked(true);
                 myListEntry.setSelectionLevel(1);
+                /* Send the updated mylistentry back to the tweetbreakdown adapter, where the WordEntry.WordEntryFavorites object
+                *  and the star button will be updated to reflect the addition */
+                mRxBusTweetBreakdownAdapter.send(myListEntry);
             } else {
                 Log.e(TAG,"Unable to addkanji to mylist in choosefavorites adapter!");
             }
@@ -170,6 +176,9 @@ public class ChooseFavoritesAdapter extends RecyclerView.Adapter<ChooseFavorites
             if(InternalDB.getInstance(mContext).removeKanjiFromMyList(mKanjiId,myListEntry.getListName(),myListEntry.getListsSys())) {
                 holder.checkbox.setChecked(false);
                 myListEntry.setSelectionLevel(0);
+                /* Send the updated mylistentry back to the tweetbreakdown adapter, where the WordEntry.WordEntryFavorites object
+                *  and the star button will be updated to reflect the subtraction */
+                mRxBusTweetBreakdownAdapter.send(myListEntry);
             } else {
                 Log.e(TAG,"Unable to removekanji from mylist in choosefavorites adapter!");
             }

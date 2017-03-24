@@ -2,27 +2,34 @@ package com.jukuproject.jukutweet.Adapters;
 
 import android.content.Context;
 import android.graphics.Typeface;
+import android.os.SystemClock;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
+import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.Models.WordEntryFavorites;
 import com.jukuproject.jukutweet.PopupChooseFavoriteLists;
 import com.jukuproject.jukutweet.R;
 import java.util.ArrayList;
+
+import rx.functions.Action1;
 
 
 public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAdapter.ViewHolder>  {
@@ -34,8 +41,10 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
     private ArrayList<WordEntry> mWords;
     private  ColorThresholds mColorThresholds;
     private ArrayList<String> mActiveFavoriteStars;
-    private RxBus mRxBus;
-
+//    private RxBus mRxBus = new RxBus();
+//    /*Tracks elapsed time since last click of a recyclerview row. Used to
+//        * keep from constantly recieving button clicks through the RxBus */
+//    private long mLastClickTime = 0;
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
@@ -62,19 +71,20 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
     }
 
 
-    public TweetBreakDownAdapter(Context context, float density, ArrayList<WordEntry> words, ColorThresholds colorThresholds, ArrayList<String> activeFavoriteStars, RxBus rxBus) {
+    public TweetBreakDownAdapter(Context context, float density, ArrayList<WordEntry> words, ColorThresholds colorThresholds, ArrayList<String> activeFavoriteStars) {
         mContext = context;
         mDensity = density;
         mWords = words;
         mColorThresholds = colorThresholds;
         this.mActiveFavoriteStars = activeFavoriteStars;
-        this.mRxBus = rxBus;
+//        this.mRxBus = rxBus;
     }
 
 
     @Override
     public TweetBreakDownAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.tweetbreakdown_recycler_row, parent, false);
+
         return new ViewHolder(v);
     }
 
@@ -88,7 +98,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         if(debug){
             Log.d(TAG, "position: " + holder.getAdapterPosition());}
 
-        final WordEntry wordEntry = mWords.get(holder.getAdapterPosition());
+
 
 //            holder.txtimgStarNumber.setVisibility(View.GONE);
             holder.layout.setSelected(false);
@@ -96,35 +106,26 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
             holder.imgStarLayout.setClickable(true);
             holder.imgStarLayout.setLongClickable(true);
 
-        holder.txtKanji.setText(wordEntry.getKanji());
-        holder.txtFurigana.setText(wordEntry.getFurigana());
+        holder.txtKanji.setText(mWords.get(holder.getAdapterPosition()).getKanji());
+        holder.txtFurigana.setText(mWords.get(holder.getAdapterPosition()).getFurigana());
 
-        /* Assign a color to the image star */
-        if(wordEntry.getWordEntryFavorites().shouldOpenFavoritePopup()) {
-            holder.imgStar.setColorFilter(null);
-            holder.imgStar.setImageResource(R.drawable.ic_star_multicolor);
-        } else {
-            holder.imgStar.setImageResource(R.drawable.ic_star_black);
-            holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, getFavoritesStarColor(mActiveFavoriteStars,wordEntry.getWordEntryFavorites())));
-        }
-
-
+        assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
 
         /* Parse the definition into an array of multiple lines, if there are multiple sub-definitions in the string */
-        if(wordEntry.getTotal()< mColorThresholds.getGreyThreshold()) {
+        if(mWords.get(holder.getAdapterPosition()).getTotal()< mColorThresholds.getGreyThreshold()) {
             holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuGrey));
-        } else if(wordEntry.getPercentage()< mColorThresholds.getRedthreshold()){
+        } else if(mWords.get(holder.getAdapterPosition()).getPercentage()< mColorThresholds.getRedthreshold()){
             holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuRed));
-        } else if (wordEntry.getPercentage()< mColorThresholds.getYellowthreshold()){
+        } else if (mWords.get(holder.getAdapterPosition()).getPercentage()< mColorThresholds.getYellowthreshold()){
             holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuYellow));
         } else {
             holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuGreen));
         }
 
 
-        holder.lstDefinitions.setText(wordEntry.getDefinitionMultiLineString(10));
+        holder.lstDefinitions.setText(mWords.get(holder.getAdapterPosition()).getDefinitionMultiLineString(10));
         holder.lstDefinitions.setTypeface(null, Typeface.ITALIC);
-        holder.lstDefinitions.setTag(wordEntry.getId());
+        holder.lstDefinitions.setTag(mWords.get(holder.getAdapterPosition()).getId());
         holder.lstDefinitions.setFocusable(false);
         holder.lstDefinitions.setClickable(false);
 
@@ -133,24 +134,31 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
             @Override
             public void onClick(View v) {
                 //TODO favorite words
-//                Toast.makeText(mContext, "Clicked", Toast.LENGTH_SHORT).show();
-//
 
-                if(wordEntry.getWordEntryFavorites().shouldOpenFavoritePopup()) {
+                Log.d(TAG,"mActiveFavoriteStars: " + mActiveFavoriteStars);
+                Log.d(TAG,"should open: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().shouldOpenFavoritePopup(mActiveFavoriteStars));
+
+                if(mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().shouldOpenFavoritePopup(mActiveFavoriteStars)) {
                 //TODO make the big popup show
                     int xadjustment = -50;
-                    int yadjustment = 0;
+                    int yadjustment = -300;
 
-//                    mRxBus.send(mWords.get(holder.getAdapterPosition()).getId());
-                    PopupChooseFavoriteLists popup = new PopupChooseFavoriteLists(mContext,mDensity,mWords.get(holder.getAdapterPosition()).getId());
-                    popup.showAsDropDown(holder.imgStar, -xadjustment, -yadjustment);
+                    PopupWindow popup = new PopupChooseFavoriteLists(mContext,mDensity,mWords.get(holder.getAdapterPosition())).onCreateView();
+                    popup.showAsDropDown(holder.imgStar, xadjustment, yadjustment);
+                    popup.setOnDismissListener(new PopupWindow.OnDismissListener() {
+                        @Override
+                        public void onDismiss() {
+                            assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
+                        }
+                    });
 
                 } else {
-                    if(onFavoriteStarToggle(mActiveFavoriteStars,wordEntry)) {
+                    if(onFavoriteStarToggle(mActiveFavoriteStars,mWords.get(holder.getAdapterPosition()))) {
                         holder.imgStar.setImageResource(R.drawable.ic_star_black);
-                        holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, getFavoritesStarColor(mActiveFavoriteStars,wordEntry.getWordEntryFavorites())));
+                        holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, getFavoritesStarColor(mActiveFavoriteStars,mWords.get(holder.getAdapterPosition()).getWordEntryFavorites())));
                     } else {
                         //TODO insert an error?
+                        Log.e(TAG,"OnFavoriteStarToggle did not work...");
                     }
 
                 }
@@ -161,13 +169,43 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         holder.imgStarLayout.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-//                mRxBus.sendLongClick(mWords.get(holder.getAdapterPosition()).getId());
+
                 //TODO make the big popup show
 
-                int xadjustment = -100;
+                int xadjustment = -400;
                 int yadjustment = -100;
-                PopupChooseFavoriteLists popup = new PopupChooseFavoriteLists(mContext,mDensity,mWords.get(holder.getAdapterPosition()).getId());
-                popup.showAsDropDown(holder.imgStar, -xadjustment, -yadjustment);
+
+//                popup.setOnDismissListener(new PopupWindow.OnDismissListener() {
+//                    @Override
+//                    public void onDismiss() {
+//                        assignStarColor(wordEntry,holder.imgStar);
+//                    }
+//                });
+
+
+
+                PopupWindow popup = new PopupChooseFavoriteLists(mContext,mDensity,mWords.get(holder.getAdapterPosition())).onCreateView();
+                popup.showAsDropDown(holder.imgStar, xadjustment, yadjustment);
+//                //TODO change width thing
+//                popup.setWidth(300);
+//                popup.setHeight(400);
+////                int mscreenheight = 600;
+////                if(favoritesLists.size()>12) {
+////                    this.setHeight((int)((float)mscreenheight/2.0f));
+////                } else {
+////                    this.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+////                }
+//
+//                popup.setFocusable(true);
+//
+//                popup.setClippingEnabled(false);
+//
+//                popup.setBackgroundDrawable(ContextCompat.getDrawable(mContext, R.drawable.popup_drawable));
+//                popup.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
+//                popup.setWidth(WindowManager.LayoutParams.WRAP_CONTENT);
+//                popup.setContentView(view);
+//                popup.showAtLocation(holder.itemView, Gravity.CENTER,0,0);
+                popup.showAsDropDown(holder.imgStar, xadjustment, yadjustment);
                 Log.d(TAG,"SHOWING POPUP " + popup.isShowing());
 
                 return true;
@@ -252,7 +290,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         try {
             WordEntryFavorites wordEntryFavorites = wordEntry.getWordEntryFavorites();
 
-            if(wordEntryFavorites.isEmpty()) {
+            if(wordEntryFavorites.isEmpty(mActiveFavoriteStars)) {
                 String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Blue","Green","Red","Yellow"});
                 if(InternalDB.getInstance(mContext).changeFavoriteListEntry(wordEntry.getId(),"Black",nextColor)) {
                     wordEntryFavorites.setSystemColor(nextColor);
@@ -309,6 +347,34 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         }
         return "Black";
     }
+
+    public void assignStarColor(WordEntry wordEntry, ImageButton imgStar) {
+        if(wordEntry.getWordEntryFavorites().shouldOpenFavoritePopup(mActiveFavoriteStars)) {
+            imgStar.setColorFilter(null);
+            imgStar.setImageResource(R.drawable.ic_star_multicolor);
+        } else {
+            imgStar.setImageResource(R.drawable.ic_star_black);
+            imgStar.setColorFilter(ContextCompat.getColor(mContext, getFavoritesStarColor(mActiveFavoriteStars,wordEntry.getWordEntryFavorites())));
+        }
+    }
+
+
+//    /**
+//     * Checks how many milliseconds have elapsed since the last time "mLastClickTime" was updated
+//     * If enough time has elapsed, returns True and updates mLastClickTime.
+//     * This is to stop unwanted rapid clicks of the same button
+//     * @param elapsedMilliSeconds threshold of elapsed milliseconds before a new button click is allowed
+//     * @return bool True if enough time has elapsed, false if not
+//     */
+//    public boolean isUniqueClick(int elapsedMilliSeconds) {
+//        if(SystemClock.elapsedRealtime() - mLastClickTime > elapsedMilliSeconds) {
+//            mLastClickTime = SystemClock.elapsedRealtime();
+//            return true;
+//        } else {
+//            return false;
+//        }
+//    }
+
 
 }
 

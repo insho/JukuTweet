@@ -11,6 +11,7 @@ package com.jukuproject.jukutweet.Fragments;
         import android.view.View;
         import android.view.ViewGroup;
         import android.widget.TextView;
+        import android.widget.Toast;
 
         import com.jukuproject.jukutweet.Adapters.UserListAdapter;
         import com.jukuproject.jukutweet.BaseContainerFragment;
@@ -103,15 +104,21 @@ public class UserListFragment extends Fragment {
                             //TODO MOVE THIS METHOD TO THE FRAGMENT, AND ONLY CALL BACK TO MAIN ACTIVITY???
                             //TODO OR only if there is no userinfo, fill that shit in. otherwise dont
                             if(isUniqueClick(1000) && event instanceof UserInfo) {
-                                UserInfo userInfo = (UserInfo) event;
-                                UserTimeLineFragment fragment = new UserTimeLineFragment();
-                                Bundle bundle = new Bundle();
-                                bundle.putParcelable("userInfo",userInfo);
-                                fragment.setArguments(bundle);
-                                ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"timeline");
-                                mCallback.showActionBarBackButton(true,userInfo.getDisplayName());
-                                mCallback.showFab(false,"");
-                                mCallback.changePagerTitle(0,"Timeline");
+                                if(mCallback.isOnline()) {
+                                    UserInfo userInfo = (UserInfo) event;
+                                    UserTimeLineFragment fragment = new UserTimeLineFragment();
+                                    Bundle bundle = new Bundle();
+                                    bundle.putParcelable("userInfo",userInfo);
+                                    fragment.setArguments(bundle);
+                                    ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"timeline");
+                                    mCallback.showActionBarBackButton(true,userInfo.getDisplayName());
+                                    mCallback.showFab(false,"");
+                                    mCallback.changePagerTitle(0,"Timeline");
+                                } else {
+                                    Toast.makeText(getActivity(), "No internet connection", Toast.LENGTH_SHORT).show();
+                                }
+
+
                             }
 
                         }

@@ -21,4 +21,5 @@ public interface FragmentInteractionListener {
     void showFab(boolean show);
 
     void onBackPressed();
+    boolean isOnline();
 }

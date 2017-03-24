@@ -6,48 +6,45 @@ package com.jukuproject.jukutweet.Fragments;
 
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
-import android.content.ContentValues;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import com.jukuproject.jukutweet.Adapters.TweetBreakDownAdapter;
 import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
-import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.ParseSentenceItem;
 import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.WordEntry;
-import com.jukuproject.jukutweet.Models.WordLoader;
-import com.jukuproject.jukutweet.PopupChooseFavoriteLists;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SentenceParser;
 
 import java.util.ArrayList;
+import java.util.concurrent.Callable;
 
-import rx.functions.Action1;
+import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
+import rx.Single;
+import rx.SingleSubscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 
 /**
@@ -60,13 +57,15 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
     private FragmentInteractionListener mCallback;
 //    private Context mContext;
 //    private View mAnchorView;
-    private RxBus mRxBus = new RxBus();
+//    private RxBus mRxBus = new RxBus();
     private Tweet mTweet;
     private RecyclerView mRecyclerView;
 //    private View anchorView;
 
     private ColorThresholds colorThresholds;
     private ArrayList<String> activeFavoriteStars;
+    private SmoothProgressBar progressBar;
+    private View divider;
 
     private TextView mSentence;
     private View baseLayout;
@@ -95,11 +94,11 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
     @Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        popupView = LayoutInflater.from(getActivity()).inflate(R.layout.popup_sentencebreakdown_main, null);
+        popupView = LayoutInflater.from(getActivity()).inflate(R.layout.fragment_tweetbreakdown, null);
         baseLayout = popupView.findViewById(R.id.popuptab_layout);
         baseLayout.setOnTouchListener(this);
 //        anchorView = container;
-//        popupView = inflater.inflate(R.layout.popup_sentencebreakdown_main, container, false);
+//        popupView = inflater.inflate(R.layout.fragment_tweetbreakdown, container, false);
         mTweet = getArguments().getParcelable("tweet");
         mRecyclerView = (RecyclerView) popupView.findViewById(R.id.parseSentenceRecyclerView);
         baseLayout = popupView.findViewById(R.id.popuptab_layout);
@@ -107,6 +106,8 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
         SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(getContext());
         colorThresholds = sharedPrefManager.getColorThresholds();
         activeFavoriteStars = sharedPrefManager.getActiveFavoriteStars();
+        progressBar = (SmoothProgressBar) popupView.findViewById(R.id.progressbar);
+        divider = (View) popupView.findViewById(R.id.dividerview);
         return popupView;
     }
 
@@ -115,74 +116,45 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
         super.onActivityCreated(savedInstanceState);
 
         mSentence.setText(mTweet.getText());
-        InternalDB helper = InternalDB.getInstance(getContext());
-        SQLiteDatabase db = helper.getReadableDatabase();
-        ArrayList<ParseSentenceItem> brokenUpTweet = SentenceParser.getInstance().parseSentence(mTweet.getText()
-                ,db
-                ,new ArrayList<Integer>()
-                ,new ArrayList<String>()
-                ,helper.getWordLists(db));
 
-        ArrayList<WordEntry> kanjiEntriesInTweet = new ArrayList<>();
-        for(ParseSentenceItem parseSentenceItem : brokenUpTweet) {
-            if(parseSentenceItem.isKanji() && parseSentenceItem.getWordEntry() != null) {
-                kanjiEntriesInTweet.add(parseSentenceItem.getWordEntry());
+
+        Single<ArrayList<ParseSentenceItem>> disectTweet = Single.fromCallable(new Callable<ArrayList<ParseSentenceItem>>() {
+
+            @Override
+            public ArrayList<ParseSentenceItem> call() throws Exception {
+                InternalDB helper = InternalDB.getInstance(getContext());
+                SQLiteDatabase db = helper.getReadableDatabase();
+
+                return SentenceParser.getInstance().parseSentence(mTweet.getText()
+                        ,db
+                        ,new ArrayList<Integer>()
+                        ,new ArrayList<String>()
+                        ,helper.getWordLists(db)
+                        ,colorThresholds
+                        ,activeFavoriteStars);
             }
-        }
+        });
 
-        /** Get width of screen */
-        DisplayMetrics metrics = new DisplayMetrics();
-        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        showProgressBar(true);
+        disectTweet.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new SingleSubscriber<ArrayList<ParseSentenceItem>>() {
 
-        RecyclerView.Adapter mAdapter = new TweetBreakDownAdapter(getContext(),metrics.density,kanjiEntriesInTweet,colorThresholds,activeFavoriteStars,mRxBus);
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
-        mRecyclerView.setLayoutManager(mLayoutManager);
-
-        mRxBus.toClickObserverable()
-                .subscribe(new Action1<Object>() {
                     @Override
-                    public void call(Object event) {
-
-                        //TODO MOVE THIS METHOD TO THE FRAGMENT, AND ONLY CALL BACK TO MAIN ACTIVITY???
-                        //TODO OR only if there is no userinfo, fill that shit in. otherwise dont
-                        if(isUniqueClick(1000) && event instanceof Integer) {
-                            Integer kanjiId = (Integer) event;
-
-
-                        }
-
+                    public void onSuccess(ArrayList<ParseSentenceItem> disectedTweet) {
+                        loadArray(disectedTweet);
+                        showProgressBar(false);
                     }
 
-                });
-        mRxBus.toLongClickObserverable()
-                .subscribe(new Action1<Object>() {
                     @Override
-                    public void call(Object event) {
-                        if(isUniqueClick(1000) && event instanceof Integer) {
-                            Integer kanjiID = (Integer) event;
-
-                            //TODO - open the star popup
-                        }
-
+                    public void onError(Throwable error) {
+                        Log.e(TAG,"ERROR IN PARSE SENTENCE OBSERVABLE");
+                        showProgressBar(false);
                     }
-
                 });
 
-        mRecyclerView.setAdapter(mAdapter);
-        mRecyclerView.setVerticalScrollBarEnabled(true);
-
-        db.close();
-        helper.close();
-
-        baseLayout.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
 
 
-        popupWindow = new PopupWindow(baseLayout, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        popupWindow.setBackgroundDrawable(new ColorDrawable());
-        popupWindow.getContentView().setFocusableInTouchMode(true);
-        popupWindow.setFocusable(true);
-        popupWindow.setOutsideTouchable(true);
     }
 
     public boolean isShowing() {
@@ -405,5 +377,141 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
                     + " must implement OnHeadlineSelectedListener");
         }
     }
+
+    public void loadArray(ArrayList<ParseSentenceItem> disectedTweet) {
+        ArrayList<WordEntry> kanjiEntriesInTweet = new ArrayList<>();
+        for(ParseSentenceItem parseSentenceItem : disectedTweet) {
+            if(parseSentenceItem.isKanji() && parseSentenceItem.getWordEntry() != null) {
+                kanjiEntriesInTweet.add(parseSentenceItem.getWordEntry());
+            }
+        }
+
+
+        /** Get width of screen */
+        DisplayMetrics metrics = new DisplayMetrics();
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+
+
+        RecyclerView.Adapter mAdapter = new TweetBreakDownAdapter(getContext(),metrics.density,kanjiEntriesInTweet,colorThresholds,activeFavoriteStars);
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
+        mRecyclerView.setLayoutManager(mLayoutManager);
+
+//        mRxBus.toClickObserverable()
+//                .subscribe(new Action1<Object>() {
+//                    @Override
+//                    public void call(Object event) {
+//
+//                        /* Recieve a MyListEntry (containing an updated list entry for this row kanji) from
+//                        * the ChooseFavoritesAdapter in the ChooseFavorites popup window */
+//                        if(event instanceof MyListEntry) {
+//                            MyListEntry myListEntry = (MyListEntry) event;
+//                            Log.d(TAG,"MylistEntry name: " + myListEntry.getListName());
+//                            Log.d(TAG,"MylistEntry sys: " + myListEntry.getListsSys());
+//                            Log.d(TAG,"MylistEntry level: " + myListEntry.getSelectionLevel());
+//
+//                            Log.d(TAG,"Word entry favs test output: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().testOutput());
+//
+//                            /*Ascertain the type of list that the kanji was added to (or subtracted from),
+//                              and update that list's count */
+//                            if(myListEntry.getListsSys() == 1) {
+//                                switch (myListEntry.getListName()) {
+//                                    case "Blue":
+//
+//                                        Log.d(TAG,"OLD blue count: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().getSystemBlueCount());
+//                                        Log.d(TAG,"OLD should open popup: " + wordEntry.getWordEntryFavorites().shouldOpenFavoritePopup());
+//                                        Log.d(TAG,"mylist selection level: " + myListEntry.getSelectionLevel());
+//
+//                                        mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemBlueCount(myListEntry.getSelectionLevel());
+//                                        Log.d(TAG,"NEW blue count: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().getSystemBlueCount());
+//                                        Log.d(TAG,"NEW should open popup: " + wordEntry.getWordEntryFavorites().shouldOpenFavoritePopup());
+//                                        break;
+//                                    case "Green":
+//                                        mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemGreenCount(myListEntry.getSelectionLevel());
+//                                        break;
+//                                    case "Red":
+//                                        mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemRedCount(myListEntry.getSelectionLevel());
+//                                        break;
+//                                    case "Yellow":
+//                                        mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemYellowCount(myListEntry.getSelectionLevel());
+//                                        break;
+//                                    default:
+//                                        break;
+//                                }
+//                            } else {
+//                                if(myListEntry.getSelectionLevel() == 1) {
+//                                    mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().addToUserListCount(1);
+//                                } else {
+//                                    mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().subtractFromUserListCount(1);
+//                                }
+//                            }
+//                            mAdapter.assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
+//
+//
+//
+//                        }
+//
+//                    }
+//
+//                });
+//
+//        mRxBus.toClickObserverable()
+//                .subscribe(new Action1<Object>() {
+//                    @Override
+//                    public void call(Object event) {
+//
+//                        //TODO MOVE THIS METHOD TO THE FRAGMENT, AND ONLY CALL BACK TO MAIN ACTIVITY???
+//                        //TODO OR only if there is no userinfo, fill that shit in. otherwise dont
+//                        if(isUniqueClick(1000) && event instanceof Integer) {
+//                            Integer kanjiId = (Integer) event;
+//
+//
+//                        }
+//
+//                    }
+//
+//                });
+//        mRxBus.toLongClickObserverable()
+//                .subscribe(new Action1<Object>() {
+//                    @Override
+//                    public void call(Object event) {
+//                        if(isUniqueClick(1000) && event instanceof Integer) {
+//                            Integer kanjiID = (Integer) event;
+//
+//                            //TODO - open the star popup
+//                        }
+//
+//                    }
+//
+//                });
+//
+
+        mRecyclerView.setAdapter(mAdapter);
+        mRecyclerView.setVerticalScrollBarEnabled(true);
+
+        baseLayout.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+
+
+        popupWindow = new PopupWindow(baseLayout, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        popupWindow.setBackgroundDrawable(new ColorDrawable());
+        popupWindow.getContentView().setFocusableInTouchMode(true);
+        popupWindow.setFocusable(true);
+        popupWindow.setOutsideTouchable(true);
+    }
+
+    /**
+     * Shows progress bar during API lookups, hides otherwise
+     * @param show boolean True for show, False for hide
+     */
+    public void showProgressBar(Boolean show) {
+        if(show) {
+            divider.setVisibility(View.GONE);
+            progressBar.setVisibility(View.VISIBLE);
+        } else {
+            divider.setVisibility(View.VISIBLE);
+            progressBar.setVisibility(View.GONE);
+        }
+    }
+
 }
 

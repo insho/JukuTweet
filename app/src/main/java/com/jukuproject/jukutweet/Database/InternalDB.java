@@ -13,6 +13,7 @@ package com.jukuproject.jukutweet.Database;
 
         import com.jukuproject.jukutweet.Fragments.MyListFragment;
         import com.jukuproject.jukutweet.Models.MyListEntry;
+        import com.jukuproject.jukutweet.Models.SharedPrefManager;
         import com.jukuproject.jukutweet.Models.UserInfo;
         import com.jukuproject.jukutweet.Models.WordLoader;
 
@@ -629,10 +630,10 @@ public class InternalDB extends SQLiteOpenHelper {
         return  false;
     }
 
-    public ArrayList<MyListEntry> getFavoritesListsForAKanji(int kanjiId) {
+    public ArrayList<MyListEntry> getFavoritesListsForAKanji(Context context,int kanjiId) {
 
         ArrayList<MyListEntry> myListEntries = new ArrayList<>();
-
+        ArrayList<String> activePreferences = SharedPrefManager.getInstance(context).getActiveFavoriteStars();
         SQLiteDatabase db = this.getWritableDatabase();
         try {
             //Get a list of distinct favorites lists and their selection levels for the given kanji
@@ -667,9 +668,14 @@ public class InternalDB extends SQLiteOpenHelper {
             c.moveToFirst();
             if(c.getCount()>0) {
                 while (!c.isAfterLast()) {
-                    MyListEntry entry = new MyListEntry(c.getString(0),c.getInt(1),c.getInt(2));
-                    myListEntries.add(entry);
-                    c.moveToNext();
+
+                    //Add all user lists (where sys == 0)
+                    //Only add system lists (sys==1), but only if the system lists are actived in user preferences
+                    if(c.getInt(1) == 0 || activePreferences.contains(c.getString(0))) {
+                        MyListEntry entry = new MyListEntry(c.getString(0),c.getInt(1),c.getInt(2));
+                        myListEntries.add(entry);
+                        c.moveToNext();
+                    }
                 }
             }
             c.close();
