@@ -58,7 +58,7 @@
         android:layout_height="wrap_content"
         android:indeterminate="true"
         android:visibility="invisible"
-        app:spb_sections_count="1"
+        app:spb_sections_count="6"
         app:spb_color="#FF0000"
         app:spb_speed="2.0"
         app:spb_stroke_width="2dp"
@@ -66,10 +66,11 @@
         app:spb_reversed="false"
         app:spb_mirror_mode="false"
         app:spb_progressiveStart_activated="true"
-        app:spb_progressiveStart_speed="1.5"
+        app:spb_progressiveStart_speed="3.0"
         app:layout_anchor="@id/pager_title_strip"
         app:layout_anchorGravity="bottom"
         app:spb_progressiveStop_speed="3.4"
+
         />
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"

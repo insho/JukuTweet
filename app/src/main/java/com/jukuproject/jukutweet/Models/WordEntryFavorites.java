@@ -126,21 +126,17 @@ public class WordEntryFavorites {
         int totalcount = 0;
         if(activeFavoriteLists.contains("Blue") && getSystemBlueCount() >0){
             totalcount += 1;
-            Log.d("TEST","adding blue, total count: " + totalcount);
         }
         if(activeFavoriteLists.contains("Green") && getSystemGreenCount() >0){
             totalcount += 1;
-            Log.d("TEST","adding green, total count: " + totalcount);
         }
         if(activeFavoriteLists.contains("Red") && getSystemRedCount() >0){
             totalcount += 1;
-            Log.d("TEST","adding Red, total count: " + totalcount);
         }
         if(activeFavoriteLists.contains("Yellow") && getSystemYellowCount() >0){
             totalcount += 1;
-            Log.d("TEST","adding Yellow, total count: " + totalcount);
         }
-        Log.d("TEST","usercount " + userListCount + ", totalcount: " + totalcount);
+
         if(userListCount > 0 || totalcount > 1 ) {
             return true;
         } else {
@@ -148,26 +144,39 @@ public class WordEntryFavorites {
         }
     }
 
+    public int systemListCount(ArrayList<String> activeFavoriteLists){
+        int totalcount = 0;
+        if(activeFavoriteLists.contains("Blue") && getSystemBlueCount() >0){
+            totalcount += 1;
+        }
+        if(activeFavoriteLists.contains("Green") && getSystemGreenCount() >0){
+            totalcount += 1;
+        }
+        if(activeFavoriteLists.contains("Red") && getSystemRedCount() >0){
+            totalcount += 1;
+        }
+        if(activeFavoriteLists.contains("Yellow") && getSystemYellowCount() >0){
+            totalcount += 1;
+        }
+
+        return totalcount;
+    }
 
     public boolean isEmpty(ArrayList<String> activeFavoriteLists){
         int totalcount = 0;
         if(activeFavoriteLists.contains("Blue") && getSystemBlueCount() >0){
             totalcount += 1;
-            Log.d("TEST","adding blue, total count: " + totalcount);
         }
         if(activeFavoriteLists.contains("Green") && getSystemGreenCount() >0){
             totalcount += 1;
-            Log.d("TEST","adding green, total count: " + totalcount);
         }
         if(activeFavoriteLists.contains("Red") && getSystemRedCount() >0){
             totalcount += 1;
-            Log.d("TEST","adding Red, total count: " + totalcount);
         }
         if(activeFavoriteLists.contains("Yellow") && getSystemYellowCount() >0){
             totalcount += 1;
-            Log.d("TEST","adding Yellow, total count: " + totalcount);
         }
-        Log.d("TEST","usercount " + userListCount + ", totalcount: " + totalcount);
+
         if(userListCount + totalcount == 0) {
             return true;
         } else {
@@ -175,32 +184,6 @@ public class WordEntryFavorites {
         }
     }
 
-
-    public boolean isEmpty(){
-        if(userListCount + getSystemBlueCount() + getSystemRedCount() + getSystemGreenCount() + getSystemYellowCount() == 0 ) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-//    public int getOnStarPressedNextPosition(ArrayList<String> preferenceFavorites){
-//        if(userListCount > 0 || getSystemBlueCount() + getSystemRedCount() + getSystemGreenCount() + getSystemYellowCount() > 1 ) {
-//            return 5; // A "multifavorite"
-//        } else if(systemBlueCount + systemRedCount + systemGreenCount + systemYellowCount == 0) {
-//            return 0;
-//        } else if(preferenceFavorites.contains("Blue") && getSystemBlueCount() > 0) {
-//            return 1;
-//        } else if(preferenceFavorites.contains("Green") && getSystemGreenCount() > 0) {
-//            return 2;
-//        } else if(preferenceFavorites.contains("Red") && getSystemRedCount() > 0) {
-//            return 3;
-//        } else if(preferenceFavorites.contains("Yellow") && getSystemYellowCount() > 0) {
-//            return 4;
-//        } else {
-//            return 0;
-//        }
-//    }
 
     public void setSystemColor(String updatedColor) {
         switch (updatedColor) {
@@ -220,13 +203,13 @@ public class WordEntryFavorites {
                 break;
         }
     }
-
-    //TODO REMOVE THIS
-    public String testOutput() {
-        return "user: " + getUserListCount() + ", blue: " + getSystemBlueCount() + ", red: " + getSystemRedCount() + ", green: " + getSystemGreenCount() + ", yellow: " + getSystemYellowCount();
-
-
-    }
+//
+//    //TODO REMOVE THIS
+//    public String testOutput() {
+//        return "user: " + getUserListCount() + ", blue: " + getSystemBlueCount() + ", red: " + getSystemRedCount() + ", green: " + getSystemGreenCount() + ", yellow: " + getSystemYellowCount();
+//
+//
+//    }
 
 
 }

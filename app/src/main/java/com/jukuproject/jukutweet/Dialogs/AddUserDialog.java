@@ -15,8 +15,12 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.R;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Dialog for "following" a new twitter user. New user name is entered into edittext
@@ -61,7 +65,18 @@ public class AddUserDialog extends DialogFragment {
         final EditText editText = (EditText) dialogView.findViewById(R.id.input);
 
         //TODO test user, remove!!
-        editText.append(getString(R.string.testUser));
+//        editText.append(getString(R.string.testUser));
+        //TODO -- Remove this after testing
+        /** TESTING! Queue up the test feeds**/
+        String[] feeds = getResources().getStringArray(R.array.testfeeds);
+        /** TEST FEEDS */
+        List<String> testFeeds = Arrays.asList(feeds);
+        for(int i =0; i<testFeeds.size(); i++) {
+            Log.d("TEST","TESTFEEDS: " + testFeeds.get(i));
+            if(!InternalDB.getInstance(getActivity()).duplicateUser(testFeeds.get(i)) && editText.getText().toString().isEmpty()) {
+                editText.setText(testFeeds.get(i));
+            }
+        }
 
         /* Checks for a valid input, and if one exists, passes click event through DialogInterface
            to MainActivity */

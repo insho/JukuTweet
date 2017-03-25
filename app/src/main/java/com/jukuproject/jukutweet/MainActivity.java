@@ -584,4 +584,10 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
 
     }
+
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+    }
 }

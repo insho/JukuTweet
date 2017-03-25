@@ -15,6 +15,9 @@ import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.SpannableString;
+import android.text.method.LinkMovementMethod;
+import android.text.style.URLSpan;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
@@ -60,7 +63,7 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
     private FragmentInteractionListener mCallback;
 //    private Context mContext;
 //    private View mAnchorView;
-    private RxBus mRxBusTweetBreak= new RxBus();
+//    private RxBus mRxBusTweetBreak= new RxBus();
     private Tweet mTweet;
     private RecyclerView mRecyclerView;
 //    private View anchorView;
@@ -100,8 +103,6 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
         popupView = LayoutInflater.from(getActivity()).inflate(R.layout.fragment_tweetbreakdown, null);
         baseLayout = popupView.findViewById(R.id.popuptab_layout);
         baseLayout.setOnTouchListener(this);
-//        anchorView = container;
-//        popupView = inflater.inflate(R.layout.fragment_tweetbreakdown, container, false);
         mTweet = getArguments().getParcelable("tweet");
         mRecyclerView = (RecyclerView) popupView.findViewById(R.id.parseSentenceRecyclerView);
         baseLayout = popupView.findViewById(R.id.popuptab_layout);
@@ -120,6 +121,17 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
 
         mSentence.setText(mTweet.getText());
 
+        /** If there is an image icon, show it**/
+//        String url =  mDataset.get(holder.getAdapterPosition()).getLink();
+//        String title = mDataset.get(holder.getAdapterPosition()).getTitle();
+//        if(url != null) {
+//            SpannableString text = new SpannableString(title);
+//            text.setSpan(new URLSpan(url), 0, title.length(), 0);
+//            holder.txtTitle.setMovementMethod(LinkMovementMethod.getInstance());
+//            holder.txtTitle.setText(text, TextView.BufferType.SPANNABLE);
+//        } else {
+//            holder.txtTitle.setText(title);
+//        }
 
         Single<ArrayList<ParseSentenceItem>> disectTweet = Single.fromCallable(new Callable<ArrayList<ParseSentenceItem>>() {
 
@@ -133,8 +145,7 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
                         ,new ArrayList<Integer>()
                         ,new ArrayList<String>()
                         ,helper.getWordLists(db)
-                        ,colorThresholds
-                        ,activeFavoriteStars);
+                        ,colorThresholds);
             }
         });
 
@@ -395,99 +406,9 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
 
-        RecyclerView.Adapter mAdapter = new TweetBreakDownAdapter(getContext(),mRxBusTweetBreak,metrics.density,kanjiEntriesInTweet,colorThresholds,activeFavoriteStars);
+        RecyclerView.Adapter mAdapter = new TweetBreakDownAdapter(getContext(),metrics,kanjiEntriesInTweet,colorThresholds,activeFavoriteStars);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
-
-        mRxBusTweetBreak.toClickObserverable()
-                .subscribe(new Action1<Object>() {
-                    @Override
-                    public void call(Object event) {
-
-                        /* Recieve a MyListEntry (containing an updated list entry for this row kanji) from
-                        * the ChooseFavoritesAdapter in the ChooseFavorites popup window */
-                        if(event instanceof MyListEntry) {
-                            MyListEntry myListEntry = (MyListEntry) event;
-                            Log.d(TAG,"MylistEntry name: " + myListEntry.getListName());
-                            Log.d(TAG,"MylistEntry sys: " + myListEntry.getListsSys());
-                            Log.d(TAG,"MylistEntry selectionlevel: " + myListEntry.getSelectionLevel());
-
-//                            Log.d(TAG,"Word entry favs test output: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().testOutput());
-//
-//                            /*Ascertain the type of list that the kanji was added to (or subtracted from),
-//                              and update that list's count */
-//                            if(myListEntry.getListsSys() == 1) {
-//                                switch (myListEntry.getListName()) {
-//                                    case "Blue":
-//
-//                                        Log.d(TAG,"OLD blue count: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().getSystemBlueCount());
-//                                        Log.d(TAG,"OLD should open popup: " + wordEntry.getWordEntryFavorites().shouldOpenFavoritePopup());
-//                                        Log.d(TAG,"mylist selection level: " + myListEntry.getSelectionLevel());
-//
-//                                        mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemBlueCount(myListEntry.getSelectionLevel());
-//                                        Log.d(TAG,"NEW blue count: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().getSystemBlueCount());
-//                                        Log.d(TAG,"NEW should open popup: " + wordEntry.getWordEntryFavorites().shouldOpenFavoritePopup());
-//                                        break;
-//                                    case "Green":
-//                                        mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemGreenCount(myListEntry.getSelectionLevel());
-//                                        break;
-//                                    case "Red":
-//                                        mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemRedCount(myListEntry.getSelectionLevel());
-//                                        break;
-//                                    case "Yellow":
-//                                        mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemYellowCount(myListEntry.getSelectionLevel());
-//                                        break;
-//                                    default:
-//                                        break;
-//                                }
-//                            } else {
-//                                if(myListEntry.getSelectionLevel() == 1) {
-//                                    mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().addToUserListCount(1);
-//                                } else {
-//                                    mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().subtractFromUserListCount(1);
-//                                }
-//                            }
-//                            mAdapter.assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
-//
-
-
-                        }
-
-                    }
-
-                });
-//
-//        mRxBus.toClickObserverable()
-//                .subscribe(new Action1<Object>() {
-//                    @Override
-//                    public void call(Object event) {
-//
-//                        //TODO MOVE THIS METHOD TO THE FRAGMENT, AND ONLY CALL BACK TO MAIN ACTIVITY???
-//                        //TODO OR only if there is no userinfo, fill that shit in. otherwise dont
-//                        if(isUniqueClick(1000) && event instanceof Integer) {
-//                            Integer kanjiId = (Integer) event;
-//
-//
-//                        }
-//
-//                    }
-//
-//                });
-//        mRxBus.toLongClickObserverable()
-//                .subscribe(new Action1<Object>() {
-//                    @Override
-//                    public void call(Object event) {
-//                        if(isUniqueClick(1000) && event instanceof Integer) {
-//                            Integer kanjiID = (Integer) event;
-//
-//                            //TODO - open the star popup
-//                        }
-//
-//                    }
-//
-//                });
-//
-
         mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.setVerticalScrollBarEnabled(true);
 
@@ -515,6 +436,8 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
             progressBar.setVisibility(View.GONE);
         }
     }
+
+
 
 }
 

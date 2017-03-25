@@ -86,4 +86,11 @@
     <string name="removelistwarning">Remove %1$s?</string>
     <string name="clearlistwarning">Clear %1$s?</string>
 
+    <string-array name="testfeeds" >
+        <item>Suzu_Mg</item>
+        <item>jukuproject</item>
+
+
+    </string-array>
+
 </resources>

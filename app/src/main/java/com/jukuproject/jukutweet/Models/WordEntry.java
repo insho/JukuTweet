@@ -15,30 +15,6 @@ public class WordEntry implements Parcelable {
     private float percentage;
     private Integer total;
 
-
-    /* Tracks the number of lists that contain
-    * this word entry. It is necessary to know this when assigning
-    * favorite star color/behavior for a given word */
-//    private Integer includedInSystemLists;
-//    private Integer includedInUserLists;
-//    private String currentSystemList;
-//
-//    public Integer getIncludedInSystemLists() {
-//        return includedInSystemLists;
-//    }
-//
-//    public void setIncludedInSystemLists(Integer includedInSystemLists) {
-//        this.includedInSystemLists = includedInSystemLists;
-//    }
-//
-//    public Integer getIncludedInUserLists() {
-//        return includedInUserLists;
-//    }
-//
-//    public void setIncludedInUserLists(Integer includedInUserLists) {
-//        this.includedInUserLists = includedInUserLists;
-//    }
-
     public WordEntryFavorites getWordEntryFavorites() {
         return wordEntryFavorites;
     }
@@ -109,39 +85,39 @@ public class WordEntry implements Parcelable {
 
     public WordEntry() {}
 
-    public ArrayList<String> getDefinitionArray() {
-        ArrayList<String> definitionArray = new ArrayList<>();
-
-        if(definition != null) {
-            for (int i=1; i<=20; i++) {
-                String s = "(" + String.valueOf(i) + ")";
-                String sNext = "(" + String.valueOf(i+1) + ")";
-                int slength = s.length();
-                if(definition.contains(s)){
-                    int endIndex = definition.length();
-                    if(definition.contains(sNext)){ //If we can find the next "(#)" in the string, we'll use it as this definition's end point
-                        endIndex =  definition.indexOf(sNext);
-                    }
-
-                    String sentence = definition.substring(definition.indexOf(s)+slength, endIndex);
-                    //Capitalize it
-                    if(sentence.length()>1) {
-                        sentence = sentence.substring(0, 1).toUpperCase() + sentence.substring(1).toLowerCase();
-                    }
-                    definitionArray.add(sentence);
-                } else if (i==1) { //if the thing doesn't contain a "(1)", just print the whole definition in line 1 of the array.
-                    String sentence = definition;
-                    if(sentence.length()>1) {
-                        sentence = definition.substring(0, 1).toUpperCase() + definition.substring(1).toLowerCase();
-                    }
-                    definitionArray.add(sentence);
-                }
-
-            }
-        }
-
-        return definitionArray;
-    }
+//    public ArrayList<String> getDefinitionArray() {
+//        ArrayList<String> definitionArray = new ArrayList<>();
+//
+//        if(definition != null) {
+//            for (int i=1; i<=20; i++) {
+//                String s = "(" + String.valueOf(i) + ")";
+//                String sNext = "(" + String.valueOf(i+1) + ")";
+//                int slength = s.length();
+//                if(definition.contains(s)){
+//                    int endIndex = definition.length();
+//                    if(definition.contains(sNext)){ //If we can find the next "(#)" in the string, we'll use it as this definition's end point
+//                        endIndex =  definition.indexOf(sNext);
+//                    }
+//
+//                    String sentence = definition.substring(definition.indexOf(s)+slength, endIndex);
+//                    //Capitalize it
+//                    if(sentence.length()>1) {
+//                        sentence = sentence.substring(0, 1).toUpperCase() + sentence.substring(1).toLowerCase();
+//                    }
+//                    definitionArray.add(sentence);
+//                } else if (i==1) { //if the thing doesn't contain a "(1)", just print the whole definition in line 1 of the array.
+//                    String sentence = definition;
+//                    if(sentence.length()>1) {
+//                        sentence = definition.substring(0, 1).toUpperCase() + definition.substring(1).toLowerCase();
+//                    }
+//                    definitionArray.add(sentence);
+//                }
+//
+//            }
+//        }
+//
+//        return definitionArray;
+//    }
 
   //TODO comment this out, and put try catch
     public String getDefinitionMultiLineString(int limit) {

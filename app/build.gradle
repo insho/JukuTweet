@@ -24,7 +24,7 @@ android {
 
             buildConfigField "String", "TWEET_API_KEY", "\"ShdILC9tL1Vi4w4FnU8GnZquN\""
             buildConfigField "String", "TWEET_API_SECRET", "\"5osILKfW5bCyOyWDIIaCNa2QHPaEfLHuwoTKDqJNlZPVGBOsFf\""
-            buildConfigField "boolean", "DEBUG", "false"
+            buildConfigField "boolean", "DEBUG", "true"
         }
     }
 }
@@ -53,4 +53,5 @@ dependencies {
     testCompile "org.robolectric:robolectric:3.3.1"
 
     testCompile 'junit:junit:4.12'
+    compile 'com.vdurmont:emoji-java:3.2.0'
 }

@@ -19,6 +19,7 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
@@ -27,6 +28,8 @@ import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.Models.WordEntryFavorites;
 import com.jukuproject.jukutweet.PopupChooseFavoriteLists;
 import com.jukuproject.jukutweet.R;
+import com.jukuproject.jukutweet.TestPopupWindow;
+
 import java.util.ArrayList;
 
 import rx.functions.Action1;
@@ -37,15 +40,12 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
     private static final boolean debug = false;
 
     private Context mContext;
-    private float mDensity;
+    private DisplayMetrics mMetrics;
     private ArrayList<WordEntry> mWords;
     private  ColorThresholds mColorThresholds;
     private ArrayList<String> mActiveFavoriteStars;
     private PopupWindow chooseFavoritesPopup = null;
-    private RxBus mRxBusTweetBreak;
-//    /*Tracks elapsed time since last click of a recyclerview row. Used to
-//        * keep from constantly recieving button clicks through the RxBus */
-//    private long mLastClickTime = 0;
+
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
@@ -55,7 +55,6 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         public TextView lstDefinitions;
         public ImageButton imgStar;
         public FrameLayout imgStarLayout;
-//        public TextView txtimgStarNumber;
         public LinearLayout layout;
 
         public ViewHolder(View v) {
@@ -65,20 +64,18 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
             txtFurigana  = (TextView) v.findViewById(R.id.textViewBrowseAdapter_Furigana);
             lstDefinitions = (TextView) v.findViewById(R.id.textViewlstDefinitions);
             imgStar = (ImageButton) v.findViewById(R.id.favorite);
-//            txtimgStarNumber = (TextView) v.findViewById(R.id.favoritenumber);
             layout = (LinearLayout) v.findViewById(R.id.browseitems_layout);
             imgStarLayout = (FrameLayout) v.findViewById(R.id.browseitems_frameLayout);
         }
     }
 
 
-    public TweetBreakDownAdapter(Context context, RxBus rxBus, float density, ArrayList<WordEntry> words, ColorThresholds colorThresholds, ArrayList<String> activeFavoriteStars) {
+    public TweetBreakDownAdapter(Context context, DisplayMetrics metrics, ArrayList<WordEntry> words, ColorThresholds colorThresholds, ArrayList<String> activeFavoriteStars) {
         mContext = context;
-        mDensity = density;
+        mMetrics = metrics;
         mWords = words;
         mColorThresholds = colorThresholds;
         this.mActiveFavoriteStars = activeFavoriteStars;
-        this.mRxBusTweetBreak = rxBus;
     }
 
 
@@ -96,17 +93,10 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position ) {
 
-        if(debug){
-            Log.d(TAG, "position: " + holder.getAdapterPosition());}
-
-
-
-//            holder.txtimgStarNumber.setVisibility(View.GONE);
-            holder.layout.setSelected(false);
-            holder.imgStar.setVisibility(View.VISIBLE);
-            holder.imgStarLayout.setClickable(true);
-            holder.imgStarLayout.setLongClickable(true);
-
+        holder.layout.setSelected(false);
+        holder.imgStar.setVisibility(View.VISIBLE);
+        holder.imgStarLayout.setClickable(true);
+        holder.imgStarLayout.setLongClickable(true);
         holder.txtKanji.setText(mWords.get(holder.getAdapterPosition()).getKanji());
         holder.txtFurigana.setText(mWords.get(holder.getAdapterPosition()).getFurigana());
 
@@ -154,25 +144,19 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                         * the ChooseFavoritesAdapter in the ChooseFavorites popup window */
                                     if(event instanceof MyListEntry) {
                                         MyListEntry myListEntry = (MyListEntry) event;
-                                        Log.d(TAG,"MylistEntry name: " + myListEntry.getListName());
-                                        Log.d(TAG,"MylistEntry sys: " + myListEntry.getListsSys());
-                                        Log.d(TAG,"MylistEntry selectionlevel: " + myListEntry.getSelectionLevel());
 
-                            Log.d(TAG,"Word entry favs test output: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().testOutput());
+                            if(BuildConfig.DEBUG) {
+                                Log.d(TAG,"MylistEntry name: " + myListEntry.getListName());
+                                Log.d(TAG,"MylistEntry sys: " + myListEntry.getListsSys());
+                                Log.d(TAG,"MylistEntry selectionlevel: " + myListEntry.getSelectionLevel());
+                            }
 
                             /*Ascertain the type of list that the kanji was added to (or subtracted from),
                               and update that list's count */
                             if(myListEntry.getListsSys() == 1) {
                                 switch (myListEntry.getListName()) {
                                     case "Blue":
-
-                                        Log.d(TAG,"OLD blue count: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().getSystemBlueCount());
-                                        Log.d(TAG,"OLD should open popup: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().shouldOpenFavoritePopup());
-                                        Log.d(TAG,"mylist selection level: " + myListEntry.getSelectionLevel());
-
                                         mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemBlueCount(myListEntry.getSelectionLevel());
-                                        Log.d(TAG,"NEW blue count: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().getSystemBlueCount());
-                                        Log.d(TAG,"NEW should open popup: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().shouldOpenFavoritePopup());
                                         break;
                                     case "Green":
                                         mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemGreenCount(myListEntry.getSelectionLevel());
@@ -194,16 +178,12 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                                 }
                             }
                             assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
-
-
-
                                     }
-
                                 }
 
                             });
-                    chooseFavoritesPopup = new PopupChooseFavoriteLists(mContext,mDensity,rxBus,mActiveFavoriteStars,mWords.get(holder.getAdapterPosition()).getId()).onCreateView();
-                    chooseFavoritesPopup.showAsDropDown(holder.imgStar, xadjustment, yadjustment);
+                    chooseFavoritesPopup = new PopupChooseFavoriteLists(mContext,mMetrics,rxBus,mActiveFavoriteStars,mWords.get(holder.getAdapterPosition()).getId()).onCreateView();
+                    chooseFavoritesPopup.showAsDropDown(holder.imgStar);
                     chooseFavoritesPopup.setOnDismissListener(new PopupWindow.OnDismissListener() {
                         @Override
                         public void onDismiss() {
@@ -236,8 +216,8 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
 
 
                     //TODO make the big popup show
-                    int xadjustment = -300;
-                    int yadjustment = -200;
+//                    int xadjustment = -300;
+//                    int yadjustment = -200;
 
                     RxBus rxBus = new RxBus();
                     rxBus.toClickObserverable()
@@ -249,25 +229,13 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                         * the ChooseFavoritesAdapter in the ChooseFavorites popup window */
                                     if(event instanceof MyListEntry) {
                                         MyListEntry myListEntry = (MyListEntry) event;
-                                        Log.d(TAG,"MylistEntry name: " + myListEntry.getListName());
-                                        Log.d(TAG,"MylistEntry sys: " + myListEntry.getListsSys());
-                                        Log.d(TAG,"MylistEntry selectionlevel: " + myListEntry.getSelectionLevel());
-
-                                        Log.d(TAG,"Word entry favs test output: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().testOutput());
 
                             /*Ascertain the type of list that the kanji was added to (or subtracted from),
                               and update that list's count */
                                         if(myListEntry.getListsSys() == 1) {
                                             switch (myListEntry.getListName()) {
                                                 case "Blue":
-
-                                                    Log.d(TAG,"OLD blue count: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().getSystemBlueCount());
-                                                    Log.d(TAG,"OLD should open popup: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().shouldOpenFavoritePopup());
-                                                    Log.d(TAG,"mylist selection level: " + myListEntry.getSelectionLevel());
-
                                                     mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemBlueCount(myListEntry.getSelectionLevel());
-                                                    Log.d(TAG,"NEW blue count: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().getSystemBlueCount());
-                                                    Log.d(TAG,"NEW should open popup: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().shouldOpenFavoritePopup());
                                                     break;
                                                 case "Green":
                                                     mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemGreenCount(myListEntry.getSelectionLevel());
@@ -290,16 +258,28 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                                         }
                                         assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
 
-
-
                                     }
 
                                 }
 
                             });
                     if(chooseFavoritesPopup == null) {
-                        chooseFavoritesPopup= new PopupChooseFavoriteLists(mContext,mDensity,rxBus,mActiveFavoriteStars,mWords.get(holder.getAdapterPosition()).getId()).onCreateView();
-                        chooseFavoritesPopup.showAsDropDown(holder.imgStar, xadjustment, yadjustment);
+
+                        ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getInstance(mContext).getFavoritesListsForAKanji(mActiveFavoriteStars,mWords.get(holder.getAdapterPosition()).getId());
+                        chooseFavoritesPopup= new TestPopupWindow(mContext,mMetrics,rxBus,availableFavoriteLists,mWords.get(holder.getAdapterPosition()).getId()).onCreateView();
+
+
+                        int xadjust = chooseFavoritesPopup.getWidth() + (int) (25 * mMetrics.density + 0.5f);
+                        int yadjust = (int) ((availableFavoriteLists.size()*35) * mMetrics.density + 0.5f)/2 + holder.imgStar.getHeight()/2 ;
+                        Log.d("TEST","pop width: " + chooseFavoritesPopup.getWidth() + " height: " + chooseFavoritesPopup.getHeight());
+                        Log.d("TEST","xadjust: " + xadjust + ", yadjust: " + yadjust);
+                        chooseFavoritesPopup.showAsDropDown(holder.imgStar,-xadjust,-yadjust);
+
+//                        chooseFavoritesPopup.setWindowLayoutType(ViewGroup.LayoutParams.WRAP_CONTENT);
+//                        asdf
+//                        chooseFavoritesPopup.showAtLocation(holder.imgStarLayout,Gravity.CENTER_VERTICAL, - (chooseFavoritesPopup.getWidth()),0);
+
+                        chooseFavoritesPopup.setWindowLayoutMode(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                         chooseFavoritesPopup.setOnDismissListener(new PopupWindow.OnDismissListener() {
                             @Override
                             public void onDismiss() {
@@ -310,30 +290,6 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                         });
 
                     }
-
-
-
-//                //TODO make the big popup show
-//
-//                int xadjustment = -400;
-//                int yadjustment = -100;
-//
-////                popup.setOnDismissListener(new PopupWindow.OnDismissListener() {
-////                    @Override
-////                    public void onDismiss() {
-////                        assignStarColor(wordEntry,holder.imgStar);
-////                    }
-////                });
-//
-//
-//
-//                if(chooseFavoritesPopup == null) {
-//                    chooseFavoritesPopup = new PopupChooseFavoriteLists(mContext,mDensity,mRxBusTweetBreak,mActiveFavoriteStars,mWords.get(holder.getAdapterPosition()).getId()).onCreateView();
-//                    chooseFavoritesPopup.showAsDropDown(holder.imgStar, xadjustment, yadjustment);
-//                    Log.d(TAG,"SHOWING POPUP " + chooseFavoritesPopup.isShowing());
-//
-//                }
-
                 return true;
             }
         });
@@ -345,19 +301,6 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                 return true;
             }
         });
-
-
-
-//        holder.layout.setOnClickListener(new View.OnClickListener() {
-//
-//            @Override
-//            public void onClick(View v) {
-//                /**  The external (BrowseBlocks) onclick listener happens first, apparently. So the hashmap operations should already be done. Just update the visuals*/
-//            }
-//        });
-
-
-
     }
 
     // Return the size of your dataset (invoked by the layout manager)
@@ -475,7 +418,8 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
     }
 
     public void assignStarColor(WordEntry wordEntry, ImageButton imgStar) {
-        if(wordEntry.getWordEntryFavorites().shouldOpenFavoritePopup(mActiveFavoriteStars)) {
+        if(wordEntry.getWordEntryFavorites().shouldOpenFavoritePopup(mActiveFavoriteStars) &&
+                wordEntry.getWordEntryFavorites().systemListCount(mActiveFavoriteStars) >1) {
             imgStar.setColorFilter(null);
             imgStar.setImageResource(R.drawable.ic_star_multicolor);
         } else {
@@ -483,24 +427,5 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
             imgStar.setColorFilter(ContextCompat.getColor(mContext, getFavoritesStarColor(mActiveFavoriteStars,wordEntry.getWordEntryFavorites())));
         }
     }
-
-
-//    /**
-//     * Checks how many milliseconds have elapsed since the last time "mLastClickTime" was updated
-//     * If enough time has elapsed, returns True and updates mLastClickTime.
-//     * This is to stop unwanted rapid clicks of the same button
-//     * @param elapsedMilliSeconds threshold of elapsed milliseconds before a new button click is allowed
-//     * @return bool True if enough time has elapsed, false if not
-//     */
-//    public boolean isUniqueClick(int elapsedMilliSeconds) {
-//        if(SystemClock.elapsedRealtime() - mLastClickTime > elapsedMilliSeconds) {
-//            mLastClickTime = SystemClock.elapsedRealtime();
-//            return true;
-//        } else {
-//            return false;
-//        }
-//    }
-
-
 }
 

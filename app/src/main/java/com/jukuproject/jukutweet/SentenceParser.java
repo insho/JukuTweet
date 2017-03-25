@@ -3,6 +3,7 @@ package com.jukuproject.jukutweet;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import android.os.Build;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -13,6 +14,9 @@ import com.jukuproject.jukutweet.Models.ParseSentenceItem;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.Models.WordEntryFavorites;
 import com.jukuproject.jukutweet.Models.WordLoader;
+import com.vdurmont.emoji.Emoji;
+import com.vdurmont.emoji.EmojiManager;
+import com.vdurmont.emoji.EmojiParser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,8 +53,6 @@ public class SentenceParser {
             , ArrayList<String> wordvalues
             ,WordLoader wordLoader
             ,ColorThresholds colorThresholds
-            ,ArrayList<String> activeFavoritesLists
-
     ) {
         this.entireSentence = entireSentence;
         this.wordLoader = wordLoader;
@@ -58,10 +60,17 @@ public class SentenceParser {
         this.mColorThresholds = colorThresholds;
 //        this.mActiveFavoritesLists = activeFavoritesLists;
 
+
+
         possibleKanjiInSentence = findCoreKanjiBlocksInSentence(entireSentence,wordLoader,kanjPositionArray);
         if(debug){
             Log.d(TAG, "whole sentence: " + entireSentence);
             Log.d(TAG, "# of Kanji found: " + possibleKanjiInSentence.size());
+
+            for(ParseSentencePossibleKanji possibleKanji : possibleKanjiInSentence) {
+                Log.d(TAG,"(" + possibleKanji.getListIndex() + ") " + possibleKanji.getKanji());
+            }
+
             Log.e(TAG,"LOADING UP THE PREFIX, SUFFIX AND VERB CONJUGATION COMBOS ");
         }
         attachPrefixesandSuffixesToCoreKanji(possibleKanjiInSentence);
@@ -95,57 +104,51 @@ public class SentenceParser {
         StringBuilder builder_katakana = new StringBuilder();
         StringBuilder builder_spinner = new StringBuilder();
 
+        String char_aPrev = "";
         for (int i = 0; i < entireSentence.length(); i++) {
             String char_a = String.valueOf(entireSentence.charAt(i));
+            String char_aNext = "";
+            if(entireSentence.length()>(i+1)) {
+                char_aNext = String.valueOf(entireSentence.charAt(i+1));
+            }
+
+
+//            int codePoint_a = entireSentence.codePointAt(i);
+if(debug) {
+    Log.d(TAG,"(" + char_a + ") isemoji " + (EmojiManager.isEmoji(char_a + char_aNext) || EmojiManager.isEmoji(char_aPrev + char_a)));
+    Log.d(TAG,"(" + char_a + ") isalphanumeric: " + isAlphaNumericChar(char_a));
+    Log.d(TAG,"(" + char_a + ") isalphanumeric: " + isAlphaNumericChar(char_a));
+    Log.d(TAG,"------------------------------------------");
+}
+
 
             /* If it is a spinner Kanji, add the character to the special spinner builder and simply pass it on to the next step */
             if (kanjPositionArray != null && kanjPositionArray.contains(i)) {
                 builder_spinner.append(entireSentence.charAt(i));
-//                if (builder.length() > 0) {
-//                    possibleKanjiInSentence.add(new ParseSentencePossibleKanji(i,possibleKanjiInSentence.size(),builder.toString()));
-//                    builder.setLength(0);
-//                }
                 addOrReleaseBuilderContents(i,builder,possibleKanjiInSentence);
                 addOrReleaseBuilderContents(i,builder_katakana,possibleKanjiInSentence,true);
                 /* Determine if the character is a kanji by process of elimination. If it is not Hiragana, Katakana or a Symbol, it must be a kanji */
-            } else if (!wordLoader.getHiragana().contains(char_a)
-                    && !wordLoader.getKatakana().contains(char_a)
+            } else if (wordLoader.getKatakana().contains(char_a)) {
+                builder_katakana.append(entireSentence.charAt(i));
+                addOrReleaseBuilderContents(i,builder,possibleKanjiInSentence);
+                addOrReleaseBuilderContents(i,builder_spinner,possibleKanjiInSentence);
+            } else if (!EmojiManager.isEmoji(char_a + char_aNext)
+                    && !EmojiManager.isEmoji(char_aPrev + char_a)
+                    &&!isAlphaNumericChar(char_a)
+                    && !wordLoader.getHiragana().contains(char_a)
+//                    && !wordLoader.getKatakana().contains(char_a)
                     && !wordLoader.getSymbols().contains(char_a)) {
                 builder.append(entireSentence.charAt(i));
-//                if (builder_spinner.length() > 0) {
-//                    possibleKanjiInSentence.add(new ParseSentencePossibleKanji(i,possibleKanjiInSentence.size(),builder_spinner.toString()));
-//                    builder_spinner.setLength(0);
-//                }
 
                 addOrReleaseBuilderContents(i,builder_spinner,possibleKanjiInSentence);
                 addOrReleaseBuilderContents(i,builder_katakana,possibleKanjiInSentence,true);
-            } else if (wordLoader.getKatakana().contains(char_a)) {
-                builder_katakana.append(entireSentence.charAt(i));
-//                if (builder.length() > 0) {
-//                    possibleKanjiInSentence.add(new ParseSentencePossibleKanji(i,possibleKanjiInSentence.size(),builder.toString()));
-//                    builder.setLength(0);
-//                }
-//                if (builder_spinner.length() > 0) {
-//                    possibleKanjiInSentence.add(new ParseSentencePossibleKanji(i,possibleKanjiInSentence.size(),builder_spinner.toString()));
-//                    builder_spinner.setLength(0);
-//                }
-                addOrReleaseBuilderContents(i,builder,possibleKanjiInSentence);
-                addOrReleaseBuilderContents(i,builder_spinner,possibleKanjiInSentence);
-            }  else {
-                /* If the current char is NOT a kanji, but the builder isn't empty either, move the builder contents to the final list and empty builder */
-//                if (builder.length() > 0) {
-//                    possibleKanjiInSentence.add(new ParseSentencePossibleKanji(i,possibleKanjiInSentence.size(),builder.toString()));
-//                    builder.setLength(0);
-//                }
-//                if (builder_spinner.length() > 0) {
-//                    possibleKanjiInSentence.add(new ParseSentencePossibleKanji(i,possibleKanjiInSentence.size(),builder_spinner.toString()));
-//                    builder_spinner.setLength(0);
-//                }
+            }   else {
                 addOrReleaseBuilderContents(i,builder,possibleKanjiInSentence);
                 addOrReleaseBuilderContents(i,builder_spinner,possibleKanjiInSentence);
                 addOrReleaseBuilderContents(i,builder_katakana,possibleKanjiInSentence,true);
 
             }
+            char_aPrev = char_a;
         }
 
 // FOR TESTING
@@ -157,6 +160,32 @@ public class SentenceParser {
         return possibleKanjiInSentence;
     }
 
+    /**
+     * Checks that a character is in the asian charset (if the build version allows this)
+     * @param codePoint
+     * @return
+     */
+    public static boolean isAsianChar(int codePoint){
+        if(android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && !Character.isIdeographic(codePoint))     {
+                return false;
+        }
+        return true;
+    }
+//
+//    public static boolean isPartOfEmoji(String prevPair, String nextPair) {
+//        if()
+//        if(cleanString.length()==0){
+//            return true;
+//        }
+//        return false;
+//        }\
+
+    public static boolean isAlphaNumericChar(String s) {
+//        return !s.matches("^.*[^a-zA-Z0-9 ].*$");
+        return !s.matches("^.*[^\\\\dA-Za-z0-9].*$");
+
+
+    }
 
     public static void addOrReleaseBuilderContents(Integer index, StringBuilder builder, ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence) {
         if (builder.length() > 0) {

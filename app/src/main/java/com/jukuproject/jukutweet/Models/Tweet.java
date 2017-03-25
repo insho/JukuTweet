@@ -21,6 +21,12 @@ public class Tweet  implements Parcelable {
     private Integer retweet_count;
     private String text;
 
+    public TweetEntities getEntities() {
+        return entities;
+    }
+
+    private TweetEntities entities;
+
 
     /* Each time a saved user's timeline is clicked, pull the user info
     * (if it exists) within the api response, and check it against the userInfo from the db and

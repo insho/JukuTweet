@@ -5,6 +5,11 @@ import android.os.Build;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.BoringLayout;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,22 +28,21 @@ import rx.functions.Action1;
  * Created by JClassic on 3/24/2017.
  */
 
-public class PopupChooseFavoriteLists  {
+public class PopupChooseFavoriteLists  extends PopupWindow {
 
         private Context mContext;
-        private float mDensity;
+        private final DisplayMetrics mMetrics;
         private int mKanjiId;
-//        private RxBus rxBus = new RxBus();
         private RxBus mRxBusTweetBreak;
-//        private PopupChooseFavoritesListener;
         private ArrayList<String> mActiveFavoriteStars;
-
+    private PopupWindow popupWindow;
+    private ArrayList<MyListEntry> favoritesLists;
     private RecyclerView mRecyclerView;
     private ChooseFavoritesAdapter mAdapter;
 
-        public PopupChooseFavoriteLists(Context context, float density,RxBus rxBus , ArrayList<String> activeFavoriteStars, int kanjiId) {
+        public PopupChooseFavoriteLists(Context context, DisplayMetrics metrics, RxBus rxBus , ArrayList<String> activeFavoriteStars, int kanjiId) {
             mContext = context;
-            mDensity = density;
+            mMetrics = metrics;
             mKanjiId = kanjiId;
             mRxBusTweetBreak = rxBus;
             mActiveFavoriteStars = activeFavoriteStars;
@@ -48,13 +52,15 @@ public class PopupChooseFavoriteLists  {
 
     public PopupWindow onCreateView() {
 
-        PopupWindow popupWindow = new PopupWindow(mContext);
+        popupWindow = new PopupWindow(mContext);
 
         View view = LayoutInflater.from(mContext).
                 inflate(R.layout.popup_choosefavorites, null);
 
-        ArrayList<MyListEntry> favoritesLists = InternalDB.getInstance(mContext).getFavoritesListsForAKanji(mActiveFavoriteStars,mKanjiId);
+        favoritesLists = InternalDB.getInstance(mContext).getFavoritesListsForAKanji(mActiveFavoriteStars,mKanjiId);
 
+
+        //TODO put something in when there is no list...
         //Only show popup if there are available lists to add to, otherwise do nothing.
         if(favoritesLists.size()>0) {
 
@@ -71,86 +77,64 @@ public class PopupChooseFavoriteLists  {
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(mContext);
         mRecyclerView = (RecyclerView) view.findViewById(R.id.favoritesRecycler);
         mRecyclerView.setVerticalScrollBarEnabled(false);
-
         mRecyclerView.getLayoutParams().height = RecyclerView.LayoutParams.WRAP_CONTENT;
         mRecyclerView.setLayoutManager(mLayoutManager);
-        mAdapter = new ChooseFavoritesAdapter(mContext, mDensity, mRxBusTweetBreak,favoritesLists, mKanjiId);
-
-
-//                    rxBus.toClickObserverable()
-//                            .subscribe(new Action1<Object>() {
-//                                @Override
-//                                public void call(Object event) {
-//
-//                        /* Recieve a MyListEntry (containing an updated list entry for this row kanji) from
-//                        * the ChooseFavoritesAdapter in the ChooseFavorites popup window */
-//                                    if(event instanceof MyListEntry) {
-//                                        MyListEntry myListEntry = (MyListEntry) event;
-//
-//                            /*Ascertain the type of list that the kanji was added to (or subtracted from),
-//                              and update that list's count */
-//                                        if(myListEntry.getListsSys() == 1) {
-//                                            switch (myListEntry.getListName()) {
-//                                                case "Blue":
-//                                                    mWordEntry.getWordEntryFavorites().setSystemBlueCount(myListEntry.getSelectionLevel());
-//                                                    break;
-//                                                case "Green":
-//                                                    mWordEntry.getWordEntryFavorites().setSystemGreenCount(myListEntry.getSelectionLevel());
-//                                                    break;
-//                                                case "Red":
-//                                                    mWordEntry.getWordEntryFavorites().setSystemRedCount(myListEntry.getSelectionLevel());
-//                                                    break;
-//                                                case "Yellow":
-//                                                    mWordEntry.getWordEntryFavorites().setSystemYellowCount(myListEntry.getSelectionLevel());
-//                                                    break;
-//                                                default:
-//                                                    break;
-//                                            }
-//                                        } else {
-//                                            if(myListEntry.getSelectionLevel() == 1) {
-//                                                mWordEntry.getWordEntryFavorites().addToUserListCount(1);
-//                                            } else {
-//                                                mWordEntry.getWordEntryFavorites().subtractFromUserListCount(1);
-//                                            }
-//                                        }
-//
-//
-//
-//
-//                                    }
-//
-//                                }
-//
-//                            });
-
-
-
+        mAdapter = new ChooseFavoritesAdapter(mContext, mMetrics.density, mRxBusTweetBreak,favoritesLists, mKanjiId);
         mRecyclerView.setAdapter(mAdapter);
-
         mRecyclerView.setItemViewCacheSize(favoritesLists.size());
 
+        //TODO fix this width
+//        popupWindow.setWidth(200);
+//        popupWindow.setHeight(400);
 
-        popupWindow.setWidth(200);
+        popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+        popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
 
-        popupWindow.setHeight(400);
-//            int mscreenheight = 600;
-//            if(favoritesLists.size()>12) {
-//                popupWindow.setHeight((int)((float)mscreenheight/2.0f));
-//            } else {
-//                popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-//            }
+        if(popupWindow.getHeight()>mMetrics.heightPixels * .75) {
+            popupWindow.setHeight((int)(mMetrics.heightPixels * .75));
+        }
 
+        if(popupWindow.getWidth() < (int) (180 * mMetrics.density + 0.5f)) {
+            popupWindow.setWidth((int) (180 * mMetrics.density + 0.5f));
+        }
+//        int pixels = (int) (180 * mMetrics.density + 0.5f);
+//
+//        popupWindow.setWidth(TypedValue.COMPLEX_UNIT_DIP);
+//        if(favoritesLists.size()>10) {
+//            popupWindow.setHeight((int)((float)mscreenheight/2.0f));
+//        } else {
+//            popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+//        }
+
+
+        /*
+        *
+        * */
         popupWindow.setFocusable(true);
         popupWindow.setClippingEnabled(false);
 
         popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(mContext, R.drawable.popup_drawable));
-//        popupWindow.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
-//        popupWindow.setWidth(WindowManager.LayoutParams.WRAP_CONTENT);
         popupWindow.setContentView(view);
         return popupWindow;
     }
 
+    public int getEstimatedPopupHeight() {
+        return (int) ((favoritesLists.size()*35) * mMetrics.density + 0.5f);
     }
+
+//    @Override
+//    public void showAsDropDown(View anchor) {
+//        int xadjust = popupWindow.getWidth() + (int) (25 * mMetrics.density + 0.5f);
+////        Log.d(TAG,)
+//        int yadjust = popupWindow.getHeight()/2;
+//
+//        Log.d("TEST","pop width: " + popupWindow.getWidth() + " height: " + popupWindow.getHeight());
+//        Log.d("TEST","pop xadjust: " + xadjust);
+//        Log.d("TEST","pop yadjust: " + xadjust);
+//
+//        this.showAsDropDown(anchor,-xadjust,-yadjust);
+//    }
+}
 
 
 

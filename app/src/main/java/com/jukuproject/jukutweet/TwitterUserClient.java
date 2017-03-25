@@ -50,7 +50,7 @@ public class TwitterUserClient {
 //        consumer.setTokenWithSecret(token, tokenSecret);
 
         client.addInterceptor(new SigningInterceptor(consumer));
-//        client.addInterceptor(loggingInterceptor);
+        client.addInterceptor(loggingInterceptor);
 
         final Retrofit retrofit = new Retrofit.Builder().baseUrl(TWITTER_BASE_URL)
                 .addCallAdapterFactory(RxJavaCallAdapterFactory.create())

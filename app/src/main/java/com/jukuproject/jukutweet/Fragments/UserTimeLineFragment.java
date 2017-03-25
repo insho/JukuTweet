@@ -119,7 +119,7 @@ public class UserTimeLineFragment extends Fragment {
         //TODO make the number of twitter responses an option! not just 10
         //TODO AND BASE EVERYTING ON THE FUCKING TWITTER ID!!! LIKE IN THE DATABASE!!! SAVE THE TWITTER ID!!
         TwitterUserClient.getInstance(token,tokenSecret)
-                .getUserTimeline(userInfo.getScreenName(),10)
+                .getUserTimeline(userInfo.getScreenName(),1)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<List<Tweet>>() {
@@ -141,6 +141,9 @@ public class UserTimeLineFragment extends Fragment {
 
                                             if(mTweetBreakDownFragment == null || !mTweetBreakDownFragment.isShowing()) {
                                                 Tweet tweet = (Tweet) event;
+//                                                if(BuildConfig.DEBUG) {
+//                                                    Log.d(TAG,"TWEET URL:" + tweet.getEntities().getUrls().get(0).getUrl());
+//                                                }
                                                 TweetBreakDownFragment fragment = new TweetBreakDownFragment();
                                                 Bundle bundle = new Bundle();
                                                 bundle.putParcelable("tweet",tweet);

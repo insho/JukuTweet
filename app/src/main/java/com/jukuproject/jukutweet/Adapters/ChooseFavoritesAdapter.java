@@ -74,13 +74,6 @@ public class ChooseFavoritesAdapter extends RecyclerView.Adapter<ChooseFavorites
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
         final MyListEntry initialMyListEntry = mMyListEntries.get(holder.getAdapterPosition());
-//        final String name = mMyListEntries.get(holder.getAdapterPosition()).getListName();
-//        final int sys = mMyListEntries.get(holder.getAdapterPosition()).getListsSys();
-//        final int initiallychecked = myListSelection.getInitialSelectionLevel();
-
-//        if(holder.checkbox.getTag()==null){
-//            holder.checkbox.setTag(String.valueOf(initiallychecked));
-//        }
 
         holder.checkbox.setOnCheckedChangeListener(null);
         holder.gridLayout.setOnClickListener(null);
