@@ -10,6 +10,15 @@ public class ParseSentenceItem {
     private Integer kanjiID;
     private String kanjiConjugated;
     private String furiganaClean;
+    private String type;
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 
     public WordEntry getWordEntry() {
         return wordEntry;

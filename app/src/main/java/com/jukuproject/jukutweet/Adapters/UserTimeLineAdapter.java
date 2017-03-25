@@ -2,6 +2,10 @@ package com.jukuproject.jukutweet.Adapters;
 
         import android.content.Context;
         import android.support.v7.widget.RecyclerView;
+        import android.text.SpannableString;
+        import android.text.method.LinkMovementMethod;
+        import android.text.style.URLSpan;
+        import android.util.Log;
         import android.view.LayoutInflater;
         import android.view.View;
         import android.view.ViewGroup;
@@ -9,6 +13,7 @@ package com.jukuproject.jukutweet.Adapters;
 
         import com.jukuproject.jukutweet.Interfaces.RxBus;
         import com.jukuproject.jukutweet.Models.Tweet;
+        import com.jukuproject.jukutweet.Models.TweetUrl;
         import com.jukuproject.jukutweet.R;
 
         import java.util.List;
@@ -18,6 +23,7 @@ package com.jukuproject.jukutweet.Adapters;
  */
 public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapter.ViewHolder> {
 
+    private static final String TAG = "TEST-timefrag";
     private RxBus _rxbus;
     private List<Tweet> mDataset;
 
@@ -69,6 +75,33 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
         }
 
         holder.txtTweet.setText(getTweet(position).getText());
+
+
+        try {
+            List<TweetUrl> tweetUrls =  getTweet(position).getEntities().getUrls();
+
+            for(TweetUrl url : tweetUrls) {
+                int[] indices = url.getIndices();
+
+                String urlToLinkify = "";
+
+                if(getTweet(position).getText().substring(indices[0]).contains(url.getDisplay_url())) {
+                    urlToLinkify = url.getDisplay_url();
+                } else if(getTweet(position).getText().substring(indices[0]).contains(url.getUrl())) {
+                    urlToLinkify = url.getUrl();
+                }
+                int startingLinkPos = startingLinkPos = getTweet(position).getText().indexOf(urlToLinkify,indices[0]);
+                SpannableString text = new SpannableString(getTweet(position).getText());
+                text.setSpan(new URLSpan(url.getUrl()), startingLinkPos, startingLinkPos + urlToLinkify.length(), 0);
+                holder.txtTweet.setMovementMethod(LinkMovementMethod.getInstance());
+                holder.txtTweet.setText(text, TextView.BufferType.SPANNABLE);
+
+            }
+        } catch (NullPointerException e) {
+            Log.e(TAG,"mTweet urls are null : " + e);
+        } catch (Exception e) {
+            Log.e(TAG,"Error adding url info: " + e);
+        }
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override

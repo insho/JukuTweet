@@ -115,11 +115,9 @@ public class UserTimeLineFragment extends Fragment {
         String token = getResources().getString(R.string.access_token);
         String tokenSecret = getResources().getString(R.string.access_token_secret);
 
-        //TODO fix it so the progress bar shows up
         //TODO make the number of twitter responses an option! not just 10
-        //TODO AND BASE EVERYTING ON THE FUCKING TWITTER ID!!! LIKE IN THE DATABASE!!! SAVE THE TWITTER ID!!
         TwitterUserClient.getInstance(token,tokenSecret)
-                .getUserTimeline(userInfo.getScreenName(),1)
+                .getUserTimeline(userInfo.getScreenName(),10)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<List<Tweet>>() {

@@ -11,6 +11,7 @@ import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.ParseSentenceMatchCombination;
 import com.jukuproject.jukutweet.Models.ParseSentencePossibleKanji;
 import com.jukuproject.jukutweet.Models.ParseSentenceItem;
+import com.jukuproject.jukutweet.Models.ParseSentenceSpecialSpan;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.Models.WordEntryFavorites;
 import com.jukuproject.jukutweet.Models.WordLoader;
@@ -35,7 +36,7 @@ public class SentenceParser {
 
     private String entireSentence;
     private WordLoader wordLoader;
-    private ArrayList<String> wordvalues;
+    private ArrayList<ParseSentenceSpecialSpan> mSpecialSpans;
     private ColorThresholds mColorThresholds;
 //    private ArrayList<String> mActiveFavoritesLists;
 
@@ -49,20 +50,21 @@ public class SentenceParser {
 
     public ArrayList<ParseSentenceItem> parseSentence(String entireSentence
             , SQLiteDatabase db
-            , ArrayList<Integer> kanjPositionArray
-            , ArrayList<String> wordvalues
+//            , ArrayList<Integer> kanjPositionArray
+            , ArrayList<ParseSentenceSpecialSpan> specialSpans
             ,WordLoader wordLoader
             ,ColorThresholds colorThresholds
     ) {
         this.entireSentence = entireSentence;
         this.wordLoader = wordLoader;
-        this.wordvalues = wordvalues;
+        this.mSpecialSpans = specialSpans;
         this.mColorThresholds = colorThresholds;
 //        this.mActiveFavoritesLists = activeFavoritesLists;
 
 
 
-        possibleKanjiInSentence = findCoreKanjiBlocksInSentence(entireSentence,wordLoader,kanjPositionArray);
+
+        possibleKanjiInSentence = findCoreKanjiBlocksInSentence(entireSentence,wordLoader,mSpecialSpans);
         if(debug){
             Log.d(TAG, "whole sentence: " + entireSentence);
             Log.d(TAG, "# of Kanji found: " + possibleKanjiInSentence.size());
@@ -82,7 +84,7 @@ public class SentenceParser {
         ArrayList<Integer> cleanKanjiIds = getCleanKanjiIDsFromBetterMatches(db,possibleKanjiInSentence);
 
 
-        return compileFinalSentenceMap(db,cleanKanjiIds);
+        return compileFinalSentenceMap(db,cleanKanjiIds,mSpecialSpans);
     }
 
 
@@ -94,15 +96,18 @@ public class SentenceParser {
      *
      * @param entireSentence Sentence or piece of text to be split
      * @param wordLoader Arrays and Maps of hiragana/katakana/symbols/verbendings. Used to determine whether a character (or possible verb ending) is a Kanji or conjugated verb.
-     * @param kanjPositionArray Position indexes of the "spinner" kanji for each question (if this is a FillinSentences Activity). These kanji are known initially
+//     * @param kanjPositionArray Position indexes of the "spinner" kanji for each question (if this is a FillinSentences Activity). These kanji are known initially
      *                          so it is unnecessary to break them down or match them against the dictionary
      * @return An array list of ParseSentencePossibleKanji, representing the core of each possible kanji in the sentence
      */
-    public static ArrayList<ParseSentencePossibleKanji> findCoreKanjiBlocksInSentence(String entireSentence, WordLoader wordLoader, ArrayList<Integer> kanjPositionArray) {
+    public static ArrayList<ParseSentencePossibleKanji> findCoreKanjiBlocksInSentence(String entireSentence, WordLoader wordLoader, ArrayList<ParseSentenceSpecialSpan> specialSpans) {
+
+        ArrayList<Integer> spanIndexes = getSpecialSpanIndexes(specialSpans);
+
         ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence = new ArrayList<>();
         StringBuilder builder = new StringBuilder();
         StringBuilder builder_katakana = new StringBuilder();
-        StringBuilder builder_spinner = new StringBuilder();
+//        StringBuilder builder_spinner = new StringBuilder();
 
         String char_aPrev = "";
         for (int i = 0; i < entireSentence.length(); i++) {
@@ -114,24 +119,24 @@ public class SentenceParser {
 
 
 //            int codePoint_a = entireSentence.codePointAt(i);
-if(debug) {
-    Log.d(TAG,"(" + char_a + ") isemoji " + (EmojiManager.isEmoji(char_a + char_aNext) || EmojiManager.isEmoji(char_aPrev + char_a)));
-    Log.d(TAG,"(" + char_a + ") isalphanumeric: " + isAlphaNumericChar(char_a));
-    Log.d(TAG,"(" + char_a + ") isalphanumeric: " + isAlphaNumericChar(char_a));
-    Log.d(TAG,"------------------------------------------");
-}
+            if(debug) {
+                Log.d(TAG,"(" + char_a + ") isemoji " + (EmojiManager.isEmoji(char_a + char_aNext) || EmojiManager.isEmoji(char_aPrev + char_a)));
+                Log.d(TAG,"(" + char_a + ") isalphanumeric: " + isAlphaNumericChar(char_a));
+                Log.d(TAG,"(" + char_a + ") isalphanumeric: " + isAlphaNumericChar(char_a));
+                Log.d(TAG,"------------------------------------------");
+            }
 
 
             /* If it is a spinner Kanji, add the character to the special spinner builder and simply pass it on to the next step */
-            if (kanjPositionArray != null && kanjPositionArray.contains(i)) {
-                builder_spinner.append(entireSentence.charAt(i));
+            if (spanIndexes != null && spanIndexes.contains(i)) {
+//                builder_spinner.append(entireSentence.charAt(i));
                 addOrReleaseBuilderContents(i,builder,possibleKanjiInSentence);
                 addOrReleaseBuilderContents(i,builder_katakana,possibleKanjiInSentence,true);
                 /* Determine if the character is a kanji by process of elimination. If it is not Hiragana, Katakana or a Symbol, it must be a kanji */
             } else if (wordLoader.getKatakana().contains(char_a)) {
                 builder_katakana.append(entireSentence.charAt(i));
                 addOrReleaseBuilderContents(i,builder,possibleKanjiInSentence);
-                addOrReleaseBuilderContents(i,builder_spinner,possibleKanjiInSentence);
+//                addOrReleaseBuilderContents(i,builder_spinner,possibleKanjiInSentence);
             } else if (!EmojiManager.isEmoji(char_a + char_aNext)
                     && !EmojiManager.isEmoji(char_aPrev + char_a)
                     &&!isAlphaNumericChar(char_a)
@@ -140,11 +145,13 @@ if(debug) {
                     && !wordLoader.getSymbols().contains(char_a)) {
                 builder.append(entireSentence.charAt(i));
 
-                addOrReleaseBuilderContents(i,builder_spinner,possibleKanjiInSentence);
+//                addOrReleaseBuilderContents(i,builder_spinner,possibleKanjiInSentence);
                 addOrReleaseBuilderContents(i,builder_katakana,possibleKanjiInSentence,true);
             }   else {
+                //Add the contents of any full builder to the possibleKanji list, and do not record
+                //this character
                 addOrReleaseBuilderContents(i,builder,possibleKanjiInSentence);
-                addOrReleaseBuilderContents(i,builder_spinner,possibleKanjiInSentence);
+//                addOrReleaseBuilderContents(i,builder_spinner,possibleKanjiInSentence);
                 addOrReleaseBuilderContents(i,builder_katakana,possibleKanjiInSentence,true);
 
             }
@@ -160,17 +167,19 @@ if(debug) {
         return possibleKanjiInSentence;
     }
 
-    /**
-     * Checks that a character is in the asian charset (if the build version allows this)
-     * @param codePoint
-     * @return
-     */
-    public static boolean isAsianChar(int codePoint){
-        if(android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && !Character.isIdeographic(codePoint))     {
-                return false;
-        }
-        return true;
-    }
+
+//
+//    /**
+//     * Checks that a character is in the asian charset (if the build version allows this)
+//     * @param codePoint
+//     * @return
+//     */
+//    public static boolean isAsianChar(int codePoint){
+//        if(android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && !Character.isIdeographic(codePoint))     {
+//                return false;
+//        }
+//        return true;
+//    }
 //
 //    public static boolean isPartOfEmoji(String prevPair, String nextPair) {
 //        if()
@@ -217,9 +226,9 @@ if(debug) {
             }
             if(debug){Log.d(TAG, "CURRENT kanji: " + possibleKanjiInSentence.get(i).getKanji());}
             /* For FillInTheBlanks, if the current Kanji is a designated SpinnerKanji, do not try to attach prefixes or suffixes*/
-            if (wordvalues != null && wordvalues.contains(possibleKanjiInSentence.get(i).getKanji())) {
-                if(debug){Log.d(TAG, "Adding to kanjifinal_HashMap (SPINNER): " + i + " - " + possibleKanjiInSentence.get(i).getKanji());}
-            } else {
+//            if (wordvalues != null && wordvalues.contains(possibleKanjiInSentence.get(i).getKanji())) {
+//                if(debug){Log.d(TAG, "Adding to kanjifinal_HashMap (SPINNER): " + i + " - " + possibleKanjiInSentence.get(i).getKanji());}
+//            } else {
                 ArrayList<String> suffixes = new ArrayList<>();
                 ArrayList<String> prefixes = new ArrayList<>();
 
@@ -235,7 +244,7 @@ if(debug) {
                 }
                 possibleKanjiInSentence.get(i).setPrefixes(prefixes);
                 possibleKanjiInSentence.get(i).setSuffixes(suffixes);
-            }
+//            }
         }
     }
 
@@ -827,44 +836,16 @@ if(debug) {
      * @return List of ParseSentenceItems, some of which are kanji (to be used for lists of kanji in a sentence), others of which are the
      *          text between those kanji (to be used in laying out the FillInTheBlanks questions)
      */
-    public ArrayList<ParseSentenceItem>  compileFinalSentenceMap(SQLiteDatabase db, ArrayList<Integer> cleanKanjiIDs) {
+    public ArrayList<ParseSentenceItem>  compileFinalSentenceMap(SQLiteDatabase db, ArrayList<Integer> cleanKanjiIDs, ArrayList<ParseSentenceSpecialSpan> specialSpans) {
 //        TreeMap<Integer, ParseSentenceItem> resultMap = new TreeMap();
         ArrayList<ParseSentenceItem> resultMap = new ArrayList<>();
         int prevkanjilength = 0;
         int prevkanjiposition = 0;
         int foundKanjiPosition = 0;
         int lastEndPosition = 0;
+        int currentSpecialSpandsIndex = 0;
         for(int index = 0; index < cleanKanjiIDs.size(); index ++) {
             if(debug){Log.d(TAG, "clean_int: " + cleanKanjiIDs.get(index));}
-
-//            Cursor dd = db.rawQuery("SELECT [Kanji]" +
-//                                            ",(CASE WHEN (Furigana is null OR  Furigana = '') then \"\" else \"(\" || Furigana || \")\" end) as [Furigana]" +
-//                                            ",[Definition]" +
-//                                            ",[Total]" +
-//                                            ",[Percent]" +
-//                                            ",(CASE WHEN [Total] < " + greyThreshold + " THEN 1 WHEN [Percent] < " + redThreshold + "  THEN 2 WHEN ([Percent] >= " + redThreshold + " and [Percent] <  " + yellowThreshold + ") THEN 3 WHEN [Percent]>= " + yellowThreshold + " THEN 4 END) as [Color] " +
-//                                            "FROM (" +
-//                                                    "SELECT [_id]" +
-//                                                            ",[Kanji]" +
-//                                                            ",[Furigana]" +
-//                                                            ",[Definition]" +
-//                                                            ",ifnull([Total],0) as [Total]" +
-//                                                            ",ifnull([Correct],0)  as [Correct]" +
-//                                                            ",CAST(ifnull([Correct],0)  as float)/[Total] as [Percent] " +
-//                                                            "FROM (" +
-//                                                                "SELECT [_id]" +
-//                                                                        ",[Kanji]" +
-//                                                                        ",[Furigana]" +
-//                                                                        ",[Definition]  " +
-//                                                                "FROM [Edict] where [_id] = ?" +
-//                                                                ") " +
-//                                                            "NATURAL LEFT JOIN (" +
-//                                                            "SELECT [_id]" +
-//                                                                    ",sum([Correct]) as [Correct]" +
-//                                                                    ",sum([Total]) as [Total] " +
-//                                                            "from [JScoreboard] WHERE [_id] = ? GROUP BY [_id]" +
-//                                                                                ") " +
-//                                                    ")", new String[]{String.valueOf(cleanKanjiIDs.get(index)),String.valueOf(cleanKanjiIDs.get(index))});
 
             Cursor dd = db.rawQuery("SELECT [Kanji]" +
                     ",(CASE WHEN (Furigana is null OR  Furigana = '') then \"\" else \"(\" || Furigana || \")\" end) as [Furigana]" +
@@ -878,30 +859,30 @@ if(debug) {
                     " ,[Yellow] " +
                     " ,[Other] " +
                     "FROM (" +
-                        "SELECT [_id]" +
-                        ",[Kanji]" +
-                        ",[Furigana]" +
-                        ",[Definition]" +
-                        ",ifnull([Total],0) as [Total]" +
-                        ",ifnull([Correct],0)  as [Correct]" +
-                        ",CAST(ifnull([Correct],0)  as float)/[Total] as [Percent] " +
+                    "SELECT [_id]" +
+                    ",[Kanji]" +
+                    ",[Furigana]" +
+                    ",[Definition]" +
+                    ",ifnull([Total],0) as [Total]" +
+                    ",ifnull([Correct],0)  as [Correct]" +
+                    ",CAST(ifnull([Correct],0)  as float)/[Total] as [Percent] " +
                     " ,[Blue]" +
                     " ,[Red] " +
                     " ,[Green] " +
                     " ,[Yellow] " +
                     " ,[Other] " +
-                        "FROM (" +
-                                "SELECT [_id]" +
-                                ",[Kanji]" +
-                                ",[Furigana]" +
-                                ",[Definition]  " +
-                                "FROM [Edict] where [_id] = ?" +
-                            ") NATURAL LEFT JOIN (" +
-                                "SELECT [_id]" +
-                                ",sum([Correct]) as [Correct]" +
-                                ",sum([Total]) as [Total] " +
-                                "from [JScoreboard] " +
-                                "WHERE [_id] = ? GROUP BY [_id]" +
+                    "FROM (" +
+                    "SELECT [_id]" +
+                    ",[Kanji]" +
+                    ",[Furigana]" +
+                    ",[Definition]  " +
+                    "FROM [Edict] where [_id] = ?" +
+                    ") NATURAL LEFT JOIN (" +
+                    "SELECT [_id]" +
+                    ",sum([Correct]) as [Correct]" +
+                    ",sum([Total]) as [Total] " +
+                    "from [JScoreboard] " +
+                    "WHERE [_id] = ? GROUP BY [_id]" +
                     ") NATURAL LEFT JOIN (" +
                     "SELECT [_id]" +
                     ",SUM([Blue]) as [Blue]" +
@@ -923,7 +904,7 @@ if(debug) {
 
 
 
-
+//            asdf MIX IN SPECIAL SPANS HERE
 
             if (dd.getCount() > 0) {
                 dd.moveToFirst();
@@ -951,16 +932,16 @@ if(debug) {
 
                         ParseSentenceItem parseSentenceItem = new ParseSentenceItem(true,cleanKanjiIDs.get(index),coreKanji,coreFurigana);
                         parseSentenceItem.setWordEntry(new WordEntry(cleanKanjiIDs.get(index)
-                                                                                ,edictKanji
-                                                                                ,dd.getString(1)
-                                                                                ,dd.getString(2)
-                                                                                ,dd.getInt(3)
-                                                                                ,dd.getFloat(4)));
+                                ,edictKanji
+                                ,dd.getString(1)
+                                ,dd.getString(2)
+                                ,dd.getInt(3)
+                                ,dd.getFloat(4)));
                         parseSentenceItem.getWordEntry().setWordEntryFavorites(new WordEntryFavorites(dd.getInt(6)
-                                                                                                    ,dd.getInt(7)
-                                                                                                    ,dd.getInt(8)
-                                                                                                    ,dd.getInt(9)
-                                                                                                    ,dd.getInt(10)));
+                                ,dd.getInt(7)
+                                ,dd.getInt(8)
+                                ,dd.getInt(9)
+                                ,dd.getInt(10)));
 
 
                         if(debug) {
@@ -969,7 +950,14 @@ if(debug) {
 
 //                        System.out.println("oldEndPos: " + (prevkanjiposition+prevkanjilength) + " (" + prevkanjiposition + ") (" + prevkanjilength + ")");
 //                        System.out.println("newStartPos: " + (foundKanjiPosition + startposition) + " (" + foundKanjiPosition + ") (" + startposition + ")");
-                        assignEntrytoResults(index,(prevkanjiposition+prevkanjilength),(foundKanjiPosition + startposition),parseSentenceItem,resultMap);
+
+//                        if(specialSpans.size()>currentSpecialSpandsIndex) {
+                            currentSpecialSpandsIndex += assignEntrytoResults(index,(prevkanjiposition+prevkanjilength),(foundKanjiPosition + startposition),parseSentenceItem,resultMap,specialSpans, currentSpecialSpandsIndex);
+//                        } else {
+//                            assignEntrytoResults(index,(prevkanjiposition+prevkanjilength),(foundKanjiPosition + startposition),parseSentenceItem,resultMap,specialSpans,currentSpecialSpandsIndex)
+//                        }
+
+
 
 
                         lastEndPosition = (foundKanjiPosition + startposition) + parseSentenceItem.getKanjiConjugated().length();
@@ -985,7 +973,7 @@ if(debug) {
 
             /* Add the final dummy entry to the resultmap (if applicable)*/
             if(index + 1 == cleanKanjiIDs.size()) {
-                assignLastEntrytoResults(lastEndPosition,resultMap);
+                assignLastEntrytoResults(lastEndPosition,resultMap,specialSpans,currentSpecialSpandsIndex);
             }
 
             dd.close();
@@ -1005,52 +993,186 @@ if(debug) {
      * @param parseSentenceItem parseSentenceItem representing data for current kanji block
      * @param resultMap The result map that the parseSentenceItems will be added to
      *
-     * @see #compileFinalSentenceMap(SQLiteDatabase, ArrayList)
+//     * @see #compileFinalSentenceMap(SQLiteDatabase, ArrayList)
      */
-    public void assignEntrytoResults(int listIndex, int oldEndPosition, int newStartPosition, ParseSentenceItem parseSentenceItem, ArrayList<ParseSentenceItem> resultMap){
-
+    public int assignEntrytoResults(int listIndex, int oldEndPosition, int newStartPosition, ParseSentenceItem parseSentenceItem, ArrayList<ParseSentenceItem> resultMap, ArrayList<ParseSentenceSpecialSpan> specialSpans,int currentSpecialSpanIndex){
+        ParseSentenceSpecialSpan specialSpan = specialSpans.get(currentSpecialSpanIndex);
         /* If the first kanji does not appear at the beginning of the sentence (Which should happen pretty often), make a dummy entry that
          * only contains the raw characters for that length. This is for use in the FillintheSentences activity (the dummies are necessary
          * because we fill in the entirety of the sentence from the result of this parser, not just the kanji) */
 
         if (listIndex == 0 && newStartPosition > 0) {
-            ParseSentenceItem dummyParseSentenceItem = new ParseSentenceItem(false,0,entireSentence.substring(0, newStartPosition),entireSentence.substring(0, newStartPosition));
-            if(debug) {Log.d(TAG, "Adding to FINAL RESULT PACKAGE: " + entireSentence.substring(0, newStartPosition));}
-            resultMap.add(dummyParseSentenceItem);
-        } else
 
-        /* Add the non-kanji text in between ParseSetenceItem Kanjis */
-        if(newStartPosition > oldEndPosition ) {
+             /* Add the non-kanji text between the start of the sentence and the first Kanji*/
+            int startPosition = 0;
+            String nonKanjiSectionRemaining = entireSentence.substring(0, newStartPosition);
+            String currentSpecialSpan = specialSpan.getSpan();
 
-            String partofSentence = entireSentence.substring(oldEndPosition, newStartPosition);
-            ParseSentenceItem dummyParseSentenceItem = new ParseSentenceItem(false,0
-                    ,partofSentence
-                    ,partofSentence);
-//            System.out.println("INPUT DUMMY oldEndPosition: " + oldEndPosition + ", parsesent: " + dummyParseSentenceItem.getKanjiConjugated());
-            resultMap.add(dummyParseSentenceItem);
+            if(nonKanjiSectionRemaining.contains(specialSpan.getSpan())) {
+
+                while(currentSpecialSpan != null && nonKanjiSectionRemaining.contains(specialSpan.getSpan())) {
+
+                    String firstpartofSentence = entireSentence.substring(startPosition, specialSpan.getStartIndex());
+                    if (firstpartofSentence.length() > 0) {
+                        ParseSentenceItem dummyParseSentenceItem = new ParseSentenceItem(false, 0
+                                , firstpartofSentence
+                                , firstpartofSentence);
+                        resultMap.add(dummyParseSentenceItem);
+                        Log.d(TAG,"Logging first nonkanji: " + firstpartofSentence);
+                    }
+                    ParseSentenceItem spanParseSentence = new ParseSentenceItem(false, 0
+                            , specialSpan.getSpan()
+                            , specialSpan.getSpan());
+                    spanParseSentence.setType(specialSpan.getType());
+                    resultMap.add(spanParseSentence);
+                    Log.d(TAG,"Logging (1st block) special span: " + specialSpan.getSpan());
+
+                    nonKanjiSectionRemaining = entireSentence.substring(specialSpan.getEndIndex(), newStartPosition);
+                    startPosition = specialSpan.getEndIndex();
+                    currentSpecialSpanIndex += 1;
+                    if (specialSpans.size() > currentSpecialSpanIndex) {
+                        currentSpecialSpan = specialSpans.get(currentSpecialSpanIndex).getSpan();
+                    } else {
+                        currentSpecialSpan = null;
+                    }
+
+                }
+            } else {
+
+                /* Add the non-kanji section from the beginning of the sentence to the first kanji*/
+                ParseSentenceItem dummyParseSentenceItem = new ParseSentenceItem(false,0,entireSentence.substring(0, newStartPosition),entireSentence.substring(0, newStartPosition));
+                if(debug) {Log.d(TAG, "Logging first nonkanji: " + entireSentence.substring(0, newStartPosition));}
+                resultMap.add(dummyParseSentenceItem);
+
+            }
+
+
+
+
+
+        } else if(newStartPosition > oldEndPosition ) {
+
+                /* Add the non-kanji text in between ParseSetenceItem Kanjis */
+            int startPosition = oldEndPosition;
+            String nonKanjiSectionRemaining = entireSentence.substring(oldEndPosition, newStartPosition);
+            String currentSpecialSpan = specialSpan.getSpan();
+
+            if(nonKanjiSectionRemaining.contains(specialSpan.getSpan())) {
+
+
+
+                while(currentSpecialSpan != null && nonKanjiSectionRemaining.contains(specialSpan.getSpan())) {
+
+                    String firstpartofSentence = entireSentence.substring(startPosition, specialSpan.getStartIndex());
+                    if (firstpartofSentence.length() > 0) {
+                        ParseSentenceItem dummyParseSentenceItem = new ParseSentenceItem(false, 0
+                                , firstpartofSentence
+                                , firstpartofSentence);
+                        resultMap.add(dummyParseSentenceItem);
+                        Log.d(TAG,"Logging nonkanji: " + firstpartofSentence);
+                    }
+                    ParseSentenceItem spanParseSentence = new ParseSentenceItem(false, 0
+                            , specialSpan.getSpan()
+                            , specialSpan.getSpan());
+                    spanParseSentence.setType(specialSpan.getType());
+                    resultMap.add(spanParseSentence);
+                    Log.d(TAG,"Logging span: " + specialSpan.getSpan());
+
+                    nonKanjiSectionRemaining = entireSentence.substring(specialSpan.getEndIndex(), newStartPosition);
+                    startPosition = specialSpan.getEndIndex();
+                    currentSpecialSpanIndex += 1;
+                    if (specialSpans.size() > currentSpecialSpanIndex) {
+                        currentSpecialSpan = specialSpans.get(currentSpecialSpanIndex).getSpan();
+                    } else {
+                        currentSpecialSpan = null;
+                    }
+
+                }
+            } else {
+                /* Just add the non-kanji text */
+                ParseSentenceItem spanParseSentence = new ParseSentenceItem(false, 0
+                        , nonKanjiSectionRemaining
+                        , nonKanjiSectionRemaining);
+                resultMap.add(spanParseSentence);
+                Log.d(TAG,"Logging nonkanji: " + specialSpan.getSpan());
+
+            }
+
         }
 
         /* Add the current kanji */
-//        System.out.println("INPUT KANJI newStartPosition: " + newStartPosition + ", parsesent: " + parseSentenceItem.getKanjiConjugated() + ", " + parseSentenceItem.getFuriganaClean());
         resultMap.add(parseSentenceItem);
-
+        Log.d(TAG,"Logging KANJI: " + parseSentenceItem.getKanjiConjugated());
+        return currentSpecialSpanIndex;
     }
+
+
 
     /**
      * Creates a ParseSentenceItem for the final section of the sentence, after the last kanji (if such a section exists)
      * @param lastEndPosition end position of the last kanji in the sentence
      * @param resultMap The result map that the parseSentenceItems will be added to
      *
-     * @see #compileFinalSentenceMap(SQLiteDatabase, ArrayList)
+//     * @see #compileFinalSentenceMap(SQLiteDatabase, ArrayList)
+                        returns WHETHER THE SPECIAL SPAN WAS ADDED OR NOT
      */
-    public void assignLastEntrytoResults(int lastEndPosition, ArrayList<ParseSentenceItem> resultMap) {
-        String lastPartOfSentence = entireSentence.substring(lastEndPosition, entireSentence.length());
-        ParseSentenceItem dummyParseSentenceItem = new ParseSentenceItem(false,0,lastPartOfSentence,lastPartOfSentence);
-//        System.out.println("INPUT KANJI lastEndPosition: " + lastEndPosition + ", parsesent: " + dummyParseSentenceItem.getKanjiConjugated());
-        resultMap.add(dummyParseSentenceItem);
-//            System.out.println("FINAL: newstartposition: " + lastStartPosition + ", kanji: " + parseSentenceItem.getKanjiClean() + ", kanjilength: " + parseSentenceItem.getKanjiClean().length() + ", lastpart: " + lastPartOfSentence);
-    }
 
+    public void assignLastEntrytoResults(int lastEndPosition, ArrayList<ParseSentenceItem> resultMap, ArrayList<ParseSentenceSpecialSpan> specialSpans, int currentSpecialSpanIndex) {
+//        String lastPartOfSentence = entireSentence.substring(lastEndPosition, entireSentence.length());
+//        ParseSentenceItem dummyParseSentenceItem = new ParseSentenceItem(false,0,lastPartOfSentence,lastPartOfSentence);
+//        resultMap.add(dummyParseSentenceItem);
+
+        ParseSentenceSpecialSpan specialSpan = null;
+        if(specialSpans.size()>currentSpecialSpanIndex) {
+            specialSpan = specialSpans.get(currentSpecialSpanIndex);
+        }
+
+        int startPosition = lastEndPosition;
+        String nonKanjiSectionRemaining = entireSentence.substring(lastEndPosition, entireSentence.length());
+
+        if(specialSpan != null && nonKanjiSectionRemaining.contains(specialSpan.getSpan())) {
+            /* Add the non-kanji text in between ParseSetenceItem Kanjis */
+
+
+            String currentSpecialSpan = specialSpan.getSpan();
+
+            while(currentSpecialSpan != null && nonKanjiSectionRemaining.contains(specialSpan.getSpan())) {
+
+                String firstpartofSentence = entireSentence.substring(startPosition, specialSpan.getStartIndex());
+                if (firstpartofSentence.length() > 0) {
+                    ParseSentenceItem dummyParseSentenceItem = new ParseSentenceItem(false, 0
+                            , firstpartofSentence
+                            , firstpartofSentence);
+                    resultMap.add(dummyParseSentenceItem);
+                    Log.d(TAG,"Logging nonkanji: " + firstpartofSentence);
+                }
+                ParseSentenceItem spanParseSentence = new ParseSentenceItem(false, 0
+                        , specialSpan.getSpan()
+                        , specialSpan.getSpan());
+                spanParseSentence.setType(specialSpan.getType());
+                resultMap.add(spanParseSentence);
+                Log.d(TAG,"Logging span: " + specialSpan.getSpan());
+
+                nonKanjiSectionRemaining = entireSentence.substring(specialSpan.getEndIndex(), entireSentence.length());
+                startPosition = specialSpan.getEndIndex();
+                currentSpecialSpanIndex += 1;
+                if (specialSpans.size() > currentSpecialSpanIndex) {
+                    currentSpecialSpan = specialSpans.get(currentSpecialSpanIndex).getSpan();
+                } else {
+                    currentSpecialSpan = null;
+                }
+
+            }
+        } else {
+                /* Just add the non-kanji text  at the end*/
+            ParseSentenceItem nonKanjiParseSentenceItem = new ParseSentenceItem(false,0
+                    ,nonKanjiSectionRemaining
+                    ,nonKanjiSectionRemaining);
+            resultMap.add(nonKanjiParseSentenceItem);
+            Log.d(TAG,"Logging final nonkanji: " + nonKanjiSectionRemaining);
+
+        }
+    }
 
 
     /**
@@ -1058,7 +1180,7 @@ if(debug) {
      * @param edictKanji clean kanji from dictionary
      * @return conjugated form (i.e. form as it is found in the sentence) of the kanji
      *
-     * @see #compileFinalSentenceMap(SQLiteDatabase, ArrayList)
+//     * @see #compileFinalSentenceMap(SQLiteDatabase, ArrayList)
      */
     public String assignCoreKanji(String edictKanji) {
 
@@ -1078,7 +1200,7 @@ if(debug) {
      * @param edictFurigana clean furigana from dictionary
      * @return conjugated (or shortened) form of the dictionary furigana
      *
-     * @see #compileFinalSentenceMap(SQLiteDatabase, ArrayList)
+//     * @see #compileFinalSentenceMap(SQLiteDatabase, ArrayList)
      */
     public String assignCoreFurigana(String edictKanji, String coreKanji, String edictFurigana) {
         if (VerbChunksAndPositions.containsKey(coreKanji)) {
@@ -1130,17 +1252,17 @@ if(debug) {
         for(ParseSentencePossibleKanji possibleKanji : possibleKanjiInSentence) {
 
             /* If it's a spinner kanji, just pass it on to the next step */
-            if (wordvalues != null && wordvalues.contains(possibleKanji.getKanji())) {
-                if(debug){Log.d(TAG, "Spinner Kanji -- not iterating: " + possibleKanji.getKanji());}
-                possibleKanji.replaceBetterKanjiMatch(possibleKanji.getKanji());
-            } else {
+//            if (wordvalues != null && wordvalues.contains(possibleKanji.getKanji())) {
+//                if(debug){Log.d(TAG, "Spinner Kanji -- not iterating: " + possibleKanji.getKanji());}
+//                possibleKanji.replaceBetterKanjiMatch(possibleKanji.getKanji());
+//            } else {
                 /* Go back and chop up the original word, reattach the prefixes and suffixes to it, and search again...
                  * Kanji breakup builder -- if we can't find a match for a large kanji  (like + 3 characters), look for matches
                  * by breaking up those characters into smaller sets (of at least 1 kanji)*/
                 ArrayList<String> prefixsuffixKanjiCombos = createPrefixSuffixCombinations(possibleKanji);
                 searchDictionaryForWordMatches(possibleKanji, db, prefixsuffixKanjiCombos);
                 chopandCompare(possibleKanji,db);
-            }
+//            }
         }
         return possibleKanjiInSentence;
     }
@@ -1173,12 +1295,14 @@ if(debug) {
                         possibleKanji.setFoundInDictionary(true);
 
                         if (possibleKanji.getBetterKanjiMatches().size() > 0) {
-                            if(possibleKanji.getBetterKanjiMatches().get(0).length()<= cursorKanjiMatch.getString(0).length() && !wordvalues.contains(possibleKanji.getBetterKanjiMatches().get(0)) ) {
+                            if(possibleKanji.getBetterKanjiMatches().get(0).length()<= cursorKanjiMatch.getString(0).length()
+//                                    && !wordvalues.contains(possibleKanji.getBetterKanjiMatches().get(0))
+                                    ) {
                                 if(debug){Log.d(TAG,"LONGER MATCH FOUND. Replacing  " + possibleKanji.getBetterKanjiMatches().get(0) + " with " + cursorKanjiMatch.getString(0) );}
                                 /* If it's a spinner kanji, just move the word onto the BetterKanjiMatch element */
-                                if(!wordvalues.contains(cursorKanjiMatch.getString(0))) {
+//                                if(!wordvalues.contains(cursorKanjiMatch.getString(0))) {
                                     possibleKanji.replaceBetterKanjiMatch(cursorKanjiMatch.getString(0));
-                                }
+//                                }
                             }
 
                         } else {
@@ -1334,6 +1458,21 @@ if(debug) {
 
 
         return prefixsuffixKanjiCombos;
+    }
+
+
+    public static ArrayList<Integer> getSpecialSpanIndexes (ArrayList<ParseSentenceSpecialSpan> specialSpans) {
+        ArrayList<Integer> spanIndexes = new ArrayList<>();
+        for(ParseSentenceSpecialSpan span : specialSpans) {
+
+            for(int i = span.getStartIndex();i<span.getEndIndex(); i++) {
+                spanIndexes.add(i);
+            }
+
+
+        }
+
+        return spanIndexes;
     }
 
 }

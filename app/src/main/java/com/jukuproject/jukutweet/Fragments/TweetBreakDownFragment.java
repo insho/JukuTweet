@@ -36,13 +36,18 @@ import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.ParseSentenceItem;
+import com.jukuproject.jukutweet.Models.ParseSentenceSpecialSpan;
 import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.Models.Tweet;
+import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SentenceParser;
+import com.vdurmont.emoji.EmojiLoader;
+import com.vdurmont.emoji.EmojiManager;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
@@ -120,9 +125,37 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
         super.onActivityCreated(savedInstanceState);
 
         mSentence.setText(mTweet.getText());
+        mSentence.setAlpha(.7f);
+        //Try to add links
+        try {
+            List<TweetUrl> tweetUrls =  mTweet.getEntities().getUrls();
 
-        /** If there is an image icon, show it**/
-//        String url =  mDataset.get(holder.getAdapterPosition()).getLink();
+            for(TweetUrl url : tweetUrls) {
+                int[] indices = url.getIndices();
+
+                String urlToLinkify = "";
+
+                if(mTweet.getText().substring(indices[0]).contains(url.getDisplay_url())) {
+                    urlToLinkify = url.getDisplay_url();
+                } else if(mTweet.getText().substring(indices[0]).contains(url.getUrl())) {
+                    urlToLinkify = url.getUrl();
+                }
+                int startingLinkPos = startingLinkPos = mTweet.getText().indexOf(urlToLinkify,indices[0]);
+                SpannableString text = new SpannableString(mTweet.getText());
+                text.setSpan(new URLSpan(url.getUrl()), startingLinkPos, startingLinkPos + urlToLinkify.length(), 0);
+                mSentence.setMovementMethod(LinkMovementMethod.getInstance());
+                mSentence.setText(text, TextView.BufferType.SPANNABLE);
+
+            }
+        } catch (NullPointerException e) {
+            Log.e(TAG,"mTweet urls are null : " + e);
+        } catch (Exception e) {
+            Log.e(TAG,"Error adding url info: " + e);
+        }
+
+
+
+
 //        String title = mDataset.get(holder.getAdapterPosition()).getTitle();
 //        if(url != null) {
 //            SpannableString text = new SpannableString(title);
@@ -132,6 +165,37 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
 //        } else {
 //            holder.txtTitle.setText(title);
 //        }
+        final String sentence = mTweet.getText();
+        final ArrayList<ParseSentenceSpecialSpan> specialSpans = new ArrayList<>();
+        final ArrayList<Integer> specialSpansArray = new ArrayList<>();
+
+        for(TweetUrl url : mTweet.getEntities().getUrls()) {
+            if(sentence.substring(url.getIndices()[0]).contains(url.getDisplay_url())) {
+                specialSpans.add(new ParseSentenceSpecialSpan("url",url.getDisplay_url(),sentence));
+
+                int startIndex = sentence.indexOf(url.getDisplay_url());
+                int endIndex = startIndex + url.getDisplay_url().length();
+
+                for(int i = startIndex;i<endIndex; i++) {
+                    specialSpansArray.add(i);
+                }
+
+
+            } else if(mTweet.getText().substring(url.getIndices()[0]).contains(url.getUrl())) {
+                specialSpans.add(new ParseSentenceSpecialSpan("url",url.getUrl(),sentence));
+
+                int startIndex = sentence.indexOf(url.getDisplay_url());
+                int endIndex = startIndex + url.getDisplay_url().length();
+
+                for(int i = startIndex;i<endIndex; i++) {
+                    specialSpansArray.add(i);
+                }
+            }
+
+        }
+
+//        ArrayList<ParseSentenceItem> parsedTweet = new ArrayList<>();
+
 
         Single<ArrayList<ParseSentenceItem>> disectTweet = Single.fromCallable(new Callable<ArrayList<ParseSentenceItem>>() {
 
@@ -140,10 +204,9 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
                 InternalDB helper = InternalDB.getInstance(getContext());
                 SQLiteDatabase db = helper.getReadableDatabase();
 
-                return SentenceParser.getInstance().parseSentence(mTweet.getText()
+                return SentenceParser.getInstance().parseSentence(sentence
                         ,db
-                        ,new ArrayList<Integer>()
-                        ,new ArrayList<String>()
+                        ,specialSpans
                         ,helper.getWordLists(db)
                         ,colorThresholds);
             }
@@ -158,11 +221,12 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
                     public void onSuccess(ArrayList<ParseSentenceItem> disectedTweet) {
                         loadArray(disectedTweet);
                         showProgressBar(false);
+                        mSentence.setAlpha(1.0f);
                     }
 
                     @Override
                     public void onError(Throwable error) {
-                        Log.e(TAG,"ERROR IN PARSE SENTENCE OBSERVABLE");
+                        Log.e(TAG,"ERROR IN PARSE SENTENCE OBSERVABLE: " + error);
                         showProgressBar(false);
                     }
                 });
@@ -395,6 +459,11 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
     public void loadArray(ArrayList<ParseSentenceItem> disectedTweet) {
         ArrayList<WordEntry> kanjiEntriesInTweet = new ArrayList<>();
         for(ParseSentenceItem parseSentenceItem : disectedTweet) {
+
+            if(BuildConfig.DEBUG) {
+                Log.d(TAG,"OUTPUT ITEM: " + parseSentenceItem.getKanjiConjugated());
+            }
+
             if(parseSentenceItem.isKanji() && parseSentenceItem.getWordEntry() != null) {
                 kanjiEntriesInTweet.add(parseSentenceItem.getWordEntry());
             }
@@ -436,6 +505,24 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
             progressBar.setVisibility(View.GONE);
         }
     }
+
+
+//    //CORRECTLY ORDERED SPANS
+//    public void createSentenceSalad(String entireSentence, ArrayList<ParseSentenceSpecialSpan> spans) {
+//        //Get chunk from sentence start to first span begin
+//        if(spans.size()>0) {
+//            if(spans.get(0).getStartIndex()>0) {
+//                asdf
+//            }
+//
+//
+//
+//
+//
+//        }
+//    }
+
+
 
 
 
