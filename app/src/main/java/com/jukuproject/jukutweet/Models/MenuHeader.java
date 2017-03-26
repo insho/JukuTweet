@@ -16,7 +16,15 @@ public class MenuHeader {
     private Boolean myList;
     private Boolean systemList;
     private Boolean colorList;
+    private Boolean isExpanded;
 
+    public Boolean isExpanded() {
+        return isExpanded;
+    }
+
+    public void setExpanded(Boolean expanded) {
+        isExpanded = expanded;
+    }
 
     public MenuHeader(){}
     public MenuHeader(String headerTitle) {
@@ -28,6 +36,7 @@ public class MenuHeader {
         this.myList = false;
         this.systemList = false;
         this.colorList = false;
+        this.isExpanded = false;
     }
 
     public ColorBlockMeasurables getColorBlockMeasurables() {
@@ -50,7 +59,13 @@ public class MenuHeader {
         return headerTitle;
     }
 
-
+    public int getSystemList() {
+        if(systemList) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
 
     public boolean isSystemList() {
         return systemList;

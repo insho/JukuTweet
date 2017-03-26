@@ -14,6 +14,7 @@ package com.jukuproject.jukutweet.Database;
         import com.jukuproject.jukutweet.Models.ColorThresholds;
         import com.jukuproject.jukutweet.Models.MyListEntry;
         import com.jukuproject.jukutweet.Models.UserInfo;
+        import com.jukuproject.jukutweet.Models.WordEntry;
         import com.jukuproject.jukutweet.Models.WordLoader;
 
         import java.util.ArrayList;
@@ -363,7 +364,7 @@ public class InternalDB extends SQLiteOpenHelper {
      * @param inputDB Sqlite database connection
      * @return WordLoader object with array lists and maps of various japanse characters
      *
-     * @see com.jukuproject.jukutweet.SentenceParser#parseSentence(String, SQLiteDatabase, ArrayList, ArrayList, WordLoader, ColorThresholds, ArrayList)
+//     * @see com.jukuproject.jukutweet.SentenceParser#parseSentence(String, SQLiteDatabase, ArrayList, ArrayList, WordLoader, ColorThresholds, ArrayList)
      */
     public WordLoader getWordLists(@Nullable SQLiteDatabase inputDB) {
         SQLiteDatabase db;
@@ -571,7 +572,7 @@ public class InternalDB extends SQLiteOpenHelper {
                 return removeKanjiFromMyList(kanjiID,originalColor,1);
 
             } else {
-                String sql = "Update "  + TABLE_FAVORITES_LIST_ENTRIES + " SET [Name]=? WHERE [Name]=? and [Sys] = 1 and [_id] = ?";
+                String sql = "Update "  + TABLE_FAVORITES_LIST_ENTRIES + " SET "+TFAVORITES_COL0+" = ? WHERE "+ TFAVORITES_COL0 +"= ? and " + TFAVORITES_COL1+" = 1 and " + COL_ID + " = ?";
                 SQLiteStatement statement = db.compileStatement(sql);
                 statement.bindString(1, updatedColor);
                 statement.bindString(2, originalColor);
@@ -690,6 +691,43 @@ public class InternalDB extends SQLiteOpenHelper {
     }
         Log.d(TAG,"GETFAVS returning mylist entries: " + myListEntries.size());
         return myListEntries;
+    }
+
+
+    public ArrayList<WordEntry> getMyListWords(MyListEntry myListEntry) {
+        ArrayList<WordEntry> wordEntries = new ArrayList<>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        try {
+            Cursor c = db.rawQuery("SELECT  x.[_id],x.[Kanji],(CASE WHEN (x.Furigana is null OR  x.Furigana = '') then \"\" else \"(\" || x.Furigana || \")\" end) as [Furigana],x.[Definition],ifnull(y.[Correct],0),ifnull(y.[Total],0),(CASE WHEN [Total] >0 THEN CAST(ifnull([Correct],0)  as float)/[Total] ELSE 0 END) as [Percent] FROM (SELECT [_id],[Kanji],[Furigana],[Definition]  FROM [Edict] WHERE [_id] IN (SELECT [_id] FROM [JFavorites] WHERE ([Sys] = ? and [Name] = ?)) ORDER BY [_id]) as x LEFT JOIN (SELECT [_id],sum([Correct]) as [Correct],sum([Total]) as [Total]  FROM [JScoreboard] WHERE [_id] IN (SELECT [_id] FROM [JFavorites] WHERE ([Sys] = ? and [Name] = ?))  GROUP BY [_id]) as y ON x.[_id] = y.[_id]", new String[]{String.valueOf(myListEntry.getListsSys()),myListEntry.getListName(),String.valueOf(myListEntry.getListsSys()),myListEntry.getListName()});
+            if(c.getCount()>0) {
+                c.moveToFirst();
+                while (!c.isAfterLast())
+
+                {
+                    WordEntry wordEntry = new WordEntry();
+                    wordEntry.setId(c.getInt(0));
+                    wordEntry.setKanji(c.getString(1));
+                    wordEntry.setFurigana(c.getString(2));
+                    wordEntry.setDefinition(c.getString(3));
+                    wordEntry.setTotal(c.getInt(5));
+                    wordEntry.setPercentage(c.getFloat(6));
+                    wordEntries.add(wordEntry);
+
+                    c.moveToNext();
+                }
+                c.close();
+            } else {
+                if(debug) {Log.d(TAG,"c.getcount was 0!!");}
+            }
+        } catch (SQLiteException e){
+            Log.e(TAG,"getmylistwords Sqlite exception: " + e);
+        } catch (Exception e) {
+            Log.e(TAG,"getmylistwords generic exception: " + e);
+        } finally {
+            db.close();
+        }
+        return wordEntries;
     }
 
 

@@ -142,10 +142,11 @@ public class UserTimeLineFragment extends Fragment {
 //                                                if(BuildConfig.DEBUG) {
 //                                                    Log.d(TAG,"TWEET URL:" + tweet.getEntities().getUrls().get(0).getUrl());
 //                                                }
-                                                TweetBreakDownFragment fragment = new TweetBreakDownFragment();
-                                                Bundle bundle = new Bundle();
-                                                bundle.putParcelable("tweet",tweet);
-                                                fragment.setArguments(bundle);
+                                                TweetBreakDownFragment fragment = TweetBreakDownFragment.newInstance(tweet);
+//                                                TweetBreakDownFragment fragment = new TweetBreakDownFragment();
+//                                                Bundle bundle = new Bundle();
+//                                                bundle.putParcelable("tweet",tweet);
+//                                                fragment.setArguments(bundle);
                                                 ((BaseContainerFragment)getParentFragment()).addFragment(fragment, true,"tweetbreakdown");
                                                 //Hide the fab
                                                 mCallback.showFab(false,"");

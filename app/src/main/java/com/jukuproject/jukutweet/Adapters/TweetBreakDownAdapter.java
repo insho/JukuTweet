@@ -21,6 +21,7 @@ import android.widget.Toast;
 
 import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
+import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MyListEntry;
@@ -38,6 +39,10 @@ import rx.functions.Action1;
 public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAdapter.ViewHolder>  {
     String TAG = "TweetBreakDownAdapter";
     private static final boolean debug = false;
+
+    //Pass instructions to mainactivity if at least one row is selected, to show icons in action bar
+    private FragmentInteractionListener mCallback;
+
 
     private Context mContext;
     private DisplayMetrics mMetrics;

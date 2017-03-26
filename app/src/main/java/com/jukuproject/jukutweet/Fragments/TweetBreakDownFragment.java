@@ -523,19 +523,12 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
         }
 
 
-
-
-
-
-
-
-
         RecyclerView.Adapter mAdapter = new TweetBreakDownAdapter(getContext(),metrics,kanjiEntriesInTweet,colorThresholds,activeFavoriteStars);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.setVerticalScrollBarEnabled(true);
-
+        mRecyclerView.setMinimumHeight(metrics.heightPixels/2);
         baseLayout.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
 

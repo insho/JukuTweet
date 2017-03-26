@@ -23,12 +23,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 //import com.jukuproject.jukutweet.BaseContainerFragment;
+import com.jukuproject.jukutweet.BaseContainerFragment;
 import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Adapters.MenuExpandableListAdapter;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
 import com.jukuproject.jukutweet.Models.MenuHeader;
+import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.R;
 
@@ -39,7 +41,7 @@ import java.util.Arrays;
  * Shows user-created lists of vocabulary
  */
 
-public class MyListFragment extends Fragment {
+public class MyListFragment  extends Fragment{
 
     String TAG = "MyListFragment";
     FragmentInteractionListener mCallback;
@@ -87,27 +89,48 @@ public class MyListFragment extends Fragment {
                         lblListHeaderCount.setVisibility(TextView.VISIBLE);
                         lblListHeaderCount.setText(getString(R.string.empty_parenthesis));
                     }
-                } else if (lastExpandedPosition != -1
-                        && groupPosition != lastExpandedPosition) {
-                    expListView.collapseGroup(lastExpandedPosition);
-                    lastExpandedPosition = groupPosition;
+                } else if (!mMenuHeader.get(groupPosition).isExpanded()) {
+
+                    if(lastExpandedPosition != groupPosition) {
+                        expListView.collapseGroup(lastExpandedPosition);
+                    }
+
                     expListView.expandGroup(groupPosition);
                     expListView.setSelectedGroup(groupPosition);
+                    mMenuHeader.get(groupPosition).setExpanded(true);
+                    lastExpandedPosition = groupPosition;
                 }  else {
-                    if (BuildConfig.DEBUG) {
-                        Log.e(TAG, "NO LISTS TO EXPAND");
-                    }
+                    expListView.collapseGroup(groupPosition);
+                    mMenuHeader.get(groupPosition).setExpanded(false);
                 }
                 return true;   //"True" makes it impossible to collapse the list
             }
         });
+
+//        expListView.setOnGroupExpandListener(new ExpandableListView.OnGroupExpandListener() {
+//
+//            @Override
+//            public void onGroupExpand(int groupPosition) {
+//
+//                if (lastExpandedPosition != -1 && groupPosition != lastExpandedPosition) {
+//                    expListView.collapseGroup(lastExpandedPosition);
+//                    lastExpandedPosition = groupPosition;
+//                }
+//
+//                int idx = expListView.getFirstVisiblePosition() + expListView.getFirstVisiblePosition() * groupPosition;
+//                expListView.setSelectionFromTop(idx, idx);
+//            }
+//        });
 
         expListView.setOnGroupExpandListener(new ExpandableListView.OnGroupExpandListener() {
 
             @Override
             public void onGroupExpand(int groupPosition) {
 
-                if (lastExpandedPosition != -1 && groupPosition != lastExpandedPosition) {
+                if (lastExpandedPosition != -1
+                        && groupPosition != lastExpandedPosition
+                        && mMenuHeader.get(groupPosition).getColorBlockMeasurables().getTotalCount()> 0
+                        ) {
                     expListView.collapseGroup(lastExpandedPosition);
                     lastExpandedPosition = groupPosition;
                 }
@@ -123,28 +146,28 @@ public class MyListFragment extends Fragment {
             public boolean onChildClick(ExpandableListView parent, View v,
                                         int groupPosition, int childPosition, long id) {
 //                String Header = listDataHeader.get(groupPosition);
-//                String childOption = listDataChild.get(listDataHeader.get(groupPosition)).get(childPosition); //This is the text in the child that the user clicked
-//                int sys = 0;
-//                if (addStarList != null && addStarList.size() > groupPosition) {
-//
-//                    if (addStarList.get(groupPosition) == 1) {
-//                        sys = 1;
-//                    }
-//
+                String childOption = mMenuHeader.get(groupPosition).getChildOptions().get(childPosition); //This is the text in the child that the user clicked
+//                if (BuildConfig.DEBUG) {
+//                    Log.d(TAG, "Header: " + mMenuHeader.get(groupPosition).getHeaderTitle());
+//                    Log.d(TAG, "Child: " + mMenuHeader.get(groupPosition).getChildOptions().get(childPosition));
 //                }
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "Header: " + mMenuHeader.get(groupPosition).getHeaderTitle());
-                    Log.d(TAG, "Child: " + mMenuHeader.get(groupPosition).getChildOptions().get(childPosition));
-                }
-                Toast.makeText(getActivity(), "Header: " + mMenuHeader.get(groupPosition).getHeaderTitle() + ", child: " + mMenuHeader.get(groupPosition).getChildOptions().get(childPosition), Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getActivity(), "Header: " + mMenuHeader.get(groupPosition).getHeaderTitle() + ", child: " + mMenuHeader.get(groupPosition).getChildOptions().get(childPosition), Toast.LENGTH_SHORT).show();
 
-//                switch (childOption) {
+                switch (childOption) {
 //                    case "Flash Cards":
 //                        MenuOptionsDialog a = new MenuOptionsDialog(getActivity(), 0, 0, "flashcards", true, Header, sys, mylistposition);
 //                        a.CreateDialog();
 //                        break;
-//                    case "Browse/Edit":
-//
+                    case "Browse/Edit":
+                        MyListBrowseFragment fragment = MyListBrowseFragment.newInstance(new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).getSystemList()));
+                        ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"mylistbrowse");
+                        //Hide the fab
+                        mCallback.showFab(false,"");
+                        break;
+
+                    default:
+
+                        break;
 //                        sendMessage(parent, Header, sys);
 //                        break;
 //                    case "Multiple Choice":
@@ -181,7 +204,7 @@ public class MyListFragment extends Fragment {
 //                        getActivity().finish();
 //                        startActivity(intent);
 //                        break;
-//                }
+                }
                 return false;
             }
         });

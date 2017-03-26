@@ -1,11 +1,14 @@
 package com.jukuproject.jukutweet.Models;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 /**
  * Created by JClassic on 3/24/2017.
  */
+//See mylistbrowsefragment
 
-
-public class MyListEntry {
+public class MyListEntry implements Parcelable {
 
     public MyListEntry(String listName, Integer listsSys) {
         this.listName = listName;
@@ -43,6 +46,37 @@ public class MyListEntry {
     public void setSelectionLevel(Integer selectionLevel) {
         this.selectionLevel = selectionLevel;
     }
+
+
+
+    // Parcelling part
+    public MyListEntry(Parcel in){
+
+        this.listName = in.readString();
+        this.listsSys = in.readInt();
+        this.selectionLevel = in.readInt();
+    }
+
+    public int describeContents(){
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.listName);
+        dest.writeInt(this.listsSys);
+        dest.writeInt(this.selectionLevel);
+    }
+
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+        public MyListEntry createFromParcel(Parcel in) {
+            return new MyListEntry(in);
+        }
+
+        public MyListEntry[] newArray(int size) {
+            return new MyListEntry[size];
+        }
+    };
 
 }
 
