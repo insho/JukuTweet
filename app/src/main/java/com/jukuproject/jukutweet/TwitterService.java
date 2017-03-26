@@ -6,6 +6,7 @@ package com.jukuproject.jukutweet;
 
         import com.jukuproject.jukutweet.Models.Tweet;
         import com.jukuproject.jukutweet.Models.UserInfo;
+        import com.jukuproject.jukutweet.Models.UserProfileBanner;
 
         import java.util.List;
         import retrofit2.http.GET;
@@ -16,12 +17,12 @@ public interface TwitterService {
 
         //Initial call to pull user information and store in DB match it to UserInfo
         @GET("users/show.json") Observable<UserInfo> getUserInfo(@Query("screen_name") String username);
-        //Call to get tweets from that user
-//        GET https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=twitterapi&count=2
-//        @GET("statuses/user_timeline.json?screen_name={username}&count={tweetcount}") Observable<ArrayList<Tweet>> getLatestTweets(@Path("username") String username, @Path("tweetcount") String count);
 
+        //Get a smaller version of the user's profile image (404 error if there is no image)
+        @GET("users/profile_banner.json") Observable<UserProfileBanner> getProfileBanner(@Query("screen_name") String username);
+
+        //Call to get tweets from that user
         @GET("statuses/user_timeline.json")
         Observable<List<Tweet>> getUserTimeline(@Query("screen_name") String screenName, @Query("count") int count);
-//    @GET("{requesttype}/{section}/{time}.json") Observable<NYTimesArticleWrapper> getArticles(@Path("requesttype") String requesttype, @Path("section") String section, @Path("time") String time,  @Query("api-key") String apiKey);
 
 }

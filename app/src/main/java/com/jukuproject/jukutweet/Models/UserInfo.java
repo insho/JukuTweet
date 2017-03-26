@@ -3,35 +3,48 @@ package com.jukuproject.jukutweet.Models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.text.NumberFormat;
+import java.util.Locale;
+
 /**
  * Created by JukuProject on 3/20/2017.
  * Represents data for a single twitter user in the InternalDB database
  */
 
 public class UserInfo implements Parcelable  {
+
+
+    private Integer user_id;
+
+    public String getName() {
+        return name;
+    }
+
+    private String name;
+    private String location;
+    private String description;
+    private String url;
+    private Integer followers_count;
+    private Integer friends_count;
+    private Integer listed_count;
+    private String profile_background_image_url;
+    private String profile_image_url;
+    private String profile_banner_url;
+
+    private String screen_name;
+
+    public String getBannerUrl() {
+        return profile_banner_url;
+    }
+
     public UserInfo() {}
 
     public UserInfo(String screen_name) {
         this.screen_name = screen_name;
-        this.displayName = "\u0040" + screen_name;
     }
 
     public String getScreenName() {
         return screen_name;
-    }
-
-    public void setScreenName(String screen_name) {
-        this.screen_name = screen_name;
-    }
-
-
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
     }
 
     public String getDescription() {
@@ -46,15 +59,12 @@ public class UserInfo implements Parcelable  {
         return url;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
     public String getFollowerCountString() {
-        if(followers_count == null) {
-            return "";
-        } else {
-            return String.valueOf(followers_count);
+
+        try {
+            return NumberFormat.getNumberInstance(Locale.getDefault()).format(followers_count);
+        } catch (Exception e) {
+            return "?";
         }
 
     }
@@ -69,11 +79,13 @@ public class UserInfo implements Parcelable  {
     }
 
     public String getFriendCountString() {
-        if(friends_count == null) {
-            return "";
-        } else {
-            return String.valueOf(friends_count);
+
+        try {
+            return NumberFormat.getNumberInstance(Locale.getDefault()).format(friends_count);
+        } catch (Exception e) {
+            return "?";
         }
+
 
     }
     public Integer getFriendCount() {
@@ -85,23 +97,11 @@ public class UserInfo implements Parcelable  {
         this.friends_count = friends_count;
     }
 
-    public Integer getListed_count() {
-        return listed_count;
-    }
+//    public String getBannerUrl() {
+//        return profile_background_image_url;
+//    }
 
-    public void setListed_count(Integer listed_count) {
-        this.listed_count = listed_count;
-    }
-
-    public String getProfile_background_image_url() {
-        return profile_background_image_url;
-    }
-
-    public void setProfile_background_image_url(String profile_background_image_url) {
-        this.profile_background_image_url = profile_background_image_url;
-    }
-
-    public String getProfile_image_url() {
+    public String getProfileImageUrl() {
         return profile_image_url;
     }
 
@@ -109,24 +109,10 @@ public class UserInfo implements Parcelable  {
         this.profile_image_url = profile_image_url;
     }
 
-    public String getProfile_banner_url() {
-        return profile_banner_url;
-    }
+    public String getDisplayScreenName() {
 
-    public void setProfile_banner_url(String profile_banner_url) {
-        this.profile_banner_url = profile_banner_url;
+        return "\u0040" + screen_name;
     }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
-    private String displayName;
-    private String screen_name;
 
     public Integer getUserId() {
         return user_id;
@@ -136,23 +122,13 @@ public class UserInfo implements Parcelable  {
         this.user_id = user_id;
     }
 
-    private Integer user_id;
-    private String location;
-    private String description;
-    private String url;
-    private Integer followers_count;
-    private Integer friends_count;
-    private Integer listed_count;
-    private String profile_background_image_url;
-    private String profile_image_url;
-    private String profile_banner_url;
 
     // Parcelling part
     public UserInfo(Parcel in){
         String[] data = new String[8];
 
         in.readStringArray(data);
-        this.displayName = data[0];
+        this.name = data[0];
         this.screen_name = data[1];
         this.user_id = Integer.parseInt(data[2]);
         this.location = data[3];
@@ -174,9 +150,12 @@ public class UserInfo implements Parcelable  {
         return 0;
     }
 
+
+
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeStringArray(new String[] {this.displayName,
+        dest.writeStringArray(new String[] {
+                this.name,
                 this.screen_name,
                 String.valueOf(this.user_id),
                 this.location,

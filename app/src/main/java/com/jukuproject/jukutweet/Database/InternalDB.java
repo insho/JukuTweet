@@ -11,10 +11,8 @@ package com.jukuproject.jukutweet.Database;
         import android.util.Log;
 
 
-        import com.jukuproject.jukutweet.Fragments.MyListFragment;
         import com.jukuproject.jukutweet.Models.ColorThresholds;
         import com.jukuproject.jukutweet.Models.MyListEntry;
-        import com.jukuproject.jukutweet.Models.SharedPrefManager;
         import com.jukuproject.jukutweet.Models.UserInfo;
         import com.jukuproject.jukutweet.Models.WordLoader;
 
@@ -214,8 +212,8 @@ public class InternalDB extends SQLiteOpenHelper {
                 if(userInfo.getFriendCount() != null){
                     values.put(TMAIN_COL4, userInfo.getFriendCount());
                 }
-                if(userInfo.getProfile_image_url() != null) {
-                    values.put(TMAIN_COL5, userInfo.getProfile_image_url().trim());
+                if(userInfo.getProfileImageUrl() != null) {
+                    values.put(TMAIN_COL5, userInfo.getProfileImageUrl().trim());
                 }
 
                 db.insert(TABLE_MAIN, null, values);
@@ -335,8 +333,8 @@ public class InternalDB extends SQLiteOpenHelper {
             if(recentUserInfo.getFriendCount() != null && oldUserInfo.getFriendCount() != recentUserInfo.getFriendCount()) {
                 values.put(InternalDB.TMAIN_COL4, recentUserInfo.getFriendCount());
             }
-            if(recentUserInfo.getProfile_image_url() != null && !oldUserInfo.getProfile_image_url().equals(recentUserInfo.getProfile_image_url())) {
-                values.put(InternalDB.TMAIN_COL5, recentUserInfo.getProfile_image_url().trim());
+            if(recentUserInfo.getProfileImageUrl() != null && !oldUserInfo.getProfileImageUrl().equals(recentUserInfo.getProfileImageUrl())) {
+                values.put(InternalDB.TMAIN_COL5, recentUserInfo.getProfileImageUrl().trim());
             }
 
             if(values.size()>0) {

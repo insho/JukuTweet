@@ -1,6 +1,5 @@
 package com.jukuproject.jukutweet.Adapters;
 
-        import android.content.Context;
         import android.support.v7.widget.RecyclerView;
         import android.view.LayoutInflater;
         import android.view.View;
@@ -51,7 +50,7 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
 
-        holder.txtUserName.setText(getUser(position).getDisplayName());
+        holder.txtUserName.setText(getUser(position).getDisplayScreenName());
         holder.txtUserDescription.setText(getUser(position).getDescription());
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override

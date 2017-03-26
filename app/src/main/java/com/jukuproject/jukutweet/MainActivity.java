@@ -29,6 +29,7 @@ import android.widget.Toast;
 import com.jukuproject.jukutweet.Database.ExternalDB;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.AddOrRenameMyListDialog;
+import com.jukuproject.jukutweet.Dialogs.AddUserCheckDialog;
 import com.jukuproject.jukutweet.Dialogs.AddUserDialog;
 import com.jukuproject.jukutweet.Dialogs.EditMyListDialog;
 import com.jukuproject.jukutweet.Dialogs.RemoveUserDialog;
@@ -64,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      */
     private ViewPager mViewPager;
     private AddUserDialog addUserDialogFragment;
+    private AddUserCheckDialog addUserCheckDialogFragment;
     private RemoveUserDialog removeUserDialogFragment;
     private AddOrRenameMyListDialog addOrRenameMyListDialogFragment;
     private EditMyListDialog editMyListDialogFragment;
@@ -184,6 +186,25 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
     }
 
+
+
+    public void showAddUserCheckDialog(UserInfo userInfo){
+        if (addUserCheckDialogFragment == null || !addUserCheckDialogFragment.isAdded()) {
+            Log.d(TAG,"loading addusercheck");
+            addUserCheckDialogFragment = AddUserCheckDialog.newInstance(userInfo);
+            addUserCheckDialogFragment.show(getFragmentManager(), "dialogAddCheck");
+        }
+    }
+
+
+//    public void showAddUserCheckDialog(){
+//        Log.d(TAG,"SHOWING add user check: " + (addUserCheckDialogFragment != null) + ", " +!addUserCheckDialogFragment.isAdded() );
+//        if (addUserCheckDialogFragment != null && !addUserCheckDialogFragment.isAdded()) {
+//            addUserCheckDialogFragment.show(getFragmentManager(), "dialogAddCheck");
+//        }
+//    }
+
+
     /**
      * Recieves input text from add user dialog
      * Checks if that user already exists in database
@@ -213,6 +234,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         removeUserDialogFragment = null;
         addOrRenameMyListDialogFragment = null;
         editMyListDialogFragment = null;
+        addUserCheckDialogFragment = null;
     }
 
     /**r
@@ -278,8 +300,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                         UserInfo userInfoInstance;
 
 
-
-
                         @Override public void onCompleted() {
                             if(debug){
                                 Log.d(TAG, "In onCompleted()");}
@@ -289,17 +309,9 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                             if(userInfoInstance != null) {
 
                                 //TODO DO STUFF, like pull data into db, or whatever
+                                showAddUserCheckDialog(userInfoInstance);
 
 
-                                if(InternalDB.getInstance(getBaseContext()).saveUser(userInfoInstance)) {
-//                                    Toast.makeText(MainActivity.this, "Successful pull for " + userInfoInstance.getScreenName() + "!", Toast.LENGTH_SHORT).show();
-
-                                    // Locate Tab1Continer and update the UserListInfo adapter to reflect removed item
-                                    if(findFragmentByPosition(0) != null && findFragmentByPosition(0) instanceof Tab1Container) {
-                                        ((Tab1Container) findFragmentByPosition(0)).updateUserListFragment();
-                                    }
-
-                                }
 
 
 //                            showToolBarBackButton(true,getArticleRequestType(requesttype));
@@ -332,6 +344,17 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                         }
                     });
 
+    }
+
+
+    public void saveAndUpdateUserInfoList(UserInfo userInfoInstance) {
+        if(InternalDB.getInstance(getBaseContext()).saveUser(userInfoInstance)) {
+
+            // Locate Tab1Continer and update the UserListInfo adapter to reflect removed item
+            if(findFragmentByPosition(0) != null && findFragmentByPosition(0) instanceof Tab1Container) {
+                ((Tab1Container) findFragmentByPosition(0)).updateUserListFragment();
+            }
+        }
     }
 
 

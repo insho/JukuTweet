@@ -1,5 +1,7 @@
 package com.jukuproject.jukutweet.Interfaces;
 
+import com.jukuproject.jukutweet.Models.UserInfo;
+
 /**
  * Created by JukuProject on 3/19/2017.
  *
@@ -14,4 +16,7 @@ public interface DialogInteractionListener {
     void onEditMyListDialogPositiveClick(int selectedItem, String listName, boolean isStarFavorite);
     void onDialogDismiss();
     void onRenameMyListDialogPositiveClick(String oldListName, String listName);
+
+    void saveAndUpdateUserInfoList(UserInfo userInfo);
+//    void showAddUserCheckDialog();
 }

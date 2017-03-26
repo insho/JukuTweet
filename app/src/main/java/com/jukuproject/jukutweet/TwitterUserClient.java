@@ -6,6 +6,7 @@ package com.jukuproject.jukutweet;
         import com.google.gson.GsonBuilder;
         import com.jukuproject.jukutweet.Models.Tweet;
         import com.jukuproject.jukutweet.Models.UserInfo;
+        import com.jukuproject.jukutweet.Models.UserProfileBanner;
 
         import java.util.List;
 
@@ -77,6 +78,9 @@ public class TwitterUserClient {
         return twitterService.getUserTimeline(username, count);
     }
 
+    public Observable<UserProfileBanner> getProfileBanner(@NonNull String username) {
+        return twitterService.getProfileBanner(username);
+    }
 
 }
 
