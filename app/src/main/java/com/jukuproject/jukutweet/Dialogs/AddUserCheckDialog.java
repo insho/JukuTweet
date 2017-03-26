@@ -5,15 +5,12 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
-import android.content.res.Resources;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
 import android.text.SpannableString;
 import android.text.method.LinkMovementMethod;
 import android.text.style.URLSpan;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -75,44 +72,39 @@ public class AddUserCheckDialog extends DialogFragment {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-
-
         final UserInfo userInfo = getArguments().getParcelable("userInfo");
-Log.d(TAG,"HERE AT BEGINNING");
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        View dialogView = inflater.inflate(R.layout.fragment_dialog_addusercheck, null);
 
+        //If there is no banner, show the simple different layout
+        View dialogView;
+        if(userInfo.getBannerUrl() == null) {
+            dialogView  = inflater.inflate(R.layout.fragment_dialog_addusercheck_simple, null);
+        } else {
 
-        //Set images
-        imgBanner = (ImageView) dialogView.findViewById(R.id.imgBanner);
-        ImageView imgProfile = (ImageView) dialogView.findViewById(R.id.imgUser);
+            dialogView  = inflater.inflate(R.layout.fragment_dialog_addusercheck, null);
+            imgBanner = (ImageView) dialogView.findViewById(R.id.imgBanner);
+            try {
+                loadBestFitBanner(userInfo.getScreenName(),imgBanner);
+                //TODO set onclick listener for the banner
 
-        try {
-            loadBestFitBanner(userInfo.getScreenName(),imgBanner);
-            //TODO set onclick listener for the banner
-
-        } catch (NullPointerException e) {
-            //TODO HIDE BANNER
-            Log.e(TAG,"loadbestfit Nullpointer: " + e);
-//            mAddUserDialogListener.showAddUserCheckDialog();
-//            showBanner(false);
-        } catch (Exception e) {
-            //TODO HIDE BANNER
-            Log.e(TAG,"loadbestfit failed: " + e);
-//            showBanner(false);
-//            mAddUserDialogListener.showAddUserCheckDialog();
+            } catch (NullPointerException e) {
+                //TODO HIDE BANNER
+                Log.e(TAG,"loadbestfit Nullpointer: " + e);
+            } catch (Exception e) {
+                //TODO HIDE BANNER
+                Log.e(TAG,"loadbestfit failed: " + e);
+            }
         }
 
 
 
+
+
+        ImageView imgProfile = (ImageView) dialogView.findViewById(R.id.imgUser);
         if(userInfo.getProfileImageUrl()!=null) {
             Picasso.with(getActivity()).load(userInfo.getProfileImageUrl())
                     .into(imgProfile);
-
-        } else {
-            //TODO Hide the profile image?
-
         }
 
 
@@ -257,7 +249,7 @@ Log.d(TAG,"HERE AT BEGINNING");
 
 
 
-                                };
+                                }
                             } catch (NullPointerException e) {
                                 Log.e(TAG,"Banner url pull Nullpointed: " + e);
                             } catch (Exception e) {

@@ -2,26 +2,21 @@ package com.jukuproject.jukutweet;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-
-import android.os.Build;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.jukuproject.jukutweet.Models.ColorThresholds;
+import com.jukuproject.jukutweet.Models.ParseSentenceItem;
 import com.jukuproject.jukutweet.Models.ParseSentenceMatchCombination;
 import com.jukuproject.jukutweet.Models.ParseSentencePossibleKanji;
-import com.jukuproject.jukutweet.Models.ParseSentenceItem;
 import com.jukuproject.jukutweet.Models.ParseSentenceSpecialSpan;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.Models.WordEntryFavorites;
 import com.jukuproject.jukutweet.Models.WordLoader;
-import com.vdurmont.emoji.Emoji;
 import com.vdurmont.emoji.EmojiManager;
-import com.vdurmont.emoji.EmojiParser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.TreeMap;
 
 /**
  * Created by JukuProject on 3/9/2017.
@@ -171,14 +166,15 @@ if(BuildConfig.DEBUG) {
             possibleKanjiInSentence.add(new ParseSentencePossibleKanji(index,possibleKanjiInSentence.size(),builder.toString()));
             builder.setLength(0);
         }
-    };
+    }
 
     public static void addOrReleaseBuilderContents(Integer index, StringBuilder builder, ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence, Boolean isKatakana) {
         if (builder.length() > 0) {
             possibleKanjiInSentence.add(new ParseSentencePossibleKanji(index,possibleKanjiInSentence.size(),builder.toString(),isKatakana));
             builder.setLength(0);
         }
-    };
+    }
+
     /** Load up lists of possible prefix, suffix and verb conjugations for each kanji
      *
      * @param possibleKanjiInSentence Array of ParseSentencePossibleKanji objects, representing possible kanji within the sentence
@@ -963,20 +959,32 @@ if(BuildConfig.DEBUG) {
      * @see #compileFinalSentenceMap(SQLiteDatabase, ArrayList, ArrayList)
      */
     public int assignEntrytoResults(int listIndex, int oldEndPosition, int newStartPosition, ParseSentenceItem parseSentenceItem, ArrayList<ParseSentenceItem> resultMap, ArrayList<ParseSentenceSpecialSpan> specialSpans,int currentSpecialSpanIndex){
-        ParseSentenceSpecialSpan specialSpan = specialSpans.get(currentSpecialSpanIndex);
+        ParseSentenceSpecialSpan specialSpan = null;
+        if(specialSpans.size()>currentSpecialSpanIndex) {
+            specialSpan = specialSpans.get(currentSpecialSpanIndex);
+        }
+
+        Log.d(TAG,"IN SPECIAL SPAN ENTRY RESULTS");
         /* If the first kanji does not appear at the beginning of the sentence (Which should happen pretty often), make a dummy entry that
          * only contains the raw characters for that length. This is for use in the FillintheSentences activity (the dummies are necessary
          * because we fill in the entirety of the sentence from the result of this parser, not just the kanji) */
 
         if (listIndex == 0 && newStartPosition > 0) {
+            Log.d(TAG,"IN SPECIAL SPAN ENTRY RESULTS2");
 
              /* Add the non-kanji text between the start of the sentence and the first Kanji*/
             int startPosition = 0;
             String nonKanjiSectionRemaining = entireSentence.substring(0, newStartPosition);
-            String currentSpecialSpan = specialSpan.getSpan();
+//            String currentSpecialSpan = specialSpan.getSpan();
+            String currentSpecialSpan = null;
+            if(specialSpan != null) {
+                currentSpecialSpan = specialSpan.getSpan();
+            }
+            Log.d(TAG,"IN SPECIAL SPAN ENTRY RESULTS3");
 
             /* Inject the special span into the nonkanjiremaining section, if it exists */
-            if(nonKanjiSectionRemaining.contains(specialSpan.getSpan())) {
+            if(specialSpan != null && nonKanjiSectionRemaining.contains(specialSpan.getSpan())) {
+                Log.d(TAG,"IN SPECIAL SPAN ENTRY RESULTS4");
 
                 while(currentSpecialSpan != null && nonKanjiSectionRemaining.contains(specialSpan.getSpan())) {
 
@@ -1005,6 +1013,7 @@ if(BuildConfig.DEBUG) {
                     }
                 }
             } else {
+                Log.d(TAG,"IN SPECIAL SPAN ENTRY RESULTS5");
 
                 /* Add the non-kanji section from the beginning of the sentence to the first kanji*/
                 ParseSentenceItem dummyParseSentenceItem = new ParseSentenceItem(false,0,entireSentence.substring(0, newStartPosition),entireSentence.substring(0, newStartPosition));
@@ -1013,30 +1022,35 @@ if(BuildConfig.DEBUG) {
 
             }
         } else if(newStartPosition > oldEndPosition ) {
+            Log.d(TAG,"IN SPECIAL SPAN ENTRY RESULTS6");
 
             /* Add the non-kanji text in between ParseSetenceItem Kanjis */
             int startPosition = oldEndPosition;
             String nonKanjiSectionRemaining = entireSentence.substring(oldEndPosition, newStartPosition);
-            String currentSpecialSpan = specialSpan.getSpan();
-
-            if(nonKanjiSectionRemaining.contains(specialSpan.getSpan())) {
-
+//            String currentSpecialSpan = specialSpan.getSpan();
+            String currentSpecialSpan = null;
+            if(specialSpan != null) {
+                currentSpecialSpan = specialSpan.getSpan();
+            }
+            Log.d(TAG,"IN SPECIAL SPAN ENTRY RESULTS7");
+            if(specialSpan != null && nonKanjiSectionRemaining.contains(specialSpan.getSpan())) {
+                Log.d(TAG,"IN SPECIAL SPAN ENTRY RESULTS8");
                 while(currentSpecialSpan != null && nonKanjiSectionRemaining.contains(specialSpan.getSpan())) {
-
+                    Log.d(TAG,"IN SPECIAL SPAN ENTRY RESULTS9 " + specialSpan.getSpan());
                     String firstpartofSentence = entireSentence.substring(startPosition, specialSpan.getStartIndex());
                     if (firstpartofSentence.length() > 0) {
                         ParseSentenceItem dummyParseSentenceItem = new ParseSentenceItem(false, 0
                                 , firstpartofSentence
                                 , firstpartofSentence);
                         resultMap.add(dummyParseSentenceItem);
-                        if(BuildConfig.DEBUG){Log.d(TAG,"Logging nonkanji: " + firstpartofSentence);};
+                        if(BuildConfig.DEBUG){Log.d(TAG,"Logging nonkanji: " + firstpartofSentence);}
                     }
                     ParseSentenceItem spanParseSentence = new ParseSentenceItem(false, 0
                             , specialSpan.getSpan()
                             , specialSpan.getSpan());
                     spanParseSentence.setType(specialSpan.getType());
                     resultMap.add(spanParseSentence);
-                    if(BuildConfig.DEBUG){Log.d(TAG,"Logging span: " + specialSpan.getSpan());};
+                    if(BuildConfig.DEBUG){Log.d(TAG,"Logging span: " + specialSpan.getSpan());}
 
                     nonKanjiSectionRemaining = entireSentence.substring(specialSpan.getEndIndex(), newStartPosition);
                     startPosition = specialSpan.getEndIndex();
@@ -1054,7 +1068,7 @@ if(BuildConfig.DEBUG) {
                         , nonKanjiSectionRemaining
                         , nonKanjiSectionRemaining);
                 resultMap.add(spanParseSentence);
-                if(BuildConfig.DEBUG){Log.d(TAG,"Logging nonkanji: " + specialSpan.getSpan());};
+                if(BuildConfig.DEBUG){Log.d(TAG,"Logging nonkanji: " + nonKanjiSectionRemaining);}
 
             }
 
@@ -1062,7 +1076,7 @@ if(BuildConfig.DEBUG) {
 
         /* Add the current kanji */
         resultMap.add(parseSentenceItem);
-        if(BuildConfig.DEBUG){Log.d(TAG,"Logging KANJI: " + parseSentenceItem.getKanjiConjugated());};
+        if(BuildConfig.DEBUG){Log.d(TAG,"Logging KANJI: " + parseSentenceItem.getKanjiConjugated());}
         return currentSpecialSpanIndex;
     }
 
