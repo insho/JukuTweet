@@ -26,12 +26,33 @@
         android:id="@+id/sentence"
         android:textColor="@android:color/black"
         android:layout_marginBottom="6dp"
+        android:visibility="gone"
         android:textSize="9pt" />
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="vertical"
+
+            android:fillViewport="true"
+            android:id="@+id/scrollView">
+
+
+                    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                        android:orientation="vertical" android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight=".5"
+                        android:scrollbars="vertical"
+                        android:id="@+id/sentence_layout">
+
+                    </LinearLayout>
+
+        </ScrollView>
+
 
     <View style="@style/Divider_Black"
         android:id="@+id/dividerview"
         />
-
 
 
     <android.support.v7.widget.RecyclerView
