@@ -1,9 +1,14 @@
 package com.jukuproject.jukutweet.Adapters;
 
         import android.content.Context;
+        import android.support.v4.content.ContextCompat;
         import android.support.v7.widget.RecyclerView;
         import android.text.SpannableString;
+        import android.text.Spanned;
+        import android.text.TextPaint;
         import android.text.method.LinkMovementMethod;
+        import android.text.style.CharacterStyle;
+        import android.text.style.ClickableSpan;
         import android.text.style.URLSpan;
         import android.util.Log;
         import android.view.LayoutInflater;
@@ -26,6 +31,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
     private static final String TAG = "TEST-timefrag";
     private RxBus _rxbus;
     private List<Tweet> mDataset;
+    private Context mContext;
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
@@ -44,7 +50,8 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
         }
     }
 
-    public UserTimeLineAdapter(RxBus rxBus, List<Tweet> myDataset) {
+    public UserTimeLineAdapter(Context context, RxBus rxBus, List<Tweet> myDataset) {
+        mContext = context;
         _rxbus = rxBus;
         mDataset = myDataset;
     }
@@ -74,10 +81,35 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
             holder.txtReTweeted.setText(getTweet(position).getDisplayRetweetCount());
         }
 
-        holder.txtTweet.setText(getTweet(position).getText());
+
 
 
         try {
+            SpannableString text = new SpannableString(getTweet(position).getText());
+//        holder.txtTweet.setText(getTweet(position).getText());
+
+
+            ClickableSpan normalClick = new ClickableSpan() {
+                @Override
+                public void onClick(View textView) {
+                    _rxbus.send(mDataset.get(holder.getAdapterPosition()));
+
+                }
+
+
+                @Override
+                public void updateDrawState(TextPaint ds) {
+                    super.updateDrawState(ds);
+                    ds.setColor(ContextCompat.getColor(mContext, android.R.color.secondary_text_dark));
+                    ds.setUnderlineText(false);
+
+                }
+            };
+
+
+
+            text.setSpan(normalClick, 0, text.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+//            normalClick.updateDrawState(new TextPaint());
             List<TweetUrl> tweetUrls =  getTweet(position).getEntities().getUrls();
 
             for(TweetUrl url : tweetUrls) {
@@ -90,16 +122,20 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                 } else if(getTweet(position).getText().substring(indices[0]).contains(url.getUrl())) {
                     urlToLinkify = url.getUrl();
                 }
-                int startingLinkPos = startingLinkPos = getTweet(position).getText().indexOf(urlToLinkify,indices[0]);
-                SpannableString text = new SpannableString(getTweet(position).getText());
+                int startingLinkPos = getTweet(position).getText().indexOf(urlToLinkify,indices[0]);
+
                 text.setSpan(new URLSpan(url.getUrl()), startingLinkPos, startingLinkPos + urlToLinkify.length(), 0);
-                holder.txtTweet.setMovementMethod(LinkMovementMethod.getInstance());
-                holder.txtTweet.setText(text, TextView.BufferType.SPANNABLE);
+
 
             }
+//            holder.txtTweet.setHighlightColor(ContextCompat.getColor(mContext, android.R.color.transparent));
+            holder.txtTweet.setText(text, TextView.BufferType.SPANNABLE);
+            holder.txtTweet.setMovementMethod(LinkMovementMethod.getInstance());
         } catch (NullPointerException e) {
+            holder.txtTweet.setText(getTweet(position).getText());
             Log.e(TAG,"mTweet urls are null : " + e);
         } catch (Exception e) {
+            holder.txtTweet.setText(getTweet(position).getText());
             Log.e(TAG,"Error adding url info: " + e);
         }
 

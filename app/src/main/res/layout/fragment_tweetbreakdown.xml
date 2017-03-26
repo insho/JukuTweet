@@ -28,26 +28,31 @@
         android:layout_marginBottom="6dp"
         android:visibility="gone"
         android:textSize="9pt" />
+<!--<LinearLayout-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:orientation="vertical">-->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="vertical"
 
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:id="@+id/scrollView">
+
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:orientation="vertical" android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight=".5"
             android:scrollbars="vertical"
+            android:id="@+id/sentence_layout">
 
-            android:fillViewport="true"
-            android:id="@+id/scrollView">
+        </LinearLayout>
 
+    </ScrollView>
+<!--</LinearLayout>-->
 
-                    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                        android:orientation="vertical" android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight=".5"
-                        android:scrollbars="vertical"
-                        android:id="@+id/sentence_layout">
-
-                    </LinearLayout>
-
-        </ScrollView>
 
 
     <View style="@style/Divider_Black"

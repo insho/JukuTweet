@@ -33,6 +33,7 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Adapters.TweetBreakDownAdapter;
 import com.jukuproject.jukutweet.BuildConfig;
@@ -426,22 +427,22 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
 
     }
 
-
-    /**
-     * Checks how many milliseconds have elapsed since the last time "mLastClickTime" was updated
-     * If enough time has elapsed, returns True and updates mLastClickTime.
-     * This is to stop unwanted rapid clicks of the same button
-     * @param elapsedMilliSeconds threshold of elapsed milliseconds before a new button click is allowed
-     * @return bool True if enough time has elapsed, false if not
-     */
-    public boolean isUniqueClick(int elapsedMilliSeconds) {
-        if(SystemClock.elapsedRealtime() - mLastClickTime > elapsedMilliSeconds) {
-            mLastClickTime = SystemClock.elapsedRealtime();
-            return true;
-        } else {
-            return false;
-        }
-    }
+//
+//    /**
+//     * Checks how many milliseconds have elapsed since the last time "mLastClickTime" was updated
+//     * If enough time has elapsed, returns True and updates mLastClickTime.
+//     * This is to stop unwanted rapid clicks of the same button
+//     * @param elapsedMilliSeconds threshold of elapsed milliseconds before a new button click is allowed
+//     * @return bool True if enough time has elapsed, false if not
+//     */
+//    public boolean isUniqueClick(int elapsedMilliSeconds) {
+//        if(SystemClock.elapsedRealtime() - mLastClickTime > elapsedMilliSeconds) {
+//            mLastClickTime = SystemClock.elapsedRealtime();
+//            return true;
+//        } else {
+//            return false;
+//        }
+//    }
 
     @Override
     public void onAttach(Context context) {
@@ -561,7 +562,7 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
     }
 
 
-    public void addToLayout(ParseSentenceItem parseSentenceItem) {
+    public void addToLayout(final ParseSentenceItem parseSentenceItem) {
         String onScreenText = parseSentenceItem.getKanjiConjugated();
         String onScreenFurigana = parseSentenceItem.getFuriganaClean();
 
@@ -586,29 +587,29 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
             textView_Test.setText(onScreenText);
             textView_Test.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
 
-            TextView textView_Test_Furigana = new TextView(getContext());
-            textView_Test_Furigana.setLayoutParams(new ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT));
-
-            textView_Test_Furigana.setText(onScreenFurigana);
-            textView_Test_Furigana.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+//            TextView textView_Test_Furigana = new TextView(getContext());
+//            textView_Test_Furigana.setLayoutParams(new ViewGroup.LayoutParams(
+//                    ViewGroup.LayoutParams.MATCH_PARENT,
+//                    ViewGroup.LayoutParams.WRAP_CONTENT));
+//
+//            textView_Test_Furigana.setText(onScreenFurigana);
+//            textView_Test_Furigana.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
 
             Rect bounds = new Rect();
             Paint textPaint = textView_Test.getPaint();
             textPaint.getTextBounds(onScreenText, 0, onScreenText.length(), bounds);
 
-            Paint textPaint_Furigana;
-            if (onScreenFurigana != null) {
-                textPaint_Furigana = textView_Test_Furigana.getPaint();
-                textPaint_Furigana.getTextBounds(onScreenFurigana, 0, onScreenFurigana.length(), bounds);
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "measureText WIDTH (furigana) = " + Math.round(textPaint_Furigana.measureText(onScreenFurigana)));
-                }
-            } else {
-                textPaint_Furigana = textPaint;
-                onScreenFurigana = "";
-            }
+//            Paint textPaint_Furigana;
+//            if (onScreenFurigana != null) {
+//                textPaint_Furigana = textView_Test_Furigana.getPaint();
+//                textPaint_Furigana.getTextBounds(onScreenFurigana, 0, onScreenFurigana.length(), bounds);
+//                if (BuildConfig.DEBUG) {
+//                    Log.d(TAG, "measureText WIDTH (furigana) = " + Math.round(textPaint_Furigana.measureText(onScreenFurigana)));
+//                }
+//            } else {
+//                textPaint_Furigana = textPaint;
+//                onScreenFurigana = "";
+//            }
             int width = bounds.width();
 
             if (BuildConfig.DEBUG) {
@@ -617,11 +618,11 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
                 Log.d(TAG, "measureText WIDTH = " + Math.round(textPaint.measureText(onScreenText)));
             }
 
-            if (Math.round(textPaint.measureText(onScreenText)) > Math.round(textPaint_Furigana.measureText(onScreenFurigana))) {
+//            if (Math.round(textPaint.measureText(onScreenText)) > Math.round(textPaint_Furigana.measureText(onScreenFurigana))) {
                 width = Math.round(textPaint.measureText(onScreenText));
-            } else {
-                width = Math.round(textPaint_Furigana.measureText(onScreenFurigana));
-            }
+//            } else {
+//                width = Math.round(textPaint_Furigana.measureText(onScreenFurigana));
+//            }
 
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "FINAL WIDTH = " + width);
@@ -642,33 +643,34 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
             LinearLayout innerLinearLayout3 = new LinearLayout(getContext());
             innerLinearLayout3.setOrientation(LinearLayout.VERTICAL);
             TextView textView = new TextView(getContext());
-            final TextView textView_furigana = new TextView(getContext());
+//            final TextView textView_furigana = new TextView(getContext());
 
             textView.setLayoutParams(new ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT));
 
-            textView_furigana.setLayoutParams(new ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT));
+//            textView_furigana.setLayoutParams(new ViewGroup.LayoutParams(
+//                    ViewGroup.LayoutParams.WRAP_CONTENT,
+//                    ViewGroup.LayoutParams.WRAP_CONTENT));
 
             textView.setText(onScreenText);
             textView.setTextSize(24);
-//                textView.setTextColor(ContextCompat.getColor(getContext(), android.R.color.black));
+                textView.setTextColor(ContextCompat.getColor(getContext(), android.R.color.holo_red_light));
 
-            textView_furigana.setText(onScreenFurigana);
-            textView_furigana.setTextSize(12);
-//                textView_furigana.setTextColor(ContextCompat.getColor(getContext(), android.R.color.black));
-            textView_furigana.setVisibility(TextView.INVISIBLE);
+//            textView_furigana.setText(onScreenFurigana);
+//            textView_furigana.setTextSize(12);
+////                textView_furigana.setTextColor(ContextCompat.getColor(getContext(), android.R.color.black));
+//            textView_furigana.setVisibility(TextView.INVISIBLE);
 
             textView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (textView_furigana.getVisibility() == TextView.VISIBLE) {
-                        textView_furigana.setVisibility(TextView.INVISIBLE);
-                    } else {
-                        textView_furigana.setVisibility(TextView.VISIBLE);
-                    }
+//                    if (textView_furigana.getVisibility() == TextView.VISIBLE) {
+//                        textView_furigana.setVisibility(TextView.INVISIBLE);
+//                    } else {
+//                        textView_furigana.setVisibility(TextView.VISIBLE);
+//                    }
+                    Toast.makeText(getActivity(), "" + parseSentenceItem.getFuriganaClean(), Toast.LENGTH_SHORT).show();
 
                 }
             });
@@ -684,7 +686,7 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
 //            });
 
 
-            innerLinearLayout3.addView(textView_furigana);
+//            innerLinearLayout3.addView(textView_furigana);
             innerLinearLayout3.addView(textView);
             innerLinearLayout3.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             linearLayout.addView(innerLinearLayout3);
@@ -756,7 +758,7 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
                     String choppedTextFragment = onScreenText.substring(substringstart, substringend);
                     if(BuildConfig.DEBUG) {Log.d(TAG, "ChoppedFragment: " + choppedTextFragment);}
                     TextView textView = new TextView(getContext());
-                    TextView textView_furigana = new TextView(getContext());
+//                    TextView textView_furigana = new TextView(getContext());
 
 
                     /** INSERTING THE TEXT BOXES INTO THE INNER LINEAR LAYOUT */
@@ -768,19 +770,19 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
                             ViewGroup.LayoutParams.WRAP_CONTENT,
                             ViewGroup.LayoutParams.WRAP_CONTENT));
 
-                    textView_furigana.setLayoutParams(new ViewGroup.LayoutParams(
-                            ViewGroup.LayoutParams.WRAP_CONTENT,
-                            ViewGroup.LayoutParams.WRAP_CONTENT));
+//                    textView_furigana.setLayoutParams(new ViewGroup.LayoutParams(
+//                            ViewGroup.LayoutParams.WRAP_CONTENT,
+//                            ViewGroup.LayoutParams.WRAP_CONTENT));
 
                     textView.setText(choppedTextFragment);
                     textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
 //                        textView.setTextColor(ContextCompat.getColor(getContext(), android.R.color.black));
 
-                    textView_furigana.setText(choppedTextFragment);
-                    textView_furigana.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-//                        textView_furigana.setTextColor(ContextCompat.getColor(getContext(), android.R.color.black));
-                    textView_furigana.setVisibility(TextView.INVISIBLE);
-                    innerLinearLayout3.addView(textView_furigana);
+//                    textView_furigana.setText(choppedTextFragment);
+//                    textView_furigana.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+////                        textView_furigana.setTextColor(ContextCompat.getColor(getContext(), android.R.color.black));
+//                    textView_furigana.setVisibility(TextView.INVISIBLE);
+//                    innerLinearLayout3.addView(textView_furigana);
                     innerLinearLayout3.addView(textView);
                     innerLinearLayout3.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
                     linearLayout.addView(innerLinearLayout3);
@@ -811,7 +813,7 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
                         String choppedTextFragmentRemainder = onScreenText.substring(substringstart, substringend);
                         if(BuildConfig.DEBUG) {Log.d(TAG, "choppedTextFragmentRemainder: " + choppedTextFragmentRemainder);}
                         TextView textViewRemainder = new TextView(getContext());
-                        TextView textView_furiganaRemainder = new TextView(getContext());
+//                        TextView textView_furiganaRemainder = new TextView(getContext());
 
                         LinearLayout innerLinearLayout3Remainder = new LinearLayout(getContext());
                         innerLinearLayout3Remainder.setOrientation(LinearLayout.VERTICAL);
@@ -820,9 +822,9 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
                                 ViewGroup.LayoutParams.WRAP_CONTENT,
                                 ViewGroup.LayoutParams.WRAP_CONTENT));
 
-                        textView_furiganaRemainder.setLayoutParams(new ViewGroup.LayoutParams(
-                                ViewGroup.LayoutParams.WRAP_CONTENT,
-                                ViewGroup.LayoutParams.WRAP_CONTENT));
+//                        textView_furiganaRemainder.setLayoutParams(new ViewGroup.LayoutParams(
+//                                ViewGroup.LayoutParams.WRAP_CONTENT,
+//                                ViewGroup.LayoutParams.WRAP_CONTENT));
 
                         textViewRemainder.setText(choppedTextFragmentRemainder);
                         textViewRemainder.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
@@ -834,11 +836,11 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
 
                         int width_chopped = bounds2.width();
 
-                        textView_furiganaRemainder.setText(choppedTextFragmentRemainder);
-                        textView_furiganaRemainder.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-//                            textView_furiganaRemainder.setTextColor(ContextCompat.getColor(getContext(), android.R.color.black));
-                        textView_furiganaRemainder.setVisibility(TextView.INVISIBLE);
-                        innerLinearLayout3Remainder.addView(textView_furiganaRemainder);
+//                        textView_furiganaRemainder.setText(choppedTextFragmentRemainder);
+//                        textView_furiganaRemainder.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+////                            textView_furiganaRemainder.setTextColor(ContextCompat.getColor(getContext(), android.R.color.black));
+//                        textView_furiganaRemainder.setVisibility(TextView.INVISIBLE);
+//                        innerLinearLayout3Remainder.addView(textView_furiganaRemainder);
                         innerLinearLayout3Remainder.addView(textViewRemainder);
                         innerLinearLayout3Remainder.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
                         linearLayout.addView(innerLinearLayout3Remainder);
@@ -889,7 +891,7 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
                 }
 
             } else {
-                TextView textView_furigana = new TextView(getContext());
+//                TextView textView_furigana = new TextView(getContext());
 
                 LinearLayout innerLinearLayout3 = new LinearLayout(getContext());
                 innerLinearLayout3.setOrientation(LinearLayout.VERTICAL);
@@ -898,19 +900,19 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
                         ViewGroup.LayoutParams.WRAP_CONTENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT));
 
-                textView_furigana.setLayoutParams(new ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT));
+//                textView_furigana.setLayoutParams(new ViewGroup.LayoutParams(
+//                        ViewGroup.LayoutParams.WRAP_CONTENT,
+//                        ViewGroup.LayoutParams.WRAP_CONTENT));
 
                 textView_Test.setText(onScreenText);
                 textView_Test.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
 //                    textView_Test.setTextColor(ContextCompat.getColor(getContext(), android.R.color.black));
 
-                textView_furigana.setText(onScreenText);
-                textView_furigana.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-//                    textView_furigana.setTextColor(ContextCompat.getColor(getContext(), android.R.color.black));
-                textView_furigana.setVisibility(TextView.INVISIBLE);
-                innerLinearLayout3.addView(textView_furigana);
+//                textView_furigana.setText(onScreenText);
+//                textView_furigana.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+////                    textView_furigana.setTextColor(ContextCompat.getColor(getContext(), android.R.color.black));
+//                textView_furigana.setVisibility(TextView.INVISIBLE);
+//                innerLinearLayout3.addView(textView_furigana);
                 innerLinearLayout3.addView(textView_Test);
                 innerLinearLayout3.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
                 linearLayout.addView(innerLinearLayout3);
