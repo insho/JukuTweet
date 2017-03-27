@@ -1,7 +1,5 @@
 package com.jukuproject.jukutweet.Interfaces;
 
-import com.jukuproject.jukutweet.Models.UserInfo;
-
 /**
  * Created by JukuProject on 3/19/2017.
  */
@@ -16,10 +14,14 @@ public interface FragmentInteractionListener {
 
     void showProgressBar(Boolean show);
     void showActionBarBackButton(Boolean showBack, CharSequence title);
-    void changePagerTitle(int position,String title);
+//    void changePagerTitle(int position,String title);
     void showFab(boolean show, String type);
     void showFab(boolean show);
 
     void onBackPressed();
     boolean isOnline();
+
+    void updateTabs(String[] updatedTabs);
+
+    void showMenuMyListBrowse(boolean show);
 }

@@ -54,6 +54,13 @@
     <string name="list_favoriteslistcount_summary">Yellow, Blue, Red Stars!</string>
     <string name="dialog_title_list_favoritescount">Favorites Lists</string>
 
+
+    <string name="actionicon_cancel">Cancel</string>
+    <string name="actionicon_delete">Remove</string>
+    <string name="actionicon_copy">Copy</string>
+    <string name="actionicon_selectall">Select All</string>
+
+
     <string-array name="entryvalues_list_favoritescount">
         <item>Yellow</item>
         <item>Blue</item>

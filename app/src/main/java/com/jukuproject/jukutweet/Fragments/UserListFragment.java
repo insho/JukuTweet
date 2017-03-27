@@ -1,28 +1,29 @@
 package com.jukuproject.jukutweet.Fragments;
 
-        import android.content.Context;
-        import android.os.Bundle;
-        import android.os.SystemClock;
-        import android.support.annotation.Nullable;
-        import android.support.v4.app.Fragment;
-        import android.support.v7.widget.LinearLayoutManager;
-        import android.support.v7.widget.RecyclerView;
-        import android.view.LayoutInflater;
-        import android.view.View;
-        import android.view.ViewGroup;
-        import android.widget.TextView;
-        import android.widget.Toast;
+import android.content.Context;
+import android.os.Bundle;
+import android.os.SystemClock;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+import android.widget.Toast;
 
-        import com.jukuproject.jukutweet.Adapters.UserListAdapter;
-        import com.jukuproject.jukutweet.BaseContainerFragment;
-        import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
-        import com.jukuproject.jukutweet.Interfaces.RxBus;
-        import com.jukuproject.jukutweet.Database.InternalDB;
-        import com.jukuproject.jukutweet.Models.UserInfo;
-        import com.jukuproject.jukutweet.R;
+import com.jukuproject.jukutweet.Adapters.UserListAdapter;
+import com.jukuproject.jukutweet.BaseContainerFragment;
+import com.jukuproject.jukutweet.Database.InternalDB;
+import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
+import com.jukuproject.jukutweet.Interfaces.RxBus;
+import com.jukuproject.jukutweet.Models.UserInfo;
+import com.jukuproject.jukutweet.R;
 
-        import java.util.List;
-        import rx.functions.Action1;
+import java.util.List;
+
+import rx.functions.Action1;
 
 
 public class UserListFragment extends Fragment {
@@ -113,7 +114,9 @@ public class UserListFragment extends Fragment {
                                     ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"timeline");
                                     mCallback.showActionBarBackButton(true,userInfo.getDisplayScreenName());
                                     mCallback.showFab(false,"");
-                                    mCallback.changePagerTitle(0,"Timeline");
+//                                    mCallback.changePagerTitle(0,"Timeline");
+                                    mCallback.updateTabs(new String[]{"Timeline","Saved Tweets"});
+
                                 } else {
                                     Toast.makeText(getActivity(), "No internet connection", Toast.LENGTH_SHORT).show();
                                 }

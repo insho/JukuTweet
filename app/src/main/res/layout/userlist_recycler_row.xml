@@ -17,6 +17,7 @@
             android:layout_marginStart="15dp"
             android:layout_marginLeft="15dp"
             android:layout_gravity="start"
+            android:visibility="gone"
             android:clickable="false"
             />
         <!--<ImageView-->

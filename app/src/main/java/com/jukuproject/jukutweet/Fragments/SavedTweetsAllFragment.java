@@ -7,17 +7,20 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
-//import com.jukuproject.jukutweet.BaseContainerFragment;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.R;
+
+//import com.jukuproject.jukutweet.BaseContainerFragment;
 
 /**
  * Shows user-created lists of vocabulary
  */
 public class SavedTweetsAllFragment extends Fragment {
     FragmentInteractionListener mCallback;
+    Button button;
 
     /*Tracks elapsed time since last click of a recyclerview row. Used to
     * keep from constantly recieving button clicks through the RxBus */
@@ -50,6 +53,7 @@ public class SavedTweetsAllFragment extends Fragment {
         View view = inflater.inflate(R.layout.testlayout, container, false);
         TextView test = (TextView) view.findViewById(R.id.textView);
         test.setText("SavedTweetsAll FRAGMENT");
+        button =  (Button) view.findViewById(R.id.button);
 //        mRecyclerView = (RecyclerView) view.findViewById(R.id.recyclerMain);
 //        mNoLists = (TextView) view.findViewById(R.id.nolists);
 
@@ -60,6 +64,12 @@ public class SavedTweetsAllFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+//                mCallback.setViewPagerSize(3);
+            }
+        });
 //        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
 //        mRecyclerView.setLayoutManager(layoutManager);
 //        updateAdapter();

@@ -4,16 +4,14 @@ package com.jukuproject.jukutweet;
  * Created by JClassic on 3/21/2017.
  */
 
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 
-import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.TabContainers.Tab1Container;
 import com.jukuproject.jukutweet.TabContainers.Tab2Container;
 import com.jukuproject.jukutweet.TabContainers.Tab3Container;
-import com.jukuproject.jukutweet.TabContainers.Tab4Container;
+//import com.jukuproject.jukutweet.TabContainers.Tab4Container;
 
 /**
  * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
@@ -21,11 +19,18 @@ import com.jukuproject.jukutweet.TabContainers.Tab4Container;
  //     */
 public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
-    public String tab1Title;
+//    public String tab1Title;
+//    public String tab2Title;
+//    public int mTabCount;
+    String[] mCurrentTabs;
+//    private long baseId = 0;
 
-    public SectionsPagerAdapter(FragmentManager fm) {
+    public SectionsPagerAdapter(FragmentManager fm,String[] currentTabs) {
         super(fm);
-        this.tab1Title = "Users";
+//        this.tab1Title = "Users";
+//        this.tab1Title = ""
+//        this.mTabCount = tabCount;
+        this.mCurrentTabs = currentTabs;
     }
 
     @Override
@@ -41,8 +46,6 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
                 return Tab2Container.newInstance();
             case 2:
                 return Tab3Container.newInstance();
-            case 3:
-                return Tab4Container.newInstance();
             default:
                 return Tab1Container.newInstance();
         }
@@ -51,28 +54,46 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
     @Override
     public int getCount() {
-        return 4;
+        return mCurrentTabs.length;
     }
 
+    //this is called when notifyDataSetChanged() is called
+    @Override
+    public int getItemPosition(Object object) {
+        // refresh all fragments when data set changed
+        return POSITION_NONE;
+    }
+
+//    @Override
+//    public long getItemId(int position) {
+//        // give an ID different from position when position has been changed
+//        return baseId + position;
+//    }
     @Override
     public CharSequence getPageTitle(int position) {
 
-            switch (position) {
-                case 0:
-                    return tab1Title;
-                case 1:
-                    return "My Lists";
-                case 2:
-                    return "Saved Tweets";
-                case 3:
-                    return "Quiz All";
-                default:
-                    return "";
-            }
+        return mCurrentTabs[position];
+//            switch (position) {
+//                case 0:
+//                    return tab1Title;
+//                case 1:
+//                    return "My Lists";
+//                case 2:
+//                    return "Saved Tweets";
+//                default:
+//                    return "";
+//            }
     }
 
-    public void updateTitleData(String title) {
-        this.tab1Title = title;
+//    public void updateTitleData(String title) {
+//        this.tab1Title = title;
+//        notifyDataSetChanged();
+//    }
+
+    public void updateTabs(String[] updatedTabs) {
+        this.mCurrentTabs = updatedTabs;
         notifyDataSetChanged();
     }
+
+
 }

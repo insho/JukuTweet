@@ -13,7 +13,6 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
@@ -37,11 +36,9 @@ import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Adapters.TweetBreakDownAdapter;
 import com.jukuproject.jukutweet.BuildConfig;
-import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Database.InternalDB;
-import com.jukuproject.jukutweet.Interfaces.RxBus;
+import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
-import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.ParseSentenceItem;
 import com.jukuproject.jukutweet.Models.ParseSentenceSpecialSpan;
 import com.jukuproject.jukutweet.Models.SharedPrefManager;
@@ -50,8 +47,6 @@ import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SentenceParser;
-import com.vdurmont.emoji.EmojiLoader;
-import com.vdurmont.emoji.EmojiManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +56,6 @@ import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
 import rx.Single;
 import rx.SingleSubscriber;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
 
@@ -116,7 +110,8 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
         Bundle args = new Bundle();
         args.putParcelable("tweet", tweet);
         fragment.setArguments(args);
-        return new TweetBreakDownFragment();
+
+        return  fragment;
     }
 
     @Override

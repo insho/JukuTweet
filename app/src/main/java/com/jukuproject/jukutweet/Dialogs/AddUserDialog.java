@@ -3,9 +3,9 @@ package com.jukuproject.jukutweet.Dialogs;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.Gravity;
@@ -21,6 +21,9 @@ import com.jukuproject.jukutweet.R;
 
 import java.util.Arrays;
 import java.util.List;
+
+//import android.app.Dialog;
+//import android.app.DialogFragment;
 
 /**
  * Dialog for "following" a new twitter user. New user name is entered into edittext

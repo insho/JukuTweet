@@ -8,11 +8,9 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.jukuproject.jukutweet.BaseContainerFragment;
+import com.jukuproject.jukutweet.Fragments.MyListBrowseFragment;
 import com.jukuproject.jukutweet.Fragments.MyListFragment;
-import com.jukuproject.jukutweet.Fragments.QuizAllFragment;
-import com.jukuproject.jukutweet.Fragments.SavedTweetsAllFragment;
 import com.jukuproject.jukutweet.R;
-import com.jukuproject.jukutweet.Fragments.UserListFragment;
 
 
 public class Tab3Container extends BaseContainerFragment {
@@ -21,7 +19,7 @@ public class Tab3Container extends BaseContainerFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.e("test", "tab 3 oncreateview");
+        Log.e("test", "tab 2 oncreateview");
         return inflater.inflate(R.layout.container_fragment, null);
     }
 
@@ -29,18 +27,18 @@ public class Tab3Container extends BaseContainerFragment {
     }
 
     public static Tab3Container newInstance() {
-        Tab3Container fragment = new Tab3Container();
+//        Tab2Container fragment = new Tab2Container();
 //        Bundle args = new Bundle();
 //        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
 //        fragment.setArguments(args);
-        return fragment;
+        return new Tab3Container();
     }
 
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        Log.e("test", "tab 3 container on activity created");
+        Log.e("test", "tab 1 container on activity created");
         if (!mIsViewInited) {
             mIsViewInited = true;
             initView();
@@ -48,8 +46,39 @@ public class Tab3Container extends BaseContainerFragment {
     }
 
     private void initView() {
-        Log.e("test", "tab 3 init view");
-        replaceFragment(new SavedTweetsAllFragment(), false,"savedtweetsallfragment");
+        Log.e("test", "tab 2 init view");
+        replaceFragment(new MyListFragment(), false,"mylistfragment");
     }
+
+    public boolean updateMyListFragment() {
+        try {
+            ((MyListFragment) getChildFragmentManager().findFragmentByTag("mylistfragment")).updateMyListAdapter();
+            return true;
+        } catch (Exception e) {
+            Log.e("Tab1Container","Could not find userListFragment");
+            return false;
+        }
+    }
+
+    public boolean selectAll() {
+        try {
+            ((MyListBrowseFragment) getChildFragmentManager().findFragmentByTag("mylistbrowse")).selectAll();
+            return true;
+        } catch (Exception e) {
+            Log.e("Tab1Container","Could not find userListFragment");
+            return false;
+        }
+    }
+
+    public boolean isTopFragmentShowing() {
+        try {
+            (getChildFragmentManager().findFragmentByTag("mylistfragment")).isVisible();
+            return true;
+        } catch (Exception e) {
+            Log.e("Tab3Container","Could not find userListFragment");
+            return false;
+        }
+    }
+
 
 }

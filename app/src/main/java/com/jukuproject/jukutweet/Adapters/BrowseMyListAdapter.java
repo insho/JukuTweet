@@ -2,37 +2,20 @@ package com.jukuproject.jukutweet.Adapters;
 
 import android.content.Context;
 import android.graphics.Typeface;
-import android.os.SystemClock;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
-import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.widget.FrameLayout;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.PopupWindow;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.jukuproject.jukutweet.BuildConfig;
-import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
-import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.WordEntry;
-import com.jukuproject.jukutweet.Models.WordEntryFavorites;
-import com.jukuproject.jukutweet.PopupChooseFavoriteLists;
 import com.jukuproject.jukutweet.R;
-import com.jukuproject.jukutweet.TestPopupWindow;
 
 import java.util.ArrayList;
-
-import rx.functions.Action1;
 
 
 public class BrowseMyListAdapter extends RecyclerView.Adapter<BrowseMyListAdapter.ViewHolder>  {
@@ -43,7 +26,7 @@ public class BrowseMyListAdapter extends RecyclerView.Adapter<BrowseMyListAdapte
 //    private DisplayMetrics mMetrics;
     private ArrayList<WordEntry> mWords;
     private  ColorThresholds mColorThresholds;
-    private ArrayList<String> mActiveFavoriteStars;
+//    private ArrayList<String> mActiveFavoriteStars;
     private RxBus mRxBus;
     private ArrayList<Integer> mSelectedEntries;
 
@@ -55,7 +38,7 @@ public class BrowseMyListAdapter extends RecyclerView.Adapter<BrowseMyListAdapte
         public TextView lstDefinitions;
 //        public ImageButton imgStar;
 //        public FrameLayout imgStarLayout;
-        public RxBus rxBus;
+//        public RxBus rxBus;
         public LinearLayout layout;
 
         public ViewHolder(View v) {
@@ -65,7 +48,7 @@ public class BrowseMyListAdapter extends RecyclerView.Adapter<BrowseMyListAdapte
             txtFurigana  = (TextView) v.findViewById(R.id.textViewBrowseAdapter_Furigana);
             lstDefinitions = (TextView) v.findViewById(R.id.textViewlstDefinitions);
 //            imgStar = (ImageButton) v.findViewById(R.id.favorite);
-            layout = (LinearLayout) v.findViewById(R.id.browseitems_layout);
+            layout = (LinearLayout) v.findViewById(R.id.browseitems_layout2);
 //            imgStarLayout = (FrameLayout) v.findViewById(R.id.browseitems_frameLayout);
         }
     }
@@ -73,7 +56,7 @@ public class BrowseMyListAdapter extends RecyclerView.Adapter<BrowseMyListAdapte
 
     public BrowseMyListAdapter(Context context, ArrayList<WordEntry> words
             ,ColorThresholds colorThresholds
-            , ArrayList<String> activeFavoriteStars
+//            , ArrayList<String> activeFavoriteStars
             ,RxBus rxbus
             ,ArrayList<Integer> selectedEntries) {
         mContext = context;
@@ -81,7 +64,7 @@ public class BrowseMyListAdapter extends RecyclerView.Adapter<BrowseMyListAdapte
         mColorThresholds = colorThresholds;
         mRxBus = rxbus;
         mSelectedEntries = selectedEntries;
-        this.mActiveFavoriteStars = activeFavoriteStars;
+//        this.mActiveFavoriteStars = activeFavoriteStars;
     }
 
 
@@ -97,7 +80,7 @@ public class BrowseMyListAdapter extends RecyclerView.Adapter<BrowseMyListAdapte
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder holder, int position ) {
+    public void onBindViewHolder(final ViewHolder holder, final int position ) {
 
         final WordEntry wordEntry = mWords.get(holder.getAdapterPosition());
 
@@ -137,21 +120,26 @@ public class BrowseMyListAdapter extends RecyclerView.Adapter<BrowseMyListAdapte
 
                 if(holder.itemView.isSelected()) {
                     holder.itemView.setSelected(false);
-                    if(mSelectedEntries.contains(wordEntry.getId())) {
-                        mSelectedEntries.remove((int)wordEntry.getId());
-                    }
+//                    if(mSelectedEntries.contains(wordEntry.getId())) {
+//                        mSelectedEntries.remove(Integer.valueOf(wordEntry.getId()));
+//                    }
                     //Send id back to MyListBrowseFragment so it can be added to the selected map
-                    mRxBus.send(wordEntry.getId());
                 } else {
-                    if(!mSelectedEntries.contains(wordEntry.getId())) {
-                        mSelectedEntries.add(wordEntry.getId());
-                    }
+//                    if(!mSelectedEntries.contains(wordEntry.getId())) {
+//                        mSelectedEntries.add(wordEntry.getId());
+//                    }
+                    holder.itemView.setSelected(true);
                 }
+                notifyItemChanged(position);
+                mRxBus.send(wordEntry.getId());
 //                mActivity.invalidateOptionsMenu();
+
+
             }
         });
 
     }
+
 
     // Return the size of your dataset (invoked by the layout manager)
     @Override

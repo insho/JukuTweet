@@ -5,23 +5,21 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,12 +36,14 @@ import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.TabContainers.Tab1Container;
 import com.jukuproject.jukutweet.TabContainers.Tab2Container;
-//import com.jukuproject.jukutweet.TabContainers.TabContainer;
+import com.jukuproject.jukutweet.TabContainers.Tab3Container;
 
 import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
 import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
+
+//import com.jukuproject.jukutweet.TabContainers.TabContainer;
 
 /**
  * Main activity fragment manager
@@ -64,13 +64,14 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
-    private AddUserDialog addUserDialogFragment;
+//    private AddUserDialog addUserDialogFragment;
     private AddUserCheckDialog addUserCheckDialogFragment;
     private RemoveUserDialog removeUserDialogFragment;
     private AddOrRenameMyListDialog addOrRenameMyListDialogFragment;
     private EditMyListDialog editMyListDialogFragment;
     private SmoothProgressBar progressbar;
     private FloatingActionButton fab;
+    private Menu mMenu;
     private static final String TAG = "TEST-Main";
     private static final boolean debug = true;
 
@@ -92,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
 
         // Create the adapter that will return a fragment for each of theprimary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(),new String[]{"Users","Saved Tweets","My Lists"});
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
@@ -112,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                             showFab(false);
                         }
                         break;
-                    case 1:
+                    case 2:
                         if(isTopShowing()) {
                             showFab(true,"addMyList");
                         }
@@ -154,8 +155,20 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
+        this.mMenu = menu;
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
         return true;
+    }
+
+
+    public void showMenuMyListBrowse(boolean show){
+
+        if(mMenu == null) {
+            return;
+        }
+        mMenu.setGroupVisible(R.id.menu_main_group, !show);
+        mMenu.setGroupVisible(R.id.menu_browsemylist_group, show);
     }
 
     @Override
@@ -170,6 +183,20 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             return true;
         }
 
+        switch(id) {
+            case R.id.action_cancel:
+                break;
+            case R.id.action_copy:
+                break;
+            case R.id.action_delete:
+                break;
+            case R.id.action_selectall:
+                if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
+                    ((Tab3Container) findFragmentByPosition(0)).selectAll();
+                }
+                break;
+        }
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -180,12 +207,14 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * Called from the fabAddUser button click
      */
     public void showAddUserDialog(){
-        if (addUserDialogFragment == null || !addUserDialogFragment.isAdded()) {
-            addUserDialogFragment = AddUserDialog.newInstance();
-            addUserDialogFragment.show(getFragmentManager(), "dialogAdd");
+//        if (addUserDialogFragment == null || !addUserDialogFragment.isAdded()) {
+//            addUserDialogFragment = AddUserDialog.newInstance();
+//            addUserDialogFragment.show(getFragmentManager(), "dialogAdd");
+
+            if(getFragmentManager().findFragmentByTag("dialogAdd") != null && !getFragmentManager().findFragmentByTag("dialogAdd").isAdded()) {
+                AddUserDialog.newInstance().show(getSupportFragmentManager(),"dialogAdd");
         }
     }
-
 
 
     public void showAddUserCheckDialog(UserInfo userInfo){
@@ -230,7 +259,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      */
     @Override
     public void onDialogDismiss() {
-        addUserDialogFragment = null;
+//        addUserDialogFragment = null;
         removeUserDialogFragment = null;
         addOrRenameMyListDialogFragment = null;
         editMyListDialogFragment = null;
@@ -371,7 +400,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     boolean isTopShowing = ((Tab1Container)findFragmentByPosition(0)).isTopFragmentShowing();
                     if(isTopShowing) {
                         showActionBarBackButton(false,getString(R.string.app_name));
-                        changePagerTitle(0,"Users");
+                        updateTabs(new String[]{"Users","Saved Tweets","My Lists"});
                     }
                 } catch (NullPointerException e) {
                     Log.e(TAG,"OnBackPressed child entrycount null : " + e);
@@ -380,8 +409,16 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             case 1:
                 break;
             case 2:
-                break;
-            case 3:
+                isPopFragment = ((BaseContainerFragment)findFragmentByPosition(2)).popFragment();
+                try {
+                    boolean isTopShowing = ((Tab3Container)findFragmentByPosition(2)).isTopFragmentShowing();
+                    if(isTopShowing) {
+                        showActionBarBackButton(false,getString(R.string.app_name));
+                        updateTabs(new String[]{"Users","Saved Tweets","My Lists"});
+                    }
+                } catch (NullPointerException e) {
+                    Log.e(TAG,"OnBackPressed child entrycount null : " + e);
+                }
                 break;
             default:
                 break;
@@ -418,11 +455,11 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
     }
 
-    public void changePagerTitle(int position, String title) {
-        if(mSectionsPagerAdapter != null) {
-            mSectionsPagerAdapter.updateTitleData(title);
-        }
-    }
+//    public void changePagerTitle(int position, String title) {
+//        if(mSectionsPagerAdapter != null) {
+//            mSectionsPagerAdapter.updateTitleData(title);
+//        }
+//    }
 
 
     public void showAddMyListDialog(){
@@ -457,7 +494,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         if(InternalDB.getInstance(getBaseContext()).saveMyList(inputText)) {
             /* Locate Tab2Continer and update the MyList adapter to reflect removed item */
             if(findFragmentByPosition(1) != null && findFragmentByPosition(1) instanceof Tab2Container) {
-                ((Tab2Container) findFragmentByPosition(1)).updateMyListFragment();
+                ((Tab3Container) findFragmentByPosition(1)).updateMyListFragment();
             }
         }
 
@@ -498,8 +535,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     @Override
     public void onRenameMyListDialogPositiveClick(String oldListName, String listName) {
         if(InternalDB.getInstance(getBaseContext()).renameMyList(oldListName,listName)) {
-            if(findFragmentByPosition(1) != null && findFragmentByPosition(1) instanceof Tab2Container) {
-                ((Tab2Container) findFragmentByPosition(1)).updateMyListFragment();
+            if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab2Container) {
+                ((Tab3Container) findFragmentByPosition(2)).updateMyListFragment();
             }
         } else {
             Toast.makeText(this, "Unable to rename list", Toast.LENGTH_SHORT).show();
@@ -538,8 +575,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 }
 
                 /* Locate Tab2Continer and update the MyList adapter to reflect removed item */
-                if(findFragmentByPosition(1) != null && findFragmentByPosition(1) instanceof Tab2Container) {
-                    ((Tab2Container) findFragmentByPosition(1)).updateMyListFragment();
+                if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab2Container) {
+                    ((Tab3Container) findFragmentByPosition(2)).updateMyListFragment();
                 }
 
             }
@@ -567,8 +604,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             case 1:
                 break;
             case 2:
-                break;
-            case 3:
                 break;
             default:
                 break;
@@ -606,6 +641,13 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             Log.e(TAG,"FAB IS NULL: "  + e);
         }
 
+    }
+
+    public void updateTabs(String[] updatedTabs) {
+
+        if(mSectionsPagerAdapter != null) {
+            mSectionsPagerAdapter.updateTabs(updatedTabs);
+        }
     }
 
 
