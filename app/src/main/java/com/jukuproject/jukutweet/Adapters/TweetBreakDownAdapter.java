@@ -2,22 +2,18 @@ package com.jukuproject.jukutweet.Adapters;
 
 import android.content.Context;
 import android.graphics.Typeface;
-import android.os.SystemClock;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
@@ -270,7 +266,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                             });
                     if(chooseFavoritesPopup == null) {
 
-                        ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getInstance(mContext).getFavoritesListsForAKanji(mActiveFavoriteStars,mWords.get(holder.getAdapterPosition()).getId());
+                        ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getInstance(mContext).getFavoritesListsForKanji(mActiveFavoriteStars,String.valueOf(mWords.get(holder.getAdapterPosition()).getId()));
                         chooseFavoritesPopup= new TestPopupWindow(mContext,mMetrics,rxBus,availableFavoriteLists,mWords.get(holder.getAdapterPosition()).getId()).onCreateView();
 
 

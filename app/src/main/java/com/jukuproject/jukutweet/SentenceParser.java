@@ -235,7 +235,7 @@ if(BuildConfig.DEBUG) {
 //        for (int i = 0; i<possibleKanjiInSentence.size(); i ++ ) {
 //            System.out.println(" possibleKanjiInSentence.add(new ParseSentencePossibleKanji(" + possibleKanjiInSentence.get(i).getPositionInSentence() + ", \"" + possibleKanjiInSentence.get(i).getKanji() + "\"));");
 //        }
-        if ((indexOfCurrentPossibleKanji + 2) < possibleKanjiInSentence.size()) {
+        if ((indexOfCurrentPossibleKanji + 1) < possibleKanjiInSentence.size()) {
             String nextkanji = possibleKanjiInSentence.get(indexOfCurrentPossibleKanji + 1).getKanji();
             return possibleKanjiInSentence.get(indexOfCurrentPossibleKanji + 1).getPositionInSentence() - nextkanji.length();
         } else {

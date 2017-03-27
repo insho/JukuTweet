@@ -5,24 +5,18 @@ import android.os.Build;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.BoringLayout;
 import android.util.DisplayMetrics;
-import android.util.Log;
-import android.util.TypedValue;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.PopupWindow;
+
 import com.jukuproject.jukutweet.Adapters.ChooseFavoritesAdapter;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.MyListEntry;
-import com.jukuproject.jukutweet.Models.WordEntry;
 
 import java.util.ArrayList;
-import rx.functions.Action1;
 
 /**
  * Created by JClassic on 3/24/2017.
@@ -57,7 +51,7 @@ public class PopupChooseFavoriteLists  extends PopupWindow {
         View view = LayoutInflater.from(mContext).
                 inflate(R.layout.popup_choosefavorites, null);
 
-        favoritesLists = InternalDB.getInstance(mContext).getFavoritesListsForAKanji(mActiveFavoriteStars,mKanjiId);
+        favoritesLists = InternalDB.getInstance(mContext).getFavoritesListsForKanji(mActiveFavoriteStars,String.valueOf(mKanjiId));
 
 
         //TODO put something in when there is no list...

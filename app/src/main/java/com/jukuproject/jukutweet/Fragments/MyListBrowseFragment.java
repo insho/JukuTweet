@@ -1,19 +1,27 @@
 package com.jukuproject.jukutweet.Fragments;
 
 import android.content.Context;
+import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.PopupWindow;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Adapters.BrowseMyListAdapter;
 import com.jukuproject.jukutweet.Database.InternalDB;
+import com.jukuproject.jukutweet.Dialogs.CopyMyListItemsDialog;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
@@ -26,11 +34,13 @@ import java.util.ArrayList;
 
 import rx.functions.Action1;
 
+//import com.jukuproject.jukutweet.Interfaces.MyListCopyDialogListener;
+
 /**
  * Created by JClassic on 3/26/2017.
  */
 
-public class MyListBrowseFragment extends Fragment {
+public class MyListBrowseFragment extends Fragment  {
 
     String TAG = "MyListFragment";
     private RxBus mRxBus = new RxBus();
@@ -43,7 +53,7 @@ public class MyListBrowseFragment extends Fragment {
     private ArrayList<WordEntry> mWords;
     private MyListEntry mMyListEntry;
     private ColorThresholds mColorThresholds;
-    private ArrayList<String> mActiveFavoriteStars;
+//    private ArrayList<String> mActiveFavoriteStars;
 //    private HashMap<Integer,Integer> selectedHashMap = new HashMap<>(); //Tracks which entries in the adapter are currently selected (position,
     private ArrayList<Integer> mSelectedEntries = new ArrayList<>(); //Tracks which entries in the adapter are currently selected (id key)
 
@@ -76,7 +86,7 @@ public class MyListBrowseFragment extends Fragment {
         mMyListEntry = getArguments().getParcelable("mylistentry");
         SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(getContext());
         mColorThresholds = sharedPrefManager.getColorThresholds();
-        mActiveFavoriteStars = sharedPrefManager.getActiveFavoriteStars();
+//        mActiveFavoriteStars = sharedPrefManager.getActiveFavoriteStars();
         updateAdapter();
     }
 
@@ -106,27 +116,33 @@ public class MyListBrowseFragment extends Fragment {
                             if(isUniqueClick(100) && event instanceof Integer) {
 
                                 Integer id = (Integer) event;
-//
-//                               AddUserDialog addUserDialogFragment = AddUserDialog.newInstance();
-//                                FragmentManager fragManager = getActivity().getSupportFragmentManager();
-//                                addUserDialogFragment.show(fragManager, "dialogAdd");
 
 
-                                Log.d(TAG,"selected entry count: " + mSelectedEntries.size());
 
 
                                 if(!mSelectedEntries.contains(id)) {
                                         if(mSelectedEntries.size()==0) {
                                             mCallback.showMenuMyListBrowse(true);
+                                            Log.d(TAG,"showing menu");
                                         }
+                                    Log.d(TAG,"selected adding: " + id);
                                     mSelectedEntries.add(id);
+                                    Log.d(TAG,"selected size: " + mSelectedEntries.size());
+
                                 } else {
                                     mSelectedEntries.remove(id);
+                                    Log.d(TAG,"selected removing: " + id);
+                                    Log.d(TAG,"selected size: " + mSelectedEntries.size());
+
+
                                 }
 
                                 if(mSelectedEntries.size()==0) {
                                     mCallback.showMenuMyListBrowse(false);
+                                    Log.d(TAG,"hiding menu");
                                 }
+
+                                Log.d(TAG,"selected updated entry  count: " + mSelectedEntries.size());
 
                             }
 
@@ -162,16 +178,28 @@ public class MyListBrowseFragment extends Fragment {
         }
     }
 
-    public void selectAll() {
+    public void deselectAll(){
         mSelectedEntries.clear();
+        mAdapter.notifyDataSetChanged();
+    }
 
-        //If every word item is already selected, deselect all
+    public void selectAll() {
+
+//        //If every word item is already selected, deselect all
         if(mSelectedEntries.size() != mWords.size()) {
+            mSelectedEntries.clear();
             for(WordEntry entry : mWords) {
                 mSelectedEntries.add(entry.getId());
             }
+            mAdapter.notifyDataSetChanged();
         }
-        mAdapter.notifyDataSetChanged();
+    }
+
+    public void showCopyMyListDialog(){
+
+        if(getActivity().getSupportFragmentManager().findFragmentByTag("dialogCopy") == null || !getActivity().getSupportFragmentManager().findFragmentByTag("dialogCopy").isAdded()) {
+            CopyMyListItemsDialog.newInstance(mMyListEntry,mSelectedEntries).show(getActivity().getSupportFragmentManager(),"dialogCopy");
+        }
     }
 
     @Override
@@ -186,5 +214,120 @@ public class MyListBrowseFragment extends Fragment {
     }
 
 
+    //TODO add error message to this
+    public void saveAndUpdateMyLists(String kanjiIdString,ArrayList<MyListEntry> listsToCopyTo, boolean move,MyListEntry currentList) {
+        InternalDB helper = InternalDB.getInstance(getContext());
+
+        try {
+            for(MyListEntry entry : listsToCopyTo) {
+                helper.addBulkKanjiToList(entry,kanjiIdString);
+            }
+
+            if(move) {
+                removeKanjiFromList(kanjiIdString,currentList);
+            }
+            mCallback.showMenuMyListBrowse(false);
+        } catch (NullPointerException e) {
+            Log.e(TAG,"Nullpointer in MyListBrowseFragment saveAndUpdateMyLists : " + e);
+            Toast.makeText(getContext(), "Unable to update lists", Toast.LENGTH_SHORT).show();
+        } catch (SQLiteException e) {
+            Log.e(TAG,"SQLiteException in MyListBrowseFragment saveAndUpdateMyLists : " + e);
+            Toast.makeText(getContext(), "Unable to update lists", Toast.LENGTH_SHORT).show();
+        } finally {
+            helper.close();
+        }
+
+
+
+    }
+
+    public void removeKanjiFromList(String kanjiIdString, MyListEntry currentList){
+        try {
+            InternalDB.getInstance(getContext()).removeBulkKanjiFromMyList(kanjiIdString,currentList);
+            mWords = InternalDB.getInstance(getContext()).getMyListWords(mMyListEntry);
+            mSelectedEntries = new ArrayList<>();
+//            mAdapter = new BrowseMyListAdapter(getContext(),mWords,mColorThresholds,mRxBus,mSelectedEntries);
+            Log.d(TAG,"DATASET CHANGED mWORDS: " + mWords.size());
+            mAdapter.swapDataSet(mWords);
+            showUndoPopup(kanjiIdString,currentList);
+        } catch (NullPointerException e) {
+            Log.e(TAG,"Nullpointer in MyListBrowseFragment removeKanjiFromList : " + e);
+            Toast.makeText(getContext(), "Unable to delete entries", Toast.LENGTH_SHORT).show();
+        } catch (SQLiteException e) {
+            Log.e(TAG,"SQLiteException in MyListBrowseFragment removeKanjiFromList : " + e);
+            Toast.makeText(getContext(), "Unable to delete entries", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+    public void removeKanjiFromList(){
+        try {
+            final String kanjiString = getSelectedIntsAsString(mSelectedEntries);
+            InternalDB.getInstance(getContext()).removeBulkKanjiFromMyList(kanjiString,mMyListEntry);
+            mWords = InternalDB.getInstance(getContext()).getMyListWords(mMyListEntry);
+            mAdapter = new BrowseMyListAdapter(getContext(),mWords,mColorThresholds,mRxBus,mSelectedEntries);
+            mAdapter.notifyDataSetChanged();
+            showUndoPopup(kanjiString,mMyListEntry);
+        } catch (NullPointerException e) {
+            Log.e(TAG,"Nullpointer in MyListBrowseFragment removeKanjiFromList : " + e);
+            Toast.makeText(getContext(), "Unable to delete entries", Toast.LENGTH_SHORT).show();
+        } catch (SQLiteException e) {
+            Log.e(TAG,"SQLiteException in MyListBrowseFragment removeKanjiFromList : " + e);
+            Toast.makeText(getContext(), "Unable to delete entries", Toast.LENGTH_SHORT).show();
+        }
+    }
+    public void showUndoPopup(final String kanjiIdString, final MyListEntry currentList) {
+        /** SET UP THE UNDO DELETE POPUP */
+
+        final PopupWindow popupWindow = new PopupWindow(getContext());
+//        popupWindow.setWidth(popupwindowwidth);
+//        popupWindow.setHeight(poupwindowheight);
+        popupWindow.setFocusable(true);
+        popupWindow.setClippingEnabled(false);
+//        popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+        View v = View.inflate(getContext(),R.layout.popup_undo,null);
+
+
+
+        TextView undoButton = (TextView) v.findViewById(R.id.undoButton);
+        undoButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    InternalDB.getInstance(getContext()).addBulkKanjiToList(currentList,kanjiIdString);
+                    mWords = InternalDB.getInstance(getContext()).getMyListWords(mMyListEntry);
+                    mAdapter = new BrowseMyListAdapter(getContext(),mWords,mColorThresholds,mRxBus,mSelectedEntries);
+                    mAdapter.notifyDataSetChanged();
+                } catch (NullPointerException e) {
+                    Log.e(TAG,"Nullpointer in MyListBrowseFragment showUndoPopup : re-add" + e);
+                    Toast.makeText(getContext(), "Unable to undo delete!", Toast.LENGTH_SHORT).show();
+                } catch (SQLiteException e) {
+                    Log.e(TAG,"SQLiteException in MyListBrowseFragment showUndoPopup re-add : " + e);
+                    Toast.makeText(getContext(), "Unable to undo delete!", Toast.LENGTH_SHORT).show();
+                }
+
+            }
+        });
+        DisplayMetrics metrics = new DisplayMetrics();
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+
+        popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.popup_drawable));
+        popupWindow.setContentView(v);
+        popupWindow.showAtLocation(mRecyclerView, Gravity.BOTTOM, 0, (int)(metrics.heightPixels / (float)9.5));
+
+    }
+
+    //TODO CONSOLIDATE WITH TWIN IN COPYMYLISTITEMSDIALOG
+    public String getSelectedIntsAsString(ArrayList<Integer> list ) {
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < list.size(); ++i) {
+            if (i>0) {
+                sb.append(", ");
+            }
+            sb.append(list.get(i).toString());
+        }
+        return sb.toString();
+    }
 
 }

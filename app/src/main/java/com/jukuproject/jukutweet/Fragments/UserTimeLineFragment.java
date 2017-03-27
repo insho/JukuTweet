@@ -17,9 +17,9 @@ import android.widget.Toast;
 import com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter;
 import com.jukuproject.jukutweet.BaseContainerFragment;
 import com.jukuproject.jukutweet.BuildConfig;
+import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
-import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.R;
@@ -74,7 +74,7 @@ public class UserTimeLineFragment extends Fragment {
         mUserInfo = getArguments().getParcelable("userInfo");
         mRecyclerView = (RecyclerView) view.findViewById(R.id.recyclerTimeLine);
         mNoLists = (TextView) view.findViewById(R.id.notweets);
-        mTimeLine = new ArrayList<>();
+
         return view;
     }
 
@@ -84,7 +84,7 @@ public class UserTimeLineFragment extends Fragment {
 
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(layoutManager);
-
+        mTimeLine = new ArrayList<>();
         if(mUserInfo != null) {
             pullTimeLineData(mUserInfo);
         } else {
@@ -243,5 +243,10 @@ public class UserTimeLineFragment extends Fragment {
         }
     }
 
+//    @Override
+//    public void onResume() {
+//        super.onResume();
+//        if()
+//    }
 }
 

@@ -1,25 +1,23 @@
 package com.jukuproject.jukutweet.Database;
 
-        import android.content.ContentValues;
-        import android.content.Context;
-        import android.database.Cursor;
-        import android.database.sqlite.SQLiteDatabase;
-        import android.database.sqlite.SQLiteException;
-        import android.database.sqlite.SQLiteOpenHelper;
-        import android.database.sqlite.SQLiteStatement;
-        import android.support.annotation.Nullable;
-        import android.util.Log;
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteStatement;
+import android.support.annotation.Nullable;
+import android.util.Log;
 
+import com.jukuproject.jukutweet.Models.MyListEntry;
+import com.jukuproject.jukutweet.Models.UserInfo;
+import com.jukuproject.jukutweet.Models.WordEntry;
+import com.jukuproject.jukutweet.Models.WordLoader;
 
-        import com.jukuproject.jukutweet.Models.ColorThresholds;
-        import com.jukuproject.jukutweet.Models.MyListEntry;
-        import com.jukuproject.jukutweet.Models.UserInfo;
-        import com.jukuproject.jukutweet.Models.WordEntry;
-        import com.jukuproject.jukutweet.Models.WordLoader;
-
-        import java.util.ArrayList;
-        import java.util.HashMap;
-        import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * Database helper
@@ -613,6 +611,22 @@ public class InternalDB extends SQLiteOpenHelper {
 
         return  false;
     }
+//
+//    public boolean addBulkKanjiToList(String kanjiIdString, MyListEntry myListEntry) {
+//        SQLiteDatabase db = this.getWritableDatabase();
+//        try {
+//            db.execSQL("INSERT OR REPLACE INTO " + TABLE_FAVORITES_LIST_ENTRIES + " WHERE " + TFAVORITES_COL0 + " = ? and "  + TFAVORITES_COL1 + " = ? and " + COL_ID + " in (" + kanjiIdString + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+//            return true;
+//        } catch (SQLiteException e) {
+//            Log.e(TAG, "removeBulkKanjiFromMyList sqlite exception: " + e);
+//        } catch (NullPointerException e) {
+//            Log.e(TAG, "removeBulkKanjiFromMyList something was null: " + e);
+//        } finally {
+//            db.close();
+//        }
+//        return  false;
+//    }
+//
 
     public boolean removeKanjiFromMyList(int kanjiId, String listName, int listSys) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -630,10 +644,32 @@ public class InternalDB extends SQLiteOpenHelper {
         return  false;
     }
 
-    public ArrayList<MyListEntry> getFavoritesListsForAKanji(ArrayList<String> activeFavoriteStars,int kanjiId) {
-//        Log.d(TAG,"HERE IN GETFAVORITES");
+    public boolean removeBulkKanjiFromMyList(String kanjiIdString, MyListEntry myListEntry) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        try {
+            db.execSQL("DELETE FROM " + TABLE_FAVORITES_LIST_ENTRIES + " WHERE " + TFAVORITES_COL0 + " = ? and "  + TFAVORITES_COL1 + " = ? and " + COL_ID + " in (" + kanjiIdString + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+            return true;
+        } catch (SQLiteException e) {
+            Log.e(TAG, "removeBulkKanjiFromMyList sqlite exception: " + e);
+        } catch (NullPointerException e) {
+            Log.e(TAG, "removeBulkKanjiFromMyList something was null: " + e);
+        } finally {
+            db.close();
+        }
+        return  false;
+    }
+
+    /**
+     * Pulls all active MyList lists from the db, and notes whether each list contains ALL of a certain kanji (or multiple kanjis),
+     * Some, or None.
+//     * @see com.jukuproject.jukutweet.com.jukuproject.jukutweet.PopupChooseFavoriteLists#p
+     * @param activeFavoriteStars
+//     * @param kanjiIds kanji id or multiple ids contatenated together. ex. "451,456,333,32"
+//     * @param kanjiCount Total count of those kanjis
+     * @return
+     */
+    public ArrayList<MyListEntry> getFavoritesListsForKanji(ArrayList<String> activeFavoriteStars, String kanjiIds) {
         ArrayList<MyListEntry> myListEntries = new ArrayList<>();
-//        ArrayList<String> activePreferences = SharedPrefManager.getInstance(context).getActiveFavoriteStars();
         SQLiteDatabase db = this.getWritableDatabase();
         try {
             //Get a list of distinct favorites lists and their selection levels for the given kanji
@@ -659,11 +695,13 @@ public class InternalDB extends SQLiteOpenHelper {
                     "( "    +
                     "Select Distinct Name "    +
                     ",Sys "    +
+                    ", Count(_id) as UserCount " +
                     "FROM " + TABLE_FAVORITES_LIST_ENTRIES + " "    +
-                    "WHERE _id = ? "    +
+                    " Where _id in (?) " +
+                    " Group by Name, Sys " +
                     ") as UserEntries "    +
                     " "    +
-                    "ON Lists.Name = UserEntries.Name ", new String[]{String.valueOf(kanjiId)});
+                    "ON Lists.Name = UserEntries.Name ", new String[]{kanjiIds});
 
             c.moveToFirst();
             if(c.getCount()>0) {
@@ -683,15 +721,77 @@ public class InternalDB extends SQLiteOpenHelper {
             c.close();
 
         }  catch (SQLiteException e) {
-        Log.e(TAG,"getlist sqlite exception: " + e);
-    }  catch (NullPointerException e) {
-        Log.e(TAG,"getlist something was null: " + e);
-    } finally {
-        db.close();
-    }
+            Log.e(TAG,"getlist sqlite exception: " + e);
+        }  catch (NullPointerException e) {
+            Log.e(TAG,"getlist something was null: " + e);
+        } finally {
+            db.close();
+        }
         Log.d(TAG,"GETFAVS returning mylist entries: " + myListEntries.size());
         return myListEntries;
     }
+//    public ArrayList<MyListEntry> getFavoritesListsForKanji(ArrayList<String> activeFavoriteStars, String kanjiIds, int kanjiCount) {
+//        ArrayList<MyListEntry> myListEntries = new ArrayList<>();
+//        SQLiteDatabase db = this.getWritableDatabase();
+//        try {
+//            //Get a list of distinct favorites lists and their selection levels for the given kanji
+//            Cursor c = db.rawQuery("Select [Lists].[Name] "    +
+//                    ",[Lists].[Sys] "    +
+//                    ",(Case when UserEntries.Name is null then 0 when UserEntries.UserCount = ? then 1 else 2 END) as SelectionLevel "    +
+//                    " "    +
+//                    "from "    +
+//                        "( "    +
+//                        "Select distinct Name "    +
+//                        ", 0 as Sys "    +
+//                        "From " + TABLE_FAVORITES_LISTS + " "    +
+//                        "UNION "    +
+//                        "Select 'Blue' as Name, 1 as Sys "    +
+//                        "UNION "    +
+//                        "Select 'Green' as Name, 1 as Sys "    +
+//                        "UNION "    +
+//                        "Select 'Red' as Name, 1 as Sys "    +
+//                        "UNION "    +
+//                        "Select 'Yellow' as Name, 1 as Sys "    +
+//                        ") as Lists "    +
+//                    "LEFT JOIN "    +
+//                        "( "    +
+//                        "Select Distinct Name "    +
+//                        ",Sys "    +
+//                        ", Count(_id) as UserCount " +
+//                        "FROM " + TABLE_FAVORITES_LIST_ENTRIES + " "    +
+//                            " Where _id in (?) " +
+//                            " Group by Name, Sys " +
+//                        ") as UserEntries "    +
+//                    " "    +
+//                    "ON Lists.Name = UserEntries.Name ", new String[]{String.valueOf(kanjiCount),kanjiIds});
+//
+//            c.moveToFirst();
+//            if(c.getCount()>0) {
+//                while (!c.isAfterLast()) {
+//
+//                    //Add all user lists (where sys == 0)
+//                    //Only add system lists (sys==1), but only if the system lists are actived in user preferences
+//                    if(c.getInt(1) == 0 || activeFavoriteStars.contains(c.getString(0))) {
+//                        MyListEntry entry = new MyListEntry(c.getString(0),c.getInt(1),c.getInt(2));
+//                        myListEntries.add(entry);
+////                        Log.d(TAG,"GETFAVS adding : " + entry.getListName());
+//
+//                    }
+//                    c.moveToNext();
+//                }
+//            }
+//            c.close();
+//
+//        }  catch (SQLiteException e) {
+//        Log.e(TAG,"getlist sqlite exception: " + e);
+//    }  catch (NullPointerException e) {
+//        Log.e(TAG,"getlist something was null: " + e);
+//    } finally {
+//        db.close();
+//    }
+//        Log.d(TAG,"GETFAVS returning mylist entries: " + myListEntries.size());
+//        return myListEntries;
+//    }
 
 
     public ArrayList<WordEntry> getMyListWords(MyListEntry myListEntry) {
@@ -728,6 +828,24 @@ public class InternalDB extends SQLiteOpenHelper {
             db.close();
         }
         return wordEntries;
+    }
+
+
+    public boolean addBulkKanjiToList(MyListEntry myListEntry,String kanjiString) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        try {
+            db.execSQL("INSERT OR REPLACE INTO " + TABLE_FAVORITES_LIST_ENTRIES +" SELECT DISTINCT [_id],? as [Name], ? as [Sys] FROM [Edict] WHERE [_id] in (" + kanjiString + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+            return true;
+        } catch (SQLiteException e){
+            Log.e(TAG,"copyKanjiToList Sqlite exception: " + e);
+            return false;
+        } catch (Exception e) {
+            Log.e(TAG,"copyKanjiToList generic exception: " + e);
+            return false;
+        } finally {
+            db.close();
+        }
+
     }
 
 

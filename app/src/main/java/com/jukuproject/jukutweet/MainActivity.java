@@ -31,12 +31,16 @@ import com.jukuproject.jukutweet.Dialogs.AddUserCheckDialog;
 import com.jukuproject.jukutweet.Dialogs.AddUserDialog;
 import com.jukuproject.jukutweet.Dialogs.EditMyListDialog;
 import com.jukuproject.jukutweet.Dialogs.RemoveUserDialog;
+import com.jukuproject.jukutweet.Fragments.MyListBrowseFragment;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
+import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.TabContainers.Tab1Container;
 import com.jukuproject.jukutweet.TabContainers.Tab2Container;
 import com.jukuproject.jukutweet.TabContainers.Tab3Container;
+
+import java.util.ArrayList;
 
 import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
 import rx.Observer;
@@ -65,10 +69,10 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      */
     private ViewPager mViewPager;
 //    private AddUserDialog addUserDialogFragment;
-    private AddUserCheckDialog addUserCheckDialogFragment;
-    private RemoveUserDialog removeUserDialogFragment;
-    private AddOrRenameMyListDialog addOrRenameMyListDialogFragment;
-    private EditMyListDialog editMyListDialogFragment;
+//    private AddUserCheckDialog addUserCheckDialogFragment;
+//    private RemoveUserDialog removeUserDialogFragment;
+//    private AddOrRenameMyListDialog addOrRenameMyListDialogFragment;
+//    private EditMyListDialog editMyListDialogFragment;
     private SmoothProgressBar progressbar;
     private FloatingActionButton fab;
     private Menu mMenu;
@@ -185,15 +189,57 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
         switch(id) {
             case R.id.action_cancel:
+                if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
+                    try {
+                        ((MyListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).deselectAll();
+                        showMenuMyListBrowse(false);
+                    } catch (NullPointerException e) {
+                        Log.e(TAG,"Tab3Container->MyListBrowseFragment deselectALL Nullpointer: " + e.toString());
+                    } catch (Exception e) {
+                        Log.e(TAG,"Tab3Container->MyListBrowseFragment deselectALL error: " + e.toString());
+                    }
+
+                }
                 break;
             case R.id.action_copy:
+                if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
+                    try {
+                        ((MyListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).showCopyMyListDialog();
+
+                    } catch (NullPointerException e) {
+                        Log.e(TAG,"Tab3Container->MyListBrowseFragment deselectALL Nullpointer: " + e.toString());
+                    } catch (Exception e) {
+                        Log.e(TAG,"Tab3Container->MyListBrowseFragment deselectALL error: " + e.toString());
+                    }
+
+                }
                 break;
             case R.id.action_delete:
+                if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
+                    try {
+                        ((MyListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).removeKanjiFromList();
+                        showMenuMyListBrowse(false);
+                    } catch (NullPointerException e) {
+                        Log.e(TAG,"Tab3Container->MyListBrowseFragment deselectALL Nullpointer: " + e.toString());
+                    } catch (Exception e) {
+                        Log.e(TAG,"Tab3Container->MyListBrowseFragment deselectALL error: " + e.toString());
+                    }
+
+                }
                 break;
             case R.id.action_selectall:
                 if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
-                    ((Tab3Container) findFragmentByPosition(0)).selectAll();
+                    try {
+                        ((MyListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).selectAll();
+                        showMenuMyListBrowse(false);
+                    } catch (NullPointerException e) {
+                        Log.e(TAG,"Tab3Container->MyListBrowseFragment deselectALL Nullpointer: " + e.toString());
+                    } catch (Exception e) {
+                        Log.e(TAG,"Tab3Container->MyListBrowseFragment deselectALL error: " + e.toString());
+                    }
+
                 }
+
                 break;
         }
 
@@ -218,11 +264,16 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
 
     public void showAddUserCheckDialog(UserInfo userInfo){
-        if (addUserCheckDialogFragment == null || !addUserCheckDialogFragment.isAdded()) {
-            Log.d(TAG,"loading addusercheck");
-            addUserCheckDialogFragment = AddUserCheckDialog.newInstance(userInfo);
-            addUserCheckDialogFragment.show(getFragmentManager(), "dialogAddCheck");
+
+        if(getFragmentManager().findFragmentByTag("dialogAddCheck") != null && !getFragmentManager().findFragmentByTag("dialogAddCheck").isAdded()) {
+            AddUserCheckDialog.newInstance(userInfo).show(getSupportFragmentManager(),"dialogAddCheck");
         }
+
+//        if (addUserCheckDialogFragment == null || !addUserCheckDialogFragment.isAdded()) {
+//            Log.d(TAG,"loading addusercheck");
+//            addUserCheckDialogFragment = AddUserCheckDialog.newInstance(userInfo);
+//            addUserCheckDialogFragment.show(getFragmentManager(), "dialogAddCheck");
+//        }
     }
 
 
@@ -260,10 +311,10 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     @Override
     public void onDialogDismiss() {
 //        addUserDialogFragment = null;
-        removeUserDialogFragment = null;
-        addOrRenameMyListDialogFragment = null;
-        editMyListDialogFragment = null;
-        addUserCheckDialogFragment = null;
+//        removeUserDialogFragment = null;
+//        addOrRenameMyListDialogFragment = null;
+//        editMyListDialogFragment = null;
+//        addUserCheckDialogFragment = null;
     }
 
     /**r
@@ -271,9 +322,12 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * @param user UserInfo to "unfollow" (i.e. remove from database)
      */
     public void showRemoveUserDialog(String user) {
-        if (removeUserDialogFragment == null) {
-            removeUserDialogFragment = RemoveUserDialog.newInstance(user);
-            removeUserDialogFragment.show(getFragmentManager(), "dialogRemove");
+//        if (removeUserDialogFragment == null) {
+//            removeUserDialogFragment = RemoveUserDialog.newInstance(user);
+//            removeUserDialogFragment.show(getFragmentManager(), "dialogRemove");
+//        }
+        if(getFragmentManager().findFragmentByTag("dialogRemove") != null && !getFragmentManager().findFragmentByTag("dialogRemove").isAdded()) {
+            RemoveUserDialog.newInstance(user).show(getSupportFragmentManager(),"dialogRemove");
         }
     }
 
@@ -463,24 +517,37 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
 
     public void showAddMyListDialog(){
-        if (addOrRenameMyListDialogFragment == null || !addOrRenameMyListDialogFragment.isAdded()) {
-            addOrRenameMyListDialogFragment = AddOrRenameMyListDialog.newInstance();
-            addOrRenameMyListDialogFragment.show(getFragmentManager(), "dialogAddMyList");
+//        if (addOrRenameMyListDialogFragment == null || !addOrRenameMyListDialogFragment.isAdded()) {
+//            addOrRenameMyListDialogFragment = AddOrRenameMyListDialog.newInstance();
+//            addOrRenameMyListDialogFragment.show(getFragmentManager(), "dialogAddMyList");
+//        }
+
+        if(getFragmentManager().findFragmentByTag("dialogAddMyList") != null && !getFragmentManager().findFragmentByTag("dialogAddMyList").isAdded()) {
+            AddOrRenameMyListDialog.newInstance().show(getSupportFragmentManager(),"dialogAddMyList");
         }
+
     }
 
     public void showRenameMyListDialog(String oldListName){
-        if (addOrRenameMyListDialogFragment == null || !addOrRenameMyListDialogFragment.isAdded()) {
-            addOrRenameMyListDialogFragment = AddOrRenameMyListDialog.newInstance(oldListName);
-            addOrRenameMyListDialogFragment.show(getFragmentManager(), "dialogAddMyList");
+        if(getFragmentManager().findFragmentByTag("dialogAddMyList") != null && !getFragmentManager().findFragmentByTag("dialogAddMyList").isAdded()) {
+            AddOrRenameMyListDialog.newInstance(oldListName).show(getSupportFragmentManager(),"dialogAddMyList");
         }
+
+//        if (addOrRenameMyListDialogFragment == null || !addOrRenameMyListDialogFragment.isAdded()) {
+//            addOrRenameMyListDialogFragment = AddOrRenameMyListDialog.newInstance(oldListName);
+//            addOrRenameMyListDialogFragment.show(getFragmentManager(), "dialogAddMyList");
+//        }
     }
 
     public void showEditMyListDialog(String currentListName, Boolean isStarFavorite){
-        if (editMyListDialogFragment == null || !editMyListDialogFragment.isAdded()) {
-            editMyListDialogFragment = EditMyListDialog.newInstance(currentListName, isStarFavorite);
-            editMyListDialogFragment.show(getFragmentManager(), "dialogEditMyList");
+        if(getFragmentManager().findFragmentByTag("dialogEditMyList") != null && !getFragmentManager().findFragmentByTag("dialogEditMyList").isAdded()) {
+            EditMyListDialog.newInstance(currentListName, isStarFavorite).show(getSupportFragmentManager(),"dialogEditMyList");
         }
+
+//        if (editMyListDialogFragment == null || !editMyListDialogFragment.isAdded()) {
+//            editMyListDialogFragment = EditMyListDialog.newInstance(currentListName, isStarFavorite);
+//            editMyListDialogFragment.show(getFragmentManager(), "dialogEditMyList");
+//        }
     }
 
     /**
@@ -647,6 +714,21 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
         if(mSectionsPagerAdapter != null) {
             mSectionsPagerAdapter.updateTabs(updatedTabs);
+        }
+    }
+
+    //Traffic control from CopyDialog to BrowseItemsFragment
+    public void saveAndUpdateMyLists(String kanjiIdString, ArrayList<MyListEntry> listsToCopyTo, boolean move, MyListEntry currentList) {
+        if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
+            try {
+                ((MyListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).saveAndUpdateMyLists(kanjiIdString,listsToCopyTo,move,currentList);
+
+            } catch (NullPointerException e) {
+                Log.e(TAG,"Tab3Container->MyListBrowseFragment saveAndUpdateMyLists Nullpointer: " + e.toString());
+            } catch (Exception e) {
+                Log.e(TAG,"Tab3Container->MyListBrowseFragment saveAndUpdateMyLists error: " + e.toString());
+            }
+
         }
     }
 

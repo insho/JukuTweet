@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="horizontal" android:layout_width="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_height="wrap_content"
+        android:background="@android:color/black"
+        android:layout_marginBottom="6dp"
+        android:id="@+id/linearLayoutCopyDeleteDialog"
+        android:weightSum="1">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="Copy"
+            android:id="@+id/textViewCopyDialogCopy"
+            android:layout_gravity="center"
+            android:clickable="true"
+            android:background="@android:color/white"
+            android:gravity="center"
+            android:textSize="18sp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:paddingLeft="2dp"
+            android:paddingStart="2dp"
+
+            android:paddingRight="1dp"
+            android:paddingEnd="1dp"
+
+            android:textColor="@android:color/black"
+            android:layout_weight=".5"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="Move"
+            android:clickable="true"
+            android:id="@+id/textViewCopyDialogMove"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:textSize="18sp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:paddingLeft="1dp"
+            android:paddingStart="1dp"
+
+            android:paddingRight="2dp"
+            android:paddingEnd="2dp"
+            android:background="@android:color/white"
+            android:textColor="@android:color/black"
+            android:layout_weight=".5"/>
+
+
+    </LinearLayout>
+
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/listView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:layout_below="@id/linearLayoutCopyDeleteDialog"
+        android:scrollbars="vertical" />
+
+</RelativeLayout>

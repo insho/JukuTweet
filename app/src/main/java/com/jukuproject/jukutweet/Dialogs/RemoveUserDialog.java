@@ -1,17 +1,19 @@
 package com.jukuproject.jukutweet.Dialogs;
 
-        import android.app.Activity;
-        import android.app.AlertDialog;
-        import android.app.Dialog;
-        import android.app.DialogFragment;
-        import android.content.DialogInterface;
-        import android.os.Bundle;
-        import android.support.v4.content.ContextCompat;
-        import android.view.Gravity;
-        import android.widget.TextView;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
+import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.content.ContextCompat;
+import android.view.Gravity;
+import android.widget.TextView;
 
-        import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
-        import com.jukuproject.jukutweet.R;
+import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
+import com.jukuproject.jukutweet.R;
+
+//        import android.app.DialogFragment;
 
 
 public class RemoveUserDialog extends DialogFragment {

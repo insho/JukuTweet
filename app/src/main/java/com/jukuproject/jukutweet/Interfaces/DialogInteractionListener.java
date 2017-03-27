@@ -1,6 +1,9 @@
 package com.jukuproject.jukutweet.Interfaces;
 
+import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.UserInfo;
+
+import java.util.ArrayList;
 
 /**
  * Created by JukuProject on 3/19/2017.
@@ -18,5 +21,8 @@ public interface DialogInteractionListener {
     void onRenameMyListDialogPositiveClick(String oldListName, String listName);
 
     void saveAndUpdateUserInfoList(UserInfo userInfo);
-//    void showAddUserCheckDialog();
+
+    void saveAndUpdateMyLists(String kanjiIdString, ArrayList<MyListEntry> listsToCopyTo, boolean move, MyListEntry currentList);
+
+
 }

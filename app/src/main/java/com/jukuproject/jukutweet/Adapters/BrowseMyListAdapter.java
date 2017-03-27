@@ -19,9 +19,7 @@ import java.util.ArrayList;
 
 
 public class BrowseMyListAdapter extends RecyclerView.Adapter<BrowseMyListAdapter.ViewHolder>  {
-    String TAG = "Test-BrowseMyAd";
-    private static final boolean debug = false;
-
+    private String TAG = "Test-BrowseMyAd";
     private Context mContext;
 //    private DisplayMetrics mMetrics;
     private ArrayList<WordEntry> mWords;
@@ -36,9 +34,7 @@ public class BrowseMyListAdapter extends RecyclerView.Adapter<BrowseMyListAdapte
         public TextView txtKanji;
         public TextView txtFurigana;
         public TextView lstDefinitions;
-//        public ImageButton imgStar;
-//        public FrameLayout imgStarLayout;
-//        public RxBus rxBus;
+
         public LinearLayout layout;
 
         public ViewHolder(View v) {
@@ -47,16 +43,14 @@ public class BrowseMyListAdapter extends RecyclerView.Adapter<BrowseMyListAdapte
             txtKanji = (TextView) v.findViewById(R.id.textViewBrowseAdapter_Kanji);
             txtFurigana  = (TextView) v.findViewById(R.id.textViewBrowseAdapter_Furigana);
             lstDefinitions = (TextView) v.findViewById(R.id.textViewlstDefinitions);
-//            imgStar = (ImageButton) v.findViewById(R.id.favorite);
             layout = (LinearLayout) v.findViewById(R.id.browseitems_layout2);
-//            imgStarLayout = (FrameLayout) v.findViewById(R.id.browseitems_frameLayout);
+
         }
     }
 
 
     public BrowseMyListAdapter(Context context, ArrayList<WordEntry> words
             ,ColorThresholds colorThresholds
-//            , ArrayList<String> activeFavoriteStars
             ,RxBus rxbus
             ,ArrayList<Integer> selectedEntries) {
         mContext = context;
@@ -64,7 +58,6 @@ public class BrowseMyListAdapter extends RecyclerView.Adapter<BrowseMyListAdapte
         mColorThresholds = colorThresholds;
         mRxBus = rxbus;
         mSelectedEntries = selectedEntries;
-//        this.mActiveFavoriteStars = activeFavoriteStars;
     }
 
 
@@ -80,7 +73,7 @@ public class BrowseMyListAdapter extends RecyclerView.Adapter<BrowseMyListAdapte
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder holder, final int position ) {
+    public void onBindViewHolder(final ViewHolder holder, int position) {
 
         final WordEntry wordEntry = mWords.get(holder.getAdapterPosition());
 
@@ -107,9 +100,9 @@ public class BrowseMyListAdapter extends RecyclerView.Adapter<BrowseMyListAdapte
         holder.lstDefinitions.setClickable(false);
 
         if(mSelectedEntries.contains(wordEntry.getId())){
-            holder.itemView.setSelected(true);
+            holder.layout.setSelected(true);
         } else {
-            holder.itemView.setSelected(false);
+            holder.layout.setSelected(false);
         }
 
         holder.layout.setOnClickListener(new View.OnClickListener() {
@@ -118,23 +111,14 @@ public class BrowseMyListAdapter extends RecyclerView.Adapter<BrowseMyListAdapte
             public void onClick(View v) {
                 /**  The external (BrowseBlocks) onclick listener happens first, apparently. So the hashmap operations should already be done. Just update the visuals*/
 
-                if(holder.itemView.isSelected()) {
-                    holder.itemView.setSelected(false);
-//                    if(mSelectedEntries.contains(wordEntry.getId())) {
-//                        mSelectedEntries.remove(Integer.valueOf(wordEntry.getId()));
-//                    }
+                if(holder.layout.isSelected()) {
+                    holder.layout.setSelected(false);
                     //Send id back to MyListBrowseFragment so it can be added to the selected map
                 } else {
-//                    if(!mSelectedEntries.contains(wordEntry.getId())) {
-//                        mSelectedEntries.add(wordEntry.getId());
-//                    }
-                    holder.itemView.setSelected(true);
+                    holder.layout.setSelected(true);
                 }
-                notifyItemChanged(position);
+                notifyItemChanged(holder.getAdapterPosition());
                 mRxBus.send(wordEntry.getId());
-//                mActivity.invalidateOptionsMenu();
-
-
             }
         });
 
@@ -147,6 +131,9 @@ public class BrowseMyListAdapter extends RecyclerView.Adapter<BrowseMyListAdapte
         return mWords.size();
     }
 
-
+    public void swapDataSet(ArrayList<WordEntry> updatedDataSet) {
+        this.mWords = updatedDataSet;
+        notifyDataSetChanged();
+    }
 }
 

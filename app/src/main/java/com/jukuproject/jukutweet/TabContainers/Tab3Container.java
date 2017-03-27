@@ -65,10 +65,41 @@ public class Tab3Container extends BaseContainerFragment {
             ((MyListBrowseFragment) getChildFragmentManager().findFragmentByTag("mylistbrowse")).selectAll();
             return true;
         } catch (Exception e) {
-            Log.e("Tab1Container","Could not find userListFragment");
+            Log.e("Tab3Container","Could not find MyListBrowseFragment");
             return false;
         }
     }
+
+    public boolean deselectAll() {
+        try {
+            ((MyListBrowseFragment) getChildFragmentManager().findFragmentByTag("mylistbrowse")).deselectAll();
+            return true;
+        } catch (Exception e) {
+            Log.e("Tab3Container","Could not find MyListBrowseFragment");
+            return false;
+        }
+    }
+
+//    public boolean openCopyDialog() {
+//        try {
+//            ((MyListBrowseFragment) getChildFragmentManager().findFragmentByTag("mylistbrowse")).showCopyMyListDialog();
+//            return true;
+//        } catch (Exception e) {
+//            Log.e("Tab3Container","Could not find MyListBrowseFragment");
+//            return false;
+//        }
+//    }
+//
+//    public boolean openCopyDialog() {
+//        try {
+//            ((MyListBrowseFragment) getChildFragmentManager().findFragmentByTag("mylistbrowse")).showCopyMyListDialog();
+//            return true;
+//        } catch (Exception e) {
+//            Log.e("Tab3Container","Could not find MyListBrowseFragment");
+//            return false;
+//        }
+//    }
+
 
     public boolean isTopFragmentShowing() {
         try {
