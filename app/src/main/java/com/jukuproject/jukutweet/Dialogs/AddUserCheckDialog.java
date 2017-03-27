@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.text.SpannableString;
@@ -53,8 +54,6 @@ public class AddUserCheckDialog extends DialogFragment {
 
         Log.d(TAG,"ON ATTACH");
 
-
-
     }
 
 
@@ -103,10 +102,27 @@ public class AddUserCheckDialog extends DialogFragment {
 
 
 
-        ImageView imgProfile = (ImageView) dialogView.findViewById(R.id.imgUser);
+        final ImageView imgProfile = (ImageView) dialogView.findViewById(R.id.imgUser);
         if(userInfo.getProfileImageUrl()!=null) {
-            Picasso.with(getActivity()).load(userInfo.getProfileImageUrl())
+
+            /* Change the last bit of the image profile url from _normal to _bigger,
+            * and try to get a better url image... if that doesn't work, do the normal url */
+
+
+            Picasso picasso = new Picasso.Builder(getContext())
+                    .listener(new Picasso.Listener() {
+                        @Override
+                        public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception) {
+                            //Here your log
+                            Picasso.with(getContext()).load(userInfo.getProfileImageUrl())
+                                    .into(imgProfile);
+
+                        }
+                    })
+                    .build();
+            picasso.load(userInfo.getProfileImageUrlBig())
                     .into(imgProfile);
+
         }
 
 

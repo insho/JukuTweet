@@ -32,7 +32,12 @@ import com.jukuproject.jukutweet.R;
 
 import java.util.ArrayList;
 
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.schedulers.Schedulers;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 //import com.jukuproject.jukutweet.Interfaces.MyListCopyDialogListener;
 
@@ -226,6 +231,7 @@ public class MyListBrowseFragment extends Fragment  {
             if(move) {
                 removeKanjiFromList(kanjiIdString,currentList);
             }
+            deselectAll();
             mCallback.showMenuMyListBrowse(false);
         } catch (NullPointerException e) {
             Log.e(TAG,"Nullpointer in MyListBrowseFragment saveAndUpdateMyLists : " + e);
@@ -249,7 +255,8 @@ public class MyListBrowseFragment extends Fragment  {
 //            mAdapter = new BrowseMyListAdapter(getContext(),mWords,mColorThresholds,mRxBus,mSelectedEntries);
             Log.d(TAG,"DATASET CHANGED mWORDS: " + mWords.size());
             mAdapter.swapDataSet(mWords);
-            showUndoPopup(kanjiIdString,currentList);
+            mAdapter.notifyDataSetChanged();
+//            showUndoPopup(kanjiIdString,currentList);
         } catch (NullPointerException e) {
             Log.e(TAG,"Nullpointer in MyListBrowseFragment removeKanjiFromList : " + e);
             Toast.makeText(getContext(), "Unable to delete entries", Toast.LENGTH_SHORT).show();
@@ -277,17 +284,22 @@ public class MyListBrowseFragment extends Fragment  {
         }
     }
     public void showUndoPopup(final String kanjiIdString, final MyListEntry currentList) {
-        /** SET UP THE UNDO DELETE POPUP */
+
+        DisplayMetrics metrics = new DisplayMetrics();
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+//        LinearLayout viewGroup = (LinearLayout) context.findViewById(R.id.llSortChangePopup);
+        LayoutInflater layoutInflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View v = layoutInflater.inflate(R.layout.popup_undo, null);
 
         final PopupWindow popupWindow = new PopupWindow(getContext());
 //        popupWindow.setWidth(popupwindowwidth);
 //        popupWindow.setHeight(poupwindowheight);
         popupWindow.setFocusable(true);
         popupWindow.setClippingEnabled(false);
-//        popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-        View v = View.inflate(getContext(),R.layout.popup_undo,null);
+        popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+//        View v = getLayoutInflater().inflate(R.layout.popup_undo,null);
 
-
+        popupWindow.setWidth((int)(metrics.widthPixels*.66f));
 
         TextView undoButton = (TextView) v.findViewById(R.id.undoButton);
         undoButton.setOnClickListener(new View.OnClickListener() {
@@ -308,12 +320,24 @@ public class MyListBrowseFragment extends Fragment  {
 
             }
         });
-        DisplayMetrics metrics = new DisplayMetrics();
-        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+
 
         popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.popup_drawable));
         popupWindow.setContentView(v);
         popupWindow.showAtLocation(mRecyclerView, Gravity.BOTTOM, 0, (int)(metrics.heightPixels / (float)9.5));
+        // create a single event in 10 seconds time
+
+        Observable.timer(5, SECONDS).subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Long>() {
+                    @Override
+                    public void call(Long aLong) {
+                        popupWindow.dismiss();
+                    }
+                });
+
+
+
 
     }
 

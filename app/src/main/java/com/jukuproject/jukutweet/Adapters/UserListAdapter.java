@@ -1,17 +1,20 @@
 package com.jukuproject.jukutweet.Adapters;
 
-        import android.support.v7.widget.RecyclerView;
-        import android.view.LayoutInflater;
-        import android.view.View;
-        import android.view.ViewGroup;
-        import android.widget.ImageView;
-        import android.widget.TextView;
+import android.content.Context;
+import android.net.Uri;
+import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 
-        import com.jukuproject.jukutweet.Models.UserInfo;
-        import com.jukuproject.jukutweet.R;
-        import com.jukuproject.jukutweet.Interfaces.RxBus;
+import com.jukuproject.jukutweet.Interfaces.RxBus;
+import com.jukuproject.jukutweet.Models.UserInfo;
+import com.jukuproject.jukutweet.R;
+import com.squareup.picasso.Picasso;
 
-        import java.util.List;
+import java.util.List;
 
 /**
  * Recycler Adapter for UserListFragment, shows twitter users saved in the database
@@ -20,6 +23,7 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
 
     private RxBus _rxbus;
     private List<UserInfo> mDataset;
+    private Context mContext;
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
@@ -35,7 +39,8 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
         }
     }
 
-    public UserListAdapter(List<UserInfo> myDataset, RxBus rxBus) {
+    public UserListAdapter(Context context, List<UserInfo> myDataset, RxBus rxBus) {
+        mContext = context;
         mDataset = myDataset;
         _rxbus = rxBus;
     }
@@ -52,6 +57,29 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
 
         holder.txtUserName.setText(getUser(position).getDisplayScreenName());
         holder.txtUserDescription.setText(getUser(position).getDescription());
+
+        holder.image.setVisibility(View.VISIBLE);
+        Picasso picasso = new Picasso.Builder(mContext)
+                .listener(new Picasso.Listener() {
+                    @Override
+                    public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception) {
+                        //Here your log
+                        holder.image.setVisibility(View.GONE);
+
+                    }
+                })
+                .build();
+        picasso.load(getUser(position).getProfileImageUrlBig())
+                .into(holder.image);
+//
+//
+//        Picasso.with(mContext).load(mDataset.get(position).getProfileImageFilePath())
+//                .into(holder.image);
+        holder.image.setAdjustViewBounds(true);
+
+
+
+
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

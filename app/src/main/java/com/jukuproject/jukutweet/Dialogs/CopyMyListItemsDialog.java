@@ -22,7 +22,6 @@ import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.SharedPrefManager;
-import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.R;
 
 import java.util.ArrayList;
@@ -71,13 +70,7 @@ public class CopyMyListItemsDialog extends DialogFragment {
 
     }
 
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
 
-        mActiveFavoriteStars  = SharedPrefManager.getInstance(getContext()).getActiveFavoriteStars();
-
-    }
 
     public static CopyMyListItemsDialog newInstance(MyListEntry currentList, ArrayList<Integer> selectedEntries) {
 
@@ -93,7 +86,10 @@ public class CopyMyListItemsDialog extends DialogFragment {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        final UserInfo userInfo = getArguments().getParcelable("userInfo");
+//        final UserInfo userInfo = getArguments().getParcelable("userInfo");
+
+        mActiveFavoriteStars  = SharedPrefManager.getInstance(getContext()).getActiveFavoriteStars();
+
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = getActivity().getLayoutInflater();
 
@@ -131,8 +127,19 @@ public class CopyMyListItemsDialog extends DialogFragment {
         final ArrayList<Integer> selectedEntries = getArguments().getIntegerArrayList("selectedEntries");
         mCurrentList = getArguments().getParcelable("currentList");
         final String kanjiString = getSelectedIntsAsString(selectedEntries);
-        mFavoritesLists = InternalDB.getInstance(getContext()).getFavoritesListsForKanji(mActiveFavoriteStars,"");
+        mFavoritesLists = InternalDB.getInstance(getContext()).getFavoritesListsForKanji(mActiveFavoriteStars,"",mCurrentList);
 
+        //Iterate back through and remove the current list from the lists... bad design
+//        for(MyListEntry entry : mFavoritesLists) {
+//            if(entry.getListsSys() == mCurrentList.getListsSys() && entry.getListName().equals(mCurrentList.getListName())) {
+//                mFavoritesLists.remove(entry);
+//            }
+//        }
+        if(mFavoritesLists.contains(mCurrentList)) {
+            mFavoritesLists.remove(mCurrentList);
+        }
+
+        Log.d(TAG,"FAVORITE LISTS SIZE: " + mFavoritesLists.size());
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         RecyclerView mRecyclerView = (RecyclerView) dialogView.findViewById(R.id.listView);
         mRecyclerView.setLayoutManager(mLayoutManager);

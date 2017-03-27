@@ -40,6 +40,8 @@ public class InternalDB extends SQLiteOpenHelper {
     public static final String TMAIN_COL3 = "FollowerCount";
     public static final String TMAIN_COL4 = "FriendCount";
     public static final String TMAIN_COL5 = "ProfileImgUrl";
+    public static final String TMAIN_COL6 = "ProfileImgFilePath";
+
 
     public static final String TABLE_SCOREBOARD = "JScoreboard";
     public static final String TSCOREBOARD_COL0 = "Total";
@@ -82,6 +84,7 @@ public class InternalDB extends SQLiteOpenHelper {
                                 "%s TEXT, " +
                                 "%s INTEGER, " +
                                 "%s INTEGER, " +
+                                "%s TEXT, " +
                                 "%s TEXT) ", TABLE_MAIN,
                         COL_ID,
                         TMAIN_COL0,
@@ -89,7 +92,8 @@ public class InternalDB extends SQLiteOpenHelper {
                         TMAIN_COL2,
                         TMAIN_COL3,
                         TMAIN_COL4,
-                        TMAIN_COL5);
+                        TMAIN_COL5,
+                        TMAIN_COL6);
 
         sqlDB.execSQL(sqlQueryUsers);
 
@@ -246,6 +250,19 @@ public class InternalDB extends SQLiteOpenHelper {
     }
 
 
+//TODO == hook this to user id? instead of screenname
+    public void addMediaURItoDB(String URI, String screenName) {
+
+//        Log.d(TAG,"URI VALUE: " + rowID + " - " + URI);
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(TMAIN_COL6, URI);
+        db.update(TABLE_MAIN, values, TMAIN_COL0 + "= ?", new String[] {screenName});
+        db.close();
+        Log.d(TAG,"SUCESSFUL INSERT URI for name: " + screenName);
+
+    }
+
     /**
      * Pulls user information from db and fills a list of UserInfo objects, to
      * be used in the UserListFragment recycler
@@ -254,7 +271,7 @@ public class InternalDB extends SQLiteOpenHelper {
     public List<UserInfo> getSavedUserInfo() {
         List<UserInfo> userInfoList = new ArrayList<UserInfo>();
 
-        String querySelectAll = "Select distinct ScreenName,IFNULL(Description,''),FollowerCount, FriendCount, IFNULL(ProfileImgUrl,''),UserId From " + TABLE_MAIN;
+        String querySelectAll = "Select distinct ScreenName,IFNULL(Description,''),FollowerCount, FriendCount, IFNULL(ProfileImgUrl,''),UserId, ProfileImgFilePath From " + TABLE_MAIN;
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor c = db.rawQuery(querySelectAll, null);
 
@@ -287,6 +304,16 @@ public class InternalDB extends SQLiteOpenHelper {
                     } catch (Exception e) {
                         Log.e(TAG,"getSavedUserInfo adding setFriendCount other exception... " + e);
                     }
+
+                    try {
+                        userInfo.setProfileImageFilePath(c.getString(6));
+                    }  catch (SQLiteException e) {
+                        Log.e(TAG,"getSavedUserInfo adding setProfileImgFilePath sqlite problem: " + e);
+                    } catch (Exception e) {
+                        Log.e(TAG,"getSavedUserInfo adding setProfileImgFilePath other exception... " + e);
+                    }
+
+
 
                     userInfo.setProfile_image_url(c.getString(4));
                     userInfoList.add(userInfo);
@@ -668,11 +695,14 @@ public class InternalDB extends SQLiteOpenHelper {
 //     * @param kanjiCount Total count of those kanjis
      * @return
      */
-    public ArrayList<MyListEntry> getFavoritesListsForKanji(ArrayList<String> activeFavoriteStars, String kanjiIds) {
+    public ArrayList<MyListEntry> getFavoritesListsForKanji(ArrayList<String> activeFavoriteStars, String kanjiIds,@Nullable MyListEntry entryToExclude) {
         ArrayList<MyListEntry> myListEntries = new ArrayList<>();
         SQLiteDatabase db = this.getWritableDatabase();
         try {
+
+
             //Get a list of distinct favorites lists and their selection levels for the given kanji
+            //Except for if a certain favorite list exists that we do not want to include (as occurs in the mylist copy dialog)
             Cursor c = db.rawQuery("Select [Lists].[Name] "    +
                     ",[Lists].[Sys] "    +
                     ",(Case when UserEntries.Name is null then 0 else 1 END) as SelectionLevel "    +
@@ -703,17 +733,24 @@ public class InternalDB extends SQLiteOpenHelper {
                     " "    +
                     "ON Lists.Name = UserEntries.Name ", new String[]{kanjiIds});
 
+//            Log.d(TAG,"Listsname: " + name + ", listsys: " + sys);
+
             c.moveToFirst();
             if(c.getCount()>0) {
+//                Log.d(TAG,"HERE IN THING : " + c.getCount());
+//                Log.d(TAG,"HERE IN activeFavoriteStars : " + c.size());
                 while (!c.isAfterLast()) {
+
+
 
                     //Add all user lists (where sys == 0)
                     //Only add system lists (sys==1), but only if the system lists are actived in user preferences
-                    if(c.getInt(1) == 0 || activeFavoriteStars.contains(c.getString(0))) {
+                    if((c.getInt(1) == 0 || activeFavoriteStars.contains(c.getString(0)))
+                            && (entryToExclude!= null && !(entryToExclude.getListName().equals(c.getString(0)) && entryToExclude.getListsSys() == c.getInt(1)))) {
                         MyListEntry entry = new MyListEntry(c.getString(0),c.getInt(1),c.getInt(2));
                         myListEntries.add(entry);
 //                        Log.d(TAG,"GETFAVS adding : " + entry.getListName());
-
+                        Log.d(TAG,"RETURN LISTNAME: " + c.getString(0) + ", SYS: " + c.getInt(1));
                     }
                     c.moveToNext();
                 }

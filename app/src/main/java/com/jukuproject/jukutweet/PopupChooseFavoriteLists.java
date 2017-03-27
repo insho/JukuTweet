@@ -51,7 +51,7 @@ public class PopupChooseFavoriteLists  extends PopupWindow {
         View view = LayoutInflater.from(mContext).
                 inflate(R.layout.popup_choosefavorites, null);
 
-        favoritesLists = InternalDB.getInstance(mContext).getFavoritesListsForKanji(mActiveFavoriteStars,String.valueOf(mKanjiId));
+        favoritesLists = InternalDB.getInstance(mContext).getFavoritesListsForKanji(mActiveFavoriteStars,String.valueOf(mKanjiId),null);
 
 
         //TODO put something in when there is no list...

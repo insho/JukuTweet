@@ -93,7 +93,7 @@ public class UserListFragment extends Fragment {
 
         //Create UserListAdapter and attach rxBus click listeners to it
         if(savedUserInfo != null && savedUserInfo.size() > 0) {
-            mAdapter = new UserListAdapter(savedUserInfo, _rxBus);
+            mAdapter = new UserListAdapter(getContext(),savedUserInfo, _rxBus);
 
             showRecyclerView(true);
 

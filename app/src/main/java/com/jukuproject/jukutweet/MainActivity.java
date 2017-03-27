@@ -1,10 +1,14 @@
 package com.jukuproject.jukutweet;
 
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
@@ -39,7 +43,12 @@ import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.TabContainers.Tab1Container;
 import com.jukuproject.jukutweet.TabContainers.Tab2Container;
 import com.jukuproject.jukutweet.TabContainers.Tab3Container;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
@@ -144,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 if(mViewPager != null) {
                    if(mViewPager.getCurrentItem() == 0 && isTopShowing()) {
                         showAddUserDialog();
-                    } else if(mViewPager.getCurrentItem() == 1 && isTopShowing()) {
+                    } else if(mViewPager.getCurrentItem() == 2 && isTopShowing()) {
                        showAddMyListDialog();
                    }
             }
@@ -231,7 +240,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
                     try {
                         ((MyListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).selectAll();
-                        showMenuMyListBrowse(false);
                     } catch (NullPointerException e) {
                         Log.e(TAG,"Tab3Container->MyListBrowseFragment deselectALL Nullpointer: " + e.toString());
                     } catch (Exception e) {
@@ -257,7 +265,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 //            addUserDialogFragment = AddUserDialog.newInstance();
 //            addUserDialogFragment.show(getFragmentManager(), "dialogAdd");
 
-            if(getFragmentManager().findFragmentByTag("dialogAdd") != null && !getFragmentManager().findFragmentByTag("dialogAdd").isAdded()) {
+            if(getFragmentManager().findFragmentByTag("dialogAdd") == null || !getFragmentManager().findFragmentByTag("dialogAdd").isAdded()) {
                 AddUserDialog.newInstance().show(getSupportFragmentManager(),"dialogAdd");
         }
     }
@@ -265,7 +273,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
     public void showAddUserCheckDialog(UserInfo userInfo){
 
-        if(getFragmentManager().findFragmentByTag("dialogAddCheck") != null && !getFragmentManager().findFragmentByTag("dialogAddCheck").isAdded()) {
+        if(getFragmentManager().findFragmentByTag("dialogAddCheck") == null || !getFragmentManager().findFragmentByTag("dialogAddCheck").isAdded()) {
             AddUserCheckDialog.newInstance(userInfo).show(getSupportFragmentManager(),"dialogAddCheck");
         }
 
@@ -326,7 +334,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 //            removeUserDialogFragment = RemoveUserDialog.newInstance(user);
 //            removeUserDialogFragment.show(getFragmentManager(), "dialogRemove");
 //        }
-        if(getFragmentManager().findFragmentByTag("dialogRemove") != null && !getFragmentManager().findFragmentByTag("dialogRemove").isAdded()) {
+        if(getFragmentManager().findFragmentByTag("dialogRemove") == null || !getFragmentManager().findFragmentByTag("dialogRemove").isAdded()) {
             RemoveUserDialog.newInstance(user).show(getSupportFragmentManager(),"dialogRemove");
         }
     }
@@ -390,15 +398,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                             /* If the user exists and a UserInfo object has been populated,
                             * save it to the database and update the UserInfoFragment adapter */
                             if(userInfoInstance != null) {
-
-                                //TODO DO STUFF, like pull data into db, or whatever
                                 showAddUserCheckDialog(userInfoInstance);
-
-
-
-
 //                            showToolBarBackButton(true,getArticleRequestType(requesttype));
-
                             } else {
                                 Toast.makeText(MainActivity.this, "Unable to add user " + screenName, Toast.LENGTH_SHORT).show();
                             }
@@ -433,11 +434,136 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     public void saveAndUpdateUserInfoList(UserInfo userInfoInstance) {
         if(InternalDB.getInstance(getBaseContext()).saveUser(userInfoInstance)) {
 
+            try{
+
+                downloadUserIcon(userInfoInstance.getProfileImageUrlBig(),userInfoInstance.getScreenName());
+
+            } catch (Exception e) {
+                Log.e(TAG,"Image download failed: " + e.toString());
+            }
+
             // Locate Tab1Continer and update the UserListInfo adapter to reflect removed item
             if(findFragmentByPosition(0) != null && findFragmentByPosition(0) instanceof Tab1Container) {
                 ((Tab1Container) findFragmentByPosition(0)).updateUserListFragment();
             }
         }
+    }
+    //save image
+//    public static void imageDownload(Context ctx, String url){
+//        Picasso.with(ctx)
+//                .load("http://blog.concretesolutions.com.br/wp-content/uploads/2015/04/Android1.png")
+//                .into(getTarget(url));
+//    }
+//
+//    //target to save
+//    private static Target getTarget(final String url){
+//        Target target = new Target(){
+//
+//            @Override
+//            public void onBitmapLoaded(final Bitmap bitmap, Picasso.LoadedFrom from) {
+//                new Thread(new Runnable() {
+//
+//                    @Override
+//                    public void run() {
+//
+//                        File file = new File(Environment.getExternalStorageDirectory().getPath() + "/" + url);
+//                        try {
+//                            file.createNewFile();
+//                            FileOutputStream ostream = new FileOutputStream(file);
+//                            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, ostream);
+//                            ostream.flush();
+//                            ostream.close();
+//                        } catch (IOException e) {
+//                            Log.e("IOException", e.getLocalizedMessage());
+//                        }
+//                    }
+//                }).start();
+//
+//            }
+//
+//            @Override
+//            public void onBitmapFailed(Drawable errorDrawable) {
+//
+//            }
+//
+//            @Override
+//            public void onPrepareLoad(Drawable placeHolderDrawable) {
+//
+//            }
+//        };
+//        return target;
+//    }
+
+    public File checkForImagePath(String title) {
+//        String appDirectoryName = "JukuTweetUserIcons";
+//
+//        File imageRoot = new File(Environment.getExternalStoragePublicDirectory(
+//                Environment.DIRECTORY_PICTURES), appDirectoryName);
+//        if(imageRoot.exists() && imageRoot.isDirectory()) {
+//            // do something here
+//
+//        }
+        ContextWrapper cw = new ContextWrapper(getApplicationContext());
+        File directory = cw.getDir("JukuTweetUserIcons", Context.MODE_PRIVATE);
+        if (!directory.exists()) {
+            directory.mkdir();
+        }
+        return new File(directory, title + ".png");
+
+    }
+
+    public void downloadUserIcon(String imageUrl, final String screenName) {
+//        success = false;
+//
+//
+//        FileOutputStream fos = null;
+//        try {
+//            fos = new FileOutputStream(mypath);
+//            resizedbitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+//            fos.close();
+//        } catch (Exception e) {
+//            Log.e("SAVE_IMAGE", e.getMessage(), e);
+//        }
+        Picasso.with(getBaseContext()).load(imageUrl).into(new Target() {
+            @Override
+            public void onBitmapLoaded(final Bitmap bitmap, Picasso.LoadedFrom from) {
+                new Thread(new Runnable() {
+
+                    @Override
+                    public void run() {
+
+//                        File file = new File(Environment.getExternalStorageDirectory().getPath() + "/" + url);
+                        try {
+                            File file = checkForImagePath(screenName);
+                            FileOutputStream ostream = new FileOutputStream(file);
+                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, ostream);
+                            ostream.flush();
+                            ostream.close();
+
+
+                            //TODO == clearer way of saving this image to a file...
+                            Uri uri = Uri.fromFile(file);
+                            InternalDB.getInstance(getBaseContext()).addMediaURItoDB(uri.toString(),screenName);
+                        } catch (IOException e) {
+                            Log.e("IOException", e.getLocalizedMessage());
+                        }
+                    }
+                }).start();
+
+            }
+            @Override
+            public void onBitmapFailed(Drawable errorDrawable) {
+
+            }
+
+            @Override
+            public void onPrepareLoad(Drawable placeHolderDrawable) {
+
+            }
+        });
+
+//        return  success;
+//        Picasso.with(getBaseContext()).load(imageUrl).into(new TargetPhoneGallery(getContentResolver(), rowID, rssList.getTitle(), getBaseContext()));
     }
 
 
@@ -522,14 +648,14 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 //            addOrRenameMyListDialogFragment.show(getFragmentManager(), "dialogAddMyList");
 //        }
 
-        if(getFragmentManager().findFragmentByTag("dialogAddMyList") != null && !getFragmentManager().findFragmentByTag("dialogAddMyList").isAdded()) {
+        if(getFragmentManager().findFragmentByTag("dialogAddMyList") == null || !getFragmentManager().findFragmentByTag("dialogAddMyList").isAdded()) {
             AddOrRenameMyListDialog.newInstance().show(getSupportFragmentManager(),"dialogAddMyList");
         }
 
     }
 
     public void showRenameMyListDialog(String oldListName){
-        if(getFragmentManager().findFragmentByTag("dialogAddMyList") != null && !getFragmentManager().findFragmentByTag("dialogAddMyList").isAdded()) {
+        if(getFragmentManager().findFragmentByTag("dialogAddMyList") == null || !getFragmentManager().findFragmentByTag("dialogAddMyList").isAdded()) {
             AddOrRenameMyListDialog.newInstance(oldListName).show(getSupportFragmentManager(),"dialogAddMyList");
         }
 
@@ -671,7 +797,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             case 1:
                 break;
             case 2:
-                break;
+                return ((Tab3Container)findFragmentByPosition(2)).isTopFragmentShowing();
             default:
                 break;
         }

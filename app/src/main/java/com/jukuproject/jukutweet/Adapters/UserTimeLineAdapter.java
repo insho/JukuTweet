@@ -1,27 +1,26 @@
 package com.jukuproject.jukutweet.Adapters;
 
-        import android.content.Context;
-        import android.support.v4.content.ContextCompat;
-        import android.support.v7.widget.RecyclerView;
-        import android.text.SpannableString;
-        import android.text.Spanned;
-        import android.text.TextPaint;
-        import android.text.method.LinkMovementMethod;
-        import android.text.style.CharacterStyle;
-        import android.text.style.ClickableSpan;
-        import android.text.style.URLSpan;
-        import android.util.Log;
-        import android.view.LayoutInflater;
-        import android.view.View;
-        import android.view.ViewGroup;
-        import android.widget.TextView;
+import android.content.Context;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.RecyclerView;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextPaint;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.text.style.URLSpan;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
 
-        import com.jukuproject.jukutweet.Interfaces.RxBus;
-        import com.jukuproject.jukutweet.Models.Tweet;
-        import com.jukuproject.jukutweet.Models.TweetUrl;
-        import com.jukuproject.jukutweet.R;
+import com.jukuproject.jukutweet.Interfaces.RxBus;
+import com.jukuproject.jukutweet.Models.Tweet;
+import com.jukuproject.jukutweet.Models.TweetUrl;
+import com.jukuproject.jukutweet.R;
 
-        import java.util.List;
+import java.util.List;
 
 /**
  * Recycler adapter for UserTimeLineFragment, displays a list of users tweets
@@ -100,7 +99,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                 @Override
                 public void updateDrawState(TextPaint ds) {
                     super.updateDrawState(ds);
-                    ds.setColor(ContextCompat.getColor(mContext, android.R.color.secondary_text_dark));
+                    ds.setColor(ContextCompat.getColor(mContext, android.R.color.tertiary_text_light));
                     ds.setUnderlineText(false);
 
                 }

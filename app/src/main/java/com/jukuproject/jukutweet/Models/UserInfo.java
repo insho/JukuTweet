@@ -31,6 +31,16 @@ public class UserInfo implements Parcelable  {
     private String profile_image_url;
     private String profile_banner_url;
 
+    private  String profileImageFilePath;
+
+    public String getProfileImageFilePath() {
+        return profileImageFilePath;
+    }
+
+    public void setProfileImageFilePath(String profileImageFilePath) {
+        this.profileImageFilePath = profileImageFilePath;
+    }
+
     private String screen_name;
 
     public String getBannerUrl() {
@@ -103,6 +113,10 @@ public class UserInfo implements Parcelable  {
 
     public String getProfileImageUrl() {
         return profile_image_url;
+    }
+
+    public String getProfileImageUrlBig() {
+        return profile_image_url.replace("_normal","_bigger");
     }
 
     public void setProfile_image_url(String profile_image_url) {
