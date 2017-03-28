@@ -13,11 +13,15 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.TweetUrl;
+import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.R;
 
 import java.util.List;
@@ -29,6 +33,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
     private static final String TAG = "TEST-timefrag";
     private RxBus _rxbus;
+    private UserInfo mUserInfo;
     private List<Tweet> mDataset;
     private Context mContext;
 
@@ -39,20 +44,29 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
         public TextView txtFavorited;
         public TextView txtReTweeted;
 
+        public TextView txtUserName;
+        public TextView txtUserScreenName;
+        public ImageButton imgStar;
+        public FrameLayout imgStarLayout;
         public ViewHolder(View v) {
             super(v);
             txtTweet = (TextView) v.findViewById(R.id.tweet);
-            txtCreated = (TextView) v.findViewById(R.id.created);
+            txtCreated = (TextView) v.findViewById(R.id.createdAt);
             txtFavorited = (TextView) v.findViewById(R.id.favorited);
             txtReTweeted = (TextView) v.findViewById(R.id.retweeted);
 
+            txtUserName = (TextView) v.findViewById(R.id.timelineName);
+            txtUserScreenName = (TextView) v.findViewById(R.id.timelineDisplayScreenName);
+            imgStar = (ImageButton) v.findViewById(R.id.favorite);
+            imgStarLayout = (FrameLayout) v.findViewById(R.id.timelineStarLayout);
         }
     }
 
-    public UserTimeLineAdapter(Context context, RxBus rxBus, List<Tweet> myDataset) {
+    public UserTimeLineAdapter(Context context, RxBus rxBus, UserInfo userInfo, List<Tweet> myDataset) {
         mContext = context;
         _rxbus = rxBus;
         mDataset = myDataset;
+        mUserInfo = userInfo;
     }
 
 
@@ -67,20 +81,30 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
 
+
+        holder.txtUserName.setText(mUserInfo.getName());
+        holder.txtUserScreenName.setText(mUserInfo.getDisplayScreenName());
+
+
         /* Insert tweet metadata if it exists*/
-        if(getTweet(position).getDisplayDate() != null){
-            holder.txtCreated.setText(getTweet(position).getDisplayDate());
-        }
+        holder.txtCreated.setText(getTweet(position).getDisplayDate());
+        holder.txtReTweeted.setText(getTweet(position).getRetweetCountString());
+
 
         if(getTweet(position).getFavorited() != null){
-            holder.txtFavorited.setText(String.valueOf(getTweet(position).getFavorited()));
-        }
-
-        if(getTweet(position).getDisplayRetweetCount() != null){
-            holder.txtReTweeted.setText(getTweet(position).getDisplayRetweetCount());
+            holder.txtFavorited.setText(getTweet(position).getFavoritesCountString());
         }
 
 
+        holder.imgStarLayout.setClickable(true);
+        holder.imgStarLayout.setLongClickable(true);
+
+        holder.imgStarLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(mContext, "STAR CLICK", Toast.LENGTH_SHORT).show();
+            }
+        });
 
 
         try {
@@ -99,7 +123,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                 @Override
                 public void updateDrawState(TextPaint ds) {
                     super.updateDrawState(ds);
-                    ds.setColor(ContextCompat.getColor(mContext, android.R.color.tertiary_text_light));
+                    ds.setColor(ContextCompat.getColor(mContext, android.R.color.black));
                     ds.setUnderlineText(false);
 
                 }

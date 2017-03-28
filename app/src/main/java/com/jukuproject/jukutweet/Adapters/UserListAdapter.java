@@ -28,14 +28,17 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
     public class ViewHolder extends RecyclerView.ViewHolder {
 
         public TextView txtUserName;
+        public TextView txtUserScreenName;
         public TextView txtUserDescription;
         public ImageView image;
+
 
         public ViewHolder(View v) {
             super(v);
             txtUserName = (TextView) v.findViewById(R.id.name);
             image = (ImageView) v.findViewById(R.id.image);
             txtUserDescription = (TextView) v.findViewById(R.id.description);
+            txtUserScreenName = (TextView) v.findViewById(R.id.screenName);
         }
     }
 
@@ -55,8 +58,11 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
 
-        holder.txtUserName.setText(getUser(position).getDisplayScreenName());
+        holder.txtUserName.setText(getUser(position).getName());
+        holder.txtUserScreenName.setText(getUser(position).getDisplayScreenName());
+
         holder.txtUserDescription.setText(getUser(position).getDescription());
+
 
         holder.image.setVisibility(View.VISIBLE);
         Picasso picasso = new Picasso.Builder(mContext)

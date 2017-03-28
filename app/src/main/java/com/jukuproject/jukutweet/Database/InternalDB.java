@@ -41,11 +41,18 @@ public class InternalDB extends SQLiteOpenHelper {
     public static final String TMAIN_COL4 = "FriendCount";
     public static final String TMAIN_COL5 = "ProfileImgUrl";
     public static final String TMAIN_COL6 = "ProfileImgFilePath";
-
+    public static final String TMAIN_COL7 = "UserName";
 
     public static final String TABLE_SCOREBOARD = "JScoreboard";
     public static final String TSCOREBOARD_COL0 = "Total";
     public static final String TSCOREBOARD_COL1 = "Correct";
+
+    public static final String TABLE_FAVORITES_LISTS_TWEETS = "JFavoritesTweets";
+//    public static final String TFAVORITES_COL0 = "Name";
+
+    public static final String TABLE_FAVORITES_LISTS_TWEETS_ENTRIES = "JFavorites";
+//    public static final String TFAVORITES_COL1 = "Sys";
+
 
     public static final String TABLE_FAVORITES_LISTS = "JFavoritesLists";
     public static final String TFAVORITES_COL0 = "Name";
@@ -54,10 +61,22 @@ public class InternalDB extends SQLiteOpenHelper {
     public static final String TFAVORITES_COL1 = "Sys";
 
 
+    public static final String TABLE_SAVED_TWEETS = "JSavedTweets";
+    public static final String TSAVEDTWEET_COL0 = "UserID";
+    public static final String TSAVEDTWEET_COL1 = "TweetID";
+    public static final String TSAVEDTWEET_COL2 = "CreatedAt";
+    public static final String TSAVEDTWEET_COL3 = "Text";
 
-//    public static final String TABLE_HIGHSCORES = "JHighScore";
+    public static final String TABLE_SAVED_TWEET_KANJI = "JSavedTweetKanji";
+    public static final String TSAVEDTWEETITEMS_COL0 = "STweet_id"; //JSavedTweets Primary Key!
+    public static final String TSAVEDTWEETITEMS_COL1 = "IndexOrder"; //JSavedTweets Primary Key!
+    public static final String TSAVEDTWEETITEMS_COL2 = "Edict_id"; //Edict Primary Key!
 
-
+    public static final String TABLE_SAVED_TWEET_URLS = "JSavedTweetUrls";
+//    public static final String TSAVEDTWEETITEMS_COL0 = "STweet_id"; //JSavedTweets Primary Key!
+    public static final String TSAVEDTWEETURLS_COL1 = "Url";
+    public static final String TSAVEDTWEETURLS_COL2 = "StartIndex";
+    public static final String TSAVEDTWEETURLS_COL3 = "EndIndex";
 
     public static synchronized InternalDB getInstance(Context context) {
 
@@ -85,6 +104,7 @@ public class InternalDB extends SQLiteOpenHelper {
                                 "%s INTEGER, " +
                                 "%s INTEGER, " +
                                 "%s TEXT, " +
+                                "%s TEXT, " +
                                 "%s TEXT) ", TABLE_MAIN,
                         COL_ID,
                         TMAIN_COL0,
@@ -93,7 +113,8 @@ public class InternalDB extends SQLiteOpenHelper {
                         TMAIN_COL3,
                         TMAIN_COL4,
                         TMAIN_COL5,
-                        TMAIN_COL6);
+                        TMAIN_COL6,
+                        TMAIN_COL7);
 
         sqlDB.execSQL(sqlQueryUsers);
 
@@ -127,6 +148,73 @@ public class InternalDB extends SQLiteOpenHelper {
                         TFAVORITES_COL1); // if this column = 1, it is a system table (i.e. blue, red, yellow), if user-created the value is 0
 
         sqlDB.execSQL(sqlQueryJFavoritesListEntries);
+
+
+        //The "My Lists" table
+        String sqlQueryJFavoritesListsTweets =
+                String.format("CREATE TABLE IF NOT EXISTS %s (" +
+                                "%s TEXT)", TABLE_FAVORITES_LISTS_TWEETS,
+                        TFAVORITES_COL0);
+
+        sqlDB.execSQL(sqlQueryJFavoritesListsTweets);
+
+        String sqlQueryJFavoritesListTweetsEntries =
+                String.format("CREATE TABLE IF NOT EXISTS  %s (" +
+                                "%s INTEGER, " +
+                                "%s TEXT, " +
+                                "%s INTEGER)", TABLE_FAVORITES_LISTS_TWEETS_ENTRIES,
+                        COL_ID,
+                        TFAVORITES_COL0,
+                        TFAVORITES_COL1); // if this column = 1, it is a system table (i.e. blue, red, yellow), if user-created the value is 0
+
+        sqlDB.execSQL(sqlQueryJFavoritesListTweetsEntries);
+
+
+
+        String sqlQueryJSavedTweet =
+                String.format("CREATE TABLE IF NOT EXISTS %s (" +
+                                "%s INTEGER PRIMARY KEY, " +
+                                "%s INTEGER, " +
+                                "%s INTEGER, " +
+                                "%s TEXT, " +
+                                "%s TEXT)", TABLE_SAVED_TWEETS,
+                        COL_ID, //_id
+                        TSAVEDTWEET_COL0, //UserId
+                        TSAVEDTWEET_COL1, // TweetId
+                        TSAVEDTWEET_COL2, //CreatedAt
+                        TSAVEDTWEET_COL3); // Text
+
+        sqlDB.execSQL(sqlQueryJSavedTweet);
+
+        String sqlQueryJSavedTweetEntries =
+                String.format("CREATE TABLE IF NOT EXISTS %s (" +
+                                "%s INTEGER PRIMARY KEY, " +
+                                "%s INTEGER, " +
+                                "%s INTEGER, " +
+                                "%s INTEGER)", TABLE_SAVED_TWEET_KANJI,
+                        COL_ID, //_id (unique)
+                        TSAVEDTWEETITEMS_COL0, //STweet_id (JSavedTweet _id)
+                        TSAVEDTWEETITEMS_COL1, // Order (order kanji appears in text)
+                        TSAVEDTWEETITEMS_COL2); // Edict_id
+
+        sqlDB.execSQL(sqlQueryJSavedTweetEntries);
+
+
+        String sqlQueryJSavedTweetUrls =
+                String.format("CREATE TABLE IF NOT EXISTS %s (" +
+                                "%s INTEGER PRIMARY KEY, " +
+                                "%s INTEGER, " +
+                                "%s TEXT, " +
+                                "%s INTEGER, " +
+                                "%s INTEGER)", TABLE_SAVED_TWEET_URLS,
+                        COL_ID, //_id (unique)
+                        TSAVEDTWEETITEMS_COL0, //STweet_id (JSavedTweet _id)
+                        TSAVEDTWEETURLS_COL1, // Url text
+                        TSAVEDTWEETURLS_COL2, // start index of url
+                        TSAVEDTWEETURLS_COL3); // end index of url
+
+        sqlDB.execSQL(sqlQueryJSavedTweetUrls);
+
     }
 
     @Override
@@ -219,6 +307,10 @@ public class InternalDB extends SQLiteOpenHelper {
                     values.put(TMAIN_COL5, userInfo.getProfileImageUrl().trim());
                 }
 
+                if(userInfo.getProfileImageUrl() != null) {
+                    values.put(TMAIN_COL7, userInfo.getName().trim());
+                }
+
                 db.insert(TABLE_MAIN, null, values);
                 db.close();
                 return true;
@@ -271,7 +363,7 @@ public class InternalDB extends SQLiteOpenHelper {
     public List<UserInfo> getSavedUserInfo() {
         List<UserInfo> userInfoList = new ArrayList<UserInfo>();
 
-        String querySelectAll = "Select distinct ScreenName,IFNULL(Description,''),FollowerCount, FriendCount, IFNULL(ProfileImgUrl,''),UserId, ProfileImgFilePath From " + TABLE_MAIN;
+        String querySelectAll = "Select distinct ScreenName,IFNULL(Description,''),FollowerCount, FriendCount, IFNULL(ProfileImgUrl,''),UserId, ProfileImgFilePath, UserName From " + TABLE_MAIN;
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor c = db.rawQuery(querySelectAll, null);
 
@@ -313,7 +405,13 @@ public class InternalDB extends SQLiteOpenHelper {
                         Log.e(TAG,"getSavedUserInfo adding setProfileImgFilePath other exception... " + e);
                     }
 
-
+                    try {
+                        userInfo.setName(c.getString(7));
+                    }  catch (SQLiteException e) {
+                        Log.e(TAG,"getSavedUserInfo adding setProfileImgFilePath sqlite problem: " + e);
+                    } catch (Exception e) {
+                        Log.e(TAG,"getSavedUserInfo adding setProfileImgFilePath other exception... " + e);
+                    }
 
                     userInfo.setProfile_image_url(c.getString(4));
                     userInfoList.add(userInfo);

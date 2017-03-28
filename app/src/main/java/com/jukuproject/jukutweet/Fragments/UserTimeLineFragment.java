@@ -109,7 +109,7 @@ public class UserTimeLineFragment extends Fragment {
     public void pullTimeLineData(final UserInfo userInfo){
 
         mCallback.showProgressBar(true);
-        mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,new ArrayList<Tweet>());
+        mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mUserInfo,new ArrayList<Tweet>());
         mRecyclerView.setAdapter(mAdapter);
 
         String token = getResources().getString(R.string.access_token);
@@ -126,7 +126,7 @@ public class UserTimeLineFragment extends Fragment {
                         if(BuildConfig.DEBUG){Log.d(TAG, "In onCompleted()");}
 
                         mCallback.showProgressBar(false);
-                        mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mTimeLine);
+                        mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mUserInfo,mTimeLine);
 
                         _rxBus.toClickObserverable()
                                 .subscribe(new Action1<Object>() {
@@ -192,7 +192,7 @@ public class UserTimeLineFragment extends Fragment {
                         }
 
                         for(Tweet tweet : timeline) {
-                            Log.d(TAG,"timeline thing: " + tweet.getText());
+                            Log.d(TAG,"timeline thing: " + tweet.getFavoritesCountString());
                             showRecyclerView(true);
                             mTimeLine.add(tweet);
                         }

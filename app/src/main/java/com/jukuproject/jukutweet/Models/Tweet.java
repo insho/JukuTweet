@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -15,6 +16,8 @@ import java.util.Locale;
 
 public class Tweet  implements Parcelable {
     private Boolean favorited;
+
+    private Integer favorite_count;
     private Boolean truncated;
     private String created_at;
     private String id;
@@ -130,14 +133,46 @@ public class Tweet  implements Parcelable {
         return retweet_count;
     }
 
-    public String getDisplayRetweetCount() {
+    public String getRetweetCountString() {
         try {
-            return String.valueOf(retweet_count);
-        } catch (NullPointerException e) {
-            Log.e("TEST-Tweet","Tweet object displayretweetcount: " + e);
-            return "";
+            if(retweet_count != null) {
+                return NumberFormat.getNumberInstance(Locale.getDefault()).format(retweet_count);
+
+            } else {
+                return "?";
+            }
+
+        } catch (Exception e) {
+            Log.e("TEST-Tweet","Tweet object displayretweetcount: " + e.toString());
+            return "?";
         }
     }
+
+
+
+//    public String getDisplayFavoritesCount() {
+//        try {
+//            return NumberFormat.getNumberInstance(Locale.getDefault()).format(favourites_count);
+//        } catch (NullPointerException e) {
+//            Log.e("TEST-Tweet","Tweet object getDisplayFavoritesCount: " + e);
+//            return "";
+//        }
+//    }
+
+    public String getFavoritesCountString() {
+        try {
+            if(favorite_count != null) {
+                return NumberFormat.getNumberInstance(Locale.getDefault()).format(favorite_count);
+
+            } else {
+                return "?";
+            }
+        } catch (Exception e) {
+            Log.e("TEST-Tweet","Tweet object getFavoritesCountString: " + e.toString());
+            return "?";
+        }
+    }
+
 
     public void setRetweet_count(Integer retweet_count) {
         this.retweet_count = retweet_count;
@@ -160,6 +195,7 @@ public class Tweet  implements Parcelable {
         this.created_at = in.readString();
         this.id = in.readString();
         this.retweet_count = in.readInt();
+        this.favorite_count  = in.readInt();
         this.text = in.readString();
 
 
@@ -182,6 +218,7 @@ public class Tweet  implements Parcelable {
         dest.writeString(this.id);
         dest.writeString(this.id);
         dest.writeInt(this.retweet_count);
+        dest.writeInt(this.favorite_count);
         dest.writeString(this.text);
 
 

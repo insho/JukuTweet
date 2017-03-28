@@ -2,6 +2,7 @@ package com.jukuproject.jukutweet.Models;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -17,7 +18,11 @@ public class UserInfo implements Parcelable  {
     private Integer user_id;
 
     public String getName() {
-        return name;
+        if(name == null) {
+            return "";
+        } else {
+            return name;
+        }
     }
 
     private String name;
@@ -51,6 +56,12 @@ public class UserInfo implements Parcelable  {
 
     public UserInfo(String screen_name) {
         this.screen_name = screen_name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+
+
     }
 
     public String getScreenName() {
@@ -91,6 +102,7 @@ public class UserInfo implements Parcelable  {
     public String getFriendCountString() {
 
         try {
+            Log.d("TEST","friends count: " + friends_count );
             return NumberFormat.getNumberInstance(Locale.getDefault()).format(friends_count);
         } catch (Exception e) {
             return "?";
