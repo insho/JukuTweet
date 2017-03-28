@@ -18,6 +18,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.TweetUrl;
@@ -103,6 +104,10 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
             @Override
             public void onClick(View v) {
                 Toast.makeText(mContext, "STAR CLICK", Toast.LENGTH_SHORT).show();
+
+                InternalDB.getInstance(mContext).saveTweet(mUserInfo,mDataset.get(holder.getAdapterPosition()));
+
+
             }
         });
 

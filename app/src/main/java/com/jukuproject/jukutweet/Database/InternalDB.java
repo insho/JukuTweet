@@ -11,6 +11,9 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.jukuproject.jukutweet.Models.MyListEntry;
+import com.jukuproject.jukutweet.Models.ParseSentenceItem;
+import com.jukuproject.jukutweet.Models.Tweet;
+import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.Models.WordLoader;
@@ -47,11 +50,13 @@ public class InternalDB extends SQLiteOpenHelper {
     public static final String TSCOREBOARD_COL0 = "Total";
     public static final String TSCOREBOARD_COL1 = "Correct";
 
-    public static final String TABLE_FAVORITES_LISTS_TWEETS = "JFavoritesTweets";
-//    public static final String TFAVORITES_COL0 = "Name";
+    public static final String TABLE_FAVORITES_LISTS_TWEETS = "JFavoritesTweetLists";
+//    public static final String TFAVORITESTWEETLISTS_COL0 = "Name";
 
-    public static final String TABLE_FAVORITES_LISTS_TWEETS_ENTRIES = "JFavorites";
-//    public static final String TFAVORITES_COL1 = "Sys";
+    public static final String TABLE_FAVORITES_LISTS_TWEETS_ENTRIES = "JFavoritesTweets";
+////    public static final String TFAVORITESTWEETS_COL1 = "Name";
+//    public static final String TFAVORITESTWEETS_COL1 = "Sys";
+    public static final String TFAVORITESTWEETS_COL2 = "TweetId";
 
 
     public static final String TABLE_FAVORITES_LISTS = "JFavoritesLists";
@@ -63,12 +68,13 @@ public class InternalDB extends SQLiteOpenHelper {
 
     public static final String TABLE_SAVED_TWEETS = "JSavedTweets";
     public static final String TSAVEDTWEET_COL0 = "UserID";
-    public static final String TSAVEDTWEET_COL1 = "TweetID";
-    public static final String TSAVEDTWEET_COL2 = "CreatedAt";
-    public static final String TSAVEDTWEET_COL3 = "Text";
+    public static final String TSAVEDTWEET_COL1 = "UserScreenName";
+    public static final String TSAVEDTWEET_COL2 = "TweetID";
+    public static final String TSAVEDTWEET_COL3 = "CreatedAt";
+    public static final String TSAVEDTWEET_COL4 = "Text";
 
     public static final String TABLE_SAVED_TWEET_KANJI = "JSavedTweetKanji";
-    public static final String TSAVEDTWEETITEMS_COL0 = "STweet_id"; //JSavedTweets Primary Key!
+    public static final String TSAVEDTWEETITEMS_COL0 = "Tweet_id"; //JSavedTweets Primary Key!
     public static final String TSAVEDTWEETITEMS_COL1 = "IndexOrder"; //JSavedTweets Primary Key!
     public static final String TSAVEDTWEETITEMS_COL2 = "Edict_id"; //Edict Primary Key!
 
@@ -162,10 +168,10 @@ public class InternalDB extends SQLiteOpenHelper {
                 String.format("CREATE TABLE IF NOT EXISTS  %s (" +
                                 "%s INTEGER, " +
                                 "%s TEXT, " +
-                                "%s INTEGER)", TABLE_FAVORITES_LISTS_TWEETS_ENTRIES,
-                        COL_ID,
-                        TFAVORITES_COL0,
-                        TFAVORITES_COL1); // if this column = 1, it is a system table (i.e. blue, red, yellow), if user-created the value is 0
+                                "%s TEXT)", TABLE_FAVORITES_LISTS_TWEETS_ENTRIES,
+                        COL_ID, //Tweet id!
+                        TFAVORITES_COL0, //name
+                        TFAVORITES_COL1); // Sys
 
         sqlDB.execSQL(sqlQueryJFavoritesListTweetsEntries);
 
@@ -173,23 +179,25 @@ public class InternalDB extends SQLiteOpenHelper {
 
         String sqlQueryJSavedTweet =
                 String.format("CREATE TABLE IF NOT EXISTS %s (" +
-                                "%s INTEGER PRIMARY KEY, " +
+                                "%s INTEGER PRIMARY KEY AUTOINCREMENT, " +
                                 "%s INTEGER, " +
-                                "%s INTEGER, " +
+                                "%s TEXT, " +
+                                "%s TEXT, " +
                                 "%s TEXT, " +
                                 "%s TEXT)", TABLE_SAVED_TWEETS,
                         COL_ID, //_id
                         TSAVEDTWEET_COL0, //UserId
-                        TSAVEDTWEET_COL1, // TweetId
-                        TSAVEDTWEET_COL2, //CreatedAt
-                        TSAVEDTWEET_COL3); // Text
+                        TSAVEDTWEET_COL1, //UserScreenName
+                        TSAVEDTWEET_COL2, // TweetId
+                        TSAVEDTWEET_COL3, //CreatedAt
+                        TSAVEDTWEET_COL4); // Text
 
         sqlDB.execSQL(sqlQueryJSavedTweet);
 
         String sqlQueryJSavedTweetEntries =
                 String.format("CREATE TABLE IF NOT EXISTS %s (" +
-                                "%s INTEGER PRIMARY KEY, " +
-                                "%s INTEGER, " +
+                                "%s INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                "%s TEXT, " +
                                 "%s INTEGER, " +
                                 "%s INTEGER)", TABLE_SAVED_TWEET_KANJI,
                         COL_ID, //_id (unique)
@@ -202,7 +210,7 @@ public class InternalDB extends SQLiteOpenHelper {
 
         String sqlQueryJSavedTweetUrls =
                 String.format("CREATE TABLE IF NOT EXISTS %s (" +
-                                "%s INTEGER PRIMARY KEY, " +
+                                "%s INTEGER PRIMARY KEY AUTOINCREMENT, " +
                                 "%s INTEGER, " +
                                 "%s TEXT, " +
                                 "%s INTEGER, " +
@@ -281,10 +289,10 @@ public class InternalDB extends SQLiteOpenHelper {
      * @return bool True if save worked, false if it failed
      */
     public boolean saveUser(UserInfo userInfo) {
-
+        SQLiteDatabase db = this.getWritableDatabase();
         try {
             if(userInfo.getScreenName() != null) {
-                SQLiteDatabase db = this.getWritableDatabase();
+
                 ContentValues values = new ContentValues();
                 if(debug) {
                     Log.d(TAG,"saving user: " + userInfo.getScreenName() );
@@ -312,13 +320,15 @@ public class InternalDB extends SQLiteOpenHelper {
                 }
 
                 db.insert(TABLE_MAIN, null, values);
-                db.close();
+
                 return true;
             } else {
                 return false;
             }
         } catch(SQLiteException exception) {
         return false;
+        } finally {
+            db.close();
         }
 
     }
@@ -865,69 +875,6 @@ public class InternalDB extends SQLiteOpenHelper {
         Log.d(TAG,"GETFAVS returning mylist entries: " + myListEntries.size());
         return myListEntries;
     }
-//    public ArrayList<MyListEntry> getFavoritesListsForKanji(ArrayList<String> activeFavoriteStars, String kanjiIds, int kanjiCount) {
-//        ArrayList<MyListEntry> myListEntries = new ArrayList<>();
-//        SQLiteDatabase db = this.getWritableDatabase();
-//        try {
-//            //Get a list of distinct favorites lists and their selection levels for the given kanji
-//            Cursor c = db.rawQuery("Select [Lists].[Name] "    +
-//                    ",[Lists].[Sys] "    +
-//                    ",(Case when UserEntries.Name is null then 0 when UserEntries.UserCount = ? then 1 else 2 END) as SelectionLevel "    +
-//                    " "    +
-//                    "from "    +
-//                        "( "    +
-//                        "Select distinct Name "    +
-//                        ", 0 as Sys "    +
-//                        "From " + TABLE_FAVORITES_LISTS + " "    +
-//                        "UNION "    +
-//                        "Select 'Blue' as Name, 1 as Sys "    +
-//                        "UNION "    +
-//                        "Select 'Green' as Name, 1 as Sys "    +
-//                        "UNION "    +
-//                        "Select 'Red' as Name, 1 as Sys "    +
-//                        "UNION "    +
-//                        "Select 'Yellow' as Name, 1 as Sys "    +
-//                        ") as Lists "    +
-//                    "LEFT JOIN "    +
-//                        "( "    +
-//                        "Select Distinct Name "    +
-//                        ",Sys "    +
-//                        ", Count(_id) as UserCount " +
-//                        "FROM " + TABLE_FAVORITES_LIST_ENTRIES + " "    +
-//                            " Where _id in (?) " +
-//                            " Group by Name, Sys " +
-//                        ") as UserEntries "    +
-//                    " "    +
-//                    "ON Lists.Name = UserEntries.Name ", new String[]{String.valueOf(kanjiCount),kanjiIds});
-//
-//            c.moveToFirst();
-//            if(c.getCount()>0) {
-//                while (!c.isAfterLast()) {
-//
-//                    //Add all user lists (where sys == 0)
-//                    //Only add system lists (sys==1), but only if the system lists are actived in user preferences
-//                    if(c.getInt(1) == 0 || activeFavoriteStars.contains(c.getString(0))) {
-//                        MyListEntry entry = new MyListEntry(c.getString(0),c.getInt(1),c.getInt(2));
-//                        myListEntries.add(entry);
-////                        Log.d(TAG,"GETFAVS adding : " + entry.getListName());
-//
-//                    }
-//                    c.moveToNext();
-//                }
-//            }
-//            c.close();
-//
-//        }  catch (SQLiteException e) {
-//        Log.e(TAG,"getlist sqlite exception: " + e);
-//    }  catch (NullPointerException e) {
-//        Log.e(TAG,"getlist something was null: " + e);
-//    } finally {
-//        db.close();
-//    }
-//        Log.d(TAG,"GETFAVS returning mylist entries: " + myListEntries.size());
-//        return myListEntries;
-//    }
-
 
     public ArrayList<WordEntry> getMyListWords(MyListEntry myListEntry) {
         ArrayList<WordEntry> wordEntries = new ArrayList<>();
@@ -980,8 +927,170 @@ public class InternalDB extends SQLiteOpenHelper {
         } finally {
             db.close();
         }
+    }
+
+
+    //resultCode 0 means doesn't exist, 1means does, -1 is error
+    public int tweetExistsInDB(SQLiteDatabase db, Tweet tweet) {
+        int resultCode = -1;
+        try {
+            String Query = "Select * from " + TABLE_SAVED_TWEETS + " where " + TSAVEDTWEET_COL2 + " = " + tweet.getIdString();
+            Cursor cursor = db.rawQuery(Query, null);
+            resultCode = cursor.getCount();
+            cursor.close();
+        } catch (SQLiteException e){
+        Log.e(TAG,"copyKanjiToList Sqlite exception: " + e);
+        return resultCode;
+    } catch (Exception e) {
+        Log.e(TAG,"copyKanjiToList generic exception: " + e);
+        return resultCode;
+    }
+        return resultCode;
+    }
+
+    /**
+     * Saves a tweet to the database table JSavedTweets. The pkey  (_id) is automatically created, and this
+     * will be the primary key that the other tables (tweet urls and tweet favorite lists) hook on to
+     * @param userInfo
+     * @param tweet
+     * @return
+     */
+    public int saveNewTweetToDB(UserInfo userInfo,Tweet tweet) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        int tweetExists = tweetExistsInDB(db,tweet);
+
+        //IF the tweet doesn't exist, save it
+        if(tweetExists == 0) {
+           int addTweetResultCode = addTweetToDB(db,userInfo,tweet);
+            if(addTweetResultCode == -1) {
+                db.close();
+                return addTweetResultCode;
+            } else {
+                //If the tweet saved correctly,
+               if(saveTweetUrls(db,tweet)) {
+                   db.close();
+                   return 1;
+               } else {
+                   db.close();
+                   return 0; //Successufl insert, but error on url
+
+               }
+            }
+
+        } else  {
+            db.close();
+            return tweetExists;
+        }
+
+
 
     }
 
+
+    private int addTweetToDB(SQLiteDatabase db, UserInfo userInfo,Tweet tweet){
+        int resultCode = -1;
+        try {
+
+            //At least one of these values have to exist
+            if(tweet.getIdString() != null && (userInfo.getScreenName() != null || userInfo.getUserId() != null)) {
+                ContentValues values = new ContentValues();
+
+                if(userInfo.getUserId() != null) {
+                    values.put(TSAVEDTWEET_COL0, userInfo.getUserId());
+                }
+                if(userInfo.getScreenName() != null) {
+                    values.put(TSAVEDTWEET_COL1, userInfo.getScreenName().trim());
+                }
+                if(tweet.getIdString() != null) {
+                    values.put(TSAVEDTWEET_COL2, tweet.getIdString());
+                }
+
+                if(tweet.getCreatedAt() != null) {
+                    values.put(TSAVEDTWEET_COL3, tweet.getCreatedAt().trim());
+                }
+
+                values.put(TSAVEDTWEET_COL4, tweet.getText().trim());
+
+                resultCode = (int)db.insertWithOnConflict(TABLE_SAVED_TWEETS, null, values,SQLiteDatabase.CONFLICT_REPLACE);
+                db.close();
+                return resultCode;
+            } else {
+                Log.e(TAG,"Can't insert tweet to db. Either tweet.getId() is null: " + (tweet.getIdString()==null)
+                        + ", or both userinfo name and id are null");
+                return resultCode;
+            }
+        } catch(SQLiteException exception) {
+            return resultCode;
+        }
+    }
+
+
+
+    public boolean saveTweetUrls(SQLiteDatabase db, Tweet tweet) {
+
+//        SQLiteDatabase db = this.getReadableDatabase();
+
+        try {
+
+            for(TweetUrl tweetUrl : tweet.getEntities().getUrls()) {
+                ContentValues values = new ContentValues();
+                values.put(TSAVEDTWEETITEMS_COL0, tweet.getIdString());
+                values.put(TSAVEDTWEETURLS_COL1, tweetUrl.getExpanded_url());
+                values.put(TSAVEDTWEETURLS_COL2, tweetUrl.getIndices()[0]);
+                values.put(TSAVEDTWEETURLS_COL3, tweetUrl.getIndices()[1]);
+                db.insert(TABLE_SAVED_TWEET_URLS, null, values);
+            }
+
+            return true;
+        } catch(SQLiteException exception) {
+            return false;
+        } finally {
+            db.close();
+        }
+    }
+
+    public int addTweetToList(MyListEntry myListEntry, int tweet_id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        int resultCode = -1;
+        try {
+                ContentValues values = new ContentValues();
+                values.put(TFAVORITES_COL0, tweet_id);
+                values.put(TSAVEDTWEET_COL1, myListEntry.getListName());
+                values.put(TSAVEDTWEET_COL2, myListEntry.getListsSys());
+                resultCode = (int)db.insert(TABLE_FAVORITES_LISTS_TWEETS_ENTRIES, null, values);
+                db.close();
+                return resultCode;
+
+        } catch(SQLiteException exception) {
+            return resultCode;
+        }
+
+    }
+
+
+    public int saveParsedTweetKanji(ArrayList<ParseSentenceItem> parseSentenceItems, int tweet_id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        int resultCode = -1;
+
+        try {
+            for(int i=0;i<parseSentenceItems.size();i++) {
+                ContentValues values = new ContentValues();
+                values.put(TSAVEDTWEETITEMS_COL0, tweet_id);
+                values.put(TSAVEDTWEETITEMS_COL1, i);
+                values.put(TSAVEDTWEETITEMS_COL2, parseSentenceItems.get(i).getKanjiID());
+                resultCode = (int)db.insert(TABLE_SAVED_TWEET_KANJI, null, values);
+            }
+            resultCode = 1;
+            db.close();
+            return resultCode;
+
+        } catch(SQLiteException exception) {
+            return resultCode;
+        } finally {
+            db.close();
+        }
+
+    }
 
 }

@@ -20,7 +20,7 @@ public class Tweet  implements Parcelable {
     private Integer favorite_count;
     private Boolean truncated;
     private String created_at;
-    private String id;
+    private String id_str;
     private Integer retweet_count;
     private String text;
 
@@ -51,11 +51,11 @@ public class Tweet  implements Parcelable {
         this.text = text;
     }
 
-    public Tweet(Boolean favorited, Boolean truncated, String created_at, String id, Integer retweet_count, String text) {
+    public Tweet(Boolean favorited, Boolean truncated, String created_at, String id_str, Integer retweet_count, String text) {
         this.favorited = favorited;
         this.truncated = truncated;
         this.created_at = created_at;
-        this.id = id;
+        this.id_str = id_str;
         this.retweet_count = retweet_count;
         this.text = text;
     }
@@ -76,7 +76,7 @@ public class Tweet  implements Parcelable {
         this.truncated = truncated;
     }
 
-    public String getCreated_at() {
+    public String getCreatedAt() {
         return created_at;
     }
 
@@ -117,16 +117,16 @@ public class Tweet  implements Parcelable {
 
     }
 
-    public void setCreated_at(String created_at) {
+    public void setCreatedAt(String created_at) {
         this.created_at = created_at;
     }
 
-    public String getId() {
-        return id;
+    public String getIdString() {
+        return id_str;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setIdString(String id_str) {
+        this.id_str = id_str;
     }
 
     public Integer getRetweet_count() {
@@ -193,7 +193,7 @@ public class Tweet  implements Parcelable {
         this.favorited = in.readByte() != 0;
         this.truncated = in.readByte() != 0;
         this.created_at = in.readString();
-        this.id = in.readString();
+        this.id_str = in.readString();
         this.retweet_count = in.readInt();
         this.favorite_count  = in.readInt();
         this.text = in.readString();
@@ -215,8 +215,7 @@ public class Tweet  implements Parcelable {
         dest.writeByte((byte) (this.favorited ? 1 : 0));
         dest.writeByte((byte) (this.truncated ? 1 : 0));
         dest.writeString(this.created_at);
-        dest.writeString(this.id);
-        dest.writeString(this.id);
+        dest.writeString(this.id_str);
         dest.writeInt(this.retweet_count);
         dest.writeInt(this.favorite_count);
         dest.writeString(this.text);

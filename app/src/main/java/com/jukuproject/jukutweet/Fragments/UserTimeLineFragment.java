@@ -50,7 +50,7 @@ public class UserTimeLineFragment extends Fragment {
     private UserInfo mUserInfo;
     private List<Tweet> mTimeLine;
 
-    private TweetBreakDownFragment mTweetBreakDownFragment;
+//    private TweetBreakDownFragment mTweetBreakDownFragment;
 
     private static final String TAG = "TEST-TimeLineFrag";
 
@@ -133,24 +133,13 @@ public class UserTimeLineFragment extends Fragment {
                                     @Override
                                     public void call(Object event) {
 
-                                        //TODO MOVE THIS METHOD TO THE FRAGMENT, AND ONLY CALL BACK TO MAIN ACTIVITY???
-                                        //TODO OR only if there is no userinfo, fill that shit in. otherwise dont
                                         if(isUniqueClick(1000) && event instanceof Tweet) {
 
-                                            if(mTweetBreakDownFragment == null || !mTweetBreakDownFragment.isShowing()) {
+                                            //TODO -- make it so only one instance of breakdown fragment exists
                                                 Tweet tweet = (Tweet) event;
-//                                                if(BuildConfig.DEBUG) {
-//                                                    Log.d(TAG,"TWEET URL:" + tweet.getEntities().getUrls().get(0).getUrl());
-//                                                }
                                                 TweetBreakDownFragment fragment = TweetBreakDownFragment.newInstance(tweet);
-//                                                TweetBreakDownFragment fragment = new TweetBreakDownFragment();
-//                                                Bundle bundle = new Bundle();
-//                                                bundle.putParcelable("tweet",tweet);
-//                                                fragment.setArguments(bundle);
                                                 ((BaseContainerFragment)getParentFragment()).addFragment(fragment, true,"tweetbreakdown");
-                                                //Hide the fab
                                                 mCallback.showFab(false,"");
-                                            }
                                         }
 
                                     }
