@@ -327,6 +327,8 @@ public class MyListBrowseFragment extends Fragment  {
         popupWindow.showAtLocation(mRecyclerView, Gravity.BOTTOM, 0, (int)(metrics.heightPixels / (float)9.5));
         // create a single event in 10 seconds time
 
+
+        //TODO -- make observable do a thing (in this case kill the observable) on screen flip
         Observable.timer(5, SECONDS).subscribeOn(Schedulers.computation())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Long>() {

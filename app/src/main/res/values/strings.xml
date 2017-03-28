@@ -49,10 +49,15 @@
 
     <string name="clickanoption">Click on one of the options to select it</string>
 
-    <string name="title_favoriteslist">Favorites Lists</string>
-    <string name="list_favoriteslistcount"># of Favorites Lists to Include</string>
+    <string name="title_favoriteslist">Kanji Favorites Lists</string>
+    <string name="list_favoriteslistcount"># of Kanji Favorites Lists to Include</string>
     <string name="list_favoriteslistcount_summary">Yellow, Blue, Red Stars!</string>
-    <string name="dialog_title_list_favoritescount">Favorites Lists</string>
+    <string name="dialog_title_list_favoritescount">Kanji Favorites Lists</string>
+
+
+    <string name="title_favoriteslist_tweet">Tweet Favorites Lists</string>
+    <string name="list_favoriteslistcount_tweet"># of Tweet Favorites Lists to Include</string>
+    <string name="dialog_title_list_favoritescount_tweet">Tweet Favorites Lists</string>
 
 
     <string name="actionicon_cancel">Cancel</string>
@@ -80,9 +85,14 @@
         <item></item>
         <item>Blue</item>
         <item>Red</item>
-        <item></item>
     </string-array>
 
+
+    <string-array name="favoriteslistcount_default_tweet">
+        <item></item>
+        <item>Green</item>
+        <item>Yellow</item>
+    </string-array>
 
     <string name="listclearlist">Clear List?</string>
     <string name="listoptionclearlist">1. Clear List</string>

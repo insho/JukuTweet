@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteStatement;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.jukuproject.jukutweet.Models.ItemFavorites;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.ParseSentenceItem;
 import com.jukuproject.jukutweet.Models.Tweet;
@@ -166,9 +167,10 @@ public class InternalDB extends SQLiteOpenHelper {
 
         String sqlQueryJFavoritesListTweetsEntries =
                 String.format("CREATE TABLE IF NOT EXISTS  %s (" +
-                                "%s INTEGER, " +
                                 "%s TEXT, " +
-                                "%s TEXT)", TABLE_FAVORITES_LISTS_TWEETS_ENTRIES,
+                                "%s TEXT, " +
+                                "%s TEXT)", TABLE_FAVORITES_LISTS_TWEETS_ENTRIES, asdf
+
                         COL_ID, //Tweet id!
                         TFAVORITES_COL0, //name
                         TFAVORITES_COL1); // Sys
@@ -930,6 +932,23 @@ public class InternalDB extends SQLiteOpenHelper {
     }
 
 
+    public int tweetParsedKanjiExistsInDB(SQLiteDatabase db, Tweet tweet) {
+        int resultCode = -1;
+        try {
+            String Query = "Select * from " + TABLE_SAVED_TWEET_KANJI + " where " + TSAVEDTWEETITEMS_COL0 + " = " + tweet.getIdString();
+            Cursor cursor = db.rawQuery(Query, null);
+            resultCode = cursor.getCount();
+            cursor.close();
+        } catch (SQLiteException e){
+            Log.e(TAG,"copyKanjiToList Sqlite exception: " + e);
+            return resultCode;
+        } catch (Exception e) {
+            Log.e(TAG,"copyKanjiToList generic exception: " + e);
+            return resultCode;
+        }
+        return resultCode;
+    }
+
     //resultCode 0 means doesn't exist, 1means does, -1 is error
     public int tweetExistsInDB(SQLiteDatabase db, Tweet tweet) {
         int resultCode = -1;
@@ -955,40 +974,46 @@ public class InternalDB extends SQLiteOpenHelper {
      * @param tweet
      * @return
      */
-    public int saveNewTweetToDB(UserInfo userInfo,Tweet tweet) {
-        SQLiteDatabase db = this.getReadableDatabase();
+    //TODO THIS IS NOT DONE WELL...
+//    public int saveNewTweetToDB(UserInfo userInfo,Tweet tweet) {
+//        SQLiteDatabase db = this.getReadableDatabase();
+//
+//        int tweetExists = tweetExistsInDB(db,tweet);
+//
+//        //IF the tweet doesn't exist, save it
+//        if(tweetExists == 0) {
+//           int addTweetResultCode = addTweetToDB(db,userInfo,tweet);
+//            if(addTweetResultCode == -1) {
+//                db.close();
+//                return addTweetResultCode;
+//            } else {
+//                //If the tweet saved correctly,
+//               if(saveTweetUrls(db,tweet)) {
+//                   db.close();
+//
+//               }
+////               else {
+////                   db.close();
+//////                   return -2; //Successufl insert, but error on url
+////
+////               }
+//
+//                return 2; //THIS MEANS TRY TO DOWNLOAD KANJI
+//            }
+//
+//        } else if(tweetParsedKanjiExistsInDB(db,tweet)==0) {
+//
+//        } else  {
+//            db.close();
+//            return tweetExists;
+//        }
+//
+//
+//
+//    }
 
-        int tweetExists = tweetExistsInDB(db,tweet);
 
-        //IF the tweet doesn't exist, save it
-        if(tweetExists == 0) {
-           int addTweetResultCode = addTweetToDB(db,userInfo,tweet);
-            if(addTweetResultCode == -1) {
-                db.close();
-                return addTweetResultCode;
-            } else {
-                //If the tweet saved correctly,
-               if(saveTweetUrls(db,tweet)) {
-                   db.close();
-                   return 1;
-               } else {
-                   db.close();
-                   return 0; //Successufl insert, but error on url
-
-               }
-            }
-
-        } else  {
-            db.close();
-            return tweetExists;
-        }
-
-
-
-    }
-
-
-    private int addTweetToDB(SQLiteDatabase db, UserInfo userInfo,Tweet tweet){
+    public int addTweetToDB(SQLiteDatabase db, UserInfo userInfo,Tweet tweet){
         int resultCode = -1;
         try {
 
@@ -1027,9 +1052,10 @@ public class InternalDB extends SQLiteOpenHelper {
 
 
 
-    public boolean saveTweetUrls(SQLiteDatabase db, Tweet tweet) {
+    public boolean saveTweetUrls(Tweet tweet) {
 
-//        SQLiteDatabase db = this.getReadableDatabase();
+
+        SQLiteDatabase db = this.getReadableDatabase();
 
         try {
 
@@ -1050,7 +1076,7 @@ public class InternalDB extends SQLiteOpenHelper {
         }
     }
 
-    public int addTweetToList(MyListEntry myListEntry, int tweet_id) {
+    public int addTweetToList(MyListEntry myListEntry, String tweet_id) {
         SQLiteDatabase db = this.getReadableDatabase();
         int resultCode = -1;
         try {
@@ -1069,7 +1095,7 @@ public class InternalDB extends SQLiteOpenHelper {
     }
 
 
-    public int saveParsedTweetKanji(ArrayList<ParseSentenceItem> parseSentenceItems, int tweet_id) {
+    public int saveParsedTweetKanji(ArrayList<ParseSentenceItem> parseSentenceItems, String tweet_id) {
         SQLiteDatabase db = this.getReadableDatabase();
         int resultCode = -1;
 
@@ -1091,6 +1117,47 @@ public class InternalDB extends SQLiteOpenHelper {
             db.close();
         }
 
+    }
+
+
+
+
+    public HashMap<String,ItemFavorites> getStarFavoriteDataForTweet(){
+        Cursor dd = db.rawQuery(
+
+
+                "SELECT [_id]" +
+                ",SUM([Blue]) as [Blue]" +
+                ",SUM([Red]) as [Red]" +
+                ",SUM([Green]) as [Green]" +
+                ",SUM([Yellow]) as [Yellow]" +
+                ", SUM([Other]) as [Other] " +
+                "FROM (" +
+
+
+                        " ( "
+                "SELECT [_id] " +
+                ",(CASE WHEN ([Sys] = 1 and LOWER(Name) = \"blue\") then 1 else 0 end) as [Blue]" +
+                ",(CASE WHEN ([Sys] = 1 AND LOWER(Name) = \"red\") then 1 else 0 end) as [Red]" +
+                ",(CASE WHEN ([Sys] = 1 AND LOWER(Name) = \"green\") then 1 else 0 end) as [Green]" +
+                ",(CASE WHEN ([Sys] = 1  AND LOWER(Name) = \"yellow\") then 1 else 0 end) as [Yellow]" +
+                ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
+                "FROM " + TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+                "WHERE [_id] = ?) as x " +
+                        "" +
+                        "Group by [_id]" +
+
+                ")" +
+                "" +
+                "" +
+                ")", new String[]{String.valueOf(cleanKanjiIDs.get(index)),String.valueOf(cleanKanjiIDs.get(index)),String.valueOf(cleanKanjiIDs.get(index))});
+
+
+        setItemFavorites(new ItemFavorites(dd.getInt(6)
+                ,dd.getInt(7)
+                ,dd.getInt(8)
+                ,dd.getInt(9)
+                ,dd.getInt(10)));
     }
 
 }

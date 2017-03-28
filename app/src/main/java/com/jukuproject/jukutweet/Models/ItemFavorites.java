@@ -1,18 +1,13 @@
 package com.jukuproject.jukutweet.Models;
 
-import android.util.Log;
-
-import com.jukuproject.jukutweet.Database.InternalDB;
-
 import java.util.ArrayList;
 
 /**
  * Created by JClassic on 3/23/2017.
- * Tracks which favorites lists contain a given word entry
- * to be used in conjunction (usually) with {@link WordEntry}
+ * Tracks which favorites lists contain a given {@link WordEntry} OR {@link Tweet}
  */
 
-public class WordEntryFavorites {
+public class ItemFavorites {
 
     public int getSystemBlueCount() {
         if(systemBlueCount>0) {
@@ -91,7 +86,7 @@ public class WordEntryFavorites {
 
 
     //TODO explain this, we can't include inactive favorites so set them to 0...
-    public WordEntryFavorites(int systemBlueCount, int systemRedCount, int systemYellowCount, int systemGreenCount, int userListCount) {
+    public ItemFavorites(int systemBlueCount, int systemRedCount, int systemYellowCount, int systemGreenCount, int userListCount) {
             this.systemBlueCount = systemBlueCount;
             this.systemGreenCount = systemGreenCount;
             this.systemRedCount = systemRedCount;
@@ -100,7 +95,7 @@ public class WordEntryFavorites {
     }
 
 
-    public WordEntryFavorites() {
+    public ItemFavorites() {
         this.systemBlueCount = 0;
         this.systemRedCount = 0;
         this.systemYellowCount = 0;

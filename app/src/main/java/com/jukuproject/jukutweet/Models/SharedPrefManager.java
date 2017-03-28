@@ -18,6 +18,7 @@ public class SharedPrefManager {
     private float  mYellowthreshold;
     private Boolean mShowlblheadercount;
     private Set<String> mPrefStarsHash;
+    private Set<String> mTweetPrefStarsHash;
     private Boolean mIncludemultiplechoicecores;
     private Boolean mIncludefillinsentencesscores;
     private Boolean mWordbuilderintrolayout;
@@ -59,6 +60,8 @@ public class SharedPrefManager {
             mGreyThreshold = Integer.parseInt(prefs.getString("preference_greythreshold", "3"));
             mShowlblheadercount = prefs.getBoolean("showlblheadercount", false);
             mPrefStarsHash= prefs.getStringSet("list_favoriteslistcount", new HashSet<String>());
+            mTweetPrefStarsHash= prefs.getStringSet("list_favoriteslistcount_tweet", new HashSet<String>());
+
             mIncludemultiplechoicecores = prefs.getBoolean("includemultiplechoicecores", true);
             mIncludefillinsentencesscores = prefs.getBoolean("includefillinsentencesscores", true);
             mWordbuilderintrolayout = prefs.getBoolean("wordbuilderintrolayout", true);
@@ -105,6 +108,16 @@ public class SharedPrefManager {
             }
         }
         return activeFavoriteStars;
+    }
+    public ArrayList<String> getActiveTweetFavoriteStars() {
+        ArrayList<String> activeTweetFavoriteStars = new ArrayList<>();
+        for (String favoriteStar : mTweetPrefStarsHash) {
+            if(favoriteStar.length() > 0){
+//                String upperS = s.substring(0,1).toUpperCase() + s.substring(1).toLowerCase();
+                activeTweetFavoriteStars.add(favoriteStar);
+            }
+        }
+        return activeTweetFavoriteStars;
     }
 
     public Boolean getIncludemultiplechoicecores() {

@@ -6,12 +6,12 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.jukuproject.jukutweet.Models.ColorThresholds;
+import com.jukuproject.jukutweet.Models.ItemFavorites;
 import com.jukuproject.jukutweet.Models.ParseSentenceItem;
 import com.jukuproject.jukutweet.Models.ParseSentenceMatchCombination;
 import com.jukuproject.jukutweet.Models.ParseSentencePossibleKanji;
 import com.jukuproject.jukutweet.Models.ParseSentenceSpecialSpan;
 import com.jukuproject.jukutweet.Models.WordEntry;
-import com.jukuproject.jukutweet.Models.WordEntryFavorites;
 import com.jukuproject.jukutweet.Models.WordLoader;
 import com.vdurmont.emoji.EmojiManager;
 
@@ -903,7 +903,7 @@ if(BuildConfig.DEBUG) {
                                 ,dd.getString(2)
                                 ,dd.getInt(3)
                                 ,dd.getFloat(4)));
-                        parseSentenceItem.getWordEntry().setWordEntryFavorites(new WordEntryFavorites(dd.getInt(6)
+                        parseSentenceItem.getWordEntry().setItemFavorites(new ItemFavorites(dd.getInt(6)
                                 ,dd.getInt(7)
                                 ,dd.getInt(8)
                                 ,dd.getInt(9)

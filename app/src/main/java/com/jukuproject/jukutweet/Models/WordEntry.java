@@ -3,8 +3,6 @@ package com.jukuproject.jukutweet.Models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import java.util.ArrayList;
-
 
 public class WordEntry implements Parcelable {
 
@@ -15,15 +13,15 @@ public class WordEntry implements Parcelable {
     private float percentage;
     private Integer total;
 
-    public WordEntryFavorites getWordEntryFavorites() {
-        return wordEntryFavorites;
+    public ItemFavorites getItemFavorites() {
+        return itemFavorites;
     }
 
-    public void setWordEntryFavorites(WordEntryFavorites wordEntryFavorites) {
-        this.wordEntryFavorites = wordEntryFavorites;
+    public void setItemFavorites(ItemFavorites itemFavorites) {
+        this.itemFavorites = itemFavorites;
     }
 
-    private WordEntryFavorites wordEntryFavorites;
+    private ItemFavorites itemFavorites;
 
     public WordEntry(Integer id, String kanji, String furigana, String definition,Integer total, float percentage ) {
         this.id = id;
@@ -32,7 +30,7 @@ public class WordEntry implements Parcelable {
         this.definition = definition;
         this.total = total;
         this.percentage = percentage;
-        this.wordEntryFavorites = new WordEntryFavorites();
+        this.itemFavorites = new ItemFavorites();
     }
 
     public Integer getId() {

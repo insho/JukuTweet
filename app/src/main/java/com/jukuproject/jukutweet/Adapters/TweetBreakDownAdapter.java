@@ -17,12 +17,13 @@ import android.widget.TextView;
 
 import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
+import com.jukuproject.jukutweet.FavoritesColors;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
+import com.jukuproject.jukutweet.Models.ItemFavorites;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.WordEntry;
-import com.jukuproject.jukutweet.Models.WordEntryFavorites;
 import com.jukuproject.jukutweet.PopupChooseFavoriteLists;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.TestPopupWindow;
@@ -101,7 +102,9 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         holder.txtKanji.setText(mWords.get(holder.getAdapterPosition()).getKanji());
         holder.txtFurigana.setText(mWords.get(holder.getAdapterPosition()).getFurigana());
 
-        assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
+//        assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
+        holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()),mActiveFavoriteStars));
+        holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
 
         /* Parse the definition into an array of multiple lines, if there are multiple sub-definitions in the string */
         if(mWords.get(holder.getAdapterPosition()).getTotal()< mColorThresholds.getGreyThreshold()) {
@@ -128,9 +131,9 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                 //TODO favorite words
 
                 Log.d(TAG,"mActiveFavoriteStars: " + mActiveFavoriteStars);
-                Log.d(TAG,"should open: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().shouldOpenFavoritePopup(mActiveFavoriteStars));
+                Log.d(TAG,"should open: " + mWords.get(holder.getAdapterPosition()).getItemFavorites().shouldOpenFavoritePopup(mActiveFavoriteStars));
 
-                if(mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().shouldOpenFavoritePopup(mActiveFavoriteStars)) {
+                if(mWords.get(holder.getAdapterPosition()).getItemFavorites().shouldOpenFavoritePopup(mActiveFavoriteStars)) {
                 //TODO make the big popup show
                     int xadjustment = -50;
                     int yadjustment = -300;
@@ -157,28 +160,33 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                             if(myListEntry.getListsSys() == 1) {
                                 switch (myListEntry.getListName()) {
                                     case "Blue":
-                                        mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemBlueCount(myListEntry.getSelectionLevel());
+                                        mWords.get(holder.getAdapterPosition()).getItemFavorites().setSystemBlueCount(myListEntry.getSelectionLevel());
                                         break;
                                     case "Green":
-                                        mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemGreenCount(myListEntry.getSelectionLevel());
+                                        mWords.get(holder.getAdapterPosition()).getItemFavorites().setSystemGreenCount(myListEntry.getSelectionLevel());
                                         break;
                                     case "Red":
-                                        mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemRedCount(myListEntry.getSelectionLevel());
+                                        mWords.get(holder.getAdapterPosition()).getItemFavorites().setSystemRedCount(myListEntry.getSelectionLevel());
                                         break;
                                     case "Yellow":
-                                        mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemYellowCount(myListEntry.getSelectionLevel());
+                                        mWords.get(holder.getAdapterPosition()).getItemFavorites().setSystemYellowCount(myListEntry.getSelectionLevel());
                                         break;
                                     default:
                                         break;
                                 }
                             } else {
                                 if(myListEntry.getSelectionLevel() == 1) {
-                                    mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().addToUserListCount(1);
+                                    mWords.get(holder.getAdapterPosition()).getItemFavorites().addToUserListCount(1);
                                 } else {
-                                    mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().subtractFromUserListCount(1);
+                                    mWords.get(holder.getAdapterPosition()).getItemFavorites().subtractFromUserListCount(1);
                                 }
                             }
-                            assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
+//                            assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
+                                        holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()),mActiveFavoriteStars));
+                                        holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
+
+
+
                                     }
                                 }
 
@@ -188,7 +196,10 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                     chooseFavoritesPopup.setOnDismissListener(new PopupWindow.OnDismissListener() {
                         @Override
                         public void onDismiss() {
-                            assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
+//                            assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
+                            holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()),mActiveFavoriteStars));
+                            holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
+
                             chooseFavoritesPopup = null;
                         }
                     });
@@ -196,7 +207,11 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                 } else {
                     if(onFavoriteStarToggle(mActiveFavoriteStars,mWords.get(holder.getAdapterPosition()))) {
                         holder.imgStar.setImageResource(R.drawable.ic_star_black);
-                        holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, getFavoritesStarColor(mActiveFavoriteStars,mWords.get(holder.getAdapterPosition()).getWordEntryFavorites())));
+//                        holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, getFavoritesStarColor(mActiveFavoriteStars,mWords.get(holder.getAdapterPosition()).getItemFavorites())));
+//                        holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()),mActiveFavoriteStars));
+                        holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
+
+
                     } else {
                         //TODO insert an error?
                         Log.e(TAG,"OnFavoriteStarToggle did not work...");
@@ -213,7 +228,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
 //TODO favorite words
 
 //                Log.d(TAG,"mActiveFavoriteStars: " + mActiveFavoriteStars);
-//                Log.d(TAG,"should open: " + mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().shouldOpenFavoritePopup(mActiveFavoriteStars));
+//                Log.d(TAG,"should open: " + mWords.get(holder.getAdapterPosition()).getItemFavorites().shouldOpenFavoritePopup(mActiveFavoriteStars));
 
 
                     //TODO make the big popup show
@@ -236,28 +251,32 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                                         if(myListEntry.getListsSys() == 1) {
                                             switch (myListEntry.getListName()) {
                                                 case "Blue":
-                                                    mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemBlueCount(myListEntry.getSelectionLevel());
+                                                    mWords.get(holder.getAdapterPosition()).getItemFavorites().setSystemBlueCount(myListEntry.getSelectionLevel());
                                                     break;
                                                 case "Green":
-                                                    mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemGreenCount(myListEntry.getSelectionLevel());
+                                                    mWords.get(holder.getAdapterPosition()).getItemFavorites().setSystemGreenCount(myListEntry.getSelectionLevel());
                                                     break;
                                                 case "Red":
-                                                    mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemRedCount(myListEntry.getSelectionLevel());
+                                                    mWords.get(holder.getAdapterPosition()).getItemFavorites().setSystemRedCount(myListEntry.getSelectionLevel());
                                                     break;
                                                 case "Yellow":
-                                                    mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().setSystemYellowCount(myListEntry.getSelectionLevel());
+                                                    mWords.get(holder.getAdapterPosition()).getItemFavorites().setSystemYellowCount(myListEntry.getSelectionLevel());
                                                     break;
                                                 default:
                                                     break;
                                             }
                                         } else {
                                             if(myListEntry.getSelectionLevel() == 1) {
-                                                mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().addToUserListCount(1);
+                                                mWords.get(holder.getAdapterPosition()).getItemFavorites().addToUserListCount(1);
                                             } else {
-                                                mWords.get(holder.getAdapterPosition()).getWordEntryFavorites().subtractFromUserListCount(1);
+                                                mWords.get(holder.getAdapterPosition()).getItemFavorites().subtractFromUserListCount(1);
                                             }
                                         }
-                                        assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
+//                                        assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
+                                        holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()),mActiveFavoriteStars));
+                                        holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
+
+
 
                                     }
 
@@ -284,7 +303,11 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                         chooseFavoritesPopup.setOnDismissListener(new PopupWindow.OnDismissListener() {
                             @Override
                             public void onDismiss() {
-                                assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
+//                                assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
+                                holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()),mActiveFavoriteStars));
+                                holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
+
+
                                 chooseFavoritesPopup = null;
 
                             }
@@ -311,28 +334,28 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
     }
 
 
-    /**
-     * Assigns a color to the favorites star based on 2 things:
-     *         1. whether or not the word is contained in the system list of that color
-     *            (i.e. WordEntryFavorites "getsystemcount" for the word returns a "1")
-     *         2. whether or not the system list is "activated" in the user prefences (since
-     *            (users can turn system lists on and off)
-     * @param preferenceFavorites array of current "activated" system list names
-     * @return the color (int) that the current star imagebutton should be tinted
-     */
-    public int getFavoritesStarColor(ArrayList<String> preferenceFavorites, WordEntryFavorites wordEntryFavorites){
-        if(preferenceFavorites.contains("Blue") && wordEntryFavorites.getSystemBlueCount() > 0) {
-            return R.color.colorJukuBlue;
-        } else if(preferenceFavorites.contains("Green") && wordEntryFavorites.getSystemGreenCount() > 0) {
-            return R.color.colorJukuGreen;
-        } else if(preferenceFavorites.contains("Red") && wordEntryFavorites.getSystemRedCount() > 0) {
-            return R.color.colorJukuRed;
-        } else if(preferenceFavorites.contains("Yellow") && wordEntryFavorites.getSystemYellowCount() > 0) {
-            return R.color.colorJukuYellow;
-        } else {
-            return android.R.color.black;
-        }
-    }
+//    /**
+//     * Assigns a color to the favorites star based on 2 things:
+//     *         1. whether or not the word is contained in the system list of that color
+//     *            (i.e. ItemFavorites "getsystemcount" for the word returns a "1")
+//     *         2. whether or not the system list is "activated" in the user prefences (since
+//     *            (users can turn system lists on and off)
+//     * @param preferenceFavorites array of current "activated" system list names
+//     * @return the color (int) that the current star imagebutton should be tinted
+//     */
+//    public int getFavoritesStarColor(ArrayList<String> preferenceFavorites, ItemFavorites itemFavorites){
+//        if(preferenceFavorites.contains("Blue") && itemFavorites.getSystemBlueCount() > 0) {
+//            return R.color.colorJukuBlue;
+//        } else if(preferenceFavorites.contains("Green") && itemFavorites.getSystemGreenCount() > 0) {
+//            return R.color.colorJukuGreen;
+//        } else if(preferenceFavorites.contains("Red") && itemFavorites.getSystemRedCount() > 0) {
+//            return R.color.colorJukuRed;
+//        } else if(preferenceFavorites.contains("Yellow") && itemFavorites.getSystemYellowCount() > 0) {
+//            return R.color.colorJukuYellow;
+//        } else {
+//            return android.R.color.black;
+//        }
+//    }
 
     /**
      * Updates the wordEntry object for a row, as well as the JFavorites table in database, to reflect a
@@ -358,39 +381,39 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
     public boolean onFavoriteStarToggle(ArrayList<String> preferenceFavorites, WordEntry wordEntry){
 
         try {
-            WordEntryFavorites wordEntryFavorites = wordEntry.getWordEntryFavorites();
+            ItemFavorites itemFavorites = wordEntry.getItemFavorites();
 
-            if(wordEntryFavorites.isEmpty(mActiveFavoriteStars)) {
+            if(itemFavorites.isEmpty(mActiveFavoriteStars)) {
                 String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Blue","Green","Red","Yellow"});
                 if(InternalDB.getInstance(mContext).changeFavoriteListEntry(wordEntry.getId(),"Black",nextColor)) {
-                    wordEntryFavorites.setSystemColor(nextColor);
+                    itemFavorites.setSystemColor(nextColor);
                 }
 
-            } else if(preferenceFavorites.contains("Blue") && wordEntryFavorites.getSystemBlueCount() > 0) {
+            } else if(preferenceFavorites.contains("Blue") && itemFavorites.getSystemBlueCount() > 0) {
                 String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Green","Red","Yellow"});
                 if(InternalDB.getInstance(mContext).changeFavoriteListEntry(wordEntry.getId(),"Blue",nextColor)) {
-                    wordEntryFavorites.setSystemBlueCount(0);
-                    wordEntryFavorites.setSystemColor(nextColor);
+                    itemFavorites.setSystemBlueCount(0);
+                    itemFavorites.setSystemColor(nextColor);
                 }
 
-            } else if(preferenceFavorites.contains("Green") && wordEntryFavorites.getSystemGreenCount() > 0) {
+            } else if(preferenceFavorites.contains("Green") && itemFavorites.getSystemGreenCount() > 0) {
                 String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Red","Yellow"});
                 if(InternalDB.getInstance(mContext).changeFavoriteListEntry(wordEntry.getId(),"Green",nextColor)) {
-                    wordEntryFavorites.setSystemGreenCount(0);
-                    wordEntryFavorites.setSystemColor(nextColor);
+                    itemFavorites.setSystemGreenCount(0);
+                    itemFavorites.setSystemColor(nextColor);
                 }
 
-            } else if(preferenceFavorites.contains("Red") && wordEntryFavorites.getSystemRedCount() > 0) {
+            } else if(preferenceFavorites.contains("Red") && itemFavorites.getSystemRedCount() > 0) {
                 String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Yellow"});
                 if(InternalDB.getInstance(mContext).changeFavoriteListEntry(wordEntry.getId(),"Red",nextColor)) {
-                    wordEntryFavorites.setSystemRedCount(0);
-                    wordEntryFavorites.setSystemColor(nextColor);
+                    itemFavorites.setSystemRedCount(0);
+                    itemFavorites.setSystemColor(nextColor);
                 }
 
-            } else if(preferenceFavorites.contains("Yellow") && wordEntryFavorites.getSystemYellowCount() > 0) {
+            } else if(preferenceFavorites.contains("Yellow") && itemFavorites.getSystemYellowCount() > 0) {
 
                 if(InternalDB.getInstance(mContext).changeFavoriteListEntry(wordEntry.getId(),"Yellow","Black")) {
-                    wordEntryFavorites.setSystemYellowCount(0);
+                    itemFavorites.setSystemYellowCount(0);
                 }
             }
             return true;
@@ -418,15 +441,15 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         return "Black";
     }
 
-    public void assignStarColor(WordEntry wordEntry, ImageButton imgStar) {
-        if(wordEntry.getWordEntryFavorites().shouldOpenFavoritePopup(mActiveFavoriteStars) &&
-                wordEntry.getWordEntryFavorites().systemListCount(mActiveFavoriteStars) >1) {
-            imgStar.setColorFilter(null);
-            imgStar.setImageResource(R.drawable.ic_star_multicolor);
-        } else {
-            imgStar.setImageResource(R.drawable.ic_star_black);
-            imgStar.setColorFilter(ContextCompat.getColor(mContext, getFavoritesStarColor(mActiveFavoriteStars,wordEntry.getWordEntryFavorites())));
-        }
-    }
+//    public void assignStarColor(WordEntry wordEntry, ImageButton imgStar) {
+//        if(wordEntry.getItemFavorites().shouldOpenFavoritePopup(mActiveFavoriteStars) &&
+//                wordEntry.getItemFavorites().systemListCount(mActiveFavoriteStars) >1) {
+//            imgStar.setColorFilter(null);
+//            imgStar.setImageResource(R.drawable.ic_star_multicolor);
+//        } else {
+//            imgStar.setImageResource(R.drawable.ic_star_black);
+//            imgStar.setColorFilter(ContextCompat.getColor(mContext, getFavoritesStarColor(mActiveFavoriteStars,wordEntry.getItemFavorites())));
+//        }
+//    }
 }
 

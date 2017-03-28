@@ -1,6 +1,7 @@
 package com.jukuproject.jukutweet.Adapters;
 
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.text.SpannableString;
@@ -19,12 +20,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Database.InternalDB;
+import com.jukuproject.jukutweet.FavoritesColors;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.R;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -37,6 +40,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
     private UserInfo mUserInfo;
     private List<Tweet> mDataset;
     private Context mContext;
+    private ArrayList<String> mActiveTweetFavoriteStars;
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
@@ -63,11 +67,12 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
         }
     }
 
-    public UserTimeLineAdapter(Context context, RxBus rxBus, UserInfo userInfo, List<Tweet> myDataset) {
+    public UserTimeLineAdapter(Context context, RxBus rxBus, UserInfo userInfo, List<Tweet> myDataset, ArrayList<String> activeTweetFavoriteStars) {
         mContext = context;
         _rxbus = rxBus;
         mDataset = myDataset;
         mUserInfo = userInfo;
+        mActiveTweetFavoriteStars = activeTweetFavoriteStars;
     }
 
 
@@ -105,7 +110,76 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
             public void onClick(View v) {
                 Toast.makeText(mContext, "STAR CLICK", Toast.LENGTH_SHORT).show();
 
-                InternalDB.getInstance(mContext).saveTweet(mUserInfo,mDataset.get(holder.getAdapterPosition()));
+
+
+//     asdf
+                //If the user info, for some reason, isn't available in the tweet object, replace it with mUserInfo
+//                if(mDataset.get(holder.getAdapterPosition()).getUser() == null) {
+//                    mDataset.get(holder.getAdapterPosition()).setUser(mUserInfo);
+//                }
+
+                /* Check for, and save */
+                Tweet currentTweet= mDataset.get(holder.getAdapterPosition());
+                InternalDB helper = InternalDB.getInstance(mContext);
+                SQLiteDatabase db = helper.getWritableDatabase();
+
+                //Check for tweet in db
+                try {
+                    if(helper.tweetExistsInDB(db,currentTweet)<0) {
+                        //TODO handle error -- can't access db or something
+
+
+                    } else {
+
+
+                        //If tweet doesn't already exist in db, insert it
+                        if(helper.tweetExistsInDB(db,currentTweet) == 0){
+                            //Otherwise enter the tweet into the database and then toggle
+
+                            int addTweetResultCode = helper.addTweetToDB(db,mUserInfo,currentTweet);
+                            if(addTweetResultCode < 0) {
+                                //TODO handle error -- can't insert tweet
+                            } else {
+                                /*DB insert successfull, now send callback to fragment and run observable to add
+                                 urls for the tweet to database, as well as parse the kanji (in observable) and add those to database */
+                                _rxbus.sendSaveTweet(mDataset.get(holder.getAdapterPosition()));
+                            }
+                        }
+
+                        //Toggle favorite list association for this tweet
+
+                        if(onFavoriteStarToggle(mActiveFavoriteStars,mWords.get(holder.getAdapterPosition()))) {
+                        holder.imgStar.setImageResource(R.drawable.ic_star_black);
+//                        holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, getFavoritesStarColor(mActiveFavoriteStars,mWords.get(holder.getAdapterPosition()).getItemFavorites())));
+//                        holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()),mActiveFavoriteStars));
+                        holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()),mActiveTweetFavoriteStars)));
+
+
+                    } else {
+                        //TODO insert an error?
+                        Log.e(TAG,"OnFavoriteStarToggle did not work...");
+                    }
+
+                    }
+
+                } catch (Exception e){
+
+
+                } finally {
+                    db.close();
+                    helper.close();
+                }
+
+
+
+
+
+//                int resultCode = (int)InternalDB.getInstance(mContext).saveNewTweetToDB(mUserInfo,mDataset.get(holder.getAdapterPosition()));
+//                Log.d(TAG,"STAR RESULT: " + resultCode);
+//
+//                if(resultCode == 1)
+
+
 
 
             }

@@ -1,9 +1,7 @@
 package com.jukuproject.jukutweet.Adapters;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.res.ColorStateList;
-import android.database.sqlite.SQLiteDatabase;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.RecyclerView;
@@ -153,7 +151,7 @@ public class ChooseFavoritesAdapter extends RecyclerView.Adapter<ChooseFavorites
             if(InternalDB.getInstance(mContext).addKanjiToMyList(mKanjiId,myListEntry.getListName(),myListEntry.getListsSys())) {
                 holder.checkbox.setChecked(true);
                 myListEntry.setSelectionLevel(1);
-                /* Send the updated mylistentry back to the tweetbreakdown adapter, where the WordEntry.WordEntryFavorites object
+                /* Send the updated mylistentry back to the tweetbreakdown adapter, where the WordEntry.ItemFavorites object
                 *  and the star button will be updated to reflect the addition */
                 mRxBusTweetBreakdownAdapter.send(myListEntry);
             } else {
@@ -163,7 +161,7 @@ public class ChooseFavoritesAdapter extends RecyclerView.Adapter<ChooseFavorites
             if(InternalDB.getInstance(mContext).removeKanjiFromMyList(mKanjiId,myListEntry.getListName(),myListEntry.getListsSys())) {
                 holder.checkbox.setChecked(false);
                 myListEntry.setSelectionLevel(0);
-                /* Send the updated mylistentry back to the tweetbreakdown adapter, where the WordEntry.WordEntryFavorites object
+                /* Send the updated mylistentry back to the tweetbreakdown adapter, where the WordEntry.ItemFavorites object
                 *  and the star button will be updated to reflect the subtraction */
                 mRxBusTweetBreakdownAdapter.send(myListEntry);
             } else {

@@ -24,6 +24,16 @@ public class Tweet  implements Parcelable {
     private Integer retweet_count;
     private String text;
 
+    public ItemFavorites getItemFavorites() {
+        return itemFavorites;
+    }
+
+    public void setItemFavorites(ItemFavorites itemFavorites) {
+        this.itemFavorites = itemFavorites;
+    }
+
+    private ItemFavorites itemFavorites;
+
     public TweetEntities getEntities() {
         return entities;
     }
@@ -39,10 +49,9 @@ public class Tweet  implements Parcelable {
         return user;
     }
 
-
-
-
-
+    public void setUser(UserInfo user) {
+        this.user = user;
+    }
 
     public Tweet() {};
 

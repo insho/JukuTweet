@@ -14,7 +14,7 @@ public class RxBus {
 
     private final Subject<Object, Object> _busClick = new SerializedSubject<>(PublishSubject.create());
     private final Subject<Object, Object> _busLongClick = new SerializedSubject<>(PublishSubject.create());
-    private final Subject<Object, Object> _busDeselectClick = new SerializedSubject<>(PublishSubject.create());
+    private final Subject<Object, Object> _busSaveTweet = new SerializedSubject<>(PublishSubject.create());
 
     public void send(Object o) {
         _busClick.onNext(o);
@@ -31,13 +31,19 @@ public class RxBus {
         return _busLongClick;
     }
 
+    public void sendSaveTweet(Object o) {
+        _busSaveTweet.onNext(o);
+    }
+    public Observable<Object> toSaveTweetObserverable() {
+        return _busSaveTweet;
+    }
 
-    public void sendDeselect(Object o) {
-        _busDeselectClick.onNext(o);
-    }
-    public Observable<Object> toDeselectClickObservable() {
-        return _busDeselectClick;
-    }
+//    public void sendTest(Object o, Object x) {
+//        _busDeselectClick.onNext(o,x);
+//    }
+//    public Observable<Object,Object> toDeselectClickObservable() {
+//        return _busDeselectClick;
+//    }
 
 
 }

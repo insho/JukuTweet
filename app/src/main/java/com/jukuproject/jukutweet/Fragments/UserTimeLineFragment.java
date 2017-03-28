@@ -1,6 +1,7 @@
 package com.jukuproject.jukutweet.Fragments;
 
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
@@ -20,15 +21,23 @@ import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
+import com.jukuproject.jukutweet.Models.ColorThresholds;
+import com.jukuproject.jukutweet.Models.ParseSentenceItem;
+import com.jukuproject.jukutweet.Models.ParseSentenceSpecialSpan;
+import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.R;
+import com.jukuproject.jukutweet.SentenceParser;
 import com.jukuproject.jukutweet.TwitterUserClient;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import rx.Observer;
+import rx.Single;
+import rx.SingleSubscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
@@ -49,6 +58,14 @@ public class UserTimeLineFragment extends Fragment {
     private TextView mNoLists;
     private UserInfo mUserInfo;
     private List<Tweet> mTimeLine;
+
+    /* Holds a list of tweets that have been favorited (in any/all lists). Used to check
+    * whether or not a tweet needs to have favorites assigned to it. This exists
+    * so that we dont' have to make a sql query for each Tweet that gets returned from
+    * the api lookup */
+    private ArrayList<String> tweetIdStringsInFavorites;
+
+    private ArrayList<String> mActiveTweetFavoriteStars;
 
 //    private TweetBreakDownFragment mTweetBreakDownFragment;
 
@@ -82,6 +99,9 @@ public class UserTimeLineFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        //Get active favorite stars for tweets, to pass on to adapter for star-clicking tweet-saving
+        mActiveTweetFavoriteStars = SharedPrefManager.getInstance(getContext()).getActiveTweetFavoriteStars();
+        asdf
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(layoutManager);
         mTimeLine = new ArrayList<>();
@@ -107,9 +127,9 @@ public class UserTimeLineFragment extends Fragment {
      * @param userInfo UserInfo object with data from a single twitter user
      */
     public void pullTimeLineData(final UserInfo userInfo){
-
+adsf
         mCallback.showProgressBar(true);
-        mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mUserInfo,new ArrayList<Tweet>());
+//        mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mUserInfo,new ArrayList<Tweet>());
         mRecyclerView.setAdapter(mAdapter);
 
         String token = getResources().getString(R.string.access_token);
@@ -122,11 +142,17 @@ public class UserTimeLineFragment extends Fragment {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<List<Tweet>>() {
 
+
+
                     @Override public void onCompleted() {
                         if(BuildConfig.DEBUG){Log.d(TAG, "In onCompleted()");}
 
                         mCallback.showProgressBar(false);
-                        mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mUserInfo,mTimeLine);
+
+
+
+
+                        mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mUserInfo,mTimeLine,mActiveTweetFavoriteStars);
 
                         _rxBus.toClickObserverable()
                                 .subscribe(new Action1<Object>() {
@@ -145,6 +171,72 @@ public class UserTimeLineFragment extends Fragment {
                                     }
 
                                 });
+
+                        _rxBus.toSaveTweetObserverable().subscribe(new Action1<Object>() {
+
+                            @Override
+                            public void call(Object event) {
+
+                                if(isUniqueClick(1000) && event instanceof Tweet) {
+                                   final Tweet tweet = (Tweet) event;
+
+                                    //Try to insert urls
+
+                                    if(!InternalDB.getInstance(getContext()).saveTweetUrls(tweet)) {
+                                        Log.e(TAG,"Unable to save tweet urls");
+                                    }
+
+                                    Single.fromCallable(new Callable<ArrayList<ParseSentenceItem>>() {
+                                        @Override
+                                        public ArrayList<ParseSentenceItem> call() throws Exception {
+                                            InternalDB helper = InternalDB.getInstance(getContext());
+                                            SQLiteDatabase db = helper.getReadableDatabase();
+
+                                            ColorThresholds colorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
+                                            return SentenceParser.getInstance().parseSentence(tweet.getText()
+                                                    ,db
+                                                    ,new ArrayList<ParseSentenceSpecialSpan>()
+                                                    ,helper.getWordLists(db)
+                                                    ,colorThresholds);
+                                        }
+                                    }).subscribeOn(Schedulers.io())
+                                            .observeOn(AndroidSchedulers.mainThread())
+                                            .subscribe(new SingleSubscriber<ArrayList<ParseSentenceItem>>() {
+
+                                                @Override
+                                                public void onSuccess(ArrayList<ParseSentenceItem> disectedTweet) {
+                                                    //load the parsed kanji ids into the database
+                                                    InternalDB.getInstance(getContext()).saveParsedTweetKanji(disectedTweet,tweet.getIdString());
+
+                                                    //TODO handle errors on insert?
+                                                }
+
+                                                @Override
+                                                public void onError(Throwable error) {
+                                                    Log.e(TAG,"ERROR IN PARSE KANJI (for saved tweet) OBSERVABLE: " + error);
+                                                }
+                                            });
+//
+//                                    public Observable<List<Weather>> getWeatherForLargeUsCapitals() {
+//                                        return cityDirectory.getUsCapitals()
+//                                                .flatMap(cityList -> Observable.from(cityList))
+//                                                .filter(city -> city.getPopulation() > 500,000)
+//                                                .flatMap(city -> weatherService.getCurrentWeather(city)) //each runs in parallel
+//                                                .toSortedList((cw1,cw2) -> cw1.getCityName().compare(cw2.getCityName()));
+//                                    }
+
+
+
+
+                                }
+
+                            }
+
+                        });
+
+
+
+
                         mRecyclerView.setAdapter(mAdapter);
 
                         //TODO Make this its own subscribable that we can chain!
@@ -180,9 +272,14 @@ public class UserTimeLineFragment extends Fragment {
                             Log.d(TAG,"TIMELINE SIZE: " + timeline.size());
                         }
 
+                        showRecyclerView(true);
                         for(Tweet tweet : timeline) {
                             Log.d(TAG,"timeline thing: " + tweet.getFavoritesCountString());
-                            showRecyclerView(true);
+
+
+                            //Attach colorfavorites to tweet, if it exists in db
+                            if(tweet.getIdString()!=null && asdf)
+
                             mTimeLine.add(tweet);
                         }
                     }
