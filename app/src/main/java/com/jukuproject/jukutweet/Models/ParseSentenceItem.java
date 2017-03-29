@@ -12,6 +12,20 @@ public class ParseSentenceItem {
     private String furiganaClean;
     private String type;
 
+    public Integer getStartIndex() {
+        return startIndex;
+    }
+
+
+    public Integer getEndIndex() {
+        return endIndex;
+    }
+
+
+
+    private Integer startIndex; //start position of kanji in sentence
+    private Integer endIndex; //end position of kanji in sentence
+
     public String getType() {
         return type;
     }
@@ -52,6 +66,16 @@ public class ParseSentenceItem {
         this.kanjiID = kanjiID;
         this.kanjiConjugated = kanjiConjugated;
         this.furiganaClean = furiganaClean;
+    }
+
+    /** This initializer is used in the SentenceParser */
+    public ParseSentenceItem(boolean isKanji, @Nullable Integer kanjiID, @Nullable String kanjiConjugated, @Nullable String furiganaClean, Integer startIndex, Integer endIndex) {
+        this.isKanji = isKanji;
+        this.kanjiID = kanjiID;
+        this.kanjiConjugated = kanjiConjugated;
+        this.furiganaClean = furiganaClean;
+        this.startIndex = startIndex;
+        this.endIndex = endIndex;
     }
 
 

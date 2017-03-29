@@ -365,7 +365,7 @@ public class MyListFragment  extends Fragment{
                 /* We do not want to include favorites star lists that are not active in the user
                 * preferences. So if an inactivated list shows up in the sql query, ignore it (don't add to mMenuHeader)*/
 
-                Log.d(TAG,"availableFavoritesStars: " + availableFavoritesStars);
+//                Log.d(TAG,"availableFavoritesStars: " + availableFavoritesStars);
                 if(c.getInt(1) != 1 || (availableFavoritesStars.contains(c.getString(0)))) {
                     MenuHeader menuHeader = new MenuHeader(c.getString(0));
                     menuHeader.setChildOptions(childOptions);

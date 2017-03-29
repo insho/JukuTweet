@@ -149,6 +149,10 @@ public class UserInfo implements Parcelable  {
     }
 
 
+    public void setScreen_name(String screen_name) {
+        this.screen_name = screen_name;
+    }
+
     // Parcelling part
     public UserInfo(Parcel in){
         String[] data = new String[8];

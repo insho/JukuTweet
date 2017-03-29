@@ -42,7 +42,7 @@ import java.util.Arrays;
  * Shows user-created lists of vocabulary
  */
 
-public class SavedTweetsAllFragment  extends Fragment{
+public class SavedTweetsAllFragment  extends Fragment {
 
     String TAG = "SavedTweetsAll";
     FragmentInteractionListener mCallback;
@@ -62,6 +62,7 @@ public class SavedTweetsAllFragment  extends Fragment{
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
+        errotest();
         //Call shared prefs to find out which star colors (i.e. favorites lists) to include
         sharedPrefManager = SharedPrefManager.getInstance(getContext());
 
@@ -108,21 +109,6 @@ public class SavedTweetsAllFragment  extends Fragment{
             }
         });
 
-//        expListView.setOnGroupExpandListener(new ExpandableListView.OnGroupExpandListener() {
-//
-//            @Override
-//            public void onGroupExpand(int groupPosition) {
-//
-//                if (lastExpandedPosition != -1 && groupPosition != lastExpandedPosition) {
-//                    expListView.collapseGroup(lastExpandedPosition);
-//                    lastExpandedPosition = groupPosition;
-//                }
-//
-//                int idx = expListView.getFirstVisiblePosition() + expListView.getFirstVisiblePosition() * groupPosition;
-//                expListView.setSelectionFromTop(idx, idx);
-//            }
-//        });
-
         expListView.setOnGroupExpandListener(new ExpandableListView.OnGroupExpandListener() {
 
             @Override
@@ -160,8 +146,8 @@ public class SavedTweetsAllFragment  extends Fragment{
 //                        a.CreateDialog();
 //                        break;
                     case "Browse/Edit":
-                        MyListBrowseFragment fragment = MyListBrowseFragment.newInstance(new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).getSystemList()));
-                        ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"mylistbrowse");
+                        SavedTweetsBrowseFragment fragment = SavedTweetsBrowseFragment.newInstance(new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).getSystemList()));
+                        ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"savedtweetsbrowse");
                         //Hide the fab
                         mCallback.showFab(false,"");
                         break;
@@ -271,6 +257,36 @@ public class SavedTweetsAllFragment  extends Fragment{
         return v;
     }
 
+    public void errotest(){
+        InternalDB helper =  InternalDB.getInstance(getActivity());
+        SQLiteDatabase db = helper.getWritableDatabase();
+                Cursor c = db.rawQuery("SELECT  DISTINCT [Name]" +
+                        ",[Sys]" +
+                        ",[UserID] " +
+                        ",[_id] as [Tweet_id]" +
+                        "FROM JFavoritesTweets ",null);
+
+
+        if(c.getCount()>0) {
+            c.moveToFirst();
+            while (!c.isAfterLast()) {
+                        Log.d(TAG,"ERRORTEST: " + c.getString(0) + ", id: " + c.getString(3));
+
+                c.moveToNext();
+                }
+
+
+
+            }
+
+        c.close();
+        db.close();
+        helper.close();
+
+
+
+    }
+
 
     public void prepareListData() {
         mMenuHeader = new ArrayList<>();
@@ -281,8 +297,13 @@ public class SavedTweetsAllFragment  extends Fragment{
         ColorThresholds colorThresholds = sharedPrefManager.getColorThresholds();
         ArrayList<String> childOptions = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.menu_mylist)));
 
-        Cursor c = db.rawQuery("SELECT xx.[Name]" +
+        Log.d(TAG,"Colorgrey thresh: " + colorThresholds.getTweetGreyThreshold() + ", red: " + colorThresholds.getTweetRedthreshold());
+
+        Cursor c = db.rawQuery(
+
+                "SELECT xx.[Name]" +
                 ",xx.[Sys]" +
+                        ",yy.[Total] " +
                 ",ifnull(yy.[Total],0) as [Total]" +
                 ",ifnull(yy.[Grey],0) as [Grey]" +
                 ",ifnull(yy.[Red],0) as [Red]" +
@@ -327,11 +348,9 @@ public class SavedTweetsAllFragment  extends Fragment{
                 ",SUM((CASE WHEN [Category] = 'Green' THEN 1 else 0 END)) as [Green] " +
                 " FROM (" +
 
-                /* Assign each tweet a color based on the percentages of word color scores for kanjis in the tweet */
+//                /* Assign each tweet a color based on the percentages of word color scores for kanjis in the tweet */
                 "Select [Name] " +
                 ",[Sys] " +
-//                ",[Tweet_id] "+
-
                 ",(CASE WHEN [Total] = 0 THEN 'Empty' " +
                 " WHEN CAST(ifnull([Grey],0)  as float)/[Total] > " + colorThresholds.getTweetGreyThreshold() + " THEN 'Grey' " +
                 " WHEN CAST(ifnull([Green],0)  as float)/[Total] >= " + colorThresholds.getTweetGreenthreshold() + " THEN 'Green' " +
@@ -344,25 +363,11 @@ public class SavedTweetsAllFragment  extends Fragment{
                 " ELSE 'Grey' END) as [Category] " +
                 " FROM ( " +
 
-//                ",(CASE WHEN [Total] = 0 THEN 'Empty' " +
-//                        " WHEN [Total] > 0 and CAST(ifnull([Green],0)  as float)/[Total] >= " + colorThresholds.getTweetGreenthreshold() + " THEN 'Green' " +
-//                        " WHEN [Total] > 0 and CAST(ifnull([Green],0)  as float)/[Total] < " + colorThresholds.getTweetGreenthreshold() + " AND " +
-//                                        " CAST(ifnull([Red],0)  as float)/[Total] >= " + colorThresholds.getTweetRedthreshold() + " THEN 'Red' " +
-//                        " WHEN [Total] > 0 and CAST(ifnull([Green],0)  as float)/[Total] < " + colorThresholds.getTweetGreenthreshold() + " AND " +
-//                                        " CAST(ifnull([Red],0)  as float)/[Total] < " + colorThresholds.getTweetRedthreshold() +  " AND " +
-//                                        " CAST(ifnull([Yellow],0)  as float)/[Total] >= " + colorThresholds.getTweetYellowthreshold() +" THEN 'Yellow' " +
-//
-//                        " WHEN [Grey] > [Green] and [Grey] > [Red] and [Grey] > [Yellow] THEN 'Grey' " +
-//                        " WHEN [Green] > [Grey] and [Green] > [Red] and [Green] > [Yellow] THEN 'Green' " +
-//                        " WHEN [Red] > [Green] and [Red] > [Grey] and [Red] > [Yellow] THEN 'Red' " +
-//                        " WHEN [Yellow] > [Green] and [Yellow] > [Red] and [Yellow] > [Grey] THEN 'Yellow' " +
-//                        " ELSE 'Grey' END) as [Category] " +
-
                 /* Now to pull together ListName, Tweet and the totals (by color) of the kanji in those tweets */
-                "SELECT  [Name]" +
-                ",[Sys]" +
-                ",[Tweet_id] "+
-//                ",[TotalKanjiCountInList] " +
+                "SELECT  ListsTweetsAndAllKanjis.[Name]" +
+                ",ListsTweetsAndAllKanjis.[Sys]" +
+                ",ListsTweetsAndAllKanjis.[Tweet_id] "+
+
                 ",SUM([Grey]) + SUM([Red]) + SUM([Yellow]) + SUM([Green]) as [Total] " +
                 ",SUM([Grey]) as [Grey]" +
                 ",SUM([Red]) as [Red]" +
@@ -375,13 +380,8 @@ public class SavedTweetsAllFragment  extends Fragment{
                                     " Select TweetLists.[Name] " +
                                     " ,TweetLists.[Sys] " +
                                     ", TweetLists.[Tweet_id] " +
-//                                    ", TweetLists.[TotalKanjiCountInList]" +
-//                                    ", [Edict_id] " +
-//                                    ", [Total] " +
-//                                    ", [Correct] " +
-//                                    ", [Percent] " +
 
-                                    ",(CASE WHEN [Total] is not NULL and [Total] < " + colorThresholds.getGreyThreshold() + " THEN 1 ELSE 0 END) as [Grey] " +
+                                    ",(CASE WHEN [Total] is NULL OR [Total] < " + colorThresholds.getGreyThreshold() + " THEN 1 ELSE 0 END) as [Grey] " +
                                     ",(CASE WHEN [Total] is not NULL and [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] < " + colorThresholds.getRedThreshold() + "  THEN 1  ELSE 0 END) as [Red] " +
                                     ",(CASE WHEN [Total] is not NULL and [Total] >= " + colorThresholds.getGreyThreshold() + " and ([Percent] >= " + colorThresholds.getRedThreshold() + "  and [Percent] <  " + colorThresholds.getYellowThreshold() + ") THEN 1  ELSE 0 END) as [Yellow] " +
                                     ",(CASE WHEN [Total] is not NULL and [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] >= " + colorThresholds.getYellowThreshold() + " THEN 1 ELSE 0 END) as [Green] " +
@@ -389,41 +389,21 @@ public class SavedTweetsAllFragment  extends Fragment{
                                      "FROM " +
                                     "(" +
 
-
                                         /* Get A list of each saved tweet and the number of kanji in those tweets */
 
-//                                        "SELECT a.[Name]" +
-//                                        ",a.[Sys]" +
-//                                        ",a.[UserID] " +
-//                                        ",a.[Tweet_id]" +
-//                                        ",b.[TotalKanjiCountInList] " +
-//                                        "FROM  " +
-//
-//                                        " ( " +
                                         "SELECT  DISTINCT [Name]" +
                                         ",[Sys]" +
                                         ",[UserID] " +
                                         ",[_id] as [Tweet_id]" +
                                         "FROM JFavoritesTweets " +
-//                                        ") as a " +
-//                                        "LEFT JOIN " +
-//                                        "( " +
-//                                        " SELECT Tweet_id" +
-//                                        ",Count(Edict_id) as [TotalKanjiCountInList]" +
-//                                        "From JSavedTweetKanji " +
-//                                        " Group by [Tweet_id] " +
-//                                        ") as b " +
-//                                        " On a.[Tweet_id] = b.[Tweet_id] " +
 
                                     ") as TweetLists " +
                                 " LEFT JOIN " +
                                 " ( " +
 
                                 /* Get a list of  kanji ids and their word scores for each tweet */
-
                                 "SELECT a.[Tweet_id]" +
                                 ",a.[Edict_id]" +
-                                ",a.[Tweet_id]" +
                                 ",ifnull(b.[Total],0) as [Total] " +
                                 ",ifnull(b.[Correct],0)  as [Correct]" +
                                 ",CAST(ifnull(b.[Correct],0)  as float)/b.[Total] as [Percent] " +
@@ -454,17 +434,18 @@ public class SavedTweetsAllFragment  extends Fragment{
                 ") as [Lists] " +
                 "GROUP BY [Name],[Sys]" +
 
-                ") as yy " +
+                ") as yy "  +
 
-                "ON xx.[Name] = yy.[Name] and xx.[sys] = yy.[sys]  " +
-                "Order by xx.[Sys] Desc,xx.[Name]",null);
+                "ON xx.[Name] = yy.[Name] and cast(xx.[Sys] as INTEGER)  = cast(yy.[Sys] as INTEGER)  " +
+                "Order by xx.[Sys] Desc,xx.[Name]"
+                ,null);
 
-        c.moveToFirst();
+Log.d(TAG,"CCOUNT: " +c.getCount());
         if(c.getCount()>0) {
+            c.moveToFirst();
             while (!c.isAfterLast()) {
 
-                if(BuildConfig.DEBUG){Log.d(TAG,"PULLING NAME: " + c.getString(0) + ", SYS: " + c.getString(1) + ", TOTAL: " + c.getString(2) + ", GREY: " + c.getString(3));}
-                if(BuildConfig.DEBUG){Log.d("yes", "pulling list: " + c.getString(0) + ", sys: " + c.getString(1));}
+                if(BuildConfig.DEBUG){Log.d(TAG,"(0): ==" + c.getString(0) + "==, (1): " + c.getString(1) + ", (2): " + c.getString(2) + ", (3): " + c.getString(3)+ ", (4): " + c.getString(4)+ ", (5): " + c.getString(5));}
 
                 /* We do not want to include favorites star lists that are not active in the user
                 * preferences. So if an inactivated list shows up in the sql query, ignore it (don't add to mMenuHeader)*/

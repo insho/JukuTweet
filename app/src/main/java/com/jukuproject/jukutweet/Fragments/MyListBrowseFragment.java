@@ -58,8 +58,6 @@ public class MyListBrowseFragment extends Fragment  {
     private ArrayList<WordEntry> mWords;
     private MyListEntry mMyListEntry;
     private ColorThresholds mColorThresholds;
-//    private ArrayList<String> mActiveFavoriteStars;
-//    private HashMap<Integer,Integer> selectedHashMap = new HashMap<>(); //Tracks which entries in the adapter are currently selected (position,
     private ArrayList<Integer> mSelectedEntries = new ArrayList<>(); //Tracks which entries in the adapter are currently selected (id key)
 
 
@@ -102,7 +100,6 @@ public class MyListBrowseFragment extends Fragment  {
 
         //Pull list of word entries in the database for a given list
         mWords = InternalDB.getInstance(getContext()).getMyListWords(mMyListEntry);
-
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
 

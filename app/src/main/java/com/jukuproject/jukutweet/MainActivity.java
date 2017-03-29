@@ -88,6 +88,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     private static final String TAG = "TEST-Main";
     private static final boolean debug = true;
 
+    private boolean fragmentWasChanged = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -118,6 +120,10 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
             @Override
             public void onPageSelected(int position) {
+                if(fragmentWasChanged) {
+                    mSectionsPagerAdapter.notifyDataSetChanged();
+                    fragmentWasChanged = false;
+                }
                 switch (position) {
                     case 0:
                         if(isTopShowing()) {
@@ -135,6 +141,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                         showFab(false);
                         break;
                 }
+
 
             }
 
@@ -573,7 +580,10 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     @Override
     public void onBackPressed() {
         boolean isPopFragment = false;
-
+        if(fragmentWasChanged) {
+            mSectionsPagerAdapter.notifyDataSetChanged();
+            fragmentWasChanged = false;
+        }
         //Pop backstack depending on the overall tab position (if applicable)
         switch (mViewPager.getCurrentItem()) {
             case 0:
@@ -583,6 +593,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     if(isTopShowing) {
                         showActionBarBackButton(false,getString(R.string.app_name));
                         updateTabs(new String[]{"Users","Saved Tweets","My Lists"});
+
                     }
                 } catch (NullPointerException e) {
                     Log.e(TAG,"OnBackPressed child entrycount null : " + e);
@@ -858,6 +869,12 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             }
 
         }
+    }
+
+
+    //Changes sss
+    public void notifyFragmentsChanged() {
+        fragmentWasChanged = true;
     }
 
 

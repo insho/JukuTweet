@@ -24,4 +24,6 @@ public interface FragmentInteractionListener {
     void updateTabs(String[] updatedTabs);
 
     void showMenuMyListBrowse(boolean show);
+
+    void notifyFragmentsChanged();
 }

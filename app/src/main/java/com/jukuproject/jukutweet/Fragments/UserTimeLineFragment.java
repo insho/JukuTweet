@@ -194,7 +194,7 @@ public class UserTimeLineFragment extends Fragment {
                                     }
 
                                     final SQLiteDatabase db = helper.getReadableDatabase();
-                                    if(helper.tweetParsedKanjiExistsInDB(db,tweet) == 1) {
+                                    if(helper.tweetParsedKanjiExistsInDB(db,tweet) == 0) {
 
 
                                         final WordLoader wordLoader = helper.getWordLists(db);
@@ -218,8 +218,12 @@ public class UserTimeLineFragment extends Fragment {
                                                     public void onSuccess(ArrayList<ParseSentenceItem> disectedTweet) {
                                                         //load the parsed kanji ids into the database
                                                         InternalDB.getInstance(getContext()).saveParsedTweetKanji(disectedTweet,tweet.getIdString());
-
+                                                        Log.d("XXX","SUPER SUCCESS!");
+                                                        for(ParseSentenceItem item : disectedTweet) {
+                                                            Log.d("XXXX",item.getKanjiConjugated());
+                                                        }
                                                         //TODO handle errors on insert?
+                                                        mCallback.notifyFragmentsChanged();
                                                         helper.close();
                                                         db.close();
                                                     }

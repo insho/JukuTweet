@@ -55,7 +55,7 @@ public class SentenceParser {
 
         Log.d(TAG,"DB OPEN 1: " + db.isOpen());
 
-        possibleKanjiInSentence = findCoreKanjiBlocksInSentence(entireSentence,wordLoader,specialSpans);
+        possibleKanjiInSentence = findCoreKanjiBlocksInSentence(entireSentence,wordLoader,specialSpans,db);
         if(debug){
             Log.d(TAG, "whole sentence: " + entireSentence);
             Log.d(TAG, "# of Kanji found: " + possibleKanjiInSentence.size());
@@ -93,13 +93,16 @@ public class SentenceParser {
      *                          so it is unnecessary to break them down or match them against the dictionary
      * @return An array list of ParseSentencePossibleKanji, representing the core of each possible kanji in the sentence
      */
-    public static ArrayList<ParseSentencePossibleKanji> findCoreKanjiBlocksInSentence(String entireSentence, WordLoader wordLoader, ArrayList<ParseSentenceSpecialSpan> specialSpans) {
+    public static ArrayList<ParseSentencePossibleKanji> findCoreKanjiBlocksInSentence(String entireSentence, WordLoader wordLoader, ArrayList<ParseSentenceSpecialSpan> specialSpans, SQLiteDatabase db) {
+        Log.d(TAG,"DB OPEN 1.5: " + db.isOpen());
 
         ArrayList<Integer> spanIndexes = getSpecialSpanIndexes(specialSpans);
+        Log.d(TAG,"DB OPEN 1.6: " + db.isOpen());
 
         ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence = new ArrayList<>();
         StringBuilder builder = new StringBuilder();
         StringBuilder builder_katakana = new StringBuilder();
+        Log.d(TAG,"DB OPEN 1.7: " + db.isOpen());
 
         String char_aPrev = "";
         for (int i = 0; i < entireSentence.length(); i++) {
@@ -108,7 +111,9 @@ public class SentenceParser {
             if(entireSentence.length()>(i+1)) {
                 char_aNext = String.valueOf(entireSentence.charAt(i+1));
             }
-if(BuildConfig.DEBUG) {
+            Log.d(TAG,"DB OPEN 1.8: " + db.isOpen());
+
+            if(BuildConfig.DEBUG) {
     Log.d(TAG, (char_a.equals(System.getProperty("line.separator"))) + "-- char_a:" + char_a + ", charpair: " + (char_a + char_aNext) + "|");
 }
             /* If it is a speical span item (url, etc), simply pass it on to the next step */
@@ -117,9 +122,15 @@ if(BuildConfig.DEBUG) {
                 addOrReleaseBuilderContents(i,builder_katakana,possibleKanjiInSentence,true);
             } else if (wordLoader.getKatakana().contains(char_a)) {
                 /* Determine if the character is a kanji by process of elimination. If it is not Hiragana, Katakana or a Symbol, it must be a kanji */
+                Log.d(TAG,"DB OPEN 1.9: " + db.isOpen());
+
                 builder_katakana.append(entireSentence.charAt(i));
                 addOrReleaseBuilderContents(i,builder,possibleKanjiInSentence);
+
+                Log.d(TAG,"DB OPEN 1.10: " + db.isOpen());
+
             }
+
 //            else if((char_a.equals(System.getProperty("line.separator")))) {
 //                possibleKanjiInSentence.add(new ParseSentencePossibleKanji(i,possibleKanjiInSentence.size(),System.getProperty("line.separator")));
 //            }
@@ -873,12 +884,12 @@ if(BuildConfig.DEBUG) {
                     ", SUM([Other]) as [Other] " +
                         "FROM (" +
                         "SELECT [_id] " +
-                        ",(CASE WHEN ([Sys] = 1 and LOWER(Name) = \"blue\") then 1 else 0 end) as [Blue]" +
-                        ",(CASE WHEN ([Sys] = 1 AND LOWER(Name) = \"red\") then 1 else 0 end) as [Red]" +
-                        ",(CASE WHEN ([Sys] = 1 AND LOWER(Name) = \"green\") then 1 else 0 end) as [Green]" +
-                        ",(CASE WHEN ([Sys] = 1  AND LOWER(Name) = \"yellow\") then 1 else 0 end) as [Yellow]" +
-                    ",(CASE WHEN ([Sys] = 1  AND LOWER(Name) = \"purple\") then 1 else 0 end) as [Purple]" +
-                    ",(CASE WHEN ([Sys] = 1  AND LOWER(Name) = \"orange\") then 1 else 0 end) as [Orange]" +
+                        ",(CASE WHEN ([Sys] = 1 and Name = 'Blue') then 1 else 0 end) as [Blue]" +
+                        ",(CASE WHEN ([Sys] = 1 AND Name = 'Red') then 1 else 0 end) as [Red]" +
+                        ",(CASE WHEN ([Sys] = 1 AND Name = 'Green') then 1 else 0 end) as [Green]" +
+                        ",(CASE WHEN ([Sys] = 1  AND Name = 'Yellow') then 1 else 0 end) as [Yellow]" +
+                    ",(CASE WHEN ([Sys] = 1  AND Name = 'Purple') then 1 else 0 end) as [Purple]" +
+                    ",(CASE WHEN ([Sys] = 1  AND Name = 'Orange') then 1 else 0 end) as [Orange]" +
                         ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
                         "FROM JFavorites " +
                         "WHERE [_id] = ?) as x Group by [_id]" +
@@ -892,6 +903,7 @@ if(BuildConfig.DEBUG) {
                 final String edictKanji = dd.getString(0);
                 final String coreKanji = assignCoreKanji(dd.getString(0));
                 if(debug) {
+                    Log.d(TAG, "edictKanji: " + edictKanji);
                     Log.d(TAG, "foundkanjiposition: " + foundKanjiPosition);
                     Log.d(TAG, "newSentenceFragment: " + newSentenceFragment);
                     Log.d(TAG, "OLDsimplekanjistring: " + coreKanji);
@@ -904,12 +916,13 @@ if(BuildConfig.DEBUG) {
                     final int endposition = startposition + coreKanji.length();
 
                     if(debug) {
+                        Log.d(TAG, "edictKanji: " + edictKanji);
                         Log.d(TAG, "foundkanjiposition + startposition: " + (foundKanjiPosition + startposition));
                         Log.d(TAG, "prevkanjiposition + prevkanjilength: " + (prevkanjiposition + prevkanjilength));
                     }
                     if((foundKanjiPosition + startposition) >= (prevkanjiposition+prevkanjilength)) {
 
-                        ParseSentenceItem parseSentenceItem = new ParseSentenceItem(true,cleanKanjiIDs.get(index),coreKanji,coreFurigana);
+                        ParseSentenceItem parseSentenceItem = new ParseSentenceItem(true,cleanKanjiIDs.get(index),coreKanji,coreFurigana,(foundKanjiPosition + startposition),endposition);
                         parseSentenceItem.setWordEntry(new WordEntry(cleanKanjiIDs.get(index)
                                 ,edictKanji
                                 ,dd.getString(1)
@@ -1063,6 +1076,7 @@ if(BuildConfig.DEBUG) {
                             , specialSpan.getSpan());
                     spanParseSentence.setType(specialSpan.getType());
                     resultMap.add(spanParseSentence);
+
                     if(BuildConfig.DEBUG){Log.d(TAG,"Logging span: " + specialSpan.getSpan());}
 
                     nonKanjiSectionRemaining = entireSentence.substring(specialSpan.getEndIndex(), newStartPosition);
@@ -1233,7 +1247,7 @@ if(BuildConfig.DEBUG) {
      *
      */
     public ArrayList<ParseSentencePossibleKanji> createBetterMatchesForPossibleKanji(ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence, SQLiteDatabase db) {
-//        Log.d(TAG,"createBetterMatchesForPossibleKanji open: " + db.isOpen());
+        Log.d(TAG,"createBetterMatchesForPossibleKanji open: " + db.isOpen());
         for(ParseSentencePossibleKanji possibleKanji : possibleKanjiInSentence) {
 
             /* If it's a spinner kanji, just pass it on to the next step */

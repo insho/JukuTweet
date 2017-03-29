@@ -7,6 +7,7 @@ import android.util.Log;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
@@ -23,6 +24,12 @@ public class Tweet  implements Parcelable {
     private String id_str;
     private Integer retweet_count;
     private String text;
+
+    public ArrayList<TweetKanjiColor> getColorIndexes() {
+        return colorIndexes;
+    }
+
+    private ArrayList<TweetKanjiColor> colorIndexes;
 
     public ItemFavorites getItemFavorites() {
         return itemFavorites;
@@ -46,6 +53,9 @@ public class Tweet  implements Parcelable {
     * update db if necessary with new user data */
     private UserInfo user;
     public UserInfo getUser() {
+        if(user == null) {
+            user = new UserInfo();
+        }
         return user;
     }
 
@@ -55,9 +65,27 @@ public class Tweet  implements Parcelable {
 
     public Tweet() {};
 
+    public Tweet(Tweet another) {
+        this.favorited = another.favorited;
+        this.favorite_count = another.favorite_count;
+        this.truncated= another.truncated;
+        this.created_at= another.created_at;
+        this.id_str= another.id_str;
+        this.retweet_count= another.retweet_count;
+        this.text= another.text;
+        this.user = another.user;
+    }
+
+    public void addColorIndex (TweetKanjiColor color) {
+        if(colorIndexes  == null){
+            colorIndexes = new ArrayList<>();
+        }
+        colorIndexes.add(color);
+    }
 
     public Tweet(String text) {
         this.text = text;
+        colorIndexes = new ArrayList<>();
     }
 
     public Tweet(Boolean favorited, Boolean truncated, String created_at, String id_str, Integer retweet_count, String text) {
@@ -87,6 +115,45 @@ public class Tweet  implements Parcelable {
 
     public String getCreatedAt() {
         return created_at;
+    }
+
+
+
+    public String getDatabaseInsertDate() {
+        try {
+
+
+//            String strCurrentDate = "Wed, 18 Apr 2012 07:55:29 +0000"; Mon Mar 20 12:09:12 +0000 2017
+            SimpleDateFormat format = new SimpleDateFormat("EEE MMM dd hh:mm:ss Z yyyy",Locale.getDefault());
+            Date newDate;
+            try {
+                newDate = format.parse(created_at);
+            } catch (ParseException e) {
+                Log.e("TEST-Tweet","Tweet object date parse exception: " + e);
+                return "";
+            } catch (NullPointerException e) {
+                Log.e("TEST-Tweet","Tweet object getdisplaydate fail: " + e);
+                return "";
+            } catch (IllegalArgumentException e) {
+                Log.e("TEST-Tweet","Tweet object illegal arg exception: " + e);
+                return "";
+            }
+
+//            format = new SimpleDateFormat("MMM dd,yyyy hh:mm a");
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+//            String date = ;
+
+            return formatter.format(newDate);
+
+
+        } catch (NullPointerException e) {
+            Log.e("TEST-Tweet","Tweet object getdisplaydate fail: " + e);
+            return "";
+        } catch (IllegalArgumentException e) {
+            Log.e("TEST-Tweet","Tweet object illegal arg exception: " + e);
+            return "";
+        }
+
     }
 
     public String getDisplayDate() {
@@ -126,6 +193,8 @@ public class Tweet  implements Parcelable {
 
     }
 
+
+
     public void setCreatedAt(String created_at) {
         this.created_at = created_at;
     }
@@ -158,7 +227,7 @@ public class Tweet  implements Parcelable {
     }
 
 
-
+//    ArrayList<>
 //    public String getDisplayFavoritesCount() {
 //        try {
 //            return NumberFormat.getNumberInstance(Locale.getDefault()).format(favourites_count);
@@ -241,6 +310,10 @@ public class Tweet  implements Parcelable {
             return new Tweet[size];
         }
     };
+
+
+
+
 }
 
 

@@ -10,10 +10,12 @@ import android.database.sqlite.SQLiteStatement;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.ItemFavorites;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.ParseSentenceItem;
 import com.jukuproject.jukutweet.Models.Tweet;
+import com.jukuproject.jukutweet.Models.TweetKanjiColor;
 import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
@@ -69,16 +71,22 @@ public class InternalDB extends SQLiteOpenHelper {
 
 
     public static final String TABLE_SAVED_TWEETS = "JSavedTweets";
-    public static final String TSAVEDTWEET_COL0 = "UserID";
+    public static final String TSAVEDTWEET_COL0 = "UserId";
     public static final String TSAVEDTWEET_COL1 = "UserScreenName";
-    public static final String TSAVEDTWEET_COL2 = "TweetID";
+    public static final String TSAVEDTWEET_COL2 = "Tweet_id";
     public static final String TSAVEDTWEET_COL3 = "CreatedAt";
     public static final String TSAVEDTWEET_COL4 = "Text";
 
     public static final String TABLE_SAVED_TWEET_KANJI = "JSavedTweetKanji";
     public static final String TSAVEDTWEETITEMS_COL0 = "Tweet_id"; //JSavedTweets Primary Key!
-    public static final String TSAVEDTWEETITEMS_COL1 = "IndexOrder"; //JSavedTweets Primary Key!
+//    public static final String TSAVEDTWEETITEMS_COL1 = "IndexOrder"; //JSavedTweets Primary Key!
     public static final String TSAVEDTWEETITEMS_COL2 = "Edict_id"; //Edict Primary Key!
+    public static final String TSAVEDTWEETITEMS_COL3 = "StartIndex"; //Edict Primary Key!
+    public static final String TSAVEDTWEETITEMS_COL4 = "EndIndex"; //Edict Primary Key!
+
+
+
+
 
     public static final String TABLE_SAVED_TWEET_URLS = "JSavedTweetUrls";
 //    public static final String TSAVEDTWEETITEMS_COL0 = "STweet_id"; //JSavedTweets Primary Key!
@@ -193,7 +201,7 @@ public class InternalDB extends SQLiteOpenHelper {
                         COL_ID, //_id
                         TSAVEDTWEET_COL0, //UserId
                         TSAVEDTWEET_COL1, //UserScreenName
-                        TSAVEDTWEET_COL2, // TweetId
+                        TSAVEDTWEET_COL2, // Tweet_id
                         TSAVEDTWEET_COL3, //CreatedAt
                         TSAVEDTWEET_COL4); // Text
 
@@ -204,11 +212,14 @@ public class InternalDB extends SQLiteOpenHelper {
                                 "%s INTEGER PRIMARY KEY AUTOINCREMENT, " +
                                 "%s TEXT, " +
                                 "%s INTEGER, " +
+                                "%s INTEGER, " +
                                 "%s INTEGER)", TABLE_SAVED_TWEET_KANJI,
                         COL_ID, //_id (unique)
                         TSAVEDTWEETITEMS_COL0, //STweet_id (JSavedTweet _id)
-                        TSAVEDTWEETITEMS_COL1, // Order (order kanji appears in text)
-                        TSAVEDTWEETITEMS_COL2); // Edict_id
+//                        TSAVEDTWEETITEMS_COL1, // Order (order kanji appears in text)
+                        TSAVEDTWEETITEMS_COL2, // Edict_id
+                        TSAVEDTWEETITEMS_COL3, //STart index
+                        TSAVEDTWEETITEMS_COL4); //End INdex
 
         sqlDB.execSQL(sqlQueryJSavedTweetEntries);
 
@@ -988,7 +999,41 @@ public class InternalDB extends SQLiteOpenHelper {
 
         SQLiteDatabase db = this.getReadableDatabase();
         try {
-            Cursor c = db.rawQuery("SELECT  x.[_id],x.[Kanji],(CASE WHEN (x.Furigana is null OR  x.Furigana = '') then \"\" else \"(\" || x.Furigana || \")\" end) as [Furigana],x.[Definition],ifnull(y.[Correct],0),ifnull(y.[Total],0),(CASE WHEN [Total] >0 THEN CAST(ifnull([Correct],0)  as float)/[Total] ELSE 0 END) as [Percent] FROM (SELECT [_id],[Kanji],[Furigana],[Definition]  FROM [Edict] WHERE [_id] IN (SELECT [_id] FROM [JFavorites] WHERE ([Sys] = ? and [Name] = ?)) ORDER BY [_id]) as x LEFT JOIN (SELECT [_id],sum([Correct]) as [Correct],sum([Total]) as [Total]  FROM [JScoreboard] WHERE [_id] IN (SELECT [_id] FROM [JFavorites] WHERE ([Sys] = ? and [Name] = ?))  GROUP BY [_id]) as y ON x.[_id] = y.[_id]", new String[]{String.valueOf(myListEntry.getListsSys()),myListEntry.getListName(),String.valueOf(myListEntry.getListsSys()),myListEntry.getListName()});
+            Cursor c = db.rawQuery("SELECT  x.[_id]" +
+                                            ",x.[Kanji]" +
+                                            ",(CASE WHEN (x.Furigana is null OR  x.Furigana = '') then \"\" else \"(\" || x.Furigana || \")\" end) as [Furigana]" +
+                                            ",x.[Definition]" +
+                                            ",ifnull(y.[Correct],0)" +
+                                            ",ifnull(y.[Total],0)" +
+                                            ",(CASE WHEN [Total] >0 THEN CAST(ifnull([Correct],0)  as float)/[Total] ELSE 0 END) as [Percent] " +
+                                        "FROM " +
+                                             "(" +
+                                                "SELECT [_id]" +
+                                                ",[Kanji]" +
+                                                ",[Furigana]" +
+                                                ",[Definition]  " +
+                                            "FROM [Edict] " +
+                                            "WHERE [_id] IN (" +
+                                                            "SELECT [_id] " +
+                                                            "FROM [JFavorites] " +
+                                                            "WHERE ([Sys] = ? and [Name] = ?)" +
+                                                            ") " +
+                                             "ORDER BY [_id]" +
+                                             ") as x " +
+                                        "LEFT JOIN " +
+                                            "(" +
+                                                 "SELECT [_id]" +
+                                                ",sum([Correct]) as [Correct]" +
+                                                ",sum([Total]) as [Total]  " +
+                                                "FROM [JScoreboard] " +
+                                                "WHERE [_id] IN (" +
+                                                            "SELECT [_id] " +
+                                                            "FROM [JFavorites] " +
+                                                            "WHERE ([Sys] = ? and [Name] = ?))  " +
+                                             "GROUP BY [_id]" +
+                                             ") as y " +
+                                          "ON x.[_id] = y.[_id]"
+                    , new String[]{String.valueOf(myListEntry.getListsSys()),myListEntry.getListName(),String.valueOf(myListEntry.getListsSys()),myListEntry.getListName()});
             if(c.getCount()>0) {
                 c.moveToFirst();
                 while (!c.isAfterLast())
@@ -1188,14 +1233,20 @@ public class InternalDB extends SQLiteOpenHelper {
         int resultCode = -1;
 
         try {
-            for(int i=0;i<parseSentenceItems.size();i++) {
-                ContentValues values = new ContentValues();
-                values.put(TSAVEDTWEETITEMS_COL0, tweet_id);
-                values.put(TSAVEDTWEETITEMS_COL1, i);
-                values.put(TSAVEDTWEETITEMS_COL2, parseSentenceItems.get(i).getKanjiID());
-                resultCode = (int)db.insert(TABLE_SAVED_TWEET_KANJI, null, values);
+            if(parseSentenceItems.size()==0) {
+                resultCode = 1;
+            } else {
+                for(int i=0;i<parseSentenceItems.size();i++) {
+                    if(parseSentenceItems.get(i).isKanji()) {
+                        ContentValues values = new ContentValues();
+                        values.put(TSAVEDTWEETITEMS_COL0, tweet_id);
+                        values.put(TSAVEDTWEETITEMS_COL2, parseSentenceItems.get(i).getKanjiID());
+                        values.put(TSAVEDTWEETITEMS_COL3, parseSentenceItems.get(i).getStartIndex());
+                        values.put(TSAVEDTWEETITEMS_COL4, parseSentenceItems.get(i).getEndIndex());
+                        resultCode = (int)db.insert(TABLE_SAVED_TWEET_KANJI, null, values);
+                    }
+                }
             }
-            resultCode = 1;
             db.close();
             return resultCode;
 
@@ -1214,6 +1265,7 @@ public class InternalDB extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         HashMap<String,ItemFavorites> map = new HashMap<>();
         try {
+//            Log.d(TAG,"USER ID: " + userId);
             Cursor c = db.rawQuery(
 
                     " SELECT [_id]" +
@@ -1235,11 +1287,11 @@ public class InternalDB extends SQLiteOpenHelper {
                             ",(CASE WHEN ([Sys] = 1  AND Name = \"Orange\") then 1 else 0 end) as [Orange]" +
                             ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
                             "FROM " + TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
-                            " WHERE UserID = ? " +
+                            " WHERE UserId = ? " +
                             ") as [All]" +
                             "Group by [_id] " , new String[]{userId});
 
-
+                Log.d(TAG,"SAVED ENTRIES COUNT: " + c.getCount());
             if (c.moveToFirst()) {
                 do {
 
@@ -1418,5 +1470,159 @@ public class InternalDB extends SQLiteOpenHelper {
 //        return result;
 //
 //    }
+
+
+
+    public ArrayList<Tweet> getSavedTweets(MyListEntry myListEntry , ColorThresholds colorThresholds) {
+        ArrayList<Tweet> savedTweets = new ArrayList<>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        try {
+
+
+            Cursor c = db.rawQuery("SELECT TweetLists.[Name]" +
+                                ",TweetLists.[Sys]" +
+                                ",TweetLists.[UserId] " +
+                                ",UserName.ScreenName " +
+                                ",UserName.UserName " +
+                                ",TweetLists.[Tweet_id]" +
+                                ",[ALLTweets].[Text] " +
+                                ",TweetKanji.Edict_id " +
+                                ",TweetKanji.Color " +
+                                ",TweetKanji.StartIndex " +
+                                ",TweetKanji.EndIndex " +
+                                ",[ALLTweets].[Date]" +
+                            "FROM  " +
+                            " ( " +
+                                "SELECT  DISTINCT [Name]" +
+                                ",[Sys]" +
+                                ",[UserId] " +
+                                ",[_id] as [Tweet_id]" +
+                                "FROM "+ TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+                                "WHERE [Name] = ? and cast([Sys] as INTEGER) = ? " +
+                            ") as TweetLists " +
+                            " LEFT JOIN " +
+                            " ( " +
+                            "SELECT  DISTINCT [_id] " +
+                            ",[Tweet_id]" +
+                            ",[Text]" +
+                            ",[CreatedAt]  as [Date] " +
+                            " FROM "+ TABLE_SAVED_TWEETS + " " +
+                            ") as ALLTweets " +
+                            "ON TweetLists.[Tweet_id] = ALLTweets.[Tweet_id] " +
+                            " LEFT JOIN " +
+                            " ( " +
+                                /* Get a list of  kanji ids and their word scores for each tweet */
+                            "SELECT a.[Tweet_id]" +
+                            ",a.[Edict_id]" +
+                            ",a.[StartIndex]" +
+                            ",a.[EndIndex]" +
+
+                            ",(CASE WHEN [Total] is NULL THEN 'Grey' " +
+                                    "WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 'Grey' " +
+                                    "WHEN CAST(ifnull(b.[Correct],0)  as float)/b.[Total] < " + colorThresholds.getRedThreshold() + "  THEN 'Red' " +
+                                    "WHEN CAST(ifnull(b.[Correct],0)  as float)/b.[Total] <  " + colorThresholds.getYellowThreshold() + " THEN 'Yellow' " +
+                                    "ELSE 'Green' END) as [Color]" +
+
+                            "FROM " +
+                            "( " +
+                            " SELECT Tweet_id" +
+                            ",Edict_id " +
+                            ",[StartIndex]" +
+                            ",[EndIndex]" +
+                            "From JSavedTweetKanji " +
+                            " WHERE [Edict_id] is not NULL and StartIndex is not NULL and EndIndex is not NULL and EndIndex > StartIndex " +
+                            ") as a " +
+                            "LEFT JOIN " +
+                            " (" +
+                            "SELECT [_id] as [Edict_id]" +
+                            ",sum([Correct]) as [Correct]" +
+                            ",sum([Total]) as [Total] FROM [JScoreboard] " +
+                            "where [_id] in (SELECT DISTINCT [Edict_id] FROM JSavedTweetKanji)" +
+                            " GROUP BY [_id]" +
+                            ") as b " +
+                            "ON a.[Edict_id] = b.[Edict_id] " +
+                    " ) as TweetKanji " +
+                            "On TweetLists.Tweet_id = TweetKanji.Tweet_id " +
+
+
+                            "LEFT JOIN " +
+                            " (" +
+                            "SELECT DISTINCT [UserId] " +
+                            ", [ScreenName] " +
+                            ", [UserName] " +
+                            " FROM " + TABLE_MAIN +" " +
+                            ") as [UserName] " +
+                            "On TweetLists.UserId = UserName.UserId " +
+
+                    "Order by date(ALLTweets.Date) Desc,TweetLists.[Tweet_id] asc,TweetKanji.StartIndex asc"
+                    , new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+
+            Log.d("XXX","count: " + c.getCount() );
+            if(c.getCount()>0) {
+                c.moveToFirst();
+                String currentTweetId = c.getString(5);
+                Tweet tweet = new Tweet();
+                while (!c.isAfterLast())
+                {
+
+                    if(c.isFirst()) {
+                        tweet.setIdString(c.getString(5));
+                        tweet.setCreatedAt(c.getString(11));
+                        tweet.getUser().setUserId(c.getString(2));
+                        tweet.setText(c.getString(6));
+                        tweet.getUser().setScreen_name(c.getString(3));
+                        tweet.getUser().setName(c.getString(4));
+
+                    }
+                    if(!c.isFirst() && !c.isLast()) {
+
+                        Log.d("XXX","KANJI COLOR!: " + c.getInt(7) + ", " + c.getInt(8));
+                        TweetKanjiColor tweetKanjiColor = new TweetKanjiColor(c.getInt(7)
+                                ,c.getString(8)
+                                ,c.getInt(9)
+                                ,c.getInt(10));
+                        tweet.addColorIndex(tweetKanjiColor);
+                    }
+
+                    if(!currentTweetId.equals(c.getString(5)) || c.isLast()){
+                        //FLush old tweet
+                        Log.d("XXX","saving tweet: " + tweet.getIdString() );
+                        savedTweets.add(new Tweet(tweet));
+                        currentTweetId = c.getString(5);
+                        tweet = new Tweet();
+
+                        tweet.setIdString(c.getString(5));
+                        tweet.setCreatedAt(c.getString(11));
+                        tweet.getUser().setUserId(c.getString(2));
+                        tweet.setText(c.getString(6));
+                        tweet.getUser().setScreen_name(c.getString(3));
+                        tweet.getUser().setName(c.getString(4));
+
+
+                    }
+
+
+
+
+
+                    c.moveToNext();
+//                        addedIdStrings.add(c.getString(5));
+                    }
+
+
+                } else {if(debug) {Log.d(TAG,"c.getcount was 0!!");}}
+                c.close();
+
+        } catch (SQLiteException e){
+            Log.e(TAG,"getSavedTweets Sqlite exception: " + e);
+        } catch (Exception e) {
+            Log.e(TAG,"getSavedTweets generic exception: " + e);
+        } finally {
+            db.close();
+        }
+        return savedTweets;
+    }
+
 
 }

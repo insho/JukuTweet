@@ -2,7 +2,6 @@ package com.jukuproject.jukutweet.TabContainers;
 
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,7 +17,7 @@ public class Tab2Container extends BaseContainerFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.e("test", "tab 3 oncreateview");
+//        Log.e("test", "tab 3 oncreateview");
         return inflater.inflate(R.layout.container_fragment, null);
     }
 
