@@ -82,15 +82,44 @@ public class ItemFavorites {
     private int systemRedCount;
     private int systemYellowCount;
     private int systemGreenCount;
+    private int systemPurpleCount;
+
+    public int getSystemOrangeCount() {
+        return systemOrangeCount;
+    }
+
+    public void setSystemOrangeCount(int systemOrangeCount) {
+        this.systemOrangeCount = systemOrangeCount;
+    }
+
+    public int getSystemPurpleCount() {
+        return systemPurpleCount;
+    }
+
+    public void setSystemPurpleCount(int systemPurpleCount) {
+        this.systemPurpleCount = systemPurpleCount;
+    }
+
+    private int systemOrangeCount;
+
     private int userListCount;
 
 
     //TODO explain this, we can't include inactive favorites so set them to 0...
-    public ItemFavorites(int systemBlueCount, int systemRedCount, int systemYellowCount, int systemGreenCount, int userListCount) {
+    public ItemFavorites(int systemBlueCount
+            , int systemRedCount
+            , int systemYellowCount
+            , int systemGreenCount
+            , int systemPurpleCount
+            , int systemOrangeCount
+            , int userListCount) {
             this.systemBlueCount = systemBlueCount;
             this.systemGreenCount = systemGreenCount;
             this.systemRedCount = systemRedCount;
             this.systemYellowCount = systemYellowCount;
+            this.systemPurpleCount = systemPurpleCount;
+            this.systemOrangeCount = systemOrangeCount;
+
             this.userListCount = userListCount;
     }
 
@@ -100,7 +129,11 @@ public class ItemFavorites {
         this.systemRedCount = 0;
         this.systemYellowCount = 0;
         this.systemGreenCount = 0;
+        this.systemPurpleCount = 0;
+        this.systemOrangeCount = 0;
+
         this.userListCount = 0;
+
     }
 
     /**
@@ -110,13 +143,13 @@ public class ItemFavorites {
      * more than one system list that includes the entry.
      * @return true if should open the favorites popup, false to toggle
      */
-    public boolean shouldOpenFavoritePopup(){
-        if(userListCount > 0 || getSystemBlueCount() + getSystemRedCount() + getSystemGreenCount() + getSystemYellowCount() > 1 ) {
-            return true;
-        } else {
-            return false;
-        }
-    }
+//    public boolean shouldOpenFavoritePopup(){
+//        if(userListCount > 0 || getSystemBlueCount() + getSystemRedCount() + getSystemGreenCount() + getSystemYellowCount() > 1 ) {
+//            return true;
+//        } else {
+//            return false;
+//        }
+//    }
     public boolean shouldOpenFavoritePopup(ArrayList<String> activeFavoriteLists){
         int totalcount = 0;
         if(activeFavoriteLists.contains("Blue") && getSystemBlueCount() >0){
@@ -129,6 +162,14 @@ public class ItemFavorites {
             totalcount += 1;
         }
         if(activeFavoriteLists.contains("Yellow") && getSystemYellowCount() >0){
+            totalcount += 1;
+        }
+
+        if(activeFavoriteLists.contains("Purple") && getSystemPurpleCount() >0){
+            totalcount += 1;
+        }
+
+        if(activeFavoriteLists.contains("Orange") && getSystemOrangeCount() >0){
             totalcount += 1;
         }
 
@@ -154,6 +195,13 @@ public class ItemFavorites {
             totalcount += 1;
         }
 
+        if(activeFavoriteLists.contains("Purple") && getSystemPurpleCount() >0){
+            totalcount += 1;
+        }
+
+        if(activeFavoriteLists.contains("Orange") && getSystemOrangeCount() >0){
+            totalcount += 1;
+        }
         return totalcount;
     }
 
@@ -169,6 +217,14 @@ public class ItemFavorites {
             totalcount += 1;
         }
         if(activeFavoriteLists.contains("Yellow") && getSystemYellowCount() >0){
+            totalcount += 1;
+        }
+
+        if(activeFavoriteLists.contains("Purple") && getSystemPurpleCount() >0){
+            totalcount += 1;
+        }
+
+        if(activeFavoriteLists.contains("Orange") && getSystemOrangeCount() >0){
             totalcount += 1;
         }
 
@@ -194,17 +250,16 @@ public class ItemFavorites {
             case "Yellow":
                 systemYellowCount =1;
                 break;
+            case "Purple":
+                systemPurpleCount =1;
+                break;
+            case "Orange":
+                systemOrangeCount =1;
+                break;
             default:
                 break;
         }
     }
-//
-//    //TODO REMOVE THIS
-//    public String testOutput() {
-//        return "user: " + getUserListCount() + ", blue: " + getSystemBlueCount() + ", red: " + getSystemRedCount() + ", green: " + getSystemGreenCount() + ", yellow: " + getSystemYellowCount();
-//
-//
-//    }
 
 
 }

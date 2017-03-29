@@ -8,8 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.jukuproject.jukutweet.BaseContainerFragment;
-import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.Fragments.UserListFragment;
+import com.jukuproject.jukutweet.R;
 
 //TODO -- possibly consolidate these into one?
 public class Tab1Container extends BaseContainerFragment {
@@ -31,7 +31,7 @@ public class Tab1Container extends BaseContainerFragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        Log.e("test", "tab 1 container on activity created");
+//        Log.e("test", "tab 1 container on activity created");
         if (!mIsViewInited) {
             mIsViewInited = true;
             initView();
@@ -39,7 +39,7 @@ public class Tab1Container extends BaseContainerFragment {
     }
 
     private void initView() {
-        Log.e("test", "tab 1 init view");
+//        Log.e("test", "tab 1 init view");
         replaceFragment(new UserListFragment(), false,"userlistfragment");
 
     }

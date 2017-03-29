@@ -66,12 +66,18 @@
     <string name="actionicon_selectall">Select All</string>
 
 
-    <string-array name="entryvalues_list_favoritescount">
-        <item>Yellow</item>
+    <string-array name="entryvalues_list_favoritescount_kanji">
         <item>Blue</item>
         <item>Red</item>
-        <item>Green</item>
+        <item>Purple</item>
     </string-array>
+
+    <string-array name="entryvalues_list_favoritescount_tweet">
+        <item>Yellow</item>
+        <item>Green</item>
+        <item>Orange</item>
+    </string-array>
+
 
     <string-array name="menu_mylist">
         <item>Browse/Edit</item>
@@ -82,16 +88,14 @@
     </string-array>
 
     <string-array name="favoriteslistcount_default">
-        <item></item>
         <item>Blue</item>
         <item>Red</item>
     </string-array>
 
 
     <string-array name="favoriteslistcount_default_tweet">
-        <item></item>
-        <item>Green</item>
         <item>Yellow</item>
+        <item>Green</item>
     </string-array>
 
     <string name="listclearlist">Clear List?</string>

@@ -37,7 +37,7 @@ public class Tab2Container extends BaseContainerFragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        Log.e("test", "tab 3 container on activity created");
+//        Log.e("test", "tab 3 container on activity created");
         if (!mIsViewInited) {
             mIsViewInited = true;
             initView();
@@ -45,7 +45,7 @@ public class Tab2Container extends BaseContainerFragment {
     }
 
     private void initView() {
-        Log.e("test", "tab 3 init view");
+//        Log.e("test", "tab 3 init view");
         replaceFragment(new SavedTweetsAllFragment(), false,"savedtweetsallfragment");
     }
 

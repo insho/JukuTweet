@@ -535,15 +535,17 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 //                        File file = new File(Environment.getExternalStorageDirectory().getPath() + "/" + url);
                         try {
                             File file = checkForImagePath(screenName);
-                            FileOutputStream ostream = new FileOutputStream(file);
-                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, ostream);
-                            ostream.flush();
-                            ostream.close();
+                            if(!file.exists()) {
+                                FileOutputStream ostream = new FileOutputStream(file);
+                                bitmap.compress(Bitmap.CompressFormat.PNG, 100, ostream);
+                                ostream.flush();
+                                ostream.close();
 
+                                //TODO == clearer way of saving this image to a file...
+                                Uri uri = Uri.fromFile(file);
+                                InternalDB.getInstance(getBaseContext()).addMediaURItoDB(uri.toString(),screenName);
+                            }
 
-                            //TODO == clearer way of saving this image to a file...
-                            Uri uri = Uri.fromFile(file);
-                            InternalDB.getInstance(getBaseContext()).addMediaURItoDB(uri.toString(),screenName);
                         } catch (IOException e) {
                             Log.e("IOException", e.getLocalizedMessage());
                         }

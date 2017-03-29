@@ -21,7 +21,6 @@ import com.jukuproject.jukutweet.FavoritesColors;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
-import com.jukuproject.jukutweet.Models.ItemFavorites;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.PopupChooseFavoriteLists;
@@ -103,15 +102,15 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         holder.txtFurigana.setText(mWords.get(holder.getAdapterPosition()).getFurigana());
 
 //        assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
-        holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()),mActiveFavoriteStars));
+        holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars));
         holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
 
         /* Parse the definition into an array of multiple lines, if there are multiple sub-definitions in the string */
         if(mWords.get(holder.getAdapterPosition()).getTotal()< mColorThresholds.getGreyThreshold()) {
             holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuGrey));
-        } else if(mWords.get(holder.getAdapterPosition()).getPercentage()< mColorThresholds.getRedthreshold()){
+        } else if(mWords.get(holder.getAdapterPosition()).getPercentage()< mColorThresholds.getRedThreshold()){
             holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuRed));
-        } else if (mWords.get(holder.getAdapterPosition()).getPercentage()< mColorThresholds.getYellowthreshold()){
+        } else if (mWords.get(holder.getAdapterPosition()).getPercentage()< mColorThresholds.getYellowThreshold()){
             holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuYellow));
         } else {
             holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuGreen));
@@ -182,7 +181,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                                 }
                             }
 //                            assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
-                                        holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()),mActiveFavoriteStars));
+                                        holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars));
                                         holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
 
 
@@ -197,7 +196,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                         @Override
                         public void onDismiss() {
 //                            assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
-                            holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()),mActiveFavoriteStars));
+                            holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars));
                             holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
 
                             chooseFavoritesPopup = null;
@@ -205,7 +204,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                     });
 
                 } else {
-                    if(onFavoriteStarToggle(mActiveFavoriteStars,mWords.get(holder.getAdapterPosition()))) {
+                    if(FavoritesColors.onFavoriteStarToggle(mContext,mActiveFavoriteStars,mWords.get(holder.getAdapterPosition()))) {
                         holder.imgStar.setImageResource(R.drawable.ic_star_black);
 //                        holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, getFavoritesStarColor(mActiveFavoriteStars,mWords.get(holder.getAdapterPosition()).getItemFavorites())));
 //                        holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()),mActiveFavoriteStars));
@@ -273,7 +272,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                                             }
                                         }
 //                                        assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
-                                        holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()),mActiveFavoriteStars));
+                                        holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars));
                                         holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
 
 
@@ -304,7 +303,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                             @Override
                             public void onDismiss() {
 //                                assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
-                                holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()),mActiveFavoriteStars));
+                                holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars));
                                 holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
 
 
@@ -357,89 +356,89 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
 //        }
 //    }
 
-    /**
-     * Updates the wordEntry object for a row, as well as the JFavorites table in database, to reflect a
-     * new saved "system list" for a word. When the user clicks on the favorites star for a word, and that
-     * word is ONLY contained in one system list, the user should be able to toggle through available system
-     * lists with a single click (ex: blue-->red-->yellow--> black (i.e. unassigned to a list)-->blue-->red etc)
-     *
-     * There is an order to system list toggling. It goes:
-     *         0. Unassigned (black)
-     *         1. Blue
-     *         2. Green
-     *         3. Red
-     *         4. Yellow
-     *
-     * The user can cycle through this list. hatever the initial color is for a word, that is where we start in the cycle.
-     * If the word is initially Red, for example, and the star is clicked, it should change to yellow. But if yellow is unavailable
-     * in the preferences, the star should become black (unassigned) (and reference to red should be removed from the db).
-     *
-     * @param preferenceFavorites  array of current "activated" system list names
-     * @param wordEntry WordEntry object containing data for a single kanji (including what lists that kanji is included in)
-     * @return boolean true if operation succesful, false if not
-     */
-    public boolean onFavoriteStarToggle(ArrayList<String> preferenceFavorites, WordEntry wordEntry){
-
-        try {
-            ItemFavorites itemFavorites = wordEntry.getItemFavorites();
-
-            if(itemFavorites.isEmpty(mActiveFavoriteStars)) {
-                String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Blue","Green","Red","Yellow"});
-                if(InternalDB.getInstance(mContext).changeFavoriteListEntry(wordEntry.getId(),"Black",nextColor)) {
-                    itemFavorites.setSystemColor(nextColor);
-                }
-
-            } else if(preferenceFavorites.contains("Blue") && itemFavorites.getSystemBlueCount() > 0) {
-                String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Green","Red","Yellow"});
-                if(InternalDB.getInstance(mContext).changeFavoriteListEntry(wordEntry.getId(),"Blue",nextColor)) {
-                    itemFavorites.setSystemBlueCount(0);
-                    itemFavorites.setSystemColor(nextColor);
-                }
-
-            } else if(preferenceFavorites.contains("Green") && itemFavorites.getSystemGreenCount() > 0) {
-                String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Red","Yellow"});
-                if(InternalDB.getInstance(mContext).changeFavoriteListEntry(wordEntry.getId(),"Green",nextColor)) {
-                    itemFavorites.setSystemGreenCount(0);
-                    itemFavorites.setSystemColor(nextColor);
-                }
-
-            } else if(preferenceFavorites.contains("Red") && itemFavorites.getSystemRedCount() > 0) {
-                String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Yellow"});
-                if(InternalDB.getInstance(mContext).changeFavoriteListEntry(wordEntry.getId(),"Red",nextColor)) {
-                    itemFavorites.setSystemRedCount(0);
-                    itemFavorites.setSystemColor(nextColor);
-                }
-
-            } else if(preferenceFavorites.contains("Yellow") && itemFavorites.getSystemYellowCount() > 0) {
-
-                if(InternalDB.getInstance(mContext).changeFavoriteListEntry(wordEntry.getId(),"Yellow","Black")) {
-                    itemFavorites.setSystemYellowCount(0);
-                }
-            }
-            return true;
-        } catch (Exception e) {
-            Log.e(TAG,"onFavoriteStarToggle error: " + e);
-            return false;
-        }
-
-    }
-
-    /**
-     * Cycles through an array of possible color entries, looking for a match in the preferenceFavorites.
-     * If one is found, that color is the "next" favorites color during a {@link #onFavoriteStarToggle(ArrayList, WordEntry)}
-     * If nothing is found, the star reverts to unassigned (colored black)
-     * @param preferenceFavorites array of current "activated" system list names
-     * @param options array of possible next color entries that a favorites star could toggle to
-     * @return the name of the next available color entry
-     */
-    public String findNextFavoritesColor(ArrayList<String> preferenceFavorites,String[] options) {
-        for (String option: options) {
-            if(preferenceFavorites.contains(option)) {
-                return option;
-            }
-        }
-        return "Black";
-    }
+//    /**
+//     * Updates the wordEntry object for a row, as well as the JFavorites table in database, to reflect a
+//     * new saved "system list" for a word. When the user clicks on the favorites star for a word, and that
+//     * word is ONLY contained in one system list, the user should be able to toggle through available system
+//     * lists with a single click (ex: blue-->red-->yellow--> black (i.e. unassigned to a list)-->blue-->red etc)
+//     *
+//     * There is an order to system list toggling. It goes:
+//     *         0. Unassigned (black)
+//     *         1. Blue
+//     *         2. Green
+//     *         3. Red
+//     *         4. Yellow
+//     *
+//     * The user can cycle through this list. hatever the initial color is for a word, that is where we start in the cycle.
+//     * If the word is initially Red, for example, and the star is clicked, it should change to yellow. But if yellow is unavailable
+//     * in the preferences, the star should become black (unassigned) (and reference to red should be removed from the db).
+//     *
+//     * @param preferenceFavorites  array of current "activated" system list names
+//     * @param wordEntry WordEntry object containing data for a single kanji (including what lists that kanji is included in)
+//     * @return boolean true if operation succesful, false if not
+//     */
+//    public boolean onFavoriteStarToggle(ArrayList<String> preferenceFavorites, WordEntry wordEntry){
+//
+//        try {
+//            ItemFavorites itemFavorites = wordEntry.getItemFavorites();
+//
+//            if(itemFavorites.isEmpty(mActiveFavoriteStars)) {
+//                String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Blue","Green","Red","Yellow"});
+//                if(InternalDB.getInstance(mContext).changeFavoriteListEntry(wordEntry.getId(),"Black",nextColor)) {
+//                    itemFavorites.setSystemColor(nextColor);
+//                }
+//
+//            } else if(preferenceFavorites.contains("Blue") && itemFavorites.getSystemBlueCount() > 0) {
+//                String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Green","Red","Yellow"});
+//                if(InternalDB.getInstance(mContext).changeFavoriteListEntry(wordEntry.getId(),"Blue",nextColor)) {
+//                    itemFavorites.setSystemBlueCount(0);
+//                    itemFavorites.setSystemColor(nextColor);
+//                }
+//
+//            } else if(preferenceFavorites.contains("Green") && itemFavorites.getSystemGreenCount() > 0) {
+//                String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Red","Yellow"});
+//                if(InternalDB.getInstance(mContext).changeFavoriteListEntry(wordEntry.getId(),"Green",nextColor)) {
+//                    itemFavorites.setSystemGreenCount(0);
+//                    itemFavorites.setSystemColor(nextColor);
+//                }
+//
+//            } else if(preferenceFavorites.contains("Red") && itemFavorites.getSystemRedCount() > 0) {
+//                String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Yellow"});
+//                if(InternalDB.getInstance(mContext).changeFavoriteListEntry(wordEntry.getId(),"Red",nextColor)) {
+//                    itemFavorites.setSystemRedCount(0);
+//                    itemFavorites.setSystemColor(nextColor);
+//                }
+//
+//            } else if(preferenceFavorites.contains("Yellow") && itemFavorites.getSystemYellowCount() > 0) {
+//
+//                if(InternalDB.getInstance(mContext).changeFavoriteListEntry(wordEntry.getId(),"Yellow","Black")) {
+//                    itemFavorites.setSystemYellowCount(0);
+//                }
+//            }
+//            return true;
+//        } catch (Exception e) {
+//            Log.e(TAG,"onFavoriteStarToggle error: " + e);
+//            return false;
+//        }
+//
+//    }
+//
+//    /**
+//     * Cycles through an array of possible color entries, looking for a match in the preferenceFavorites.
+//     * If one is found, that color is the "next" favorites color during a {@link #onFavoriteStarToggle(ArrayList, WordEntry)}
+//     * If nothing is found, the star reverts to unassigned (colored black)
+//     * @param preferenceFavorites array of current "activated" system list names
+//     * @param options array of possible next color entries that a favorites star could toggle to
+//     * @return the name of the next available color entry
+//     */
+//    public String findNextFavoritesColor(ArrayList<String> preferenceFavorites,String[] options) {
+//        for (String option: options) {
+//            if(preferenceFavorites.contains(option)) {
+//                return option;
+//            }
+//        }
+//        return "Black";
+//    }
 
 //    public void assignStarColor(WordEntry wordEntry, ImageButton imgStar) {
 //        if(wordEntry.getItemFavorites().shouldOpenFavoritePopup(mActiveFavoriteStars) &&

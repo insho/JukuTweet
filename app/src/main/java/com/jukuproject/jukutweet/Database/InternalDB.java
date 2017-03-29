@@ -57,6 +57,7 @@ public class InternalDB extends SQLiteOpenHelper {
     public static final String TABLE_FAVORITES_LISTS_TWEETS_ENTRIES = "JFavoritesTweets";
 ////    public static final String TFAVORITESTWEETS_COL1 = "Name";
 //    public static final String TFAVORITESTWEETS_COL1 = "Sys";
+
     public static final String TFAVORITESTWEETS_COL2 = "TweetId";
 
 
@@ -106,7 +107,7 @@ public class InternalDB extends SQLiteOpenHelper {
                 String.format("CREATE TABLE IF NOT EXISTS %s (" +
                                 "%s INTEGER PRIMARY KEY AUTOINCREMENT, " +
                                 "%s TEXT, " +
-                                "%s INTEGER, " +
+                                "%s TEXT, " +
                                 "%s TEXT, " +
                                 "%s INTEGER, " +
                                 "%s INTEGER, " +
@@ -169,9 +170,11 @@ public class InternalDB extends SQLiteOpenHelper {
                 String.format("CREATE TABLE IF NOT EXISTS  %s (" +
                                 "%s TEXT, " +
                                 "%s TEXT, " +
-                                "%s TEXT)", TABLE_FAVORITES_LISTS_TWEETS_ENTRIES, asdf
+                                "%s TEXT, " +
+                                "%s TEXT)", TABLE_FAVORITES_LISTS_TWEETS_ENTRIES,
 
                         COL_ID, //Tweet id!
+                        TSAVEDTWEET_COL0, // User id
                         TFAVORITES_COL0, //name
                         TFAVORITES_COL1); // Sys
 
@@ -182,7 +185,7 @@ public class InternalDB extends SQLiteOpenHelper {
         String sqlQueryJSavedTweet =
                 String.format("CREATE TABLE IF NOT EXISTS %s (" +
                                 "%s INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                                "%s INTEGER, " +
+                                "%s TEXT, " +
                                 "%s TEXT, " +
                                 "%s TEXT, " +
                                 "%s TEXT, " +
@@ -387,7 +390,7 @@ public class InternalDB extends SQLiteOpenHelper {
                     userInfo.setDescription(c.getString(1));
 
                     try {
-                        userInfo.setUserId(c.getInt(5));
+                        userInfo.setUserId(c.getString(5));
                     } catch (SQLiteException e) {
                         Log.e(TAG,"getSavedUserInfo adding user ID sqlite problem: " + e);
                     } catch (Exception e) {
@@ -686,7 +689,7 @@ public class InternalDB extends SQLiteOpenHelper {
     }
 
     /**
-     *
+     * For word entries
      * @param kanjiID
      * @param originalColor
      * @param updatedColor
@@ -729,6 +732,47 @@ public class InternalDB extends SQLiteOpenHelper {
 
     }
 
+    /**
+     *
+     * @return
+     */
+    public boolean changeFavoriteListEntryTweet(String tweetId,String userId, String originalColor,String updatedColor) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        try {
+            if(originalColor.equals("Black") && updatedColor.equals("Black")) {
+                Log.e(TAG,"ERROR! changefavoritelistentry Both entries are BLACK. So do nothing.");
+                return false;
+            } else if(originalColor.equals("Black")) {
+                //Insert statement only
+                return addTweetToMyList(tweetId,userId,updatedColor,1);
+            } else if(updatedColor.equals("Black")) {
+                //Delete statement only
+                return removeTweetFromMyList(tweetId,originalColor,1);
+
+            } else {
+                String sql = "Update "  + TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " SET "+ TFAVORITES_COL0+" = ? WHERE "+ TFAVORITES_COL0 +"= ? and " + TFAVORITES_COL1+" = 1 and " + COL_ID + " = ?";
+                SQLiteStatement statement = db.compileStatement(sql);
+                statement.bindString(1, updatedColor);
+                statement.bindString(2, originalColor);
+                statement.bindString(3, tweetId);
+                statement.executeUpdateDelete();
+
+                return true;
+            }
+
+        }  catch (SQLiteException e) {
+            Log.e(TAG,"changefavoritelistentry sqlite exception: " + e);
+        }  catch (NullPointerException e) {
+            Log.e(TAG,"changefavoritelistentry something was null: " + e);
+        } finally {
+            db.close();
+        }
+
+        return false;
+
+    }
+
     public boolean addKanjiToMyList(int kanjiId, String listName, int listSys) {
         SQLiteDatabase db = this.getWritableDatabase();
         try {
@@ -746,6 +790,67 @@ public class InternalDB extends SQLiteOpenHelper {
             db.close();
         }
 
+        return  false;
+    }
+
+//    public boolean addKanjiToMyList(int kanjiId, String listName, int listSys) {
+//        SQLiteDatabase db = this.getWritableDatabase();
+//        try {
+//            ContentValues values = new ContentValues();
+//            values.put(COL_ID, kanjiId);
+//            values.put(TFAVORITES_COL0, listName);
+//            values.put(TFAVORITES_COL1, listSys);
+//            db.insert(TABLE_FAVORITES_LIST_ENTRIES, null, values);
+//            return true;
+//        } catch (SQLiteException e) {
+//            Log.e(TAG, "addKanjiToMyList sqlite exception: " + e);
+//        } catch (NullPointerException e) {
+//            Log.e(TAG, "addKanjiToMyList something was null: " + e);
+//        } finally {
+//            db.close();
+//        }
+//
+//        return  false;
+//    }
+
+    public boolean addTweetToMyList(String tweet_id,String user_id,String listName, int listSys) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        try {
+            ContentValues values = new ContentValues();
+            values.put(COL_ID, tweet_id);
+            values.put(TSAVEDTWEET_COL0, user_id);
+            values.put(TFAVORITES_COL0, listName);
+            values.put(TFAVORITES_COL1, listSys);
+            db.insert(TABLE_FAVORITES_LISTS_TWEETS_ENTRIES, null, values);
+            return true;
+
+        } catch (SQLiteException e) {
+            Log.e(TAG, "addKanjiToMyList sqlite exception: " + e);
+            return false;
+
+        } catch (NullPointerException e) {
+            Log.e(TAG, "addKanjiToMyList something was null: " + e);
+            return false;
+        } finally {
+            db.close();
+        }
+
+    }
+
+    public boolean removeTweetFromMyList(String tweetid, String listName, int listSys) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        try {
+            db.delete(TABLE_FAVORITES_LISTS_TWEETS_ENTRIES,
+                    TFAVORITES_COL0 + " = ? and "  + TFAVORITES_COL1 + " = ? and " + COL_ID + " = ? ", new String[]{listName,String.valueOf(listSys),tweetid});
+            return true;
+        } catch (SQLiteException e) {
+            Log.e(TAG, "removeTweetFromMyList sqlite exception: " + e);
+        } catch (NullPointerException e) {
+            Log.e(TAG, "removeTweetFromMyList something was null: " + e);
+        } finally {
+            db.close();
+        }
         return  false;
     }
 //
@@ -940,12 +1045,11 @@ public class InternalDB extends SQLiteOpenHelper {
             resultCode = cursor.getCount();
             cursor.close();
         } catch (SQLiteException e){
-            Log.e(TAG,"copyKanjiToList Sqlite exception: " + e);
-            return resultCode;
+            Log.e(TAG,"tweetParsedKanjiExistsInDB Sqlite exception: " + e);
         } catch (Exception e) {
-            Log.e(TAG,"copyKanjiToList generic exception: " + e);
-            return resultCode;
+            Log.e(TAG,"tweetParsedKanjiExistsInDB generic exception: " + e);
         }
+
         return resultCode;
     }
 
@@ -958,10 +1062,10 @@ public class InternalDB extends SQLiteOpenHelper {
             resultCode = cursor.getCount();
             cursor.close();
         } catch (SQLiteException e){
-        Log.e(TAG,"copyKanjiToList Sqlite exception: " + e);
+        Log.e(TAG,"tweetExistsInDB Sqlite exception: " + e);
         return resultCode;
     } catch (Exception e) {
-        Log.e(TAG,"copyKanjiToList generic exception: " + e);
+        Log.e(TAG,"tweetExistsInDB generic exception: " + e);
         return resultCode;
     }
         return resultCode;
@@ -1076,23 +1180,7 @@ public class InternalDB extends SQLiteOpenHelper {
         }
     }
 
-    public int addTweetToList(MyListEntry myListEntry, String tweet_id) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        int resultCode = -1;
-        try {
-                ContentValues values = new ContentValues();
-                values.put(TFAVORITES_COL0, tweet_id);
-                values.put(TSAVEDTWEET_COL1, myListEntry.getListName());
-                values.put(TSAVEDTWEET_COL2, myListEntry.getListsSys());
-                resultCode = (int)db.insert(TABLE_FAVORITES_LISTS_TWEETS_ENTRIES, null, values);
-                db.close();
-                return resultCode;
 
-        } catch(SQLiteException exception) {
-            return resultCode;
-        }
-
-    }
 
 
     public int saveParsedTweetKanji(ArrayList<ParseSentenceItem> parseSentenceItems, String tweet_id) {
@@ -1122,42 +1210,213 @@ public class InternalDB extends SQLiteOpenHelper {
 
 
 
-    public HashMap<String,ItemFavorites> getStarFavoriteDataForTweet(){
-        Cursor dd = db.rawQuery(
+    public HashMap<String,ItemFavorites> getStarFavoriteDataForAUsersTweets(String userId){
+        SQLiteDatabase db = this.getReadableDatabase();
+        HashMap<String,ItemFavorites> map = new HashMap<>();
+        try {
+            Cursor c = db.rawQuery(
+
+                    " SELECT [_id]" +
+                            ",SUM([Blue]) as [Blue]" +
+                            ",SUM([Red]) as [Red]" +
+                            ",SUM([Green]) as [Green]" +
+                            ",SUM([Yellow]) as [Yellow]" +
+                            ",SUM([Purple]) as [Purple]" +
+                            ",SUM([Orange]) as [Orange]" +
+
+                            ", SUM([Other]) as [Other] " +
+                            "FROM (" +
+                            "SELECT [_id] " +
+                            ",(CASE WHEN ([Sys] = 1 and Name = \"Blue\") then 1 else 0 end) as [Blue]" +
+                            ",(CASE WHEN ([Sys] = 1 AND Name = \"Red\") then 1 else 0 end) as [Red]" +
+                            ",(CASE WHEN ([Sys] = 1 AND Name = \"Green\") then 1 else 0 end) as [Green]" +
+                            ",(CASE WHEN ([Sys] = 1  AND Name = \"Yellow\") then 1 else 0 end) as [Yellow]" +
+                            ",(CASE WHEN ([Sys] = 1  AND Name = \"Purple\") then 1 else 0 end) as [Purple]" +
+                            ",(CASE WHEN ([Sys] = 1  AND Name = \"Orange\") then 1 else 0 end) as [Orange]" +
+                            ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
+                            "FROM " + TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+                            " WHERE UserID = ? " +
+                            ") as [All]" +
+                            "Group by [_id] " , new String[]{userId});
 
 
-                "SELECT [_id]" +
-                ",SUM([Blue]) as [Blue]" +
-                ",SUM([Red]) as [Red]" +
-                ",SUM([Green]) as [Green]" +
-                ",SUM([Yellow]) as [Yellow]" +
-                ", SUM([Other]) as [Other] " +
-                "FROM (" +
+            if (c.moveToFirst()) {
+                do {
+
+                    ItemFavorites itemFavorites = new ItemFavorites(c.getInt(0)
+                            ,c.getInt(1)
+                            ,c.getInt(2)
+                            ,c.getInt(3)
+                            ,c.getInt(4)
+                            ,c.getInt(5)
+                            ,c.getInt(6));
+
+                    map.put(userId,itemFavorites);
+
+                } while (c.moveToNext());
+            }
+            c.close();
 
 
-                        " ( "
-                "SELECT [_id] " +
-                ",(CASE WHEN ([Sys] = 1 and LOWER(Name) = \"blue\") then 1 else 0 end) as [Blue]" +
-                ",(CASE WHEN ([Sys] = 1 AND LOWER(Name) = \"red\") then 1 else 0 end) as [Red]" +
-                ",(CASE WHEN ([Sys] = 1 AND LOWER(Name) = \"green\") then 1 else 0 end) as [Green]" +
-                ",(CASE WHEN ([Sys] = 1  AND LOWER(Name) = \"yellow\") then 1 else 0 end) as [Yellow]" +
-                ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
-                "FROM " + TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
-                "WHERE [_id] = ?) as x " +
-                        "" +
-                        "Group by [_id]" +
+        } catch (SQLiteException e){
+            Log.e(TAG,"getStarFavoriteDataForAUsersTweets Sqlite exception: " + e);
+        } finally {
+            db.close();
+        }
 
-                ")" +
-                "" +
-                "" +
-                ")", new String[]{String.valueOf(cleanKanjiIDs.get(index)),String.valueOf(cleanKanjiIDs.get(index)),String.valueOf(cleanKanjiIDs.get(index))});
-
-
-        setItemFavorites(new ItemFavorites(dd.getInt(6)
-                ,dd.getInt(7)
-                ,dd.getInt(8)
-                ,dd.getInt(9)
-                ,dd.getInt(10)));
+        return  map;
     }
+
+
+
+
+//    public void prepareExpandableListHeaders(ColorThresholds colorThresholds
+//            , ArrayList<String> childOptions
+//            , ArrayList<String> activeFavoritesStars) {
+//        SQLiteDatabase db = this.getReadableDatabase();
+//
+//        try {
+//        Cursor c = db.rawQuery("SELECT xx.[Name]" +
+//                ",xx.[Sys]" +
+//                ",ifnull(yy.[Total],0) as [Total]" +
+//                ",ifnull(yy.[Grey],0) as [Grey]" +
+//                ",ifnull(yy.[Red],0) as [Red]" +
+//                ",ifnull(yy.[Yellow],0) as [Yellow]" +
+//                ",ifnull(yy.[Green],0) as [Green] " +
+//                "" +
+//                "FROM (" +
+//                "SELECT [Name]" +
+//                ",0 as [Sys] " +
+//                "From JFavoritesLists " +
+//                "UNION " +
+//                "SELECT 'Blue' as [Name]" +
+//                ", 1 as [Sys] " +
+//                "Union " +
+//                "SELECT 'Red' as [Name]" +
+//                ",1 as [Sys] " +
+//                "Union " +
+//                "SELECT 'Green' as [Name]" +
+//                ",1 as [Sys] " +
+//                "Union " +
+//                "SELECT 'Yellow' as [Name]" +
+//                ",1 as [Sys]" +
+//                ") as [xx] " +
+//                "LEFT JOIN (" +
+//                "SELECT  [Name]" +
+//                ",[Sys]" +
+//                ",SUM([Grey]) + SUM([Red]) + SUM([Yellow]) + SUM([Green]) as [Total]" +
+//                ",SUM([Grey]) as [Grey]" +
+//                ",SUM([Red]) as [Red]" +
+//                ",SUM([Yellow]) as [Yellow]" +
+//                ",SUM([Green]) as [Green] " +
+//                "FROM (" +
+//                "SELECT [Name]" +
+//                ",[Sys]" +
+//                ",[_id] " +
+//                ",(CASE WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 1 ELSE 0 END) as [Grey] " +
+//                ",(CASE WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] < " + colorThresholds.getRedThreshold() + "  THEN 1  ELSE 0 END) as [Red] " +
+//                ",(CASE WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and ([Percent] >= " + colorThresholds.getRedThreshold() + "  and [Percent] <  " + colorThresholds.getYellowThreshold() + ") THEN 1  ELSE 0 END) as [Yellow] " +
+//                ",(CASE WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] >= " + colorThresholds.getYellowThreshold() + " THEN 1 ELSE 0 END) as [Green] " +
+//                "FROM  (" +
+//                "SELECT a.[Name]" +
+//                ",a.[Sys]" +
+//                ",a.[_id]" +
+//                ",ifnull(b.[Total],0) as [Total] " +
+//                ",ifnull(b.[Correct],0)  as [Correct]" +
+//                ",CAST(ifnull(b.[Correct],0)  as float)/b.[Total] as [Percent] " +
+//                "FROM (" +
+//                "SELECT  DISTINCT [Name]" +
+//                ",[Sys]" +
+//                ",[_id] " +
+//                "FROM JFavorites" +
+//                ") as a " +
+//                "LEFT JOIN  (" +
+//                "SELECT [_id]" +
+//                ",sum([Correct]) as [Correct]" +
+//                ",sum([Total]) as [Total] FROM [JScoreboard] " +
+//                "where [_id] in (SELECT DISTINCT [_id] FROM JFavorites)" +
+//                " GROUP BY [_id]" +
+//                ") as b " +
+//                "ON a.[_id] = b.[_id]) " +
+//                " as x) as y " +
+//                "GROUP BY [Name],[Sys]" +
+//                ") as yy  " +
+//                "ON xx.[Name] = yy.[Name] and xx.[sys] = yy.[sys]  " +
+//                "Order by xx.[Sys] Desc,xx.[Name]",null);
+//
+//        c.moveToFirst();
+//        if(c.getCount()>0) {
+//            while (!c.isAfterLast()) {
+//
+//                if(BuildConfig.DEBUG){Log.d(TAG,"PULLING NAME: " + c.getString(0) + ", SYS: " + c.getString(1) + ", TOTAL: " + c.getString(2) + ", GREY: " + c.getString(3));}
+//                if(BuildConfig.DEBUG){Log.d("yes", "pulling list: " + c.getString(0) + ", sys: " + c.getString(1));}
+//
+//                /* We do not want to include favorites star lists that are not active in the user
+//                * preferences. So if an inactivated list shows up in the sql query, ignore it (don't add to mMenuHeader)*/
+//
+////                Log.d(TAG,"availableFavoritesStars: " + activeFavoritesStars);
+//                if(c.getInt(1) != 1 || (activeFavoritesStars.contains(c.getString(0)))) {
+//                    MenuHeader menuHeader = new MenuHeader(c.getString(0));
+//                    menuHeader.setChildOptions(childOptions);
+//                    menuHeader.setMyList(true);
+//
+//                    if(c.getInt(1) == 1 ) {
+//                        if(BuildConfig.DEBUG){Log.d(TAG,c.getString(0) + " sys ==1 so adding to starlist");}
+//                        menuHeader.setSystemList(true);
+//                    }
+//
+//                    ColorBlockMeasurables colorBlockMeasurables = new ColorBlockMeasurables();
+//                    colorBlockMeasurables.setGreyCount(c.getInt(3));
+//                    colorBlockMeasurables.setRedCount(c.getInt(4));
+//                    colorBlockMeasurables.setYellowCount(c.getInt(5));
+//                    colorBlockMeasurables.setGreenCount(c.getInt(6));
+//
+//                    colorBlockMeasurables.setGreyMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreyCount())));
+//                    colorBlockMeasurables.setRedMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getRedCount())));
+//                    colorBlockMeasurables.setYellowMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getYellowCount())));
+//                    colorBlockMeasurables.setGreenMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreenCount())));
+//                    menuHeader.setColorBlockMeasurables(colorBlockMeasurables);
+//                    mMenuHeader.add(menuHeader);
+//                }
+//
+//
+//                c.moveToNext();
+//            }
+//        }
+//        c.close();
+//
+//        } catch (SQLiteException e){
+//            Log.e(TAG,"copyKanjiToList Sqlite exception: " + e);
+//        } finally {
+//            db.close();
+//        }
+//    }
+//
+//    public int getExpandableAdapterColorBlockBasicWidths(TextView colorBlock, String text, int padding){
+//        int result = 0;
+//        if(!text.equals("0")) {
+////            View view = activity.getLayoutInflater().inflate(R.layout.expandablelistadapter_listitem, null);
+////            TextView colorBlock = (TextView) view.findViewById(R.id.listitem_colors_1);
+////            Drawable drawablecolorblock1 = ContextCompat.getDrawable(activity, R.drawable.colorblock);
+//
+////            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+////                colorBlock.setBackground(drawablecolorblock1);
+////            } else {
+////                colorBlock.setBackgroundDrawable(drawablecolorblock1);
+////            }
+//
+//            Rect bounds = new Rect();
+//            Paint textPaint = colorBlock.getPaint();
+//            textPaint.getTextBounds(text, 0, text.length(), bounds);
+//            result = (int)textPaint.measureText(text);
+//
+////            DisplayMetrics metrics = new DisplayMetrics();
+////            activity.getWindowManager().getDefaultDisplay().getMetrics(metrics);
+////            int padding = (int) (20.0f * metrics.density + 0.5f);
+//            result += padding;
+//        }
+//        return result;
+//
+//    }
 
 }

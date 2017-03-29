@@ -53,7 +53,7 @@ public class SentenceParser {
 //        this.mSpecialSpans = specialSpans;
         this.mColorThresholds = colorThresholds;
 
-
+        Log.d(TAG,"DB OPEN 1: " + db.isOpen());
 
         possibleKanjiInSentence = findCoreKanjiBlocksInSentence(entireSentence,wordLoader,specialSpans);
         if(debug){
@@ -66,6 +66,8 @@ public class SentenceParser {
 
             Log.e(TAG,"LOADING UP THE PREFIX, SUFFIX AND VERB CONJUGATION COMBOS ");
         }
+
+        Log.d(TAG,"DB OPEN 2: " + db.isOpen());
         attachPrefixesandSuffixesToCoreKanji(possibleKanjiInSentence);
         if(debug){
             Log.e(TAG,"CREATING PREFIX/SUFIX COMBOS, ITERATING THROUGH THEM, IF MATCH FOUND ADDING TO FINAL");
@@ -822,11 +824,14 @@ if(BuildConfig.DEBUG) {
                     ",[Definition]" +
                     ",[Total]" +
                     ",[Percent]" +
-                    ",(CASE WHEN [Total] < " + mColorThresholds.getGreyThreshold() + " THEN 1 WHEN [Percent] < " + mColorThresholds.getRedthreshold() + "  THEN 2 WHEN ([Percent] >= " + mColorThresholds.getRedthreshold() + " and [Percent] <  " + mColorThresholds.getYellowthreshold() + ") THEN 3 WHEN [Percent]>= " + mColorThresholds.getYellowthreshold() + " THEN 4 END) as [Color] " +
+                    ",(CASE WHEN [Total] < " + mColorThresholds.getGreyThreshold() + " THEN 1 WHEN [Percent] < " + mColorThresholds.getRedThreshold() + "  THEN 2 WHEN ([Percent] >= " + mColorThresholds.getRedThreshold() + " and [Percent] <  " + mColorThresholds.getYellowThreshold() + ") THEN 3 WHEN [Percent]>= " + mColorThresholds.getYellowThreshold() + " THEN 4 END) as [Color] " +
                     " ,[Blue]" +
                     " ,[Red] " +
                     " ,[Green] " +
                     " ,[Yellow] " +
+                    " ,[Purple] " +
+                    " ,[Orange] " +
+
                     " ,[Other] " +
                     "FROM (" +
                         "SELECT [_id]" +
@@ -840,7 +845,10 @@ if(BuildConfig.DEBUG) {
                         " ,[Red] " +
                         " ,[Green] " +
                         " ,[Yellow] " +
-                        " ,[Other] " +
+                    " ,[Purple] " +
+                    " ,[Orange] " +
+
+                    " ,[Other] " +
                         "FROM (" +
                         "SELECT [_id]" +
                         ",[Kanji]" +
@@ -859,13 +867,18 @@ if(BuildConfig.DEBUG) {
                         ",SUM([Red]) as [Red]" +
                         ",SUM([Green]) as [Green]" +
                         ",SUM([Yellow]) as [Yellow]" +
-                        ", SUM([Other]) as [Other] " +
+                    ",SUM([Yellow]) as [Purple]" +
+                    ",SUM([Yellow]) as [Orange]" +
+
+                    ", SUM([Other]) as [Other] " +
                         "FROM (" +
                         "SELECT [_id] " +
                         ",(CASE WHEN ([Sys] = 1 and LOWER(Name) = \"blue\") then 1 else 0 end) as [Blue]" +
                         ",(CASE WHEN ([Sys] = 1 AND LOWER(Name) = \"red\") then 1 else 0 end) as [Red]" +
                         ",(CASE WHEN ([Sys] = 1 AND LOWER(Name) = \"green\") then 1 else 0 end) as [Green]" +
                         ",(CASE WHEN ([Sys] = 1  AND LOWER(Name) = \"yellow\") then 1 else 0 end) as [Yellow]" +
+                    ",(CASE WHEN ([Sys] = 1  AND LOWER(Name) = \"purple\") then 1 else 0 end) as [Purple]" +
+                    ",(CASE WHEN ([Sys] = 1  AND LOWER(Name) = \"orange\") then 1 else 0 end) as [Orange]" +
                         ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
                         "FROM JFavorites " +
                         "WHERE [_id] = ?) as x Group by [_id]" +
@@ -907,7 +920,9 @@ if(BuildConfig.DEBUG) {
                                 ,dd.getInt(7)
                                 ,dd.getInt(8)
                                 ,dd.getInt(9)
-                                ,dd.getInt(10)));
+                                ,dd.getInt(10)
+                                ,dd.getInt(11)
+                                ,dd.getInt(12)));
 
 
                         if(debug) {
@@ -934,9 +949,7 @@ if(BuildConfig.DEBUG) {
             dd.close();
         }
 
-        if(db.isOpen()) {
-            db.close();
-        }
+
         return resultMap;
     }
 
@@ -1220,6 +1233,7 @@ if(BuildConfig.DEBUG) {
      *
      */
     public ArrayList<ParseSentencePossibleKanji> createBetterMatchesForPossibleKanji(ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence, SQLiteDatabase db) {
+//        Log.d(TAG,"createBetterMatchesForPossibleKanji open: " + db.isOpen());
         for(ParseSentencePossibleKanji possibleKanji : possibleKanjiInSentence) {
 
             /* If it's a spinner kanji, just pass it on to the next step */
@@ -1230,10 +1244,13 @@ if(BuildConfig.DEBUG) {
                 /* Go back and chop up the original word, reattach the prefixes and suffixes to it, and search again...
                  * Kanji breakup builder -- if we can't find a match for a large kanji  (like + 3 characters), look for matches
                  * by breaking up those characters into smaller sets (of at least 1 kanji)*/
+
                 ArrayList<String> prefixsuffixKanjiCombos = createPrefixSuffixCombinations(possibleKanji);
+            Log.d(TAG,"Search dictionary for word matches: "+ db.isOpen());
                 searchDictionaryForWordMatches(possibleKanji, db, prefixsuffixKanjiCombos);
+            Log.d(TAG,"chop and compare ");
                 chopandCompare(possibleKanji,db);
-//            }
+            Log.d(TAG,"final");
         }
         return possibleKanjiInSentence;
     }
@@ -1251,10 +1268,12 @@ if(BuildConfig.DEBUG) {
      */
     public ParseSentencePossibleKanji searchDictionaryForWordMatches(ParseSentencePossibleKanji possibleKanji, SQLiteDatabase db, ArrayList<String> prefixsuffixKanjiCombos) {
 
+//        Log.d(TAG,"INSIDE");
         boolean isfound = false;
         if (prefixsuffixKanjiCombos.size() > 0) {
 
             for (int i = 0; i < prefixsuffixKanjiCombos.size(); i++) {
+//                Log.d(TAG,"i-" + i +",db open: " + db.isOpen());
                 Cursor cursorKanjiMatch = db.rawQuery("SELECT [Kanji] FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{prefixsuffixKanjiCombos.get(i)});
                 if(debug){Log.d(TAG, "Prefix/Suffix Query: (" + possibleKanji.getKanji() + ") MATCH " + prefixsuffixKanjiCombos.get(i));}
                 if (cursorKanjiMatch.getCount() > 0 ) {

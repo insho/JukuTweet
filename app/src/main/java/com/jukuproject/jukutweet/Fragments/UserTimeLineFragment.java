@@ -22,16 +22,19 @@ import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
+import com.jukuproject.jukutweet.Models.ItemFavorites;
 import com.jukuproject.jukutweet.Models.ParseSentenceItem;
 import com.jukuproject.jukutweet.Models.ParseSentenceSpecialSpan;
 import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.UserInfo;
+import com.jukuproject.jukutweet.Models.WordLoader;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SentenceParser;
 import com.jukuproject.jukutweet.TwitterUserClient;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -63,7 +66,7 @@ public class UserTimeLineFragment extends Fragment {
     * whether or not a tweet needs to have favorites assigned to it. This exists
     * so that we dont' have to make a sql query for each Tweet that gets returned from
     * the api lookup */
-    private ArrayList<String> tweetIdStringsInFavorites;
+    private HashMap<String,ItemFavorites> tweetIdStringsInFavorites;
 
     private ArrayList<String> mActiveTweetFavoriteStars;
 
@@ -101,7 +104,7 @@ public class UserTimeLineFragment extends Fragment {
 
         //Get active favorite stars for tweets, to pass on to adapter for star-clicking tweet-saving
         mActiveTweetFavoriteStars = SharedPrefManager.getInstance(getContext()).getActiveTweetFavoriteStars();
-        asdf
+        tweetIdStringsInFavorites = InternalDB.getInstance(getContext()).getStarFavoriteDataForAUsersTweets(mUserInfo.getUserId());
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(layoutManager);
         mTimeLine = new ArrayList<>();
@@ -127,7 +130,7 @@ public class UserTimeLineFragment extends Fragment {
      * @param userInfo UserInfo object with data from a single twitter user
      */
     public void pullTimeLineData(final UserInfo userInfo){
-adsf
+
         mCallback.showProgressBar(true);
 //        mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mUserInfo,new ArrayList<Tweet>());
         mRecyclerView.setAdapter(mAdapter);
@@ -182,40 +185,52 @@ adsf
 
                                     //Try to insert urls
 
-                                    if(!InternalDB.getInstance(getContext()).saveTweetUrls(tweet)) {
+
+
+                                    final InternalDB helper = InternalDB.getInstance(getContext());
+
+                                    if(!helper.saveTweetUrls(tweet)) {
                                         Log.e(TAG,"Unable to save tweet urls");
                                     }
 
-                                    Single.fromCallable(new Callable<ArrayList<ParseSentenceItem>>() {
-                                        @Override
-                                        public ArrayList<ParseSentenceItem> call() throws Exception {
-                                            InternalDB helper = InternalDB.getInstance(getContext());
-                                            SQLiteDatabase db = helper.getReadableDatabase();
+                                    final SQLiteDatabase db = helper.getReadableDatabase();
+                                    if(helper.tweetParsedKanjiExistsInDB(db,tweet) == 1) {
 
-                                            ColorThresholds colorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
-                                            return SentenceParser.getInstance().parseSentence(tweet.getText()
-                                                    ,db
-                                                    ,new ArrayList<ParseSentenceSpecialSpan>()
-                                                    ,helper.getWordLists(db)
-                                                    ,colorThresholds);
-                                        }
-                                    }).subscribeOn(Schedulers.io())
-                                            .observeOn(AndroidSchedulers.mainThread())
-                                            .subscribe(new SingleSubscriber<ArrayList<ParseSentenceItem>>() {
 
-                                                @Override
-                                                public void onSuccess(ArrayList<ParseSentenceItem> disectedTweet) {
-                                                    //load the parsed kanji ids into the database
-                                                    InternalDB.getInstance(getContext()).saveParsedTweetKanji(disectedTweet,tweet.getIdString());
+                                        final WordLoader wordLoader = helper.getWordLists(db);
+                                        Single.fromCallable(new Callable<ArrayList<ParseSentenceItem>>() {
+                                            @Override
+                                            public ArrayList<ParseSentenceItem> call() throws Exception {
 
-                                                    //TODO handle errors on insert?
-                                                }
+//                                            Log.d(TAG,"DB OPEN BEFORE: " + db.isOpen());
+                                                ColorThresholds colorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
+                                                return SentenceParser.getInstance().parseSentence(tweet.getText()
+                                                        ,db
+                                                        ,new ArrayList<ParseSentenceSpecialSpan>()
+                                                        ,wordLoader
+                                                        ,colorThresholds);
+                                            }
+                                        }).subscribeOn(Schedulers.io())
+                                                .observeOn(AndroidSchedulers.mainThread())
+                                                .subscribe(new SingleSubscriber<ArrayList<ParseSentenceItem>>() {
 
-                                                @Override
-                                                public void onError(Throwable error) {
-                                                    Log.e(TAG,"ERROR IN PARSE KANJI (for saved tweet) OBSERVABLE: " + error);
-                                                }
-                                            });
+                                                    @Override
+                                                    public void onSuccess(ArrayList<ParseSentenceItem> disectedTweet) {
+                                                        //load the parsed kanji ids into the database
+                                                        InternalDB.getInstance(getContext()).saveParsedTweetKanji(disectedTweet,tweet.getIdString());
+
+                                                        //TODO handle errors on insert?
+                                                        helper.close();
+                                                        db.close();
+                                                    }
+
+                                                    @Override
+                                                    public void onError(Throwable error) {
+                                                        Log.e(TAG,"ERROR IN PARSE KANJI (for saved tweet) OBSERVABLE: " + error);
+                                                        helper.close();
+                                                        db.close();
+                                                    }
+                                                });
 //
 //                                    public Observable<List<Weather>> getWeatherForLargeUsCapitals() {
 //                                        return cityDirectory.getUsCapitals()
@@ -225,8 +240,7 @@ adsf
 //                                                .toSortedList((cw1,cw2) -> cw1.getCityName().compare(cw2.getCityName()));
 //                                    }
 
-
-
+                                    }
 
                                 }
 
@@ -277,8 +291,12 @@ adsf
                             Log.d(TAG,"timeline thing: " + tweet.getFavoritesCountString());
 
 
-                            //Attach colorfavorites to tweet, if it exists in db
-                            if(tweet.getIdString()!=null && asdf)
+                            //Attach colorfavorites to tweet, if they exists in db
+                            if(tweet.getIdString()!=null && tweetIdStringsInFavorites.keySet().contains(tweet.getIdString())) {
+                                tweet.setItemFavorites(tweetIdStringsInFavorites.get(tweet.getIdString()));
+                            } else {
+                                tweet.setItemFavorites(new ItemFavorites());
+                            }
 
                             mTimeLine.add(tweet);
                         }

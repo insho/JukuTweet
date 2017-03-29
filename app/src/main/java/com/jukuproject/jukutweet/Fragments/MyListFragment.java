@@ -20,15 +20,14 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ExpandableListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-//import com.jukuproject.jukutweet.BaseContainerFragment;
+import com.jukuproject.jukutweet.Adapters.MenuExpandableListAdapter;
 import com.jukuproject.jukutweet.BaseContainerFragment;
 import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
-import com.jukuproject.jukutweet.Adapters.MenuExpandableListAdapter;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
+import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MenuHeader;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.SharedPrefManager;
@@ -36,6 +35,8 @@ import com.jukuproject.jukutweet.R;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+
+//import com.jukuproject.jukutweet.BaseContainerFragment;
 
 /**
  * Shows user-created lists of vocabulary
@@ -277,7 +278,7 @@ public class MyListFragment  extends Fragment{
         SQLiteDatabase db = helper.getWritableDatabase();
 
         ArrayList<String> availableFavoritesStars = sharedPrefManager.getActiveFavoriteStars();
-
+        ColorThresholds colorThresholds = sharedPrefManager.getColorThresholds();
        ArrayList<String> childOptions = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.menu_mylist)));
 
         Cursor c = db.rawQuery("SELECT xx.[Name]" +
@@ -304,6 +305,12 @@ public class MyListFragment  extends Fragment{
                         "Union " +
                         "SELECT 'Yellow' as [Name]" +
                                 ",1 as [Sys]" +
+                "Union " +
+                "SELECT 'Purple' as [Name]" +
+                ",1 as [Sys]" +
+                "Union " +
+                "SELECT 'Orange' as [Name]" +
+                ",1 as [Sys]" +
                         ") as [xx] " +
                 "LEFT JOIN (" +
                 "SELECT  [Name]" +
@@ -317,10 +324,10 @@ public class MyListFragment  extends Fragment{
                             "SELECT [Name]" +
                                     ",[Sys]" +
                                     ",[_id] " +
-                                    ",(CASE WHEN [Total] < " + sharedPrefManager.getGreyThreshold() + " THEN 1 ELSE 0 END) as [Grey] " +
-                                    ",(CASE WHEN [Total] >= " + sharedPrefManager.getGreyThreshold() + " and [Percent] < " + sharedPrefManager.getRedThreshold() + "  THEN 1  ELSE 0 END) as [Red] " +
-                                    ",(CASE WHEN [Total] >= " + sharedPrefManager.getGreyThreshold() + " and ([Percent] >= " + sharedPrefManager.getRedThreshold() + "  and [Percent] <  " + sharedPrefManager.getYellowThreshold() + ") THEN 1  ELSE 0 END) as [Yellow] " +
-                                    ",(CASE WHEN [Total] >= " + sharedPrefManager.getGreyThreshold() + " and [Percent] >= " + sharedPrefManager.getYellowThreshold() + " THEN 1 ELSE 0 END) as [Green] " +
+                                    ",(CASE WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 1 ELSE 0 END) as [Grey] " +
+                                    ",(CASE WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] < " + colorThresholds.getRedThreshold() + "  THEN 1  ELSE 0 END) as [Red] " +
+                                    ",(CASE WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and ([Percent] >= " + colorThresholds.getRedThreshold() + "  and [Percent] <  " + colorThresholds.getYellowThreshold() + ") THEN 1  ELSE 0 END) as [Yellow] " +
+                                    ",(CASE WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] >= " + colorThresholds.getYellowThreshold() + " THEN 1 ELSE 0 END) as [Green] " +
                                     "FROM  (" +
                                         "SELECT a.[Name]" +
                                                 ",a.[Sys]" +
@@ -355,12 +362,6 @@ public class MyListFragment  extends Fragment{
                 if(BuildConfig.DEBUG){Log.d(TAG,"PULLING NAME: " + c.getString(0) + ", SYS: " + c.getString(1) + ", TOTAL: " + c.getString(2) + ", GREY: " + c.getString(3));}
                 if(BuildConfig.DEBUG){Log.d("yes", "pulling list: " + c.getString(0) + ", sys: " + c.getString(1));}
 
-//                    if(mylistname != null && mylistsys>=0
-//                            && mylistname.equals(c.getString(0)) && mylistsys == c.getInt(1)) {
-//                        mylistposition = listDataHeader.size();
-//                        if(BuildConfig.DEBUG){Log.d("yes","mylistposition preparelist: " + listDataHeader.size());}
-//                    }
-
                 /* We do not want to include favorites star lists that are not active in the user
                 * preferences. So if an inactivated list shows up in the sql query, ignore it (don't add to mMenuHeader)*/
 
@@ -380,11 +381,13 @@ public class MyListFragment  extends Fragment{
                     colorBlockMeasurables.setRedCount(c.getInt(4));
                     colorBlockMeasurables.setYellowCount(c.getInt(5));
                     colorBlockMeasurables.setGreenCount(c.getInt(6));
+                    colorBlockMeasurables.setEmptyCount(0);
 
                     colorBlockMeasurables.setGreyMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreyCount())));
                     colorBlockMeasurables.setRedMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getRedCount())));
                     colorBlockMeasurables.setYellowMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getYellowCount())));
                     colorBlockMeasurables.setGreenMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreenCount())));
+                    colorBlockMeasurables.setEmptyMinWidth(0);
                     menuHeader.setColorBlockMeasurables(colorBlockMeasurables);
                     mMenuHeader.add(menuHeader);
                 }

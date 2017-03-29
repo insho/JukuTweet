@@ -84,9 +84,9 @@ public class BrowseMyListAdapter extends RecyclerView.Adapter<BrowseMyListAdapte
         /* Parse the definition into an array of multiple lines, if there are multiple sub-definitions in the string */
         if(wordEntry.getTotal()< mColorThresholds.getGreyThreshold()) {
             holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuGrey));
-        } else if(wordEntry.getPercentage()< mColorThresholds.getRedthreshold()){
+        } else if(wordEntry.getPercentage()< mColorThresholds.getRedThreshold()){
             holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuRed));
-        } else if (wordEntry.getPercentage()< mColorThresholds.getYellowthreshold()){
+        } else if (wordEntry.getPercentage()< mColorThresholds.getYellowThreshold()){
             holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuYellow));
         } else {
             holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuGreen));

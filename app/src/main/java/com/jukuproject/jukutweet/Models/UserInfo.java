@@ -15,7 +15,7 @@ import java.util.Locale;
 public class UserInfo implements Parcelable  {
 
 
-    private Integer user_id;
+    private String id_str;
 
     public String getName() {
         if(name == null) {
@@ -140,12 +140,12 @@ public class UserInfo implements Parcelable  {
         return "\u0040" + screen_name;
     }
 
-    public Integer getUserId() {
-        return user_id;
+    public String getUserId() {
+        return id_str;
     }
 
-    public void setUserId(Integer user_id) {
-        this.user_id = user_id;
+    public void setUserId(String user_id) {
+        this.id_str = user_id;
     }
 
 
@@ -156,7 +156,7 @@ public class UserInfo implements Parcelable  {
         in.readStringArray(data);
         this.name = data[0];
         this.screen_name = data[1];
-        this.user_id = Integer.parseInt(data[2]);
+        this.id_str = data[2];
         this.location = data[3];
         this.description = data[4];
         this.url = data[5];
@@ -183,7 +183,7 @@ public class UserInfo implements Parcelable  {
         dest.writeStringArray(new String[] {
                 this.name,
                 this.screen_name,
-                String.valueOf(this.user_id),
+                this.id_str,
                 this.location,
                 this.description,
                 this.url,

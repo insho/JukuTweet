@@ -14,8 +14,8 @@ import java.util.Set;
 
 public class SharedPrefManager {
     private int mGreyThreshold;
-    private float  mRedthreshold;
-    private float  mYellowthreshold;
+//    private float  mRedthreshold;
+//    private float  mYellowthreshold;
     private Boolean mShowlblheadercount;
     private Set<String> mPrefStarsHash;
     private Set<String> mTweetPrefStarsHash;
@@ -39,8 +39,8 @@ public class SharedPrefManager {
 //            mString = "Hello";
 
         mGreyThreshold = -1;
-        mRedthreshold = 0.3f;
-        mYellowthreshold = 0.8f;
+//        mRedthreshold = 0.3f;
+//        mYellowthreshold = 0.8f;
     }
 
     public static SharedPrefManager getInstance(Context context){
@@ -55,9 +55,7 @@ public class SharedPrefManager {
     public void init(Context context){
         if(mGreyThreshold < 0) {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-            mRedthreshold = Float.parseFloat(prefs.getString("preference_redthreshold", ".3"));
-            mYellowthreshold = Float.parseFloat(prefs.getString("preference_yellowthreshold", ".8"));
-            mGreyThreshold = Integer.parseInt(prefs.getString("preference_greythreshold", "3"));
+
             mShowlblheadercount = prefs.getBoolean("showlblheadercount", false);
             mPrefStarsHash= prefs.getStringSet("list_favoriteslistcount", new HashSet<String>());
             mTweetPrefStarsHash= prefs.getStringSet("list_favoriteslistcount_tweet", new HashSet<String>());
@@ -73,23 +71,39 @@ public class SharedPrefManager {
             mWronganswercountbeforeshow = Integer.parseInt(prefs.getString("wronganswercountBeforeShow", "2"));
             mHidethescores = prefs.getBoolean("hidethescores",false);
 
-            mColorThresholds = new ColorThresholds(mGreyThreshold,mRedthreshold,mYellowthreshold);
+
+            float redthreshold = Float.parseFloat(prefs.getString("preference_redthreshold", ".3"));
+            float yellowthreshold = Float.parseFloat(prefs.getString("preference_yellowthreshold", ".8"));
+            mGreyThreshold = Integer.parseInt(prefs.getString("preference_greythreshold", "3"));
+            float greythresholdTweet = Float.parseFloat(prefs.getString("preference_greythreshold_tweet", ".3"));
+            float redthresholdTweet = Float.parseFloat(prefs.getString("preference_redthreshold_tweet", ".25"));
+            float yellowthresholdTweet = Float.parseFloat(prefs.getString("preference_yellowthreshold_tweet", ".40"));
+            float greenthresholdTweet = Float.parseFloat(prefs.getString("preference_greenthreshold_tweet", ".75"));
+
+            mColorThresholds = new ColorThresholds(mGreyThreshold
+                    ,redthreshold
+                    ,yellowthreshold
+                    ,greythresholdTweet
+                    ,redthresholdTweet
+                    ,yellowthresholdTweet
+                    ,greenthresholdTweet);
+
 
         }
 
     }
 
-    public int getGreyThreshold(){
-        return this.mGreyThreshold;
-    }
+//    public int getGreyThreshold(){
+//        return this.mGreyThreshold;
+//    }
 
-    public float getRedThreshold() {
-        return mRedthreshold;
-    }
+//    public float getRedThreshold() {
+//        return mRedthreshold;
+//    }
 
-    public float getYellowThreshold() {
-        return mYellowthreshold;
-    }
+//    public float getYellowThreshold() {
+//        return mYellowthreshold;
+//    }
 
     public Boolean getShowlblheadercount() {
         return mShowlblheadercount;
