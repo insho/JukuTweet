@@ -26,6 +26,9 @@ public class Tweet  implements Parcelable {
     private String text;
 
     public ArrayList<TweetKanjiColor> getColorIndexes() {
+        if(colorIndexes == null) {
+            colorIndexes  = new ArrayList<TweetKanjiColor>();
+        }
         return colorIndexes;
     }
 
@@ -74,6 +77,7 @@ public class Tweet  implements Parcelable {
         this.retweet_count= another.retweet_count;
         this.text= another.text;
         this.user = another.user;
+        this.colorIndexes = another.colorIndexes;
     }
 
     public void addColorIndex (TweetKanjiColor color) {

@@ -1,7 +1,6 @@
 package com.jukuproject.jukutweet.Fragments;
 
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
@@ -28,7 +27,6 @@ import com.jukuproject.jukutweet.Models.ParseSentenceSpecialSpan;
 import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.UserInfo;
-import com.jukuproject.jukutweet.Models.WordLoader;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SentenceParser;
 import com.jukuproject.jukutweet.TwitterUserClient;
@@ -107,7 +105,7 @@ public class UserTimeLineFragment extends Fragment {
         tweetIdStringsInFavorites = InternalDB.getInstance(getContext()).getStarFavoriteDataForAUsersTweets(mUserInfo.getUserId());
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(layoutManager);
-        mTimeLine = new ArrayList<>();
+
         if(mUserInfo != null) {
             pullTimeLineData(mUserInfo);
         } else {
@@ -134,7 +132,7 @@ public class UserTimeLineFragment extends Fragment {
         mCallback.showProgressBar(true);
 //        mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mUserInfo,new ArrayList<Tweet>());
         mRecyclerView.setAdapter(mAdapter);
-
+        mTimeLine = new ArrayList<>();
         String token = getResources().getString(R.string.access_token);
         String tokenSecret = getResources().getString(R.string.access_token_secret);
 
@@ -184,30 +182,27 @@ public class UserTimeLineFragment extends Fragment {
                                    final Tweet tweet = (Tweet) event;
 
                                     //Try to insert urls
-
-
-
                                     final InternalDB helper = InternalDB.getInstance(getContext());
-
                                     if(!helper.saveTweetUrls(tweet)) {
                                         Log.e(TAG,"Unable to save tweet urls");
                                     }
 
-                                    final SQLiteDatabase db = helper.getReadableDatabase();
-                                    if(helper.tweetParsedKanjiExistsInDB(db,tweet) == 0) {
 
+                                    //Try to insert Kanji
+//                                    final SQLiteDatabase db = helper.getReadableDatabase();
+                                    if(helper.tweetParsedKanjiExistsInDB(InternalDB.getInstance(getContext()).getWritableDatabase(),tweet) == 0) {
+                                        Log.d(TAG,"SAVING TWEET KANJI");
 
-                                        final WordLoader wordLoader = helper.getWordLists(db);
+//                                        final WordLoader wordLoader = helper.getWordLists(db);
                                         Single.fromCallable(new Callable<ArrayList<ParseSentenceItem>>() {
                                             @Override
                                             public ArrayList<ParseSentenceItem> call() throws Exception {
 
 //                                            Log.d(TAG,"DB OPEN BEFORE: " + db.isOpen());
                                                 ColorThresholds colorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
-                                                return SentenceParser.getInstance().parseSentence(tweet.getText()
-                                                        ,db
+                                                return SentenceParser.getInstance().parseSentence(getContext()
+                                                        ,tweet.getText()
                                                         ,new ArrayList<ParseSentenceSpecialSpan>()
-                                                        ,wordLoader
                                                         ,colorThresholds);
                                             }
                                         }).subscribeOn(Schedulers.io())
@@ -218,21 +213,21 @@ public class UserTimeLineFragment extends Fragment {
                                                     public void onSuccess(ArrayList<ParseSentenceItem> disectedTweet) {
                                                         //load the parsed kanji ids into the database
                                                         InternalDB.getInstance(getContext()).saveParsedTweetKanji(disectedTweet,tweet.getIdString());
-                                                        Log.d("XXX","SUPER SUCCESS!");
+
                                                         for(ParseSentenceItem item : disectedTweet) {
                                                             Log.d("XXXX",item.getKanjiConjugated());
                                                         }
                                                         //TODO handle errors on insert?
                                                         mCallback.notifyFragmentsChanged();
                                                         helper.close();
-                                                        db.close();
+//                                                        db.close();
                                                     }
 
                                                     @Override
                                                     public void onError(Throwable error) {
                                                         Log.e(TAG,"ERROR IN PARSE KANJI (for saved tweet) OBSERVABLE: " + error);
                                                         helper.close();
-                                                        db.close();
+//                                                        db.close();
                                                     }
                                                 });
 //
@@ -244,6 +239,8 @@ public class UserTimeLineFragment extends Fragment {
 //                                                .toSortedList((cw1,cw2) -> cw1.getCityName().compare(cw2.getCityName()));
 //                                    }
 
+                                    } else {
+                                        Log.e(TAG,"Tweet parsed kanji exists code if funky");
                                     }
 
                                 }
@@ -291,19 +288,30 @@ public class UserTimeLineFragment extends Fragment {
                         }
 
                         showRecyclerView(true);
-                        for(Tweet tweet : timeline) {
-                            Log.d(TAG,"timeline thing: " + tweet.getFavoritesCountString());
 
 
-                            //Attach colorfavorites to tweet, if they exists in db
-                            if(tweet.getIdString()!=null && tweetIdStringsInFavorites.keySet().contains(tweet.getIdString())) {
-                                tweet.setItemFavorites(tweetIdStringsInFavorites.get(tweet.getIdString()));
-                            } else {
-                                tweet.setItemFavorites(new ItemFavorites());
+//                        Log.d(TAG,"Tweeet id strings in favs: " + tweetIdStringsInFavorites.size());
+//                        for(String idstring : tweetIdStringsInFavorites.keySet()) {
+//                            Log.d(TAG,"INITIAL TWEET KEYSET: " + idstring);
+//                        }
+
+                        if(mTimeLine.size() == 0) {
+
+                            for(Tweet tweet : timeline) {
+                                Log.d(TAG,"timeline thing: " + tweet.getIdString());
+
+                                //Attach colorfavorites to tweet, if they exists in db
+                                if(tweet.getIdString()!=null && tweetIdStringsInFavorites.keySet().contains(tweet.getIdString())) {
+                                    tweet.setItemFavorites(tweetIdStringsInFavorites.get(tweet.getIdString()));
+                                    Log.d(TAG,"Tweet favs adding: " + tweetIdStringsInFavorites.get(tweet.getIdString()).getSystemGreenCount());
+                                } else {
+                                    tweet.setItemFavorites(new ItemFavorites());
+                                }
+
+                                mTimeLine.add(tweet);
                             }
-
-                            mTimeLine.add(tweet);
                         }
+
                     }
                 });
 

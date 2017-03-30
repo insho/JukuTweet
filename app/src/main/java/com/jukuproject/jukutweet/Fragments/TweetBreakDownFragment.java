@@ -7,7 +7,6 @@ package com.jukuproject.jukutweet.Fragments;
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -36,7 +35,6 @@ import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Adapters.TweetBreakDownAdapter;
 import com.jukuproject.jukutweet.BuildConfig;
-import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.ParseSentenceItem;
@@ -195,13 +193,14 @@ public class TweetBreakDownFragment extends Fragment  implements View.OnTouchLis
         Single<ArrayList<ParseSentenceItem>> disectTweet = Single.fromCallable(new Callable<ArrayList<ParseSentenceItem>>() {
             @Override
             public ArrayList<ParseSentenceItem> call() throws Exception {
-                InternalDB helper = InternalDB.getInstance(getContext());
-                SQLiteDatabase db = helper.getReadableDatabase();
+//                InternalDB helper = InternalDB.getInstance(getContext());
+//                SQLiteDatabase db = helper.getReadableDatabase();
 
-                return SentenceParser.getInstance().parseSentence(sentence
-                        ,db
+                return SentenceParser.getInstance().parseSentence(getContext()
+                        ,sentence
+//                        ,db
                         ,specialSpans
-                        ,helper.getWordLists(db)
+//                        ,helper.getWordLists(db)
                         ,colorThresholds);
             }
         });

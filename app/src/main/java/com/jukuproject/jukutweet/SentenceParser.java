@@ -1,10 +1,11 @@
 package com.jukuproject.jukutweet;
 
+import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.ItemFavorites;
 import com.jukuproject.jukutweet.Models.ParseSentenceItem;
@@ -33,6 +34,7 @@ public class SentenceParser {
     private WordLoader wordLoader;
 //    private ArrayList<ParseSentenceSpecialSpan> mSpecialSpans;
     private ColorThresholds mColorThresholds;
+    private Context mContext;
 
     private HashMap<String, String> VerbChunksAndPositions = new HashMap<>();
     private ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence;
@@ -42,20 +44,19 @@ public class SentenceParser {
         return new SentenceParser();
     }
 
-    public ArrayList<ParseSentenceItem> parseSentence(String entireSentence
-            , SQLiteDatabase db
+    public ArrayList<ParseSentenceItem> parseSentence(Context context
+            ,String entireSentence
             , ArrayList<ParseSentenceSpecialSpan> specialSpans
-            ,WordLoader wordLoader
+//            ,WordLoader wordLoader
             ,ColorThresholds colorThresholds
     ) {
+        this.mContext = context;
         this.entireSentence = entireSentence;
-        this.wordLoader = wordLoader;
+//        this.wordLoader = wordLoader;
 //        this.mSpecialSpans = specialSpans;
         this.mColorThresholds = colorThresholds;
-
-        Log.d(TAG,"DB OPEN 1: " + db.isOpen());
-
-        possibleKanjiInSentence = findCoreKanjiBlocksInSentence(entireSentence,wordLoader,specialSpans,db);
+        this.wordLoader = InternalDB.getInstance(mContext).getWordLists();
+        possibleKanjiInSentence = findCoreKanjiBlocksInSentence(entireSentence,wordLoader,specialSpans);
         if(debug){
             Log.d(TAG, "whole sentence: " + entireSentence);
             Log.d(TAG, "# of Kanji found: " + possibleKanjiInSentence.size());
@@ -67,17 +68,17 @@ public class SentenceParser {
             Log.e(TAG,"LOADING UP THE PREFIX, SUFFIX AND VERB CONJUGATION COMBOS ");
         }
 
-        Log.d(TAG,"DB OPEN 2: " + db.isOpen());
+
         attachPrefixesandSuffixesToCoreKanji(possibleKanjiInSentence);
         if(debug){
             Log.e(TAG,"CREATING PREFIX/SUFIX COMBOS, ITERATING THROUGH THEM, IF MATCH FOUND ADDING TO FINAL");
         }
-        createBetterMatchesForPossibleKanji(possibleKanjiInSentence,db);
+        createBetterMatchesForPossibleKanji(possibleKanjiInSentence);
         if(debug){Log.e(TAG,"CHECKING/CHOPPING POSSIBLE VERB COMBOS, ADDING TO KANJIFINALARRAY");}
-        ArrayList<Integer> cleanKanjiIds = getCleanKanjiIDsFromBetterMatches(db,possibleKanjiInSentence);
+        ArrayList<Integer> cleanKanjiIds = getCleanKanjiIDsFromBetterMatches(possibleKanjiInSentence);
 
 
-        return compileFinalSentenceMap(db,cleanKanjiIds,specialSpans);
+        return compileFinalSentenceMap(cleanKanjiIds,specialSpans);
     }
 
 
@@ -93,17 +94,11 @@ public class SentenceParser {
      *                          so it is unnecessary to break them down or match them against the dictionary
      * @return An array list of ParseSentencePossibleKanji, representing the core of each possible kanji in the sentence
      */
-    public static ArrayList<ParseSentencePossibleKanji> findCoreKanjiBlocksInSentence(String entireSentence, WordLoader wordLoader, ArrayList<ParseSentenceSpecialSpan> specialSpans, SQLiteDatabase db) {
-        Log.d(TAG,"DB OPEN 1.5: " + db.isOpen());
-
+    public static ArrayList<ParseSentencePossibleKanji> findCoreKanjiBlocksInSentence(String entireSentence, WordLoader wordLoader, ArrayList<ParseSentenceSpecialSpan> specialSpans) {
         ArrayList<Integer> spanIndexes = getSpecialSpanIndexes(specialSpans);
-        Log.d(TAG,"DB OPEN 1.6: " + db.isOpen());
-
         ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence = new ArrayList<>();
         StringBuilder builder = new StringBuilder();
         StringBuilder builder_katakana = new StringBuilder();
-        Log.d(TAG,"DB OPEN 1.7: " + db.isOpen());
-
         String char_aPrev = "";
         for (int i = 0; i < entireSentence.length(); i++) {
             String char_a = String.valueOf(entireSentence.charAt(i));
@@ -111,8 +106,6 @@ public class SentenceParser {
             if(entireSentence.length()>(i+1)) {
                 char_aNext = String.valueOf(entireSentence.charAt(i+1));
             }
-            Log.d(TAG,"DB OPEN 1.8: " + db.isOpen());
-
             if(BuildConfig.DEBUG) {
     Log.d(TAG, (char_a.equals(System.getProperty("line.separator"))) + "-- char_a:" + char_a + ", charpair: " + (char_a + char_aNext) + "|");
 }
@@ -122,12 +115,8 @@ public class SentenceParser {
                 addOrReleaseBuilderContents(i,builder_katakana,possibleKanjiInSentence,true);
             } else if (wordLoader.getKatakana().contains(char_a)) {
                 /* Determine if the character is a kanji by process of elimination. If it is not Hiragana, Katakana or a Symbol, it must be a kanji */
-                Log.d(TAG,"DB OPEN 1.9: " + db.isOpen());
-
                 builder_katakana.append(entireSentence.charAt(i));
                 addOrReleaseBuilderContents(i,builder,possibleKanjiInSentence);
-
-                Log.d(TAG,"DB OPEN 1.10: " + db.isOpen());
 
             }
 
@@ -363,7 +352,7 @@ public class SentenceParser {
 
     /**
      *  Search each combination of broken up kanji against the DB, to see if there is a full match for each piece
-     * @param db Sqlite database connection
+//     * @param db Sqlite database connection
      * @param possibleKanji ParseSentencePossibleKanji object, representing possible kanji within the sentence
      * @param brokenUpKanjiCombinations Arraylist containing arrays of different combinations (coming from the chopKanjiIntoDifferentCombinations method). The arrays will then be compared against the dictionary.
      * @param isFinalMatching  Boolean value determining whether to match verb combinations. BECAUSE, this method is called twice,
@@ -371,16 +360,16 @@ public class SentenceParser {
      *                          boolean "lookForVerbCombos" in the setMatchSuffixes child method
      * @param cleanKanjiIDs list of finalized ids for the kanji contained in the sentence
      *
-     * @see #addEntrytoFinalKanjiIDs(ParseSentencePossibleKanji, SQLiteDatabase, ArrayList)
-     * @see #chopandCompare(ParseSentencePossibleKanji, SQLiteDatabase)
+//     * @see #addEntrytoFinalKanjiIDs(ParseSentencePossibleKanji, SQLiteDatabase, ArrayList)
+//     * @see #chopandCompare(ParseSentencePossibleKanji, SQLiteDatabase)
      */
-    public void matchKanjiPiecesAgainstDB(SQLiteDatabase db, ParseSentencePossibleKanji possibleKanji, ArrayList<ArrayList<String>> brokenUpKanjiCombinations, boolean isFinalMatching, @Nullable ArrayList<Integer> cleanKanjiIDs) {
+    public void matchKanjiPiecesAgainstDB(ParseSentencePossibleKanji possibleKanji, ArrayList<ArrayList<String>> brokenUpKanjiCombinations, boolean isFinalMatching, @Nullable ArrayList<Integer> cleanKanjiIDs) {
 
         boolean shutoff = false;
         for (int m = 0; m < brokenUpKanjiCombinations.size() && !shutoff ; m++) {
 
             ArrayList<String> possibleCombination = brokenUpKanjiCombinations.get(m);
-            ParseSentenceMatchCombination matchCombination = getCountofMatchingPieces(db,possibleCombination);
+            ParseSentenceMatchCombination matchCombination = getCountofMatchingPieces(possibleCombination);
             if(debug){Log.d(TAG, "BREAKUP(1) breakuparray combos size: " + possibleCombination.size());}
             /* If all the pieces have a DB match move them on to the next step
              * OR, if all but ONE have a match, try looking for suffixes/prefixes for that one. Maybe there's a match */
@@ -402,7 +391,7 @@ public class SentenceParser {
                         Log.d(TAG, "BREAKUP(1) v = " + v);
                     }
                     if(brokenUpKanjiCombinations.size() >0 && v == 0) {
-                        setMatchesPrefix(db,possibleKanji,possibleCombination,matchCombination);
+                        setMatchesPrefix(possibleKanji,possibleCombination,matchCombination);
 
                     }
 
@@ -411,7 +400,7 @@ public class SentenceParser {
                      *  product is KINOU and WATASHTACHI... Same goes for prefixes on the first*/
 
                     if(brokenUpKanjiCombinations.size() >0 && v == (matchCombination.getMatches().size()-1) ) {
-                        setMatchesSuffix(!isFinalMatching,db,possibleKanji,possibleCombination,matchCombination);
+                        setMatchesSuffix(!isFinalMatching,possibleKanji,possibleCombination,matchCombination);
                     }
 
                     if(isFinalMatching && cleanKanjiIDs != null) {
@@ -433,20 +422,20 @@ public class SentenceParser {
      *  Iterates through a possible combination of core kanji/prefix/suffix/verb ending for a Kanji in the sentence,
      *  loading up a ParseSentenceMatchCombination object with information for each of the pieces (their edict dictionary ids, etc)
      *
-     * @param db Sqlite database connection
+//     * @param db Sqlite database connection
      * @param possibleCombination An array of a possible combination of a chopped up kanji, to be checked against the database
      * @return ParseSentenceMatchCombination object, representing a possible succesful match of a core kanji/prefix/suffix/verb ending
      *
-     * @see #matchKanjiPiecesAgainstDB(SQLiteDatabase, ParseSentencePossibleKanji, ArrayList, boolean, ArrayList)
+//     * @see #matchKanjiPiecesAgainstDB(SQLiteDatabase, ParseSentencePossibleKanji, ArrayList, boolean, ArrayList)
      */
-    public ParseSentenceMatchCombination getCountofMatchingPieces(SQLiteDatabase db, ArrayList<String> possibleCombination) {
+    public ParseSentenceMatchCombination getCountofMatchingPieces(ArrayList<String> possibleCombination) {
 
         ParseSentenceMatchCombination combination = new ParseSentenceMatchCombination();
         int matchingPieces = 0;
 
         for (int index=0; index<possibleCombination.size();index++) {
             final String kanjiPiece = possibleCombination.get(index);
-            Cursor cursorMatchPieceAgainstDB  = cursorMatchStringAgainstDB(db, kanjiPiece);
+            Cursor cursorMatchPieceAgainstDB  = cursorMatchStringAgainstDB(kanjiPiece);
             if(debug){Log.d(TAG, "BREAKUP(1): SELECT FROM [Edict_FTS] WHERE [Kanji] MATCH " + kanjiPiece + ":count: " + cursorMatchPieceAgainstDB.getCount());}
             if (cursorMatchPieceAgainstDB.getCount() > 0) {
                 cursorMatchPieceAgainstDB.moveToFirst();
@@ -470,27 +459,27 @@ public class SentenceParser {
 
     /** Matches a possible kanji against the dictionary
      *
-     * @param db Sqlite database connection
+//     * @param db Sqlite database connection
      * @param kanji possible Kanji
      * @return Cursor
      */
-    public Cursor cursorMatchStringAgainstDB(SQLiteDatabase db, String kanji) {
-        return db.rawQuery("SELECT [_id],[Kanji] FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{kanji});
+    public Cursor cursorMatchStringAgainstDB(String kanji) {
+        return InternalDB.getInstance(mContext).getWritableDatabase().rawQuery("SELECT [_id],[Kanji] FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{kanji});
     }
 
     /**
      * Searches dictionary for matches with prefix + core kanji. Ex: "お" + "元気" = "お元気"
      * If match exists, add it to the ParseSentenceMatchCombination
      *
-     * @param db Sqlite database connection
+//     * @param db Sqlite database connection
      * @param possibleKanji ParseSentencePossibleKanji object, representing possible kanji within the sentence
      * @param possibleCombination Array of a possible combination of a chopped up kanji, to be checked against the database
      * @param matchCombination input ParseSentenceMatchCombination object, representing a broken up core kanji, to be matched against the dictionary
      * @return  Updated ParseSentenceMatchCombination object, representing one, or even several, correctly matched kanji within the sentence. Returnvalue for testing.
      *
-     * @see #matchKanjiPiecesAgainstDB(SQLiteDatabase, ParseSentencePossibleKanji, ArrayList, boolean, ArrayList)
+//     * @see #matchKanjiPiecesAgainstDB(SQLiteDatabase, ParseSentencePossibleKanji, ArrayList, boolean, ArrayList)
      */
-    public ParseSentenceMatchCombination setMatchesPrefix(SQLiteDatabase db, ParseSentencePossibleKanji possibleKanji, ArrayList<String> possibleCombination, ParseSentenceMatchCombination matchCombination) {
+    public ParseSentenceMatchCombination setMatchesPrefix(ParseSentencePossibleKanji possibleKanji, ArrayList<String> possibleCombination, ParseSentenceMatchCombination matchCombination) {
 
         int kanjibreakupArraySize = possibleCombination.size();
         for(int w = 0;w<kanjibreakupArraySize;w++) {
@@ -503,7 +492,7 @@ public class SentenceParser {
                 if (possibleKanji.getPrefixes().size() > 0) {
 
                     for (int xx = 0; xx < possibleKanji.getPrefixes().size(); xx++) {
-                        Cursor dd = db.rawQuery("SELECT [Kanji],_id FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{possibleKanji.getPrefixes().get(xx) + firstkanji});
+                        Cursor dd = InternalDB.getInstance(mContext).getWritableDatabase().rawQuery("SELECT [Kanji],_id FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{possibleKanji.getPrefixes().get(xx) + firstkanji});
                         if(debug){
                             Log.d(TAG,"BREAKUP(1) (prefix) trying: " + possibleKanji.getPrefixes().get(xx) + firstkanji);
                             Log.d(TAG, "BREAKUP(1) SELECT [Kanji] FROM [Edict_FTS] WHERE [Kanji] MATCH " + possibleKanji.getPrefixes().get(xx) + firstkanji + ":count: " + dd.getCount());
@@ -549,15 +538,15 @@ public class SentenceParser {
      * @param lookForVerbCombos Boolean value determining whether match verb combinations. BECAUSE, the parent method "matchKanjiPiecesAgainstDB" is called twice,
      *                          and while the first time we DO want to look for verb combos, the 2nd time we DO NOT. So this boolean is the opposite of the
      *                          boolean "isFinalMatching" in the parent
-     * @param db Sqlite database connection
+//     * @param db Sqlite database connection
      * @param possibleKanji ParseSentencePossibleKanji object, representing possible kanji within the sentence
      * @param possibleCombination An array of a possible combination of a chopped up kanji, to be checked against the database
      * @param matchCombination input ParseSentenceMatchCombination object, representing a broken up core kanji, to be matched against the dictionary
      * @return Updated ParseSentenceMatchCombination object, representing one, or even several, correctly matched kanji within the sentence. Returnvalue for testing.
      *
-     * @see #matchKanjiPiecesAgainstDB(SQLiteDatabase, ParseSentencePossibleKanji, ArrayList, boolean, ArrayList)
+//     * @see #matchKanjiPiecesAgainstDB(SQLiteDatabase, ParseSentencePossibleKanji, ArrayList, boolean, ArrayList)
      */
-    public ParseSentenceMatchCombination setMatchesSuffix(boolean lookForVerbCombos, SQLiteDatabase db, ParseSentencePossibleKanji possibleKanji, ArrayList<String> possibleCombination, ParseSentenceMatchCombination matchCombination) {
+    public ParseSentenceMatchCombination setMatchesSuffix(boolean lookForVerbCombos, ParseSentencePossibleKanji possibleKanji, ArrayList<String> possibleCombination, ParseSentenceMatchCombination matchCombination) {
         int kanjibreakupArraySize = possibleCombination.size();
         for(int w = 0;w<kanjibreakupArraySize;w++) {
 
@@ -571,7 +560,7 @@ public class SentenceParser {
                     boolean shutoff = false;
                     for (int x = 0; x < possibleKanji.getSuffixes().size() && !shutoff; x++) {
 
-                        Cursor cursorDBMatch2 = cursorMatchStringAgainstDB(db,lastkanji + possibleKanji.getSuffixes().get(x));
+                        Cursor cursorDBMatch2 = cursorMatchStringAgainstDB(lastkanji + possibleKanji.getSuffixes().get(x));
 
                         if(debug){Log.d(TAG, "BREAKUP(2) () (suffix)SELECT [_id] FROM [Edict_FTS] WHERE [Kanji] MATCH " + lastkanji + possibleKanji.getSuffixes().get(x) + ":count: " + cursorDBMatch2.getCount());}
                         if (cursorDBMatch2.getCount() > 0) {
@@ -592,7 +581,7 @@ public class SentenceParser {
                                 String conjugation = wordLoader.getVerbEndingsConjugation().get(k);
                                 if (conjugation.equalsIgnoreCase(possibleKanji.getSuffixes().get(x))) {
                                     if(debug){Log.d(TAG, "Kanjifinal POSSIBLE BREAKUP(1) Verb match: " + lastkanji + possibleKanji.getSuffixes().get(x));}
-                                    Cursor cursorMatchVerbInDB = db.rawQuery("SELECT[Kanji] FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{lastkanji + root});
+                                    Cursor cursorMatchVerbInDB = InternalDB.getInstance(mContext).getWritableDatabase().rawQuery("SELECT[Kanji] FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{lastkanji + root});
                                     if(cursorMatchVerbInDB.getCount() > 0) {
                                         if((lastkanji + root).length() >= matchCombination.getMatches().get(matchCombination.getMatches().size() - 1).length()) {
                                             if (debug) {
@@ -628,8 +617,8 @@ public class SentenceParser {
      * @param coreKanjiBlock Kanji block to chop up
      * @return Arraylist containing arrays of different combinations. The arrays will then be compared against the dictionary.
      *
-     * @see #chopandCompare(ParseSentencePossibleKanji, SQLiteDatabase)
-     * @see #addEntrytoFinalKanjiIDs(ParseSentencePossibleKanji, SQLiteDatabase, ArrayList)
+//     * @see #chopandCompare(ParseSentencePossibleKanji, SQLiteDatabase)
+//     * @see #addEntrytoFinalKanjiIDs(ParseSentencePossibleKanji, SQLiteDatabase, ArrayList)
      */
     public ArrayList<ArrayList<String>> chopKanjiIntoDifferentCombinations(String coreKanjiBlock) {
         ArrayList<ArrayList<String>> kanjibreakupArray = new ArrayList<>();
@@ -695,17 +684,17 @@ public class SentenceParser {
 
 
     /**
-     * @param db Sqlite database
+//     * @param db Sqlite database
      * @param possibleKanji ParseSentencePossibleKanji object, representing possible kanji within the sentence
      * @return true if verb infinitive exists in DB, false if it doesn't
      */
-    public boolean verbInfinitiveExists(SQLiteDatabase db, ParseSentencePossibleKanji possibleKanji){
+    public boolean verbInfinitiveExists( ParseSentencePossibleKanji possibleKanji){
         boolean foundVerbInfinitive = false;
         int x = possibleKanji.getVerbCombos().size() - 1;
         while (x >= 0 && !foundVerbInfinitive) {  // we're cycling backwards because the later matches for the verb ending are longer, and therefore more accurate
             String kanji = possibleKanji.getVerbCombos().get(x);
             if(debug){Log.d(TAG, "checking kanji: " + possibleKanji.getVerbCombos().get(x));}
-            Cursor f = db.rawQuery("SELECT [_id] FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{kanji});
+            Cursor f = InternalDB.getInstance(mContext).getWritableDatabase().rawQuery("SELECT [_id] FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{kanji});
             if (f.getCount() > 0) {
                 f.moveToFirst();
                 if(debug){
@@ -729,12 +718,12 @@ public class SentenceParser {
      * Note: Each ParseSentencePossibleKanji in the possibleKanjiInSentence list may have more than one "good" kanji
      * in its "better kanji match" element. We now want to split those good kanji out into their own ParseSentencePossibleKanji items and
      * create a new "finalized" list of ids for the kanji
-     * @param db Sqlite db connection
+//     * @param db Sqlite db connection
      * @param possibleKanjiInSentence Array of ParseSentencePossibleKanji objects, representing possible kanji within the sentence
      *                                (intial core kanji, furigana, position, better matches for kanji etc)
      * @return Array of finalized Kanji ids
      */
-    public ArrayList<Integer> getCleanKanjiIDsFromBetterMatches(SQLiteDatabase db, ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence) {
+    public ArrayList<Integer> getCleanKanjiIDsFromBetterMatches(ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence) {
 
 
         int kanjiarrayReOrderIndex = 0;
@@ -755,7 +744,7 @@ public class SentenceParser {
                     Log.d(TAG,"Repeat chunk found, removing: " + possibleKanji.getBetterKanjiMatches().get(z));
                 } else {
                     if(debug){Log.d(TAG,"Inserting into kanjifinal_HashMap_Array: " + possibleKanji.getBetterKanjiMatches().get(z));}
-                    addEntrytoFinalKanjiIDs(new ParseSentencePossibleKanji(possibleKanji.getPositionInSentence(),kanjiarrayReOrderIndex,possibleKanji.getBetterKanjiMatches().get(z)),db,cleanKanjiIDs);
+                    addEntrytoFinalKanjiIDs(new ParseSentencePossibleKanji(possibleKanji.getPositionInSentence(),kanjiarrayReOrderIndex,possibleKanji.getBetterKanjiMatches().get(z)),cleanKanjiIDs);
                     kanjiarrayReOrderIndex = kanjiarrayReOrderIndex + 1;
                     prevkeystart = possibleKanji.getListIndex();
                     prevkanji = possibleKanji.getBetterKanjiMatches().get(z);
@@ -771,14 +760,14 @@ public class SentenceParser {
      * Takes a possibleKanji, tries to match it against the dictionary. If match is successful, it adds the kanji id
      * to the "cleanKanjiIds" array. If not, it tries to chop up the kanji and match different combinations against the dictionary
      * @param possibleKanji ParseSentencePossibleKanji object, representing possible kanji within the sentence
-     * @param db Sqlite database connection
+//     * @param db Sqlite database connection
      * @param cleanKanjiIds array of finalized kanji ids to add to
      *
-     * @see #getCleanKanjiIDsFromBetterMatches(SQLiteDatabase, ArrayList)
+//     * @see #getCleanKanjiIDsFromBetterMatches(SQLiteDatabase, ArrayList)
      */
-    public void addEntrytoFinalKanjiIDs(ParseSentencePossibleKanji possibleKanji, SQLiteDatabase db, ArrayList<Integer> cleanKanjiIds) {
+    public void addEntrytoFinalKanjiIDs(ParseSentencePossibleKanji possibleKanji, ArrayList<Integer> cleanKanjiIds) {
 
-        Cursor cursorDBMatch = cursorMatchStringAgainstDB(db,possibleKanji.getKanji());
+        Cursor cursorDBMatch = cursorMatchStringAgainstDB(possibleKanji.getKanji());
         if(debug) {
             Log.d(TAG, "finalfinal kanji: " + possibleKanji.getKanji());
             Log.d(TAG, "Query: SELECT [_id] FROM [Edict_FTS] WHERE [Kanji] MATCH " + possibleKanji.getKanji() + " ORDER BY [COMMON] LIMIT 1");
@@ -798,7 +787,7 @@ public class SentenceParser {
 
 
             ArrayList<ArrayList<String>> brokenUpKanjiCombinations = chopKanjiIntoDifferentCombinations(possibleKanji.getKanji());
-            matchKanjiPiecesAgainstDB(db,possibleKanji,brokenUpKanjiCombinations,true,cleanKanjiIds);
+            matchKanjiPiecesAgainstDB(possibleKanji,brokenUpKanjiCombinations,true,cleanKanjiIds);
 
         } else {
             if(debug){Log.d(TAG, "Kanji not found...");}
@@ -814,12 +803,12 @@ public class SentenceParser {
      * Note: Updated (3/25/17) to take "SpecialS spans" -- links, spinner kanji, anything else that
      * enters the parses but that we KNOW does not need to be changed or parsed, and mix them back into the
      * final map in this method and its sub-method {@link #assignEntrytoResults(int, int, int, ParseSentenceItem, ArrayList, ArrayList, int)} and {@link #assignLastEntrytoResults(int, ArrayList, ArrayList, int)}
-     * @param db Sqlite database connection
+//     * @param db Sqlite database connection
      * @param cleanKanjiIDs list of finalized ids for the kanji contained in the sentence
      * @return List of ParseSentenceItems, some of which are kanji (to be used for lists of kanji in a sentence), others of which are the
      *          text between those kanji (to be used in laying out the FillInTheBlanks questions)
      */
-    public ArrayList<ParseSentenceItem>  compileFinalSentenceMap(SQLiteDatabase db, ArrayList<Integer> cleanKanjiIDs, ArrayList<ParseSentenceSpecialSpan> specialSpans) {
+    public ArrayList<ParseSentenceItem>  compileFinalSentenceMap(ArrayList<Integer> cleanKanjiIDs, ArrayList<ParseSentenceSpecialSpan> specialSpans) {
 
         ArrayList<ParseSentenceItem> resultMap = new ArrayList<>();
         int prevkanjilength = 0;
@@ -830,7 +819,7 @@ public class SentenceParser {
         for(int index = 0; index < cleanKanjiIDs.size(); index ++) {
             if(debug){Log.d(TAG, "clean_int: " + cleanKanjiIDs.get(index));}
 
-            Cursor dd = db.rawQuery("SELECT [Kanji]" +
+            Cursor dd = InternalDB.getInstance(mContext).getWritableDatabase().rawQuery("SELECT [Kanji]" +
                     ",(CASE WHEN (Furigana is null OR  Furigana = '') then \"\" else \"(\" || Furigana || \")\" end) as [Furigana]" +
                     ",[Definition]" +
                     ",[Total]" +
@@ -922,7 +911,7 @@ public class SentenceParser {
                     }
                     if((foundKanjiPosition + startposition) >= (prevkanjiposition+prevkanjilength)) {
 
-                        ParseSentenceItem parseSentenceItem = new ParseSentenceItem(true,cleanKanjiIDs.get(index),coreKanji,coreFurigana,(foundKanjiPosition + startposition),endposition);
+                        ParseSentenceItem parseSentenceItem = new ParseSentenceItem(true,cleanKanjiIDs.get(index),coreKanji,coreFurigana,(foundKanjiPosition + startposition),(foundKanjiPosition + startposition + coreKanji.length()));
                         parseSentenceItem.setWordEntry(new WordEntry(cleanKanjiIDs.get(index)
                                 ,edictKanji
                                 ,dd.getString(1)
@@ -982,7 +971,7 @@ public class SentenceParser {
      * @param specialSpans Array of string items that were passed from the very beginning to this point without being modified (links, spinners, etc).
      * @param currentSpecialSpanIndex index of the current specialSpan in the specialSpans list
      *
-     * @see #compileFinalSentenceMap(SQLiteDatabase, ArrayList, ArrayList)
+//     * @see #compileFinalSentenceMap(SQLiteDatabase, ArrayList, ArrayList)
      */
     public int assignEntrytoResults(int listIndex, int oldEndPosition, int newStartPosition, ParseSentenceItem parseSentenceItem, ArrayList<ParseSentenceItem> resultMap, ArrayList<ParseSentenceSpecialSpan> specialSpans,int currentSpecialSpanIndex){
         ParseSentenceSpecialSpan specialSpan = null;
@@ -1114,7 +1103,7 @@ public class SentenceParser {
      * @param lastEndPosition end position of the last kanji in the sentence
      * @param resultMap The result map that the parseSentenceItems will be added to
      *
-     * @see #compileFinalSentenceMap(SQLiteDatabase, ArrayList, ArrayList)
+//     * @see #compileFinalSentenceMap(SQLiteDatabase, ArrayList, ArrayList)
                         returns WHETHER THE SPECIAL SPAN WAS ADDED OR NOT
      */
 
@@ -1178,7 +1167,7 @@ public class SentenceParser {
      * @param edictKanji clean kanji from dictionary
      * @return conjugated form (i.e. form as it is found in the sentence) of the kanji
      *
-     * @see #compileFinalSentenceMap(SQLiteDatabase, ArrayList, ArrayList)
+//     * @see #compileFinalSentenceMap(SQLiteDatabase, ArrayList, ArrayList)
      */
     public String assignCoreKanji(String edictKanji) {
 
@@ -1198,7 +1187,7 @@ public class SentenceParser {
      * @param edictFurigana clean furigana from dictionary
      * @return conjugated (or shortened) form of the dictionary furigana
      *
-     * @see #compileFinalSentenceMap(SQLiteDatabase, ArrayList,ArrayList)
+//     * @see #compileFinalSentenceMap(SQLiteDatabase, ArrayList,ArrayList)
      */
     public String assignCoreFurigana(String edictKanji, String coreKanji, String edictFurigana) {
         if (VerbChunksAndPositions.containsKey(coreKanji)) {
@@ -1242,12 +1231,11 @@ public class SentenceParser {
      *
      * @param possibleKanjiInSentence Array of ParseSentencePossibleKanji objects, representing possible kanji within the sentence
      *                                (intial core kanji, furigana, position, better matches for kanji etc)
-     * @param db Sqlite database
+//     * @param db Sqlite database
      * @return returnValue Array of Possible Kanji Objects (for testing)
      *
      */
-    public ArrayList<ParseSentencePossibleKanji> createBetterMatchesForPossibleKanji(ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence, SQLiteDatabase db) {
-        Log.d(TAG,"createBetterMatchesForPossibleKanji open: " + db.isOpen());
+    public ArrayList<ParseSentencePossibleKanji> createBetterMatchesForPossibleKanji(ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence) {
         for(ParseSentencePossibleKanji possibleKanji : possibleKanjiInSentence) {
 
             /* If it's a spinner kanji, just pass it on to the next step */
@@ -1260,11 +1248,8 @@ public class SentenceParser {
                  * by breaking up those characters into smaller sets (of at least 1 kanji)*/
 
                 ArrayList<String> prefixsuffixKanjiCombos = createPrefixSuffixCombinations(possibleKanji);
-            Log.d(TAG,"Search dictionary for word matches: "+ db.isOpen());
-                searchDictionaryForWordMatches(possibleKanji, db, prefixsuffixKanjiCombos);
-            Log.d(TAG,"chop and compare ");
-                chopandCompare(possibleKanji,db);
-            Log.d(TAG,"final");
+                searchDictionaryForWordMatches(possibleKanji, prefixsuffixKanjiCombos);
+                chopandCompare(possibleKanji);
         }
         return possibleKanjiInSentence;
     }
@@ -1274,13 +1259,13 @@ public class SentenceParser {
      * matches combinations of them against the dictionary, looking for the most correct (i.e. longest, usually) match
      *
      * @param possibleKanji ParseSentencePossibleKanji object, representing possible kanji within the sentence
-     * @param db Sqlite database connection
+//     * @param db Sqlite database connection
      * @param prefixsuffixKanjiCombos List of possible prefix/suffix combinations to be attached to the suffix of a possible kanji
      * @return  possibleKanji (with updated "better match" element), for testing
      *
-     * @see #createBetterMatchesForPossibleKanji(ArrayList, SQLiteDatabase)
+//     * @see #createBetterMatchesForPossibleKanji(ArrayList, SQLiteDatabase)
      */
-    public ParseSentencePossibleKanji searchDictionaryForWordMatches(ParseSentencePossibleKanji possibleKanji, SQLiteDatabase db, ArrayList<String> prefixsuffixKanjiCombos) {
+    public ParseSentencePossibleKanji searchDictionaryForWordMatches(ParseSentencePossibleKanji possibleKanji, ArrayList<String> prefixsuffixKanjiCombos) {
 
 //        Log.d(TAG,"INSIDE");
         boolean isfound = false;
@@ -1288,7 +1273,7 @@ public class SentenceParser {
 
             for (int i = 0; i < prefixsuffixKanjiCombos.size(); i++) {
 //                Log.d(TAG,"i-" + i +",db open: " + db.isOpen());
-                Cursor cursorKanjiMatch = db.rawQuery("SELECT [Kanji] FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{prefixsuffixKanjiCombos.get(i)});
+                Cursor cursorKanjiMatch = InternalDB.getInstance(mContext).getWritableDatabase().rawQuery("SELECT [Kanji] FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{prefixsuffixKanjiCombos.get(i)});
                 if(debug){Log.d(TAG, "Prefix/Suffix Query: (" + possibleKanji.getKanji() + ") MATCH " + prefixsuffixKanjiCombos.get(i));}
                 if (cursorKanjiMatch.getCount() > 0 ) {
                     cursorKanjiMatch.moveToFirst();
@@ -1350,15 +1335,15 @@ public class SentenceParser {
     /**
      * Chops kanji into different combinations, and tries to match those combinations against the dictionary
      * @param possibleKanji ParseSentencePossibleKanji object, representing possible kanji within the sentence
-     * @param db Sqlite database connection
+//     * @param db Sqlite database connection
      *
-     * @see #createBetterMatchesForPossibleKanji(ArrayList, SQLiteDatabase)
+//     * @see #createBetterMatchesForPossibleKanji(ArrayList, SQLiteDatabase)
      */
-    public void chopandCompare(ParseSentencePossibleKanji possibleKanji, SQLiteDatabase db) {
-        if (!verbInfinitiveExists(db,possibleKanji) && possibleKanji.getKanji().length() >= minKanjiLengthtoSplit && !possibleKanji.isFoundInDictionary()) {
+    public void chopandCompare(ParseSentencePossibleKanji possibleKanji) {
+        if (!verbInfinitiveExists(possibleKanji) && possibleKanji.getKanji().length() >= minKanjiLengthtoSplit && !possibleKanji.isFoundInDictionary()) {
             ArrayList<ArrayList<String>> brokenUpKanjiCombinations = chopKanjiIntoDifferentCombinations(possibleKanji.getKanji());
             if(debug){Log.d(TAG, "BREAKUP(1) brokenUpKanjiCombinations size: " + brokenUpKanjiCombinations.size());}
-            matchKanjiPiecesAgainstDB(db,possibleKanji,brokenUpKanjiCombinations, false, null);
+            matchKanjiPiecesAgainstDB(possibleKanji,brokenUpKanjiCombinations, false, null);
         }
     }
 
@@ -1367,7 +1352,7 @@ public class SentenceParser {
      * @param possibleKanji ParseSentencePossibleKanji object, representing possible kanji within the sentence
      * @return  List of possible prefix/suffix combinations to be attached to the suffix of a possible kanji
      *
-     * @see #createBetterMatchesForPossibleKanji(ArrayList, SQLiteDatabase)
+//     * @see #createBetterMatchesForPossibleKanji(ArrayList, SQLiteDatabase)
      */
     public ArrayList<String>  createPrefixSuffixCombinations(ParseSentencePossibleKanji possibleKanji) {
         if(debug){Log.d(TAG, "ITERATING: " + possibleKanji.getKanji());}

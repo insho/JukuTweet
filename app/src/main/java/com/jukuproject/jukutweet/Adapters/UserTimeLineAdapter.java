@@ -1,7 +1,6 @@
 package com.jukuproject.jukutweet.Adapters;
 
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.text.SpannableString;
@@ -122,11 +121,21 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                 /* Check for, and save */
                 Tweet currentTweet = mDataset.get(holder.getAdapterPosition());
                 InternalDB helper = InternalDB.getInstance(mContext);
-                SQLiteDatabase db = helper.getWritableDatabase();
+//                SQLiteDatabase db = helper.getWritableDatabase();
+
+                //Toggle favorite list association for this tweet
+                if(FavoritesColors.onFavoriteStarToggleTweet(mContext,mActiveTweetFavoriteStars,mUserInfo.getUserId(),mDataset.get(holder.getAdapterPosition()))) {
+                    holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars));
+                    holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, FavoritesColors.assignStarColor(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars)));
+
+                } else {
+                    //TODO insert an error?
+                    Log.e(TAG,"OnFavoriteStarToggle did not work...");
+                }
 
                 //Check for tweet in db
                 try {
-                    if(helper.tweetExistsInDB(db,currentTweet)<0) {
+                    if(helper.tweetExistsInDB(currentTweet)<0) {
                         //TODO handle error -- can't access db or something
                         Log.e(TAG,"Error, tweet exists db access problem");
 
@@ -134,11 +143,11 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
 
                         //If tweet doesn't already exist in db, insert it
-                        if(helper.tweetExistsInDB(db,currentTweet) == 0){
+                        if(helper.tweetExistsInDB(currentTweet) == 0){
                             Log.d(TAG,"TWEET Doesn't exist");
                             //Otherwise enter the tweet into the database and then toggle
 
-                            int addTweetResultCode = helper.addTweetToDB(db,mUserInfo,currentTweet);
+                            int addTweetResultCode = helper.addTweetToDB(mUserInfo,currentTweet);
                             Log.d(TAG,"addTweetResultCode: " + addTweetResultCode);
                             if(addTweetResultCode < 0) {
                                 //TODO handle error -- can't insert tweet
@@ -149,16 +158,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                             }
                         }
 
-                        //Toggle favorite list association for this tweet
-asdf
-                        if(FavoritesColors.onFavoriteStarToggleTweet(mContext,mActiveTweetFavoriteStars,mUserInfo.getUserId(),mDataset.get(holder.getAdapterPosition()))) {
-                        holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars));
-                        holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, FavoritesColors.assignStarColor(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars)));
 
-                    } else {
-                        //TODO insert an error?
-                        Log.e(TAG,"OnFavoriteStarToggle did not work...");
-                    }
 
                     }
 
@@ -166,8 +166,8 @@ asdf
 
 
                 } finally {
-                    db.close();
-                    helper.close();
+//                    db.close();
+//                    helper.close();
                 }
 
 

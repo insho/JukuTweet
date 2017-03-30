@@ -62,7 +62,7 @@ public class SavedTweetsAllFragment  extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
-        errotest();
+//        errotest();
         //Call shared prefs to find out which star colors (i.e. favorites lists) to include
         sharedPrefManager = SharedPrefManager.getInstance(getContext());
 
@@ -257,35 +257,35 @@ public class SavedTweetsAllFragment  extends Fragment {
         return v;
     }
 
-    public void errotest(){
-        InternalDB helper =  InternalDB.getInstance(getActivity());
-        SQLiteDatabase db = helper.getWritableDatabase();
-                Cursor c = db.rawQuery("SELECT  DISTINCT [Name]" +
-                        ",[Sys]" +
-                        ",[UserID] " +
-                        ",[_id] as [Tweet_id]" +
-                        "FROM JFavoritesTweets ",null);
-
-
-        if(c.getCount()>0) {
-            c.moveToFirst();
-            while (!c.isAfterLast()) {
-                        Log.d(TAG,"ERRORTEST: " + c.getString(0) + ", id: " + c.getString(3));
-
-                c.moveToNext();
-                }
-
-
-
-            }
-
-        c.close();
-        db.close();
-        helper.close();
-
-
-
-    }
+//    public void errotest(){
+//        InternalDB helper =  InternalDB.getInstance(getActivity());
+//        SQLiteDatabase db = helper.getWritableDatabase();
+//                Cursor c = db.rawQuery("SELECT  DISTINCT [Name]" +
+//                        ",[Sys]" +
+//                        ",[UserID] " +
+//                        ",[_id] as [Tweet_id]" +
+//                        "FROM JFavoritesTweets ",null);
+//
+//
+//        if(c.getCount()>0) {
+//            c.moveToFirst();
+//            while (!c.isAfterLast()) {
+//                        Log.d(TAG,"ERRORTEST: " + c.getString(0) + ", id: " + c.getString(3));
+//
+//                c.moveToNext();
+//                }
+//
+//
+//
+//            }
+//
+//        c.close();
+//        db.close();
+//        helper.close();
+//
+//
+//
+//    }
 
 
     public void prepareListData() {
@@ -303,7 +303,6 @@ public class SavedTweetsAllFragment  extends Fragment {
 
                 "SELECT xx.[Name]" +
                 ",xx.[Sys]" +
-                        ",yy.[Total] " +
                 ",ifnull(yy.[Total],0) as [Total]" +
                 ",ifnull(yy.[Grey],0) as [Grey]" +
                 ",ifnull(yy.[Red],0) as [Red]" +
@@ -315,7 +314,7 @@ public class SavedTweetsAllFragment  extends Fragment {
                 "FROM (" +
                         "SELECT [Name]" +
                         ",0 as [Sys] " +
-                        "From JFavoritesLists " +
+                        "From JFavoritesTweetLists " +
                         "UNION " +
                         "SELECT 'Blue' as [Name]" +
                         ", 1 as [Sys] " +
@@ -381,7 +380,7 @@ public class SavedTweetsAllFragment  extends Fragment {
                                     " ,TweetLists.[Sys] " +
                                     ", TweetLists.[Tweet_id] " +
 
-                                    ",(CASE WHEN [Total] is NULL OR [Total] < " + colorThresholds.getGreyThreshold() + " THEN 1 ELSE 0 END) as [Grey] " +
+                                    ",(CASE WHEN [Total] is not NULL AND [Total] < " + colorThresholds.getGreyThreshold() + " THEN 1 ELSE 0 END) as [Grey] " +
                                     ",(CASE WHEN [Total] is not NULL and [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] < " + colorThresholds.getRedThreshold() + "  THEN 1  ELSE 0 END) as [Red] " +
                                     ",(CASE WHEN [Total] is not NULL and [Total] >= " + colorThresholds.getGreyThreshold() + " and ([Percent] >= " + colorThresholds.getRedThreshold() + "  and [Percent] <  " + colorThresholds.getYellowThreshold() + ") THEN 1  ELSE 0 END) as [Yellow] " +
                                     ",(CASE WHEN [Total] is not NULL and [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] >= " + colorThresholds.getYellowThreshold() + " THEN 1 ELSE 0 END) as [Green] " +
@@ -445,7 +444,11 @@ Log.d(TAG,"CCOUNT: " +c.getCount());
             c.moveToFirst();
             while (!c.isAfterLast()) {
 
-                if(BuildConfig.DEBUG){Log.d(TAG,"(0): ==" + c.getString(0) + "==, (1): " + c.getString(1) + ", (2): " + c.getString(2) + ", (3): " + c.getString(3)+ ", (4): " + c.getString(4)+ ", (5): " + c.getString(5));}
+                if(BuildConfig.DEBUG){Log.d(TAG,"NAME: ==" + c.getString(0)
+                        + "==, SYS: " + c.getString(1)
+                        + ", TOTAL: " + c.getString(2)
+                        + ", GREY: " + c.getString(3)
+                        + ", (4): " + c.getString(4)+ ", (5): " + c.getString(5));}
 
                 /* We do not want to include favorites star lists that are not active in the user
                 * preferences. So if an inactivated list shows up in the sql query, ignore it (don't add to mMenuHeader)*/
@@ -466,7 +469,7 @@ Log.d(TAG,"CCOUNT: " +c.getCount());
                     colorBlockMeasurables.setRedCount(c.getInt(4));
                     colorBlockMeasurables.setYellowCount(c.getInt(5));
                     colorBlockMeasurables.setGreenCount(c.getInt(6));
-                    colorBlockMeasurables.setEmptyCount(c.getInt(6));
+                    colorBlockMeasurables.setEmptyCount(c.getInt(7));
 
                     colorBlockMeasurables.setGreyMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreyCount())));
                     colorBlockMeasurables.setRedMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getRedCount())));
@@ -477,7 +480,6 @@ Log.d(TAG,"CCOUNT: " +c.getCount());
                     menuHeader.setColorBlockMeasurables(colorBlockMeasurables);
                     mMenuHeader.add(menuHeader);
                 }
-
 
                 c.moveToNext();
             }

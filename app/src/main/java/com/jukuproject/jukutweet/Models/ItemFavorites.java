@@ -108,14 +108,14 @@ public class ItemFavorites {
     //TODO explain this, we can't include inactive favorites so set them to 0...
     public ItemFavorites(int systemBlueCount
             , int systemRedCount
-            , int systemYellowCount
             , int systemGreenCount
+            , int systemYellowCount
             , int systemPurpleCount
             , int systemOrangeCount
             , int userListCount) {
             this.systemBlueCount = systemBlueCount;
-            this.systemGreenCount = systemGreenCount;
             this.systemRedCount = systemRedCount;
+            this.systemGreenCount = systemGreenCount;
             this.systemYellowCount = systemYellowCount;
             this.systemPurpleCount = systemPurpleCount;
             this.systemOrangeCount = systemOrangeCount;

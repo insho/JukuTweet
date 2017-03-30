@@ -24,11 +24,15 @@ import com.jukuproject.jukutweet.Models.WordLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.PriorityBlockingQueue;
 
 /**
  * Database helper
  */
 public class InternalDB extends SQLiteOpenHelper {
+
+
+    private final PriorityBlockingQueue queue = new PriorityBlockingQueue();
 
     private static boolean debug = true;
     private static String TAG = "TEST-Internal";
@@ -255,7 +259,7 @@ public class InternalDB extends SQLiteOpenHelper {
     public boolean duplicateMyList(String mylist) {
 
         /** Before inserting record, check to see if feed already exists */
-        SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = sInstance.getWritableDatabase();
         String queryRecordExists = "Select Name From " + TABLE_FAVORITES_LISTS + " where " + TFAVORITES_COL0 + " = ?" ;
         Cursor c = db.rawQuery(queryRecordExists, new String[]{mylist});
         try {
@@ -281,7 +285,7 @@ public class InternalDB extends SQLiteOpenHelper {
     public boolean duplicateUser(String user) {
 
         /** Before inserting record, check to see if feed already exists */
-        SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = sInstance.getWritableDatabase();
         String queryRecordExists = "Select _id From " + TABLE_MAIN + " where " + TMAIN_COL0 + " = ?" ;
         Cursor c = db.rawQuery(queryRecordExists, new String[]{user});
         try {
@@ -305,7 +309,7 @@ public class InternalDB extends SQLiteOpenHelper {
      * @return bool True if save worked, false if it failed
      */
     public boolean saveUser(UserInfo userInfo) {
-        SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = sInstance.getWritableDatabase();
         try {
             if(userInfo.getScreenName() != null) {
 
@@ -357,7 +361,7 @@ public class InternalDB extends SQLiteOpenHelper {
      */
     public boolean deleteUser(String user) {
         try{
-            SQLiteDatabase db = this.getWritableDatabase();
+            SQLiteDatabase db = sInstance.getWritableDatabase();
             db.delete(TABLE_MAIN, TMAIN_COL0 + "= ?", new String[]{user});
             db.close();
             return true;
@@ -372,7 +376,7 @@ public class InternalDB extends SQLiteOpenHelper {
     public void addMediaURItoDB(String URI, String screenName) {
 
 //        Log.d(TAG,"URI VALUE: " + rowID + " - " + URI);
-        SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = sInstance.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(TMAIN_COL6, URI);
         db.update(TABLE_MAIN, values, TMAIN_COL0 + "= ?", new String[] {screenName});
@@ -390,7 +394,7 @@ public class InternalDB extends SQLiteOpenHelper {
         List<UserInfo> userInfoList = new ArrayList<UserInfo>();
 
         String querySelectAll = "Select distinct ScreenName,IFNULL(Description,''),FollowerCount, FriendCount, IFNULL(ProfileImgUrl,''),UserId, ProfileImgFilePath, UserName From " + TABLE_MAIN;
-        SQLiteDatabase db = this.getReadableDatabase();
+        SQLiteDatabase db = sInstance.getReadableDatabase();
         Cursor c = db.rawQuery(querySelectAll, null);
 
 
@@ -489,10 +493,10 @@ public class InternalDB extends SQLiteOpenHelper {
 
             if(values.size()>0) {
                 if(oldUserInfo.getUserId() != null) {
-                    SQLiteDatabase db = this.getReadableDatabase();
+                    SQLiteDatabase db = sInstance.getReadableDatabase();
                     db.update(TABLE_MAIN, values, TMAIN_COL1 + "= ?", new String[]{String.valueOf(oldUserInfo.getUserId())});
                 } else {
-                    SQLiteDatabase db = this.getReadableDatabase();
+                    SQLiteDatabase db = sInstance.getReadableDatabase();
                     db.update(TABLE_MAIN, values, TMAIN_COL0 + "= ?", new String[]{oldUserInfo.getScreenName()});
                 }
             }
@@ -510,18 +514,18 @@ public class InternalDB extends SQLiteOpenHelper {
      * in the database, and populates a WordLoader object with them.
      *
      * Note: the nullable input db is used for testing. In test scenario the db has to be passed into the method (?)
-     * @param inputDB Sqlite database connection
+//     * @param inputDB Sqlite database connection
      * @return WordLoader object with array lists and maps of various japanse characters
      *
 //     * @see com.jukuproject.jukutweet.SentenceParser#parseSentence(String, SQLiteDatabase, ArrayList, ArrayList, WordLoader, ColorThresholds, ArrayList)
      */
-    public WordLoader getWordLists(@Nullable SQLiteDatabase inputDB) {
-        SQLiteDatabase db;
-        if(inputDB == null) {
-            db = this.getWritableDatabase();
-        } else {
-            db = inputDB;
-        }
+    public WordLoader getWordLists() {
+//        SQLiteDatabase db;
+//        if(inputDB == null) {
+//            db = this.getWritableDatabase();
+//        } else {
+//            db = inputDB;
+//        }
         ArrayList<String> hiragana = new ArrayList<>();
         ArrayList<String> katakana = new ArrayList<>();
         ArrayList<String> symbols = new ArrayList<>();
@@ -532,7 +536,7 @@ public class InternalDB extends SQLiteOpenHelper {
 
         try {
             ArrayList<String> romaji = new ArrayList<>();
-            Cursor c = db.rawQuery("SELECT DISTINCT Type, Key, Value FROM [Characters] ORDER BY Type",null);
+            Cursor c = sInstance.getWritableDatabase().rawQuery("SELECT DISTINCT Type, Key, Value FROM [Characters] ORDER BY Type",null);
             if (c.moveToFirst()) {
                 while (!c.isAfterLast()) {
                     switch (c.getString(0)) {
@@ -592,9 +596,9 @@ public class InternalDB extends SQLiteOpenHelper {
             e.printStackTrace();
         }
 
-        if(inputDB == null && db.isOpen()) {
-            db.close();
-        }
+//        if(inputDB == null && db.isOpen()) {
+//            db.close();
+//        }
         return new WordLoader(hiragana,katakana,symbols,romajiMap,verbEndingMap,verbEndingsRoot,verbEndingsConjugation);
     }
 
@@ -606,7 +610,7 @@ public class InternalDB extends SQLiteOpenHelper {
      */
     public boolean saveMyList(String mylist) {
         try {
-                SQLiteDatabase db = this.getWritableDatabase();
+                SQLiteDatabase db = sInstance.getWritableDatabase();
                 ContentValues values = new ContentValues();
                 values.put(TFAVORITES_COL0, mylist.trim());
                 db.insert(TABLE_FAVORITES_LISTS, null, values);
@@ -632,7 +636,7 @@ public class InternalDB extends SQLiteOpenHelper {
      */
     public boolean clearMyList(String listName, boolean isStarFavorite) {
         try{
-            SQLiteDatabase db = this.getWritableDatabase();
+            SQLiteDatabase db = sInstance.getWritableDatabase();
             if(isStarFavorite) {
                 db.delete(TABLE_FAVORITES_LIST_ENTRIES, TFAVORITES_COL0 + "= ? and " + TFAVORITES_COL1 + "= 1", new String[]{listName});
             } else {
@@ -658,7 +662,7 @@ public class InternalDB extends SQLiteOpenHelper {
      */
     public boolean deleteMyList(String listName) {
         try{
-            SQLiteDatabase db = this.getWritableDatabase();
+            SQLiteDatabase db = sInstance.getWritableDatabase();
             db.delete(TABLE_FAVORITES_LISTS, TFAVORITES_COL0 + "= ?", new String[]{listName});
                 db.delete(TABLE_FAVORITES_LIST_ENTRIES, TFAVORITES_COL0 + "= ? and " + TFAVORITES_COL1 + "= 0", new String[]{listName});
             db.close();
@@ -680,7 +684,7 @@ public class InternalDB extends SQLiteOpenHelper {
      */
     public boolean renameMyList(String oldListName, String newList) {
         try{
-        SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = sInstance.getWritableDatabase();
 
             String sql = "Update JFavoritesLists SET [Name]=? WHERE [Name]=? ";
             SQLiteStatement statement = db.compileStatement(sql);
@@ -707,7 +711,7 @@ public class InternalDB extends SQLiteOpenHelper {
      * @return
      */
     public boolean changeFavoriteListEntry(int kanjiID,String originalColor,String updatedColor) {
-        SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = sInstance.getWritableDatabase();
 
         try {
             if(originalColor.equals("Black") && updatedColor.equals("Black")) {
@@ -748,7 +752,7 @@ public class InternalDB extends SQLiteOpenHelper {
      * @return
      */
     public boolean changeFavoriteListEntryTweet(String tweetId,String userId, String originalColor,String updatedColor) {
-        SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = sInstance.getWritableDatabase();
 
         try {
             if(originalColor.equals("Black") && updatedColor.equals("Black")) {
@@ -756,13 +760,16 @@ public class InternalDB extends SQLiteOpenHelper {
                 return false;
             } else if(originalColor.equals("Black")) {
                 //Insert statement only
+//                queue.add(addTweetToMyList(tweetId,userId,updatedColor,1));
                 return addTweetToMyList(tweetId,userId,updatedColor,1);
             } else if(updatedColor.equals("Black")) {
                 //Delete statement only
                 return removeTweetFromMyList(tweetId,originalColor,1);
 
             } else {
-                String sql = "Update "  + TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " SET "+ TFAVORITES_COL0+" = ? WHERE "+ TFAVORITES_COL0 +"= ? and " + TFAVORITES_COL1+" = 1 and " + COL_ID + " = ?";
+
+
+                String sql = "Update "  + TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " SET "+ TFAVORITES_COL0 +" = ? WHERE "+ TFAVORITES_COL0 +"= ? and " + TFAVORITES_COL1+" = 1 and " + COL_ID + " = ?";
                 SQLiteStatement statement = db.compileStatement(sql);
                 statement.bindString(1, updatedColor);
                 statement.bindString(2, originalColor);
@@ -785,7 +792,7 @@ public class InternalDB extends SQLiteOpenHelper {
     }
 
     public boolean addKanjiToMyList(int kanjiId, String listName, int listSys) {
-        SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = sInstance.getWritableDatabase();
         try {
             ContentValues values = new ContentValues();
             values.put(COL_ID, kanjiId);
@@ -825,7 +832,7 @@ public class InternalDB extends SQLiteOpenHelper {
 //    }
 
     public boolean addTweetToMyList(String tweet_id,String user_id,String listName, int listSys) {
-        SQLiteDatabase db = this.getReadableDatabase();
+        SQLiteDatabase db = sInstance.getReadableDatabase();
 
         try {
             ContentValues values = new ContentValues();
@@ -850,7 +857,7 @@ public class InternalDB extends SQLiteOpenHelper {
     }
 
     public boolean removeTweetFromMyList(String tweetid, String listName, int listSys) {
-        SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = sInstance.getWritableDatabase();
         try {
             db.delete(TABLE_FAVORITES_LISTS_TWEETS_ENTRIES,
                     TFAVORITES_COL0 + " = ? and "  + TFAVORITES_COL1 + " = ? and " + COL_ID + " = ? ", new String[]{listName,String.valueOf(listSys),tweetid});
@@ -882,7 +889,7 @@ public class InternalDB extends SQLiteOpenHelper {
 //
 
     public boolean removeKanjiFromMyList(int kanjiId, String listName, int listSys) {
-        SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = sInstance.getWritableDatabase();
         try {
             db.delete(TABLE_FAVORITES_LIST_ENTRIES,
                     TFAVORITES_COL0 + " = ? and "  + TFAVORITES_COL1 + " = ? and " + COL_ID + " = ? ", new String[]{listName,String.valueOf(listSys),String.valueOf(kanjiId)});
@@ -898,7 +905,7 @@ public class InternalDB extends SQLiteOpenHelper {
     }
 
     public boolean removeBulkKanjiFromMyList(String kanjiIdString, MyListEntry myListEntry) {
-        SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = sInstance.getWritableDatabase();
         try {
             db.execSQL("DELETE FROM " + TABLE_FAVORITES_LIST_ENTRIES + " WHERE " + TFAVORITES_COL0 + " = ? and "  + TFAVORITES_COL1 + " = ? and " + COL_ID + " in (" + kanjiIdString + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
             return true;
@@ -923,7 +930,7 @@ public class InternalDB extends SQLiteOpenHelper {
      */
     public ArrayList<MyListEntry> getFavoritesListsForKanji(ArrayList<String> activeFavoriteStars, String kanjiIds,@Nullable MyListEntry entryToExclude) {
         ArrayList<MyListEntry> myListEntries = new ArrayList<>();
-        SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = sInstance.getWritableDatabase();
         try {
 
 
@@ -997,7 +1004,7 @@ public class InternalDB extends SQLiteOpenHelper {
     public ArrayList<WordEntry> getMyListWords(MyListEntry myListEntry) {
         ArrayList<WordEntry> wordEntries = new ArrayList<>();
 
-        SQLiteDatabase db = this.getReadableDatabase();
+        SQLiteDatabase db = sInstance.getReadableDatabase();
         try {
             Cursor c = db.rawQuery("SELECT  x.[_id]" +
                                             ",x.[Kanji]" +
@@ -1066,7 +1073,7 @@ public class InternalDB extends SQLiteOpenHelper {
 
 
     public boolean addBulkKanjiToList(MyListEntry myListEntry,String kanjiString) {
-        SQLiteDatabase db = this.getReadableDatabase();
+        SQLiteDatabase db = sInstance.getReadableDatabase();
         try {
             db.execSQL("INSERT OR REPLACE INTO " + TABLE_FAVORITES_LIST_ENTRIES +" SELECT DISTINCT [_id],? as [Name], ? as [Sys] FROM [Edict] WHERE [_id] in (" + kanjiString + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
             return true;
@@ -1099,11 +1106,12 @@ public class InternalDB extends SQLiteOpenHelper {
     }
 
     //resultCode 0 means doesn't exist, 1means does, -1 is error
-    public int tweetExistsInDB(SQLiteDatabase db, Tweet tweet) {
+    public int tweetExistsInDB(Tweet tweet) {
+
         int resultCode = -1;
         try {
             String Query = "Select * from " + TABLE_SAVED_TWEETS + " where " + TSAVEDTWEET_COL2 + " = " + tweet.getIdString();
-            Cursor cursor = db.rawQuery(Query, null);
+            Cursor cursor = sInstance.getWritableDatabase().rawQuery(Query, null);
             resultCode = cursor.getCount();
             cursor.close();
         } catch (SQLiteException e){
@@ -1162,7 +1170,7 @@ public class InternalDB extends SQLiteOpenHelper {
 //    }
 
 
-    public int addTweetToDB(SQLiteDatabase db, UserInfo userInfo,Tweet tweet){
+    public int addTweetToDB(UserInfo userInfo,Tweet tweet){
         int resultCode = -1;
         try {
 
@@ -1186,8 +1194,8 @@ public class InternalDB extends SQLiteOpenHelper {
 
                 values.put(TSAVEDTWEET_COL4, tweet.getText().trim());
 
-                resultCode = (int)db.insertWithOnConflict(TABLE_SAVED_TWEETS, null, values,SQLiteDatabase.CONFLICT_REPLACE);
-                db.close();
+                resultCode = (int)sInstance.getWritableDatabase().insertWithOnConflict(TABLE_SAVED_TWEETS, null, values,SQLiteDatabase.CONFLICT_REPLACE);
+
                 return resultCode;
             } else {
                 Log.e(TAG,"Can't insert tweet to db. Either tweet.getId() is null: " + (tweet.getIdString()==null)
@@ -1204,7 +1212,7 @@ public class InternalDB extends SQLiteOpenHelper {
     public boolean saveTweetUrls(Tweet tweet) {
 
 
-        SQLiteDatabase db = this.getReadableDatabase();
+        SQLiteDatabase db = sInstance.getReadableDatabase();
 
         try {
 
@@ -1229,7 +1237,8 @@ public class InternalDB extends SQLiteOpenHelper {
 
 
     public int saveParsedTweetKanji(ArrayList<ParseSentenceItem> parseSentenceItems, String tweet_id) {
-        SQLiteDatabase db = this.getReadableDatabase();
+        SQLiteDatabase db = sInstance.getReadableDatabase();
+        Log.e(TAG,"SAVING PARSED KANJI IN SAVE PARSED TWEET KANJI INTERNAL DB THING...");
         int resultCode = -1;
 
         try {
@@ -1262,7 +1271,7 @@ public class InternalDB extends SQLiteOpenHelper {
 
 
     public HashMap<String,ItemFavorites> getStarFavoriteDataForAUsersTweets(String userId){
-        SQLiteDatabase db = this.getReadableDatabase();
+        SQLiteDatabase db = sInstance.getReadableDatabase();
         HashMap<String,ItemFavorites> map = new HashMap<>();
         try {
 //            Log.d(TAG,"USER ID: " + userId);
@@ -1295,15 +1304,15 @@ public class InternalDB extends SQLiteOpenHelper {
             if (c.moveToFirst()) {
                 do {
 
-                    ItemFavorites itemFavorites = new ItemFavorites(c.getInt(0)
-                            ,c.getInt(1)
+                    ItemFavorites itemFavorites = new ItemFavorites(c.getInt(1)
                             ,c.getInt(2)
                             ,c.getInt(3)
                             ,c.getInt(4)
                             ,c.getInt(5)
-                            ,c.getInt(6));
+                            ,c.getInt(6)
+                            ,c.getInt(7));
 
-                    map.put(userId,itemFavorites);
+                    map.put(c.getString(0),itemFavorites);
 
                 } while (c.moveToNext());
             }
@@ -1476,7 +1485,7 @@ public class InternalDB extends SQLiteOpenHelper {
     public ArrayList<Tweet> getSavedTweets(MyListEntry myListEntry , ColorThresholds colorThresholds) {
         ArrayList<Tweet> savedTweets = new ArrayList<>();
 
-        SQLiteDatabase db = this.getReadableDatabase();
+        SQLiteDatabase db = sInstance.getReadableDatabase();
         try {
 
 
@@ -1567,6 +1576,7 @@ public class InternalDB extends SQLiteOpenHelper {
                 {
 
                     if(c.isFirst()) {
+                        Log.d("XXX","C IS FIRST");
                         tweet.setIdString(c.getString(5));
                         tweet.setCreatedAt(c.getString(11));
                         tweet.getUser().setUserId(c.getString(2));
@@ -1574,18 +1584,26 @@ public class InternalDB extends SQLiteOpenHelper {
                         tweet.getUser().setScreen_name(c.getString(3));
                         tweet.getUser().setName(c.getString(4));
 
+//                        TweetKanjiColor tweetKanjiColor = new TweetKanjiColor(c.getInt(7)
+//                                ,c.getString(8)
+//                                ,c.getInt(9)
+//                                ,c.getInt(10));
+//                        tweet.addColorIndex(tweetKanjiColor);
                     }
-                    if(!c.isFirst() && !c.isLast()) {
+//                    if(!c.isFirst() && !c.isLast()) {
 
-                        Log.d("XXX","KANJI COLOR!: " + c.getInt(7) + ", " + c.getInt(8));
+
+
+
+                        Log.d("XXX","KANJI COLOR!: " + c.getInt(7) + ", " + c.getString(8) + ", " + c.getString(9) + ", "+ c.getString(10));
                         TweetKanjiColor tweetKanjiColor = new TweetKanjiColor(c.getInt(7)
                                 ,c.getString(8)
                                 ,c.getInt(9)
                                 ,c.getInt(10));
                         tweet.addColorIndex(tweetKanjiColor);
-                    }
+//                    }
 
-                    if(!currentTweetId.equals(c.getString(5)) || c.isLast()){
+                    if(!currentTweetId.equals(c.getString(5))){
                         //FLush old tweet
                         Log.d("XXX","saving tweet: " + tweet.getIdString() );
                         savedTweets.add(new Tweet(tweet));
@@ -1602,8 +1620,18 @@ public class InternalDB extends SQLiteOpenHelper {
 
                     }
 
+                if(c.isLast()) {
 
+                    Log.d("XXX","saving LAST tweet: " + tweet.getIdString() );
+//                    Log.d("XXX","KANJI COLOR!: " + c.getInt(7) + ", " + c.getInt(8));
+//                    TweetKanjiColor tweetKanjiColor = new TweetKanjiColor(c.getInt(7)
+//                            ,c.getString(8)
+//                            ,c.getInt(9)
+//                            ,c.getInt(10));
+//                    tweet.addColorIndex(tweetKanjiColor);
 
+                    savedTweets.add(new Tweet(tweet));
+                }
 
 
                     c.moveToNext();
@@ -1625,4 +1653,108 @@ public class InternalDB extends SQLiteOpenHelper {
     }
 
 
+    public void TESTKANJI() {
+
+
+            try {
+                String Query = "Select * from " + TABLE_SAVED_TWEET_KANJI  + " ";
+
+                Cursor c = sInstance.getWritableDatabase().rawQuery(
+
+//                        "SELECT TweetLists.[Name]" +
+//                                ",TweetLists.[Sys]" +
+//                                ",TweetLists.[UserId] " +
+//                                ",UserName.ScreenName " +
+//                                ",UserName.UserName " +
+//                                ",TweetLists.[Tweet_id]" +
+//                                ",[ALLTweets].[Text] " +
+//                                ",TweetKanji.Edict_id " +
+//                                ",TweetKanji.Color " +
+//                                ",TweetKanji.StartIndex " +
+//                                ",TweetKanji.EndIndex " +
+//                                ",[ALLTweets].[Date]" +
+//                                "FROM  " +
+//                                " ( " +
+//                                "SELECT  DISTINCT [Name]" +
+//                                ",[Sys]" +
+//                                ",[UserId] " +
+//                                ",[_id] as [Tweet_id]" +
+//                                "FROM "+ TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+//                                "WHERE [Name] = ? and cast([Sys] as INTEGER) = ? " +
+//                                ") as TweetLists " +
+//                                " LEFT JOIN " +
+//                                " ( " +
+//                                "SELECT  DISTINCT [_id] " +
+//                                ",[Tweet_id]" +
+//                                ",[Text]" +
+//                                ",[CreatedAt]  as [Date] " +
+//                                " FROM "+ TABLE_SAVED_TWEETS + " " +
+//                                ") as ALLTweets " +
+//                                "ON TweetLists.[Tweet_id] = ALLTweets.[Tweet_id] " +
+//                                " LEFT JOIN " +
+//                                " ( " +
+                                /* Get a list of  kanji ids and their word scores for each tweet */
+                                "SELECT a.[Tweet_id]" +
+                                ",a.[Edict_id]" +
+                                ",a.[StartIndex]" +
+                                ",a.[EndIndex]" +
+
+                                ",(CASE WHEN [Total] is NULL THEN 'Grey' " +
+                                "WHEN [Total] < 3 THEN 'Grey' " +
+                                "WHEN CAST(ifnull(b.[Correct],0)  as float)/b.[Total] < .3 THEN 'Red' " +
+                                "WHEN CAST(ifnull(b.[Correct],0)  as float)/b.[Total] <  .8 THEN 'Yellow' " +
+                                "ELSE 'Green' END) as [Color]" +
+
+                                "FROM " +
+                                "( " +
+                                " SELECT Tweet_id" +
+                                ",Edict_id " +
+                                ",[StartIndex]" +
+                                ",[EndIndex]" +
+                                "From JSavedTweetKanji " +
+//                                " WHERE [Edict_id] is not NULL and StartIndex is not NULL and EndIndex is not NULL and EndIndex > StartIndex " +
+                                ") as a " +
+                                "LEFT JOIN " +
+                                " (" +
+                                "SELECT [_id] as [Edict_id]" +
+                                ",sum([Correct]) as [Correct]" +
+                                ",sum([Total]) as [Total] FROM [JScoreboard] " +
+                                "where [_id] in (SELECT DISTINCT [Edict_id] FROM JSavedTweetKanji)" +
+                                " GROUP BY [_id]" +
+                                ") as b " +
+                                "ON a.[Edict_id] = b.[Edict_id] "
+//                                " ) as TweetKanji " +
+//                                "On TweetLists.Tweet_id = TweetKanji.Tweet_id " +
+//
+//
+//                        "LEFT JOIN " +
+//                                " (" +
+//                                "SELECT DISTINCT [UserId] " +
+//                                ", [ScreenName] " +
+//                                ", [UserName] " +
+//                                " FROM " + TABLE_MAIN +" " +
+//                                ") as [UserName] " +
+//                                "On TweetLists.UserId = UserName.UserId " +
+//
+//                                "Order by date(ALLTweets.Date) Desc,TweetLists.[Tweet_id] asc,TweetKanji.StartIndex asc"
+                        , null);
+
+
+
+//                Cursor c = sInstance.getWritableDatabase().rawQuery(Query, null);
+                if(c.getCount()>0) {
+                    c.moveToFirst();
+                    while (!c.isAfterLast()) {
+                        Log.e("KANJI","Tweetid: " + c.getString(0) + ", edict: " + c.getString(1) + ", start index: " + c.getInt(2) + ", end indext : " + c.getInt(3) + ", color: " + c.getString(4));
+                        c.moveToNext();
+                    }
+                }
+                        c.close();
+            } catch (SQLiteException e){
+                Log.e(TAG,"tweetParsedKanjiExistsInDB Sqlite exception: " + e);
+            } catch (Exception e) {
+                Log.e(TAG,"tweetParsedKanjiExistsInDB generic exception: " + e);
+            }
+
+    }
 }

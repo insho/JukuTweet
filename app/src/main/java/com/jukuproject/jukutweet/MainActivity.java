@@ -160,8 +160,10 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 if(mViewPager != null) {
                    if(mViewPager.getCurrentItem() == 0 && isTopShowing()) {
                         showAddUserDialog();
-                    } else if(mViewPager.getCurrentItem() == 2 && isTopShowing()) {
+                    }
+                   else if(mViewPager.getCurrentItem() == 2 && isTopShowing()) {
                        showAddMyListDialog();
+//                   InternalDB.getInstance(getBaseContext()).TESTKANJI();
                    }
             }
 
@@ -600,6 +602,16 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 }
                     break;
             case 1:
+                isPopFragment = ((BaseContainerFragment)findFragmentByPosition(1)).popFragment();
+                try {
+                    boolean isTopShowing = ((Tab2Container)findFragmentByPosition(1)).isTopFragmentShowing();
+                    if(isTopShowing) {
+                        showActionBarBackButton(false,getString(R.string.app_name));
+                        updateTabs(new String[]{"Users","Saved Tweets","My Lists"});
+                    }
+                } catch (NullPointerException e) {
+                    Log.e(TAG,"OnBackPressed child entrycount null : " + e);
+                }
                 break;
             case 2:
                 isPopFragment = ((BaseContainerFragment)findFragmentByPosition(2)).popFragment();

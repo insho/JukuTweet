@@ -2,6 +2,7 @@ package com.jukuproject.jukutweet.TabContainers;
 
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,5 +48,13 @@ public class Tab2Container extends BaseContainerFragment {
 //        Log.e("test", "tab 3 init view");
         replaceFragment(new SavedTweetsAllFragment(), false,"savedtweetsallfragment");
     }
-
+    public boolean isTopFragmentShowing() {
+        try {
+            (getChildFragmentManager().findFragmentByTag("savedtweetsallfragment")).isVisible();
+            return true;
+        } catch (Exception e) {
+            Log.e("Tab2Container","Could not find userListFragment");
+            return false;
+        }
+    }
 }

@@ -4,7 +4,6 @@ import android.content.Context;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.text.Spannable;
-import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
@@ -99,12 +98,12 @@ public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapte
 
 
         try {
-
-            SpannableString text = new SpannableString(tweet.getText());
-
-            final SpannableStringBuilder sb = new SpannableStringBuilder(text);
-
             Log.d(TAG,"TWEET COLOR: " + tweet.getColorIndexes().size());
+//            SpannableString text = new SpannableString(tweet.getText());
+
+            final SpannableStringBuilder sb = new SpannableStringBuilder(tweet.getText());
+
+
             for(TweetKanjiColor color : tweet.getColorIndexes()) {
                 Log.d(TAG,"WEET INITI COLOR: " + color.getStartIndex() + ", end: " + color.getEndIndex());
                 final ForegroundColorSpan fcs = new ForegroundColorSpan(ContextCompat.getColor(mContext,color.getColorValue()));
@@ -115,10 +114,10 @@ public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapte
 
         } catch (NullPointerException e) {
             holder.txtTweet.setText(tweet.getText());
-            Log.e(TAG,"mTweet urls are null : " + e);
+            Log.e(TAG,"Tweet color nullpointer failure : " + e);
         } catch (Exception e) {
             holder.txtTweet.setText(tweet.getText());
-            Log.e(TAG,"Error adding url info: " + e);
+            Log.e(TAG,"Tweet color generic failure: " + e);
         }
 
 
