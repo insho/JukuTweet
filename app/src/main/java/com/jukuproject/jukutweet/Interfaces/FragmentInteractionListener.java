@@ -18,7 +18,7 @@ public interface FragmentInteractionListener {
     void showFab(boolean show, String type);
     void showFab(boolean show);
 
-    void onBackPressed();
+//    void onBackPressed();
     boolean isOnline();
 
     void updateTabs(String[] updatedTabs);

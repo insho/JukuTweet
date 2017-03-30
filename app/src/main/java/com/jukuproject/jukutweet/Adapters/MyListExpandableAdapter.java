@@ -199,7 +199,7 @@ public class MyListExpandableAdapter extends BaseExpandableListAdapter {
 
                     imageButton.setImageResource(R.drawable.ic_star_black);
                     imageButton.setVisibility(ImageButton.VISIBLE);
-                    lblListHeader.setText(mMenuHeader.get(groupPosition).getHeaderTitle());
+                    lblListHeader.setText("Favorites");
 
                     final TextView lblListHeaderCount = (TextView) convertView.findViewById(R.id.lblListHeaderCount);
 

@@ -108,20 +108,10 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
         holder.imgStarLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                Toast.makeText(mContext, "STAR CLICK", Toast.LENGTH_SHORT).show();
-
-//                Log.d(TAG,"mActiveFavoriteStars: " + mActiveTweetFavoriteStars);
-//                Log.d(TAG,"should open: " + mDataset.get(holder.getAdapterPosition()).getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars));
-
-                //If the user info, for some reason, isn't available in the tweet object, replace it with mUserInfo
-//                if(mDataset.get(holder.getAdapterPosition()).getUser() == null) {
-//                    mDataset.get(holder.getAdapterPosition()).setUser(mUserInfo);
-//                }
 
                 /* Check for, and save */
                 Tweet currentTweet = mDataset.get(holder.getAdapterPosition());
                 InternalDB helper = InternalDB.getInstance(mContext);
-//                SQLiteDatabase db = helper.getWritableDatabase();
 
                 //Toggle favorite list association for this tweet
                 if(FavoritesColors.onFavoriteStarToggleTweet(mContext,mActiveTweetFavoriteStars,mUserInfo.getUserId(),mDataset.get(holder.getAdapterPosition()))) {
@@ -135,19 +125,13 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
                 //Check for tweet in db
                 try {
-                    if(helper.tweetExistsInDB(currentTweet)<0) {
-                        //TODO handle error -- can't access db or something
-                        Log.e(TAG,"Error, tweet exists db access problem");
-
-                    } else {
-
 
                         //If tweet doesn't already exist in db, insert it
                         if(helper.tweetExistsInDB(currentTweet) == 0){
                             Log.d(TAG,"TWEET Doesn't exist");
                             //Otherwise enter the tweet into the database and then toggle
 
-                            int addTweetResultCode = helper.addTweetToDB(mUserInfo,currentTweet);
+                            int addTweetResultCode = helper.saveTweetToDB(mUserInfo,currentTweet);
                             Log.d(TAG,"addTweetResultCode: " + addTweetResultCode);
                             if(addTweetResultCode < 0) {
                                 //TODO handle error -- can't insert tweet
@@ -159,15 +143,9 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                         }
 
 
-
-                    }
-
                 } catch (Exception e){
+                        Log.e(TAG,"UserTimeLIneAdapter - star clicked, tweet doesn't exist, but UNABLE to save!");
 
-
-                } finally {
-//                    db.close();
-//                    helper.close();
                 }
 
 

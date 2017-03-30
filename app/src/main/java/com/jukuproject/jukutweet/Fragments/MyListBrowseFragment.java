@@ -33,6 +33,7 @@ import com.jukuproject.jukutweet.R;
 import java.util.ArrayList;
 
 import rx.Observable;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
@@ -59,7 +60,7 @@ public class MyListBrowseFragment extends Fragment  {
     private MyListEntry mMyListEntry;
     private ColorThresholds mColorThresholds;
     private ArrayList<Integer> mSelectedEntries = new ArrayList<>(); //Tracks which entries in the adapter are currently selected (id key)
-
+    private Subscription undoSubscription;
 
     public static MyListBrowseFragment newInstance(MyListEntry myListEntry) {
         MyListBrowseFragment fragment = new MyListBrowseFragment();
@@ -118,9 +119,6 @@ public class MyListBrowseFragment extends Fragment  {
                             if(isUniqueClick(100) && event instanceof Integer) {
 
                                 Integer id = (Integer) event;
-
-
-
 
                                 if(!mSelectedEntries.contains(id)) {
                                         if(mSelectedEntries.size()==0) {
@@ -198,7 +196,6 @@ public class MyListBrowseFragment extends Fragment  {
     }
 
     public void showCopyMyListDialog(){
-
         if(getActivity().getSupportFragmentManager().findFragmentByTag("dialogCopy") == null || !getActivity().getSupportFragmentManager().findFragmentByTag("dialogCopy").isAdded()) {
             CopyMyListItemsDialog.newInstance(mMyListEntry,mSelectedEntries).show(getActivity().getSupportFragmentManager(),"dialogCopy");
         }
@@ -249,11 +246,7 @@ public class MyListBrowseFragment extends Fragment  {
             InternalDB.getInstance(getContext()).removeBulkKanjiFromMyList(kanjiIdString,currentList);
             mWords = InternalDB.getInstance(getContext()).getMyListWords(mMyListEntry);
             mSelectedEntries = new ArrayList<>();
-//            mAdapter = new BrowseMyListAdapter(getContext(),mWords,mColorThresholds,mRxBus,mSelectedEntries);
-            Log.d(TAG,"DATASET CHANGED mWORDS: " + mWords.size());
             mAdapter.swapDataSet(mWords);
-            mAdapter.notifyDataSetChanged();
-//            showUndoPopup(kanjiIdString,currentList);
         } catch (NullPointerException e) {
             Log.e(TAG,"Nullpointer in MyListBrowseFragment removeKanjiFromList : " + e);
             Toast.makeText(getContext(), "Unable to delete entries", Toast.LENGTH_SHORT).show();
@@ -269,8 +262,7 @@ public class MyListBrowseFragment extends Fragment  {
             final String kanjiString = getSelectedIntsAsString(mSelectedEntries);
             InternalDB.getInstance(getContext()).removeBulkKanjiFromMyList(kanjiString,mMyListEntry);
             mWords = InternalDB.getInstance(getContext()).getMyListWords(mMyListEntry);
-            mAdapter = new BrowseMyListAdapter(getContext(),mWords,mColorThresholds,mRxBus,mSelectedEntries);
-            mAdapter.notifyDataSetChanged();
+            mAdapter.swapDataSet(mWords);
             showUndoPopup(kanjiString,mMyListEntry);
         } catch (NullPointerException e) {
             Log.e(TAG,"Nullpointer in MyListBrowseFragment removeKanjiFromList : " + e);
@@ -280,6 +272,8 @@ public class MyListBrowseFragment extends Fragment  {
             Toast.makeText(getContext(), "Unable to delete entries", Toast.LENGTH_SHORT).show();
         }
     }
+
+
     public void showUndoPopup(final String kanjiIdString, final MyListEntry currentList) {
 
         DisplayMetrics metrics = new DisplayMetrics();
@@ -299,14 +293,31 @@ public class MyListBrowseFragment extends Fragment  {
         popupWindow.setWidth((int)(metrics.widthPixels*.66f));
 
         TextView undoButton = (TextView) v.findViewById(R.id.undoButton);
+        undoSubscription  =  Observable.timer(3, SECONDS).subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<Long>() {
+                    @Override
+                    public void call(Long aLong) {
+                        popupWindow.dismiss();
+                    }
+                });
+
+
         undoButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 try {
+
                     InternalDB.getInstance(getContext()).addBulkKanjiToList(currentList,kanjiIdString);
                     mWords = InternalDB.getInstance(getContext()).getMyListWords(mMyListEntry);
-                    mAdapter = new BrowseMyListAdapter(getContext(),mWords,mColorThresholds,mRxBus,mSelectedEntries);
-                    mAdapter.notifyDataSetChanged();
+                    mSelectedEntries.clear();
+                    mAdapter.swapDataSet(mWords);
+                    try {
+                        popupWindow.dismiss();
+                        undoSubscription.unsubscribe();
+                    } catch (Exception e) {
+
+                    }
+
                 } catch (NullPointerException e) {
                     Log.e(TAG,"Nullpointer in MyListBrowseFragment showUndoPopup : re-add" + e);
                     Toast.makeText(getContext(), "Unable to undo delete!", Toast.LENGTH_SHORT).show();
@@ -325,15 +336,8 @@ public class MyListBrowseFragment extends Fragment  {
         // create a single event in 10 seconds time
 
 
-        //TODO -- make observable do a thing (in this case kill the observable) on screen flip
-        Observable.timer(5, SECONDS).subscribeOn(Schedulers.computation())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Long>() {
-                    @Override
-                    public void call(Long aLong) {
-                        popupWindow.dismiss();
-                    }
-                });
+
+
 
 
 
@@ -353,4 +357,13 @@ public class MyListBrowseFragment extends Fragment  {
         return sb.toString();
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        try {
+            undoSubscription.unsubscribe();
+        } catch (Exception e) {
+
+        }
+    }
 }

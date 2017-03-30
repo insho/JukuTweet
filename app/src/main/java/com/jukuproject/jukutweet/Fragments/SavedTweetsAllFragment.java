@@ -21,7 +21,7 @@ import android.widget.AdapterView;
 import android.widget.ExpandableListView;
 import android.widget.TextView;
 
-import com.jukuproject.jukutweet.Adapters.MenuExpandableListAdapter;
+import com.jukuproject.jukutweet.Adapters.SavedTweetsExpandableAdapter;
 import com.jukuproject.jukutweet.BaseContainerFragment;
 import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
@@ -46,7 +46,7 @@ public class SavedTweetsAllFragment  extends Fragment {
 
     String TAG = "SavedTweetsAll";
     FragmentInteractionListener mCallback;
-    MenuExpandableListAdapter SavedTweetsFragmentAdapter;
+    SavedTweetsExpandableAdapter SavedTweetsFragmentAdapter;
     ExpandableListView expListView;
     ArrayList<MenuHeader> mMenuHeader;
     private int lastExpandedPosition = -1;
@@ -73,7 +73,7 @@ public class SavedTweetsAllFragment  extends Fragment {
         expListView.setClickable(true);
         prepareListData();
 
-        SavedTweetsFragmentAdapter = new MenuExpandableListAdapter(getContext(),mMenuHeader,getdimenscore(),0);
+        SavedTweetsFragmentAdapter = new SavedTweetsExpandableAdapter(getContext(),mMenuHeader,getdimenscore(),0);
 
         expListView.setAdapter(SavedTweetsFragmentAdapter);
         expListView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
@@ -501,7 +501,7 @@ Log.d(TAG,"CCOUNT: " +c.getCount());
      * to half of the screenwidth
      * @return maximum width in pixels of colored bars
      *
-     * @see MenuExpandableListAdapter
+     * @see SavedTweetsExpandableAdapter
      */
     private int getdimenscore() {
 
@@ -541,7 +541,7 @@ Log.d(TAG,"CCOUNT: " +c.getCount());
 
     public void updateMyListAdapter() {
         prepareListData();
-        SavedTweetsFragmentAdapter = new MenuExpandableListAdapter(getContext(),mMenuHeader,getdimenscore(),0);
+        SavedTweetsFragmentAdapter = new SavedTweetsExpandableAdapter(getContext(),mMenuHeader,getdimenscore(),0);
         expListView.setAdapter(SavedTweetsFragmentAdapter);
 //        expListView.invalidateViews();
     }

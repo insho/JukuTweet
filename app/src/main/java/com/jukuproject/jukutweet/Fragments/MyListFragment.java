@@ -21,7 +21,7 @@ import android.widget.AdapterView;
 import android.widget.ExpandableListView;
 import android.widget.TextView;
 
-import com.jukuproject.jukutweet.Adapters.MenuExpandableListAdapter;
+import com.jukuproject.jukutweet.Adapters.MyListExpandableAdapter;
 import com.jukuproject.jukutweet.BaseContainerFragment;
 import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
@@ -46,7 +46,7 @@ public class MyListFragment  extends Fragment{
 
     String TAG = "MyListFragment";
     FragmentInteractionListener mCallback;
-    MenuExpandableListAdapter MyListFragmentAdapter;
+    MyListExpandableAdapter MyListFragmentAdapter;
     ExpandableListView expListView;
     ArrayList<MenuHeader> mMenuHeader;
     private int lastExpandedPosition = -1;
@@ -72,7 +72,7 @@ public class MyListFragment  extends Fragment{
         expListView.setClickable(true);
         prepareListData();
 
-        MyListFragmentAdapter = new MenuExpandableListAdapter(getContext(),mMenuHeader,getdimenscore(),0);
+        MyListFragmentAdapter = new MyListExpandableAdapter(getContext(),mMenuHeader,getdimenscore(),0);
 
         expListView.setAdapter(MyListFragmentAdapter);
         expListView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
@@ -413,7 +413,7 @@ public class MyListFragment  extends Fragment{
      * to half of the screenwidth
      * @return maximum width in pixels of colored bars
      *
-     * @see MenuExpandableListAdapter
+     * @see MyListExpandableAdapter
      */
     private int getdimenscore() {
 
@@ -453,7 +453,7 @@ public class MyListFragment  extends Fragment{
 
     public void updateMyListAdapter() {
         prepareListData();
-        MyListFragmentAdapter = new MenuExpandableListAdapter(getContext(),mMenuHeader,getdimenscore(),0);
+        MyListFragmentAdapter = new MyListExpandableAdapter(getContext(),mMenuHeader,getdimenscore(),0);
         expListView.setAdapter(MyListFragmentAdapter);
 //        expListView.invalidateViews();
     }

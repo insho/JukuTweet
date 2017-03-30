@@ -131,105 +131,99 @@ public class UserTimeLineFragment extends Fragment {
 
         mCallback.showProgressBar(true);
 //        mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mUserInfo,new ArrayList<Tweet>());
-        mRecyclerView.setAdapter(mAdapter);
-        mTimeLine = new ArrayList<>();
-        String token = getResources().getString(R.string.access_token);
-        String tokenSecret = getResources().getString(R.string.access_token_secret);
+//        mRecyclerView.setAdapter(mAdapter);
+        if(mTimeLine==null) {
+            mTimeLine = new ArrayList<>();
+            String token = getResources().getString(R.string.access_token);
+            String tokenSecret = getResources().getString(R.string.access_token_secret);
 
-        //TODO make the number of twitter responses an option! not just 10
-        TwitterUserClient.getInstance(token,tokenSecret)
-                .getUserTimeline(userInfo.getScreenName(),10)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<List<Tweet>>() {
-
-
-
-                    @Override public void onCompleted() {
-                        if(BuildConfig.DEBUG){Log.d(TAG, "In onCompleted()");}
-
-                        mCallback.showProgressBar(false);
+            //TODO make the number of twitter responses an option! not just 10
+            TwitterUserClient.getInstance(token,tokenSecret)
+                    .getUserTimeline(userInfo.getScreenName(),10)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Observer<List<Tweet>>() {
 
 
 
+                        @Override public void onCompleted() {
+                            if(BuildConfig.DEBUG){Log.d(TAG, "In onCompleted()");}
 
-                        mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mUserInfo,mTimeLine,mActiveTweetFavoriteStars);
+                            mCallback.showProgressBar(false);
 
-                        _rxBus.toClickObserverable()
-                                .subscribe(new Action1<Object>() {
-                                    @Override
-                                    public void call(Object event) {
+                            mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mUserInfo,mTimeLine,mActiveTweetFavoriteStars);
 
-                                        if(isUniqueClick(1000) && event instanceof Tweet) {
+                            _rxBus.toClickObserverable()
+                                    .subscribe(new Action1<Object>() {
+                                        @Override
+                                        public void call(Object event) {
 
-                                            //TODO -- make it so only one instance of breakdown fragment exists
+                                            if(isUniqueClick(1000) && event instanceof Tweet) {
+
+                                                //TODO -- make it so only one instance of breakdown fragment exists
                                                 Tweet tweet = (Tweet) event;
-                                                TweetBreakDownFragment fragment = TweetBreakDownFragment.newInstance(tweet);
+                                                TweetBreakDownFragment fragment = TweetBreakDownFragment.newInstanceTimeLine(tweet);
                                                 ((BaseContainerFragment)getParentFragment()).addFragment(fragment, true,"tweetbreakdown");
                                                 mCallback.showFab(false,"");
+                                            }
+
                                         }
 
-                                    }
+                                    });
 
-                                });
+                            _rxBus.toSaveTweetObserverable().subscribe(new Action1<Object>() {
 
-                        _rxBus.toSaveTweetObserverable().subscribe(new Action1<Object>() {
+                                @Override
+                                public void call(Object event) {
 
-                            @Override
-                            public void call(Object event) {
+                                    if(isUniqueClick(1000) && event instanceof Tweet) {
+                                        final Tweet tweet = (Tweet) event;
 
-                                if(isUniqueClick(1000) && event instanceof Tweet) {
-                                   final Tweet tweet = (Tweet) event;
+                                        //Try to insert urls
+                                        final InternalDB helper = InternalDB.getInstance(getContext());
+                                        helper.saveTweetUrls(tweet);
 
-                                    //Try to insert urls
-                                    final InternalDB helper = InternalDB.getInstance(getContext());
-                                    if(!helper.saveTweetUrls(tweet)) {
-                                        Log.e(TAG,"Unable to save tweet urls");
-                                    }
-
-
-                                    //Try to insert Kanji
-//                                    final SQLiteDatabase db = helper.getReadableDatabase();
-                                    if(helper.tweetParsedKanjiExistsInDB(InternalDB.getInstance(getContext()).getWritableDatabase(),tweet) == 0) {
-                                        Log.d(TAG,"SAVING TWEET KANJI");
+                                        //Try to insert Kanji
+                                        if(helper.tweetParsedKanjiExistsInDB(tweet) == 0) {
+                                            Log.d(TAG,"SAVING TWEET KANJI");
 
 //                                        final WordLoader wordLoader = helper.getWordLists(db);
-                                        Single.fromCallable(new Callable<ArrayList<ParseSentenceItem>>() {
-                                            @Override
-                                            public ArrayList<ParseSentenceItem> call() throws Exception {
+                                            Single.fromCallable(new Callable<ArrayList<ParseSentenceItem>>() {
+                                                @Override
+                                                public ArrayList<ParseSentenceItem> call() throws Exception {
 
 //                                            Log.d(TAG,"DB OPEN BEFORE: " + db.isOpen());
-                                                ColorThresholds colorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
-                                                return SentenceParser.getInstance().parseSentence(getContext()
-                                                        ,tweet.getText()
-                                                        ,new ArrayList<ParseSentenceSpecialSpan>()
-                                                        ,colorThresholds);
-                                            }
-                                        }).subscribeOn(Schedulers.io())
-                                                .observeOn(AndroidSchedulers.mainThread())
-                                                .subscribe(new SingleSubscriber<ArrayList<ParseSentenceItem>>() {
+                                                    ColorThresholds colorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
+                                                    return SentenceParser.getInstance().parseSentence(getContext()
+                                                            ,tweet.getText()
+                                                            ,new ArrayList<ParseSentenceSpecialSpan>()
+                                                            ,colorThresholds);
+                                                }
+                                            }).subscribeOn(Schedulers.io())
+                                                    .observeOn(AndroidSchedulers.mainThread())
+                                                    .subscribe(new SingleSubscriber<ArrayList<ParseSentenceItem>>() {
 
-                                                    @Override
-                                                    public void onSuccess(ArrayList<ParseSentenceItem> disectedTweet) {
-                                                        //load the parsed kanji ids into the database
-                                                        InternalDB.getInstance(getContext()).saveParsedTweetKanji(disectedTweet,tweet.getIdString());
+                                                        @Override
+                                                        public void onSuccess(ArrayList<ParseSentenceItem> disectedTweet) {
+                                                            //load the parsed kanji ids into the database
+                                                            InternalDB.getInstance(getContext()).saveParsedTweetKanji(disectedTweet,tweet.getIdString());
 
-                                                        for(ParseSentenceItem item : disectedTweet) {
-                                                            Log.d("XXXX",item.getKanjiConjugated());
+                                                            for(ParseSentenceItem item : disectedTweet) {
+                                                                Log.d("XXXX",item.getKanjiConjugated());
+                                                            }
+                                                            //TODO handle errors on insert?
+                                                            mCallback.notifyFragmentsChanged();
+                                                            helper.close();
+//                                                        db.close();
                                                         }
-                                                        //TODO handle errors on insert?
-                                                        mCallback.notifyFragmentsChanged();
-                                                        helper.close();
-//                                                        db.close();
-                                                    }
 
-                                                    @Override
-                                                    public void onError(Throwable error) {
-                                                        Log.e(TAG,"ERROR IN PARSE KANJI (for saved tweet) OBSERVABLE: " + error);
-                                                        helper.close();
+                                                        @Override
+                                                        public void onError(Throwable error) {
+                                                            Log.e(TAG,"ERROR IN PARSE KANJI (for saved tweet) OBSERVABLE: " + error);
+                                                            helper.close();
 //                                                        db.close();
-                                                    }
-                                                });
+                                                        }
+                                                    });
 //
 //                                    public Observable<List<Weather>> getWeatherForLargeUsCapitals() {
 //                                        return cityDirectory.getUsCapitals()
@@ -239,55 +233,55 @@ public class UserTimeLineFragment extends Fragment {
 //                                                .toSortedList((cw1,cw2) -> cw1.getCityName().compare(cw2.getCityName()));
 //                                    }
 
-                                    } else {
-                                        Log.e(TAG,"Tweet parsed kanji exists code if funky");
+                                        } else {
+                                            Log.e(TAG,"Tweet parsed kanji exists code if funky");
+                                        }
+
                                     }
 
                                 }
 
-                            }
-
-                        });
+                            });
 
 
 
 
-                        mRecyclerView.setAdapter(mAdapter);
+                            mRecyclerView.setAdapter(mAdapter);
 
-                        //TODO Make this its own subscribable that we can chain!
+                            //TODO Make this its own subscribable that we can chain!
                         /* Check most recent user info (if it exists within timeline api response)
                         * against the user info stored in db. update db with any changed ino */
-                        //And make it its own void
-                        if(mTimeLine != null && mTimeLine.size() > 0) {
-                            try {
-                                UserInfo recentUserInfo = mTimeLine.get(0).getUser();
-                                InternalDB.getInstance(getContext()).compareUserInfoAndUpdate(userInfo,recentUserInfo);
+                            //And make it its own void
+                            if(mTimeLine != null && mTimeLine.size() > 0) {
+                                try {
+                                    UserInfo recentUserInfo = mTimeLine.get(0).getUser();
+                                    InternalDB.getInstance(getContext()).compareUserInfoAndUpdate(userInfo,recentUserInfo);
 
-                            } catch (NullPointerException e) {
-                                Log.e(TAG,"Timeline userinfo match problem: " + e);
+                                } catch (NullPointerException e) {
+                                    Log.e(TAG,"Timeline userinfo match problem: " + e);
+                                }
+
+
                             }
 
-
                         }
 
-                    }
+                        @Override public void onError(Throwable e) {
+                            e.printStackTrace();
+                            if(BuildConfig.DEBUG){Log.d(TAG, "In onError()");}
+                            mCallback.showProgressBar(false);
 
-                    @Override public void onError(Throwable e) {
-                        e.printStackTrace();
-                        if(BuildConfig.DEBUG){Log.d(TAG, "In onError()");}
-                        mCallback.showProgressBar(false);
-
-                        //TODO -- GET PROPER ERROR CODE!
-                        Toast.makeText(getContext(), "Unable to get timeline for @" + userInfo.getScreenName(), Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override public void onNext(List<Tweet> timeline) {
-                        if(BuildConfig.DEBUG) {
-                            Log.d(TAG, "In onNext()");
-                            Log.d(TAG,"TIMELINE SIZE: " + timeline.size());
+                            //TODO -- GET PROPER ERROR CODE!
+                            Toast.makeText(getContext(), "Unable to get timeline for @" + userInfo.getScreenName(), Toast.LENGTH_SHORT).show();
                         }
 
-                        showRecyclerView(true);
+                        @Override public void onNext(List<Tweet> timeline) {
+                            if(BuildConfig.DEBUG) {
+                                Log.d(TAG, "In onNext()");
+                                Log.d(TAG,"TIMELINE SIZE: " + timeline.size());
+                            }
+
+                            showRecyclerView(true);
 
 
 //                        Log.d(TAG,"Tweeet id strings in favs: " + tweetIdStringsInFavorites.size());
@@ -295,25 +289,31 @@ public class UserTimeLineFragment extends Fragment {
 //                            Log.d(TAG,"INITIAL TWEET KEYSET: " + idstring);
 //                        }
 
-                        if(mTimeLine.size() == 0) {
+                            if(mTimeLine.size() == 0) {
 
-                            for(Tweet tweet : timeline) {
-                                Log.d(TAG,"timeline thing: " + tweet.getIdString());
+                                for(Tweet tweet : timeline) {
+                                    Log.d(TAG,"timeline thing: " + tweet.getIdString());
 
-                                //Attach colorfavorites to tweet, if they exists in db
-                                if(tweet.getIdString()!=null && tweetIdStringsInFavorites.keySet().contains(tweet.getIdString())) {
-                                    tweet.setItemFavorites(tweetIdStringsInFavorites.get(tweet.getIdString()));
-                                    Log.d(TAG,"Tweet favs adding: " + tweetIdStringsInFavorites.get(tweet.getIdString()).getSystemGreenCount());
-                                } else {
-                                    tweet.setItemFavorites(new ItemFavorites());
+                                    //Attach colorfavorites to tweet, if they exists in db
+                                    if(tweet.getIdString()!=null && tweetIdStringsInFavorites.keySet().contains(tweet.getIdString())) {
+                                        tweet.setItemFavorites(tweetIdStringsInFavorites.get(tweet.getIdString()));
+//                                        Log.d(TAG,"Tweet favs adding: " + tweetIdStringsInFavorites.get(tweet.getIdString()).getSystemGreenCount());
+                                    } else {
+                                        tweet.setItemFavorites(new ItemFavorites());
+                                    }
+
+                                    mTimeLine.add(tweet);
                                 }
-
-                                mTimeLine.add(tweet);
                             }
-                        }
 
-                    }
-                });
+                        }
+                    });
+        } else {
+            mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mUserInfo,mTimeLine,mActiveTweetFavoriteStars);
+            mRecyclerView.setAdapter(mAdapter);
+            mCallback.showProgressBar(false);
+        }
+
 
     }
 

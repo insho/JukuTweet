@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.jukuproject.jukutweet.Interfaces.RxBus;
@@ -28,13 +29,14 @@ import java.util.List;
 public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapter.ViewHolder> {
 
     private static final String TAG = "TEST-timefrag";
-    private RxBus _rxbus;
+    private RxBus mRxBus;
     private List<Tweet> mDataset;
     private Context mContext;
-    private ArrayList<Integer> mSelectedEntries;
+    private ArrayList<String> mSelectedEntries;
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
+        public LinearLayout layoutMain;
         public TextView txtTweet;
         public TextView txtCreated;
         public TextView txtFavorited;
@@ -49,6 +51,7 @@ public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapte
 
         public ViewHolder(View v) {
             super(v);
+            layoutMain = (LinearLayout) v.findViewById(R.id.tweetLayout);
             txtTweet = (TextView) v.findViewById(R.id.tweet);
             txtCreated = (TextView) v.findViewById(R.id.createdAt);
             txtFavorited = (TextView) v.findViewById(R.id.favorited);
@@ -64,9 +67,9 @@ public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapte
         }
     }
 
-    public BrowseTweetsAdapter(Context context, RxBus rxBus, List<Tweet> myDataset, ArrayList<Integer> selectedEntries) {
+    public BrowseTweetsAdapter(Context context, RxBus rxBus, List<Tweet> myDataset, ArrayList<String> selectedEntries) {
         mContext = context;
-        _rxbus = rxBus;
+        mRxBus = rxBus;
         mDataset = myDataset;
         mSelectedEntries =selectedEntries;
     }
@@ -97,20 +100,76 @@ public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapte
         holder.imgFavorite.setVisibility(View.GONE);
 
 
-        try {
-            Log.d(TAG,"TWEET COLOR: " + tweet.getColorIndexes().size());
-//            SpannableString text = new SpannableString(tweet.getText());
+        /* IF the activity is being recreated, set any entries in the selectedEntries
+        * list to be selected again */
+        if(mSelectedEntries!=null && mSelectedEntries.contains(tweet.getIdString())){
+            holder.layoutMain.setSelected(true);
+        } else {
+            holder.layoutMain.setSelected(false);
+        }
 
-            final SpannableStringBuilder sb = new SpannableStringBuilder(tweet.getText());
+        holder.layoutMain.setOnClickListener(new View.OnClickListener() {
 
+            @Override
+            public void onClick(View v) {
 
-            for(TweetKanjiColor color : tweet.getColorIndexes()) {
-                Log.d(TAG,"WEET INITI COLOR: " + color.getStartIndex() + ", end: " + color.getEndIndex());
-                final ForegroundColorSpan fcs = new ForegroundColorSpan(ContextCompat.getColor(mContext,color.getColorValue()));
-                sb.setSpan(fcs, color.getStartIndex(), color.getEndIndex(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                /* Click behavior:
+                 *  If mSelectedEntries contains a value (i.e. one or more entires have been selected already), each
+                 *  additional click will select a row, and add that row to the mSelectedEntries
+                 *  However if no entries are selected already, the click will take the user to the SavedTweetsBreakdownFragment for
+                 *  that tweet. User must long-click on a row to select it if no rows are currently selected
+                 *  */
+                if(mSelectedEntries.size()>0) {
+                    if(holder.layoutMain.isSelected()) {
+                        holder.layoutMain.setSelected(false);
+                        //Send id back to MyListBrowseFragment so it can be added to the selected map
+                    } else {
+                        holder.layoutMain.setSelected(true);
+                    }
+                    notifyItemChanged(holder.getAdapterPosition());
+                    mRxBus.send(mDataset.get(holder.getAdapterPosition()).getIdString());
+                } else {
+
+                    /*Send the whole tweet back to the RXReceiver in SavedTweetsBrowseFragment,
+                      where it will be passed on to TweetBreakDownFragment */
+                    mRxBus.send(mDataset.get(holder.getAdapterPosition()));
+//                    Toast.makeText(mContext, "Send to SavedTweetsBreakdownFragment", Toast.LENGTH_SHORT).show();
+                }
             }
+        });
 
-            holder.txtTweet.setText(sb);
+        holder.layoutMain.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if(holder.layoutMain.isSelected()) {
+                    holder.layoutMain.setSelected(false);
+                    //Send id back to MyListBrowseFragment so it can be added to the selected map
+                } else {
+                    holder.layoutMain.setSelected(true);
+                }
+                notifyItemChanged(holder.getAdapterPosition());
+                mRxBus.send(mDataset.get(holder.getAdapterPosition()).getIdString());
+
+                return false;
+            }
+        });
+
+
+        /* Set tweet color spans. If the saved Tweet object includes a "colorIndex" object (
+        * which comes from the savedTweetKanji table and contains the id, positions and color designation
+        * of each kanji in the TWeet), replace the normal Tweet text with colored spans for those kanji */
+        try {
+            final SpannableStringBuilder sb = new SpannableStringBuilder(tweet.getText());
+            if(tweet.getColorIndexes() != null) {
+                for(TweetKanjiColor color : tweet.getColorIndexes()) {
+                    final ForegroundColorSpan fcs = new ForegroundColorSpan(ContextCompat.getColor(mContext,color.getColorValue()));
+                    sb.setSpan(fcs, color.getStartIndex(), color.getEndIndex(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                }
+                holder.txtTweet.setText(sb);
+
+            } else {
+                holder.txtTweet.setText(tweet.getText());
+            }
 
         } catch (NullPointerException e) {
             holder.txtTweet.setText(tweet.getText());
@@ -128,9 +187,8 @@ public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapte
         return mDataset.size();
     }
 
-
-//    public Tweet getTweet(int position) {
-//        return mDataset.get(position);
-//    }
-
+    public void swapDataSet(ArrayList<Tweet> updatedDataSet) {
+        this.mDataset = updatedDataSet;
+        notifyDataSetChanged();
+    }
 }

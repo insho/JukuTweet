@@ -36,6 +36,7 @@ import com.jukuproject.jukutweet.Dialogs.AddUserDialog;
 import com.jukuproject.jukutweet.Dialogs.EditMyListDialog;
 import com.jukuproject.jukutweet.Dialogs.RemoveUserDialog;
 import com.jukuproject.jukutweet.Fragments.MyListBrowseFragment;
+import com.jukuproject.jukutweet.Fragments.SavedTweetsBrowseFragment;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.MyListEntry;
@@ -90,6 +91,12 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
     private boolean fragmentWasChanged = false;
 
+    /*Tracks which tab is currently visible, necessary
+     * because savedtweets (tab2) and mylistsbrowse (tab3)
+     * both have the same group of menu buttons. So on menu item
+      * click the visible tab helps decide which */
+//    private int visibleTabBucket = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -124,6 +131,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     mSectionsPagerAdapter.notifyDataSetChanged();
                     fragmentWasChanged = false;
                 }
+
                 switch (position) {
                     case 0:
                         if(isTopShowing()) {
@@ -191,6 +199,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
         mMenu.setGroupVisible(R.id.menu_main_group, !show);
         mMenu.setGroupVisible(R.id.menu_browsemylist_group, show);
+
     }
 
     @Override
@@ -207,52 +216,129 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
         switch(id) {
             case R.id.action_cancel:
-                if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
-                    try {
+                try {
+                    if(findFragmentByPosition(2) != null
+                            && findFragmentByPosition(2) instanceof Tab3Container
+                            && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse") != null
+                            && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse").isVisible()) {
                         ((MyListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).deselectAll();
-                        showMenuMyListBrowse(false);
-                    } catch (NullPointerException e) {
-                        Log.e(TAG,"Tab3Container->MyListBrowseFragment deselectALL Nullpointer: " + e.toString());
-                    } catch (Exception e) {
-                        Log.e(TAG,"Tab3Container->MyListBrowseFragment deselectALL error: " + e.toString());
+                    } else if(findFragmentByPosition(1) != null
+                            && findFragmentByPosition(1) instanceof Tab2Container
+                            && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse") != null
+                            && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse").isVisible()) {
+                        ((SavedTweetsBrowseFragment)((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse")).deselectAll();
                     }
 
+                } catch (NullPointerException e) {
+                    Log.e(TAG,"TabContainer->BrowseFragment deselectALL Nullpointer: " + e.toString());
+                } catch (Exception e) {
+                    Log.e(TAG,"TabContainer->BrowseFragment  deselectALL error: " + e.toString());
                 }
+
+                //Hide the action icons
+                showMenuMyListBrowse(false);
+
                 break;
             case R.id.action_copy:
-                if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
-                    try {
-                        ((MyListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).showCopyMyListDialog();
 
-                    } catch (NullPointerException e) {
-                        Log.e(TAG,"Tab3Container->MyListBrowseFragment deselectALL Nullpointer: " + e.toString());
-                    } catch (Exception e) {
-                        Log.e(TAG,"Tab3Container->MyListBrowseFragment deselectALL error: " + e.toString());
+                try {
+                    if(findFragmentByPosition(2) != null
+                            && findFragmentByPosition(2) instanceof Tab3Container
+                            && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse") != null
+                            && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse").isVisible()) {
+                        ((MyListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).showCopyMyListDialog();
+                    } else if(findFragmentByPosition(1) != null
+                            && findFragmentByPosition(1) instanceof Tab2Container
+                            && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse") != null
+                            && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse").isVisible()) {
+                        ((SavedTweetsBrowseFragment)((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse")).showCopyTweetsDialog();
                     }
 
+                } catch (NullPointerException e) {
+                    Log.e(TAG,"TabContainer->BrowseFragment copy Nullpointer: " + e.toString());
+                } catch (Exception e) {
+                    Log.e(TAG,"TabContainer->BrowseFragment  copy error: " + e.toString());
                 }
+
+
+//                if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
+//                    try {
+//                        ((MyListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).showCopyMyListDialog();
+//
+//                    } catch (NullPointerException e) {
+//                        Log.e(TAG,"Tab3Container->MyListBrowseFragment copy Nullpointer: " + e.toString());
+//                    } catch (Exception e) {
+//                        Log.e(TAG,"Tab3Container->MyListBrowseFragment copy error: " + e.toString());
+//                    }
+//
+//                }
                 break;
             case R.id.action_delete:
-                if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
-                    try {
+                try {
+                    if(findFragmentByPosition(2) != null
+                            && findFragmentByPosition(2) instanceof Tab3Container
+                            && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse") != null
+                            && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse").isVisible()) {
                         ((MyListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).removeKanjiFromList();
-                        showMenuMyListBrowse(false);
-                    } catch (NullPointerException e) {
-                        Log.e(TAG,"Tab3Container->MyListBrowseFragment deselectALL Nullpointer: " + e.toString());
-                    } catch (Exception e) {
-                        Log.e(TAG,"Tab3Container->MyListBrowseFragment deselectALL error: " + e.toString());
+                    } else if(findFragmentByPosition(1) != null
+                            && findFragmentByPosition(1) instanceof Tab2Container
+                            && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse") != null
+                            && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse").isVisible()) {
+                        ((SavedTweetsBrowseFragment)((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse")).removeTweetFromList();
                     }
 
+                } catch (NullPointerException e) {
+                    Log.e(TAG,"TabContainer->BrowseFragment delete Nullpointer: " + e.toString());
+                } catch (Exception e) {
+                    Log.e(TAG,"TabContainer->BrowseFragment  delete error: " + e.toString());
                 }
+
+            //Hide the action icons
+            showMenuMyListBrowse(false);
+
                 break;
             case R.id.action_selectall:
+
+
+                try {
+                    if(findFragmentByPosition(2) != null
+                            && findFragmentByPosition(2) instanceof Tab3Container
+                            && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse") != null
+                            && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse").isVisible()) {
+                        ((MyListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).selectAll();
+                    } else if(findFragmentByPosition(1) != null
+                            && findFragmentByPosition(1) instanceof Tab2Container
+                            && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse") != null
+                            && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse").isVisible()) {
+                        ((SavedTweetsBrowseFragment)((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse")).selectAll();
+                    }
+
+                } catch (NullPointerException e) {
+                    Log.e(TAG,"TabContainer->BrowseFragment selectALL Nullpointer: " + e.toString());
+                } catch (Exception e) {
+                    Log.e(TAG,"TabContainer->BrowseFragment  selectALL error: " + e.toString());
+                }
+
+
+
                 if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
+                    //If the open fragment is MyListBrowse
                     try {
                         ((MyListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).selectAll();
                     } catch (NullPointerException e) {
-                        Log.e(TAG,"Tab3Container->MyListBrowseFragment deselectALL Nullpointer: " + e.toString());
+                        Log.e(TAG,"Tab3Container->MyListBrowseFragment selectALL Nullpointer: " + e.toString());
                     } catch (Exception e) {
-                        Log.e(TAG,"Tab3Container->MyListBrowseFragment deselectALL error: " + e.toString());
+                        Log.e(TAG,"Tab3Container->MyListBrowseFragment selectALL error: " + e.toString());
+                    }
+
+                } else if(findFragmentByPosition(1) != null && findFragmentByPosition(1) instanceof Tab2Container) {
+                    //If the open fragment is SavedTweetsBrowse
+                    try {
+                        ((SavedTweetsBrowseFragment)((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsallfragment")).selectAll();
+                    } catch (NullPointerException e) {
+                        Log.e(TAG,"Tab2Container->SavedTweetsBrowseFragment selectALL Nullpointer: " + e.toString());
+                    } catch (Exception e) {
+                        Log.e(TAG,"Tab2Container->SavedTweetsBrowseFragment selectALL error: " + e.toString());
                     }
 
                 }
@@ -883,6 +969,19 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
     }
 
+    //Traffic control from CopyDialog to SavedTweetsBrowseFragment
+    public void saveAndUpdateTweetLists(String tweetIds, ArrayList<MyListEntry> listsToCopyTo, boolean move, MyListEntry currentList) {
+        if(findFragmentByPosition(1) != null && findFragmentByPosition(1) instanceof Tab2Container) {
+            try {
+                ((SavedTweetsBrowseFragment)((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse")).saveAndUpdateTweets(tweetIds,listsToCopyTo,move,currentList);
+            } catch (NullPointerException e) {
+                Log.e(TAG,"Tab2Container->SavedTweetsBrowseFragment saveAndUpdateMyLists Nullpointer: " + e.toString());
+            } catch (Exception e) {
+                Log.e(TAG,"Tab2Container->SavedTweetsBrowseFragment saveAndUpdateMyLists error: " + e.toString());
+            }
+
+        }
+    }
 
     //Changes sss
     public void notifyFragmentsChanged() {

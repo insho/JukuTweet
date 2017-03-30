@@ -16,8 +16,8 @@ import java.util.Locale;
  */
 
 public class Tweet  implements Parcelable {
-    private Boolean favorited;
 
+    private Boolean favorited;
     private Integer favorite_count;
     private Boolean truncated;
     private String created_at;
@@ -25,10 +25,37 @@ public class Tweet  implements Parcelable {
     private Integer retweet_count;
     private String text;
 
+    public Tweet(){};
+
+    /* Copy tweets when pulling saved tweets from the database */
+    public Tweet(Tweet another) {
+        this.favorited = another.favorited;
+        this.favorite_count = another.favorite_count;
+        this.truncated= another.truncated;
+        this.created_at= another.created_at;
+        this.id_str= another.id_str;
+        this.retweet_count= another.retweet_count;
+        this.text= another.text;
+        this.user = another.user;
+        this.colorIndexes = another.colorIndexes;
+    }
+
+    public Tweet(String text) {
+        this.text = text;
+        colorIndexes = new ArrayList<>();
+    }
+
+    public Tweet(Boolean favorited, Boolean truncated, String created_at, String id_str, Integer retweet_count, String text) {
+        this.favorited = favorited;
+        this.truncated = truncated;
+        this.created_at = created_at;
+        this.id_str = id_str;
+        this.retweet_count = retweet_count;
+        this.text = text;
+    }
+
+
     public ArrayList<TweetKanjiColor> getColorIndexes() {
-        if(colorIndexes == null) {
-            colorIndexes  = new ArrayList<TweetKanjiColor>();
-        }
         return colorIndexes;
     }
 
@@ -47,9 +74,7 @@ public class Tweet  implements Parcelable {
     public TweetEntities getEntities() {
         return entities;
     }
-
     private TweetEntities entities;
-
 
     /* Each time a saved user's timeline is clicked, pull the user info
     * (if it exists) within the api response, and check it against the userInfo from the db and
@@ -66,19 +91,7 @@ public class Tweet  implements Parcelable {
         this.user = user;
     }
 
-    public Tweet() {};
 
-    public Tweet(Tweet another) {
-        this.favorited = another.favorited;
-        this.favorite_count = another.favorite_count;
-        this.truncated= another.truncated;
-        this.created_at= another.created_at;
-        this.id_str= another.id_str;
-        this.retweet_count= another.retweet_count;
-        this.text= another.text;
-        this.user = another.user;
-        this.colorIndexes = another.colorIndexes;
-    }
 
     public void addColorIndex (TweetKanjiColor color) {
         if(colorIndexes  == null){
@@ -87,19 +100,7 @@ public class Tweet  implements Parcelable {
         colorIndexes.add(color);
     }
 
-    public Tweet(String text) {
-        this.text = text;
-        colorIndexes = new ArrayList<>();
-    }
 
-    public Tweet(Boolean favorited, Boolean truncated, String created_at, String id_str, Integer retweet_count, String text) {
-        this.favorited = favorited;
-        this.truncated = truncated;
-        this.created_at = created_at;
-        this.id_str = id_str;
-        this.retweet_count = retweet_count;
-        this.text = text;
-    }
 
     public Boolean getFavorited() {
         return favorited;

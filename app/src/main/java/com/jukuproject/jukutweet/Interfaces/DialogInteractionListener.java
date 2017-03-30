@@ -23,6 +23,6 @@ public interface DialogInteractionListener {
     void saveAndUpdateUserInfoList(UserInfo userInfo);
 
     void saveAndUpdateMyLists(String kanjiIdString, ArrayList<MyListEntry> listsToCopyTo, boolean move, MyListEntry currentList);
-
+    void saveAndUpdateTweetLists(String tweetIds, ArrayList<MyListEntry> listsToCopyTo, boolean move, MyListEntry currentList);
 
 }
