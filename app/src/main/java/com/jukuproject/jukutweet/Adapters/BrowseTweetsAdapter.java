@@ -88,7 +88,7 @@ public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapte
         Tweet tweet = mDataset.get(holder.getAdapterPosition());
 
         holder.txtUserName.setText(tweet.getUser().getName());
-        holder.txtUserScreenName.setText(tweet.getUser().getScreenName());
+        holder.txtUserScreenName.setText(tweet.getUser().getDisplayScreenName());
         holder.txtCreated.setText(tweet.getDisplayDate());
 
         /* Set non-essential bits gone*/
@@ -112,6 +112,7 @@ public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapte
 
             @Override
             public void onClick(View v) {
+                Log.d(TAG,"in click");
 
                 /* Click behavior:
                  *  If mSelectedEntries contains a value (i.e. one or more entires have been selected already), each
@@ -129,7 +130,7 @@ public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapte
                     notifyItemChanged(holder.getAdapterPosition());
                     mRxBus.send(mDataset.get(holder.getAdapterPosition()).getIdString());
                 } else {
-
+                    Log.d(TAG,"click is sent");
                     /*Send the whole tweet back to the RXReceiver in SavedTweetsBrowseFragment,
                       where it will be passed on to TweetBreakDownFragment */
                     mRxBus.send(mDataset.get(holder.getAdapterPosition()));

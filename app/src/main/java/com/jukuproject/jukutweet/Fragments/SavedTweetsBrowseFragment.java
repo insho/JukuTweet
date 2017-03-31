@@ -119,9 +119,10 @@ public class SavedTweetsBrowseFragment extends Fragment {
                         @Override
                         public void call(Object event) {
 
-                            //TODO MOVE THIS METHOD TO THE FRAGMENT, AND ONLY CALL BACK TO MAIN ACTIVITY???
-                            //TODO OR only if there is no userinfo, fill that shit in. otherwise dont
-                            if (isUniqueClick(1000) && event instanceof String) {
+
+                        if(isUniqueClick(1000)) {
+
+                            if (event instanceof String) {
 
                                 String tweet_id = (String) event;
 
@@ -147,17 +148,18 @@ public class SavedTweetsBrowseFragment extends Fragment {
                                     Log.d(TAG, "hiding menu");
                                 }
 
-                                Log.d(TAG, "selected updated entry  count: " + mSelectedEntries.size());
-
-                            } else if(isUniqueClick(1000) && event instanceof Tweet) {
+                            } else if(event instanceof Tweet) {
 
                                 /*Entire tweet sent back from adapter, so open tweetbreakdownfragment with
                                   saved TweetKanjiColor object (which is part of Tweet object) fascilitaing the parsing */
                                 Tweet tweet = (Tweet) event;
                                 TweetBreakDownFragment fragment = TweetBreakDownFragment.newInstanceSavedTweet(tweet);
-                                ((BaseContainerFragment)getParentFragment()).addFragment(fragment, true,"tweetbreakdown");
+                                ((BaseContainerFragment)getParentFragment()).addFragment(fragment, true,"savedtweetbreakdown");
                                 mCallback.showFab(false,"");
                             }
+
+                        }
+
 
                         }
 

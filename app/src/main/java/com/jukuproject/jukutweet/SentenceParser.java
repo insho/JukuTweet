@@ -819,71 +819,73 @@ public class SentenceParser {
         for(int index = 0; index < cleanKanjiIDs.size(); index ++) {
             if(debug){Log.d(TAG, "clean_int: " + cleanKanjiIDs.get(index));}
 
-            Cursor dd = InternalDB.getInstance(mContext).getWritableDatabase().rawQuery("SELECT [Kanji]" +
-                    ",(CASE WHEN (Furigana is null OR  Furigana = '') then \"\" else \"(\" || Furigana || \")\" end) as [Furigana]" +
-                    ",[Definition]" +
-                    ",[Total]" +
-                    ",[Percent]" +
-                    ",(CASE WHEN [Total] < " + mColorThresholds.getGreyThreshold() + " THEN 1 WHEN [Percent] < " + mColorThresholds.getRedThreshold() + "  THEN 2 WHEN ([Percent] >= " + mColorThresholds.getRedThreshold() + " and [Percent] <  " + mColorThresholds.getYellowThreshold() + ") THEN 3 WHEN [Percent]>= " + mColorThresholds.getYellowThreshold() + " THEN 4 END) as [Color] " +
-                    " ,[Blue]" +
-                    " ,[Red] " +
-                    " ,[Green] " +
-                    " ,[Yellow] " +
-                    " ,[Purple] " +
-                    " ,[Orange] " +
+            Cursor dd = InternalDB.getInstance(mContext).getWordEntryForKanjiId(cleanKanjiIDs.get(index));
 
-                    " ,[Other] " +
-                    "FROM (" +
-                        "SELECT [_id]" +
-                        ",[Kanji]" +
-                        ",[Furigana]" +
-                        ",[Definition]" +
-                        ",ifnull([Total],0) as [Total]" +
-                        ",ifnull([Correct],0)  as [Correct]" +
-                        ",CAST(ifnull([Correct],0)  as float)/[Total] as [Percent] " +
-                        " ,[Blue]" +
-                        " ,[Red] " +
-                        " ,[Green] " +
-                        " ,[Yellow] " +
-                    " ,[Purple] " +
-                    " ,[Orange] " +
-
-                    " ,[Other] " +
-                        "FROM (" +
-                        "SELECT [_id]" +
-                        ",[Kanji]" +
-                        ",[Furigana]" +
-                        ",[Definition]  " +
-                        "FROM [Edict] where [_id] = ?" +
-                    ") NATURAL LEFT JOIN (" +
-                        "SELECT [_id]" +
-                        ",sum([Correct]) as [Correct]" +
-                        ",sum([Total]) as [Total] " +
-                        "from [JScoreboard] " +
-                        "WHERE [_id] = ? GROUP BY [_id]" +
-                    ") NATURAL LEFT JOIN (" +
-                        "SELECT [_id]" +
-                        ",SUM([Blue]) as [Blue]" +
-                        ",SUM([Red]) as [Red]" +
-                        ",SUM([Green]) as [Green]" +
-                        ",SUM([Yellow]) as [Yellow]" +
-                    ",SUM([Yellow]) as [Purple]" +
-                    ",SUM([Yellow]) as [Orange]" +
-
-                    ", SUM([Other]) as [Other] " +
-                        "FROM (" +
-                        "SELECT [_id] " +
-                        ",(CASE WHEN ([Sys] = 1 and Name = 'Blue') then 1 else 0 end) as [Blue]" +
-                        ",(CASE WHEN ([Sys] = 1 AND Name = 'Red') then 1 else 0 end) as [Red]" +
-                        ",(CASE WHEN ([Sys] = 1 AND Name = 'Green') then 1 else 0 end) as [Green]" +
-                        ",(CASE WHEN ([Sys] = 1  AND Name = 'Yellow') then 1 else 0 end) as [Yellow]" +
-                    ",(CASE WHEN ([Sys] = 1  AND Name = 'Purple') then 1 else 0 end) as [Purple]" +
-                    ",(CASE WHEN ([Sys] = 1  AND Name = 'Orange') then 1 else 0 end) as [Orange]" +
-                        ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
-                        "FROM JFavorites " +
-                        "WHERE [_id] = ?) as x Group by [_id]" +
-
-                    "))", new String[]{String.valueOf(cleanKanjiIDs.get(index)),String.valueOf(cleanKanjiIDs.get(index)),String.valueOf(cleanKanjiIDs.get(index))});
+//            Cursor dd = InternalDB.getInstance(mContext).getWritableDatabase().rawQuery("SELECT [Kanji]" +
+//                    ",(CASE WHEN (Furigana is null OR  Furigana = '') then \"\" else \"(\" || Furigana || \")\" end) as [Furigana]" +
+//                    ",[Definition]" +
+//                    ",[Total]" +
+//                    ",[Percent]" +
+////                    ",(CASE WHEN [Total] < " + mColorThresholds.getGreyThreshold() + " THEN 1 WHEN [Percent] < " + mColorThresholds.getRedThreshold() + "  THEN 2 WHEN ([Percent] >= " + mColorThresholds.getRedThreshold() + " and [Percent] <  " + mColorThresholds.getYellowThreshold() + ") THEN 3 WHEN [Percent]>= " + mColorThresholds.getYellowThreshold() + " THEN 4 END) as [Color] " +
+//                    " ,[Blue]" +
+//                    " ,[Red] " +
+//                    " ,[Green] " +
+//                    " ,[Yellow] " +
+//                    " ,[Purple] " +
+//                    " ,[Orange] " +
+//
+//                    " ,[Other] " +
+//                    "FROM (" +
+//                        "SELECT [_id]" +
+//                        ",[Kanji]" +
+//                        ",[Furigana]" +
+//                        ",[Definition]" +
+//                        ",ifnull([Total],0) as [Total]" +
+//                        ",ifnull([Correct],0)  as [Correct]" +
+//                        ",CAST(ifnull([Correct],0)  as float)/[Total] as [Percent] " +
+//                        " ,[Blue]" +
+//                        " ,[Red] " +
+//                        " ,[Green] " +
+//                        " ,[Yellow] " +
+//                    " ,[Purple] " +
+//                    " ,[Orange] " +
+//
+//                    " ,[Other] " +
+//                        "FROM (" +
+//                        "SELECT [_id]" +
+//                        ",[Kanji]" +
+//                        ",[Furigana]" +
+//                        ",[Definition]  " +
+//                        "FROM [Edict] where [_id] = ?" +
+//                    ") NATURAL LEFT JOIN (" +
+//                        "SELECT [_id]" +
+//                        ",sum([Correct]) as [Correct]" +
+//                        ",sum([Total]) as [Total] " +
+//                        "from [JScoreboard] " +
+//                        "WHERE [_id] = ? GROUP BY [_id]" +
+//                    ") NATURAL LEFT JOIN (" +
+//                        "SELECT [_id]" +
+//                        ",SUM([Blue]) as [Blue]" +
+//                        ",SUM([Red]) as [Red]" +
+//                        ",SUM([Green]) as [Green]" +
+//                        ",SUM([Yellow]) as [Yellow]" +
+//                    ",SUM([Yellow]) as [Purple]" +
+//                    ",SUM([Yellow]) as [Orange]" +
+//
+//                    ", SUM([Other]) as [Other] " +
+//                        "FROM (" +
+//                        "SELECT [_id] " +
+//                        ",(CASE WHEN ([Sys] = 1 and Name = 'Blue') then 1 else 0 end) as [Blue]" +
+//                        ",(CASE WHEN ([Sys] = 1 AND Name = 'Red') then 1 else 0 end) as [Red]" +
+//                        ",(CASE WHEN ([Sys] = 1 AND Name = 'Green') then 1 else 0 end) as [Green]" +
+//                        ",(CASE WHEN ([Sys] = 1  AND Name = 'Yellow') then 1 else 0 end) as [Yellow]" +
+//                    ",(CASE WHEN ([Sys] = 1  AND Name = 'Purple') then 1 else 0 end) as [Purple]" +
+//                    ",(CASE WHEN ([Sys] = 1  AND Name = 'Orange') then 1 else 0 end) as [Orange]" +
+//                        ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
+//                        "FROM JFavorites " +
+//                        "WHERE [_id] = ?) as x Group by [_id]" +
+//
+//                    "))", new String[]{String.valueOf(cleanKanjiIDs.get(index)),String.valueOf(cleanKanjiIDs.get(index)),String.valueOf(cleanKanjiIDs.get(index))});
 
             if (dd.getCount() > 0) {
                 dd.moveToFirst();
@@ -918,13 +920,13 @@ public class SentenceParser {
                                 ,dd.getString(2)
                                 ,dd.getInt(3)
                                 ,dd.getFloat(4)));
-                        parseSentenceItem.getWordEntry().setItemFavorites(new ItemFavorites(dd.getInt(6)
+                        parseSentenceItem.getWordEntry().setItemFavorites(new ItemFavorites(dd.getInt(5)
+                                ,dd.getInt(6)
                                 ,dd.getInt(7)
                                 ,dd.getInt(8)
                                 ,dd.getInt(9)
                                 ,dd.getInt(10)
-                                ,dd.getInt(11)
-                                ,dd.getInt(12)));
+                                ,dd.getInt(11)));
 
 
                         if(debug) {

@@ -7,18 +7,32 @@ import com.jukuproject.jukutweet.R;
  */
 
 //For filling a tweet with beautiful color
-
+//TODO rename this to "SavedTweetKanji"
 public class TweetKanjiColor {
     private int kanjiId;
     private String color;
     private int startIndex;
     private int endIndex;
+    private String furigana;
 
-    public TweetKanjiColor(int kanjiId, String color, int startIndex, int endIndex) {
+    public String getFurigana() {
+        if(furigana == null){
+            return "";
+        }
+        return furigana;
+    }
+
+    public void setFurigana(String furigana) {
+        this.furigana = furigana;
+    }
+
+    public TweetKanjiColor(int kanjiId, String color, int startIndex, int endIndex, String furigana) {
         this.kanjiId = kanjiId;
         this.color = color;
         this.startIndex = startIndex;
         this.endIndex = endIndex;
+        this.furigana = furigana;
+
     }
 
     public int getKanjiId() {

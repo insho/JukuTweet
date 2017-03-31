@@ -12,8 +12,12 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Spannable;
 import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
+import android.text.TextPaint;
 import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -85,6 +89,9 @@ public class TweetBreakDownFragment extends Fragment {
     private SmoothProgressBar progressBar;
     private View divider;
 
+    private ArrayList<WordEntry> mDataSet;
+    private RecyclerView.Adapter mAdapter;
+
     private TextView txtSentence;
     private TextView txtNoLists;
     private TextView txtUserName;
@@ -123,7 +130,7 @@ public class TweetBreakDownFragment extends Fragment {
                              ViewGroup container, Bundle savedInstanceState) {
         View v  = LayoutInflater.from(getActivity()).inflate(R.layout.fragment_tweetbreakdown, null);
         mTweet = getArguments().getParcelable("tweet");
-        mSavedTweet = getArguments().getParcelable("isSavedTweet");
+        mSavedTweet = getArguments().getBoolean("isSavedTweet");
         mRecyclerView = (RecyclerView) v.findViewById(R.id.parseSentenceRecyclerView);
         txtSentence =  (TextView) v.findViewById(R.id.sentence);
         SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(getContext());
@@ -153,6 +160,8 @@ public class TweetBreakDownFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        final String sentence = mTweet.getText();
+
         //Try to fill in user info at the top
         try {
             txtUserName.setText(mTweet.getUser().getName());
@@ -170,7 +179,9 @@ public class TweetBreakDownFragment extends Fragment {
 
         //If it is a saved tweet (i.e. there are color indexes
         if(mSavedTweet) {
-
+            //Set up the favorites star
+            imgStar.setVisibility(View.GONE);
+            imgStarLayout.setVisibility(View.GONE);
 
 
         } else {
@@ -236,7 +247,9 @@ public class TweetBreakDownFragment extends Fragment {
 
         txtSentence.setVisibility(View.VISIBLE);
         txtSentence.setText(mTweet.getText());
+        txtSentence.setClickable(true);
         txtSentence.setAlpha(.7f);
+
         //Try to add links
         try {
             List<TweetUrl> tweetUrls =  mTweet.getEntities().getUrls();
@@ -257,6 +270,7 @@ public class TweetBreakDownFragment extends Fragment {
                 txtSentence.setMovementMethod(LinkMovementMethod.getInstance());
                 txtSentence.setText(text, TextView.BufferType.SPANNABLE);
 
+
             }
         } catch (NullPointerException e) {
             Log.e(TAG,"mTweet urls are null : " + e);
@@ -265,36 +279,33 @@ public class TweetBreakDownFragment extends Fragment {
         }
 
 
-        final String sentence = mTweet.getText();
+
+
+    if(mSavedTweet && mTweet.getColorIndexes() != null) {
+
+        loadSavedArray(mTweet.getColorIndexes(),sentence,txtSentence);
+
+    } else if(mDisectedTweet==null) {
+
         final ArrayList<ParseSentenceSpecialSpan> specialSpans = new ArrayList<>();
 
         /* Create a list of "SpecialSpan" objects from the urls contained the Tweet. These will be
         * passed into the SentenceParser, but will skip all the "parsing" and will be reintegrated at the end, and
         * designated as "url" in the ParseSentenceItems that emerge from the parser. They can then be shown as clickable links when
         * the tweet text is reassembled */
-        for(TweetUrl url : mTweet.getEntities().getUrls()) {
-            if(sentence.substring(url.getIndices()[0]).contains(url.getDisplay_url())) {
-                specialSpans.add(new ParseSentenceSpecialSpan("url",url.getDisplay_url(),sentence));
-            } else if(mTweet.getText().substring(url.getIndices()[0]).contains(url.getUrl())) {
-                specialSpans.add(new ParseSentenceSpecialSpan("url",url.getUrl(),sentence));
+
+        if(mTweet.getEntities() != null && mTweet.getEntities().getUrls() != null) {
+            for(TweetUrl url : mTweet.getEntities().getUrls()) {
+                if(sentence.substring(url.getIndices()[0]).contains(url.getDisplay_url())) {
+                    specialSpans.add(new ParseSentenceSpecialSpan("url",url.getDisplay_url(),sentence));
+                } else if(mTweet.getText().substring(url.getIndices()[0]).contains(url.getUrl())) {
+                    specialSpans.add(new ParseSentenceSpecialSpan("url",url.getUrl(),sentence));
+                }
             }
+
         }
 
-if(mSavedTweet && mTweet.getColorIndexes() != null) {
-
-    ArrayList<Integer> cleanKanji = new ArrayList<>();
-    for(TweetKanjiColor kanjiColor : mTweet.getColorIndexes()) {
-        cleanKanji.add(kanjiColor.getKanjiId());
-    }
-
-
-    SentenceParser.getInstance().compileFinalSentenceMap(cleanKanji,specialSpans);
-
-    }
-} else {
-    if(mDisectedTweet==null) {
-
-/* Parse the tweet */
+        /* Parse the tweet */
         Single<ArrayList<ParseSentenceItem>> disectTweet = Single.fromCallable(new Callable<ArrayList<ParseSentenceItem>>() {
             @Override
             public ArrayList<ParseSentenceItem> call() throws Exception {
@@ -343,10 +354,7 @@ if(mSavedTweet && mTweet.getColorIndexes() != null) {
                 });
 
 
-    }
-
-}
-
+        }
 
 
     }
@@ -362,13 +370,65 @@ if(mSavedTweet && mTweet.getColorIndexes() != null) {
                     + " must implement OnHeadlineSelectedListener");
         }
     }
-    public void loadSavedArray(ArrayList<TweetKanjiColor> disectedSavedTweet) {
-     /* Get metrics to pass density/width/height to adapters */
+    public void loadSavedArray(ArrayList<TweetKanjiColor> disectedSavedTweet, String entireSentence, TextView txtSentence ) {
+
+         /* Get metrics to pass density/width/height to adapters */
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
         displaywidth = metrics.widthPixels;
         displaymarginpadding =  (int)((float)(displaywidth)*0.055555556);
 
+        /* Set tweet color spans. If the saved Tweet object includes a "colorIndex" object (
+        * which comes from the savedTweetKanji table and contains the id, positions and color designation
+        * of each kanji in the TWeet), replace the normal Tweet text with colored spans for those kanji */
+            try {
+                final SpannableStringBuilder sb = new SpannableStringBuilder(entireSentence);
+
+                    for(final TweetKanjiColor color : disectedSavedTweet) {
+//                        final ForegroundColorSpan fcs = new ForegroundColorSpan(ContextCompat.getColor(getContext(),color.getColorValue()));
+//                        sb.setSpan(fcs, color.getStartIndex(), color.getEndIndex(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+
+                        ClickableSpan kanjiClick = new ClickableSpan() {
+                            @Override
+                            public void onClick(View textView) {
+                                Toast.makeText(getContext(), color.getFurigana(), Toast.LENGTH_SHORT).show();
+                            }
+
+                            @Override
+                            public void updateDrawState(TextPaint ds) {
+                                super.updateDrawState(ds);
+                                ds.setColor(ContextCompat.getColor(getContext(),color.getColorValue()));
+                                ds.setUnderlineText(false);
+                                ds.setAlpha(1);
+
+                            }
+                        };
+
+                        sb.setSpan(kanjiClick, color.getStartIndex(), color.getEndIndex(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                    }
+                txtSentence.setText(sb);
+//                holder.txtTweet.setText(text, TextView.BufferType.SPANNABLE);
+                txtSentence.setMovementMethod(LinkMovementMethod.getInstance());
+
+            } catch (NullPointerException e) {
+                txtSentence.setText(entireSentence);
+                Log.e(TAG,"Tweet color nullpointer failure : " + e);
+            } catch (Exception e) {
+                txtSentence.setText(entireSentence);
+                Log.e(TAG,"Tweet color generic failure: " + e);
+            }
+
+
+        /* The TweetKanjiColor objects contain Edict_ids for the kanji in the tweet, but they
+        * do not contain the kanji, definition or word score values for those kanji. This
+        * converts the TweetKanjiColor Edic_ids into a single string, passes it
+        * */
+        mDataSet = InternalDB.getInstance(getContext()).convertTweetKanjiColorToWordEntry(disectedSavedTweet);
+        mAdapter = new TweetBreakDownAdapter(getContext(),metrics,mDataSet,colorThresholds,activeFavoriteStars);
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.setAdapter(mAdapter);
+        mRecyclerView.setVerticalScrollBarEnabled(true);
 
     }
 
@@ -381,18 +441,20 @@ if(mSavedTweet && mTweet.getColorIndexes() != null) {
         displaymarginpadding =  (int)((float)(displaywidth)*0.055555556);
 
 
-        ArrayList<WordEntry> kanjiEntriesInTweet = new ArrayList<>();
+        mDataSet = new ArrayList<>();
         for(ParseSentenceItem parseSentenceItem : disectedTweet) {
             if(BuildConfig.DEBUG) {
                 Log.d(TAG,"OUTPUT ITEM: " + parseSentenceItem.getKanjiConjugated());
             }
              /* Pull only the kanji items out of the list, to populate the TweetBreakDownAdapter*/
             if(parseSentenceItem.isKanji() && parseSentenceItem.getWordEntry() != null) {
-                kanjiEntriesInTweet.add(parseSentenceItem.getWordEntry());
+                mDataSet.add(parseSentenceItem.getWordEntry());
             }
 
             /* Compile a clickable/browsable version of the tweet into the linearlayout_main,
-            * by stringing together the entries in "disectedTweet"*/
+            * by stringing together the entries in "disectedTweet"
+            *
+            * */
             if(parseSentenceItem.getKanjiConjugated().contains(System.getProperty("line.separator"))) {
                 ArrayList<ParseSentenceItem> subArray = new ArrayList<>();
                 String text = parseSentenceItem.getKanjiConjugated();
@@ -435,8 +497,7 @@ if(mSavedTweet && mTweet.getColorIndexes() != null) {
             linearlayoutInsert(2, 1); // insert the last line on a new line
         }
 
-
-        RecyclerView.Adapter mAdapter = new TweetBreakDownAdapter(getContext(),metrics,kanjiEntriesInTweet,colorThresholds,activeFavoriteStars);
+        mAdapter = new TweetBreakDownAdapter(getContext(),metrics,mDataSet,colorThresholds,activeFavoriteStars);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
@@ -767,7 +828,9 @@ if(mSavedTweet && mTweet.getColorIndexes() != null) {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        parseSentenceSubscription.unsubscribe();
+        if(parseSentenceSubscription != null) {
+            parseSentenceSubscription.unsubscribe();
+        }
     }
 }
 
