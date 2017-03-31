@@ -37,12 +37,12 @@ public class Tweet  implements Parcelable {
         this.retweet_count= another.retweet_count;
         this.text= another.text;
         this.user = another.user;
-        this.colorIndexes = another.colorIndexes;
+        this.wordEntries = another.wordEntries;
     }
 
     public Tweet(String text) {
         this.text = text;
-        colorIndexes = new ArrayList<>();
+        wordEntries = new ArrayList<>();
     }
 
     public Tweet(Boolean favorited, Boolean truncated, String created_at, String id_str, Integer retweet_count, String text) {
@@ -55,11 +55,11 @@ public class Tweet  implements Parcelable {
     }
 
 
-    public ArrayList<TweetKanjiColor> getColorIndexes() {
-        return colorIndexes;
+    public ArrayList<WordEntry> getWordEntries() {
+        return wordEntries;
     }
 
-    private ArrayList<TweetKanjiColor> colorIndexes;
+    private ArrayList<WordEntry> wordEntries;
 
     public ItemFavorites getItemFavorites() {
         return itemFavorites;
@@ -93,11 +93,11 @@ public class Tweet  implements Parcelable {
 
 
 
-    public void addColorIndex (TweetKanjiColor color) {
-        if(colorIndexes  == null){
-            colorIndexes = new ArrayList<>();
+    public void addWordEntry(WordEntry entry) {
+        if(wordEntries  == null){
+            wordEntries = new ArrayList<>();
         }
-        colorIndexes.add(color);
+        wordEntries.add(entry);
     }
 
 

@@ -3,6 +3,8 @@ package com.jukuproject.jukutweet.Models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.jukuproject.jukutweet.R;
+
 
 public class WordEntry implements Parcelable {
 
@@ -12,6 +14,25 @@ public class WordEntry implements Parcelable {
     private String definition;
     private float percentage;
     private Integer total;
+    private ItemFavorites itemFavorites;
+
+    //Used when positioning a word in a broken-up sentence, and coloring it
+    private String color;
+
+    public String getColor() {
+        return color;
+    }
+
+    public int getStartIndex() {
+        return startIndex;
+    }
+
+    public int getEndIndex() {
+        return endIndex;
+    }
+
+    private int startIndex;
+    private int endIndex;
 
     public ItemFavorites getItemFavorites() {
         return itemFavorites;
@@ -21,7 +42,9 @@ public class WordEntry implements Parcelable {
         this.itemFavorites = itemFavorites;
     }
 
-    private ItemFavorites itemFavorites;
+
+
+    public WordEntry() {}
 
     public WordEntry(Integer id, String kanji, String furigana, String definition,Integer total, float percentage ) {
         this.id = id;
@@ -32,6 +55,28 @@ public class WordEntry implements Parcelable {
         this.percentage = percentage;
         this.itemFavorites = new ItemFavorites();
     }
+
+    public WordEntry(Integer id
+            , String kanji
+            , String furigana
+            , String definition
+            ,Integer total
+            , float percentage
+            , String color
+            , Integer startIndex
+            , Integer endIndex) {
+        this.id = id;
+        this.kanji = kanji;
+        this.furigana = furigana;
+        this.definition = definition;
+        this.total = total;
+        this.percentage = percentage;
+        this.itemFavorites = new ItemFavorites();
+        this.color = color;
+        this.startIndex  = startIndex;
+        this.endIndex = endIndex;
+    }
+
 
     public Integer getId() {
         return id;
@@ -50,9 +95,11 @@ public class WordEntry implements Parcelable {
     }
 
     public String getFurigana() {
+        if(furigana == null){
+            return "";
+        }
         return furigana;
     }
-
     public void setFurigana(String furigana) {
         this.furigana = furigana;
     }
@@ -81,7 +128,7 @@ public class WordEntry implements Parcelable {
         this.total = total;
     }
 
-    public WordEntry() {}
+
 
 //    public ArrayList<String> getDefinitionArray() {
 //        ArrayList<String> definitionArray = new ArrayList<>();
@@ -191,4 +238,24 @@ public class WordEntry implements Parcelable {
             return new WordEntry[size];
         }
     };
+
+
+
+
+    public int getColorValue() {
+        if(color == null) {
+            return android.R.color.black;
+        } else if(color.equals("Grey")){
+            return R.color.colorJukuGrey;
+        }  else if(color.equals("Red")){
+            return R.color.colorJukuRed;
+        }  else if(color.equals("Yellow")){
+            return R.color.colorJukuGrey;
+        }  else if(color.equals("Green")){
+            return R.color.colorJukuYellow;
+        } else {
+            return android.R.color.black;
+        }
+
+    }
 }

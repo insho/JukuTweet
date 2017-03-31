@@ -17,7 +17,7 @@ import android.widget.TextView;
 
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.Tweet;
-import com.jukuproject.jukutweet.Models.TweetKanjiColor;
+import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
 
 import java.util.ArrayList;
@@ -161,10 +161,10 @@ public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapte
         * of each kanji in the TWeet), replace the normal Tweet text with colored spans for those kanji */
         try {
             final SpannableStringBuilder sb = new SpannableStringBuilder(tweet.getText());
-            if(tweet.getColorIndexes() != null) {
-                for(TweetKanjiColor color : tweet.getColorIndexes()) {
-                    final ForegroundColorSpan fcs = new ForegroundColorSpan(ContextCompat.getColor(mContext,color.getColorValue()));
-                    sb.setSpan(fcs, color.getStartIndex(), color.getEndIndex(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+            if(tweet.getWordEntries() != null) {
+                for(WordEntry wordEntry : tweet.getWordEntries()) {
+                    final ForegroundColorSpan fcs = new ForegroundColorSpan(ContextCompat.getColor(mContext,wordEntry.getColorValue()));
+                    sb.setSpan(fcs, wordEntry.getStartIndex(), wordEntry.getEndIndex(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
                 }
                 holder.txtTweet.setText(sb);
 

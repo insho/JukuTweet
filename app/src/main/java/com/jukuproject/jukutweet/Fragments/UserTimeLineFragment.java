@@ -22,13 +22,13 @@ import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.ItemFavorites;
-import com.jukuproject.jukutweet.Models.ParseSentenceItem;
-import com.jukuproject.jukutweet.Models.ParseSentenceSpecialSpan;
 import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.Models.Tweet;
+import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.Models.UserInfo;
+import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
-import com.jukuproject.jukutweet.SentenceParser;
+import com.jukuproject.jukutweet.SentenceParserTest;
 import com.jukuproject.jukutweet.TwitterUserClient;
 
 import java.util.ArrayList;
@@ -42,6 +42,10 @@ import rx.SingleSubscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
+
+//import com.jukuproject.jukutweet.Models.ParseSentenceItem;
+//import com.jukuproject.jukutweet.Models.ParseSentenceSpecialSpan;
+//import com.jukuproject.jukutweet.SentenceParser;
 
 /**
  * Shows last X tweets from a twitter timeline. User can click on a tweet to bring up
@@ -188,29 +192,39 @@ public class UserTimeLineFragment extends Fragment {
                                             Log.d(TAG,"SAVING TWEET KANJI");
 
 //                                        final WordLoader wordLoader = helper.getWordLists(db);
-                                            Single.fromCallable(new Callable<ArrayList<ParseSentenceItem>>() {
+                                            Single.fromCallable(new Callable<ArrayList<WordEntry>>() {
                                                 @Override
-                                                public ArrayList<ParseSentenceItem> call() throws Exception {
+                                                public ArrayList<WordEntry> call() throws Exception {
 
+                                                    final ArrayList<String> spansToExclude = new ArrayList<>();
+
+                                                    if(tweet.getEntities() != null && tweet.getEntities().getUrls() != null) {
+                                                        for(TweetUrl url : tweet.getEntities().getUrls()) {
+                                                            if(url != null) {
+                                                                spansToExclude.add(url.getUrl());
+                                                            }
+                                                        }
+
+                                                    }
 //                                            Log.d(TAG,"DB OPEN BEFORE: " + db.isOpen());
                                                     ColorThresholds colorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
-                                                    return SentenceParser.getInstance().parseSentence(getContext()
+                                                    return SentenceParserTest.getInstance().parseSentence(getContext()
                                                             ,tweet.getText()
-                                                            ,new ArrayList<ParseSentenceSpecialSpan>()
+                                                            ,spansToExclude
                                                             ,colorThresholds);
                                                 }
                                             }).subscribeOn(Schedulers.io())
                                                     .observeOn(AndroidSchedulers.mainThread())
-                                                    .subscribe(new SingleSubscriber<ArrayList<ParseSentenceItem>>() {
+                                                    .subscribe(new SingleSubscriber<ArrayList<WordEntry>>() {
 
                                                         @Override
-                                                        public void onSuccess(ArrayList<ParseSentenceItem> disectedTweet) {
+                                                        public void onSuccess(ArrayList<WordEntry> disectedTweet) {
                                                             //load the parsed kanji ids into the database
                                                             InternalDB.getInstance(getContext()).saveParsedTweetKanji(disectedTweet,tweet.getIdString());
 
-                                                            for(ParseSentenceItem item : disectedTweet) {
-                                                                Log.d("XXXX",item.getKanjiConjugated());
-                                                            }
+//                                                            for(WordEntry item : disectedTweet) {
+//                                                                Log.d("XXXX",item.getKanjiConjugated());
+//                                                            }
                                                             //TODO handle errors on insert?
                                                             mCallback.notifyFragmentsChanged();
                                                             helper.close();

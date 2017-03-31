@@ -102,9 +102,9 @@ public class SavedTweetsBrowseFragment extends Fragment {
     public void pullData(MyListEntry myListEntry){
         mDataset = InternalDB.getInstance(getContext()).getSavedTweets(myListEntry,mColorThresholds);
 
-        for(Tweet tweet : mDataset) {
-            Log.d("XXX-Z:", "tweet id receieved: " + tweet.getIdString() + ", text: " + tweet.getText());
-        }
+//        for(Tweet tweet : mDataset) {
+//            Log.d("XXX-Z:", "tweet id receieved: " + tweet.getIdString() + ", text: " + tweet.getText());
+//        }
         mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 

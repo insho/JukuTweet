@@ -5,8 +5,7 @@ package com.jukuproject.jukutweet.Fragments;
 
 
 import android.content.Context;
-import android.graphics.Paint;
-import android.graphics.Rect;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -21,7 +20,6 @@ import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,15 +35,13 @@ import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.FavoritesColors;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
-import com.jukuproject.jukutweet.Models.ParseSentenceItem;
-import com.jukuproject.jukutweet.Models.ParseSentenceSpecialSpan;
+import com.jukuproject.jukutweet.Models.ItemFavorites;
 import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.Models.Tweet;
-import com.jukuproject.jukutweet.Models.TweetKanjiColor;
 import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
-import com.jukuproject.jukutweet.SentenceParser;
+import com.jukuproject.jukutweet.SentenceParserTest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +53,11 @@ import rx.SingleSubscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
+
+//import com.jukuproject.jukutweet.Models.ParseSentenceItem;
+//import com.jukuproject.jukutweet.Models.ParseSentenceSpecialSpan;
+//import com.jukuproject.jukutweet.Models.TweetKanjiColor;
+//import com.jukuproject.jukutweet.SentenceParser;
 
 
 /**
@@ -72,7 +73,7 @@ public class TweetBreakDownFragment extends Fragment {
 //    private RxBus mRxBusTweetBreak= new RxBus();
     private Tweet mTweet;
     private RecyclerView mRecyclerView;
-    private ArrayList<ParseSentenceItem> mDisectedTweet;
+    private ArrayList<WordEntry> mDisectedTweet;
     private boolean mSavedTweet = false;
     /*This is the main linear layout, that we will fill row by row with horizontal linear layouts, which are
      in turn filled with vertical layouts (with furigana on top and japanese on bottom). A big sandwhich of layouts */
@@ -281,13 +282,34 @@ public class TweetBreakDownFragment extends Fragment {
 
 
 
-    if(mSavedTweet && mTweet.getColorIndexes() != null) {
+    if(mSavedTweet && mTweet.getWordEntries() != null) {
 
-        loadSavedArray(mTweet.getColorIndexes(),sentence,txtSentence);
+        /*If it is a previously saved tweet, the favorite list information for the WordEntries in the
+         tweet will not have been previously attached. So attach them now: */
+
+        for(WordEntry wordEntry : mTweet.getWordEntries()) {
+            Cursor c = InternalDB.getInstance(getContext()).getWordEntryForKanjiId(wordEntry.getId(),colorThresholds);
+            if(c.getCount()>0) {
+                c.moveToFirst();
+                wordEntry.setItemFavorites(new ItemFavorites(c.getInt(5)
+                        ,c.getInt(6)
+                        ,c.getInt(7)
+                        ,c.getInt(8)
+                        ,c.getInt(9)
+                        ,c.getInt(10)
+                        ,c.getInt(11)));
+
+                c.close();
+            }
+        }
+
+
+        loadSavedArray(mTweet.getWordEntries(),sentence,txtSentence);
 
     } else if(mDisectedTweet==null) {
 
-        final ArrayList<ParseSentenceSpecialSpan> specialSpans = new ArrayList<>();
+//        final ArrayList<ParseSentenceSpecialSpan> specialSpans = new ArrayList<>();
+        final ArrayList<String> spansToExclude = new ArrayList<>();
 
         /* Create a list of "SpecialSpan" objects from the urls contained the Tweet. These will be
         * passed into the SentenceParser, but will skip all the "parsing" and will be reintegrated at the end, and
@@ -296,22 +318,28 @@ public class TweetBreakDownFragment extends Fragment {
 
         if(mTweet.getEntities() != null && mTweet.getEntities().getUrls() != null) {
             for(TweetUrl url : mTweet.getEntities().getUrls()) {
-                if(sentence.substring(url.getIndices()[0]).contains(url.getDisplay_url())) {
-                    specialSpans.add(new ParseSentenceSpecialSpan("url",url.getDisplay_url(),sentence));
-                } else if(mTweet.getText().substring(url.getIndices()[0]).contains(url.getUrl())) {
-                    specialSpans.add(new ParseSentenceSpecialSpan("url",url.getUrl(),sentence));
+                if(url != null) {
+                    spansToExclude.add(url.getUrl());
                 }
+
+                //TODO ExCLUDE ALL HASH TAGS? or maybe not.
+//
+//                if(sentence.substring(url.getIndices()[0]).contains(url.getDisplay_url())) {
+//                    spansToExclude.add(new ParseSentenceSpecialSpan("url",url.getDisplay_url(),sentence));
+//                } else if(mTweet.getText().substring(url.getIndices()[0]).contains(url.getUrl())) {
+//                    specialSpans.add(new ParseSentenceSpecialSpan("url",url.getUrl(),sentence));
+//                }
             }
 
         }
 
         /* Parse the tweet */
-        Single<ArrayList<ParseSentenceItem>> disectTweet = Single.fromCallable(new Callable<ArrayList<ParseSentenceItem>>() {
+        Single<ArrayList<WordEntry>> disectTweet = Single.fromCallable(new Callable<ArrayList<WordEntry>>() {
             @Override
-            public ArrayList<ParseSentenceItem> call() throws Exception {
-                return SentenceParser.getInstance().parseSentence(getContext()
+            public ArrayList<WordEntry> call() throws Exception {
+                return SentenceParserTest.getInstance().parseSentence(getContext()
                         ,sentence
-                        ,specialSpans
+                        ,spansToExclude
                         ,colorThresholds);
             }
         });
@@ -319,25 +347,26 @@ public class TweetBreakDownFragment extends Fragment {
         showProgressBar(true);
         parseSentenceSubscription = disectTweet.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new SingleSubscriber<ArrayList<ParseSentenceItem>>() {
+                .subscribe(new SingleSubscriber<ArrayList<WordEntry>>() {
 
                     @Override
-                    public void onSuccess(ArrayList<ParseSentenceItem> disectedTweet) {
+                    public void onSuccess(ArrayList<WordEntry> disectedTweet) {
 
                         mDisectedTweet = disectedTweet;
                         if(disectedTweet.size()>0) {
 
                             /*Hide the filler sentence txtSentenceView, and instead user the items
-                            in disectedTweet to dynamically fill in the sentence with clickable, highlighted kanji, links etc. */
-                            loadArray(disectedTweet);
+//                            in disectedTweet to dynamically fill in the sentence with clickable, highlighted kanji, links etc. */
+//                            loadArray(disectedTweet);
+                            loadSavedArray(disectedTweet,sentence,txtSentence);
                             showProgressBar(false);
-                            txtSentence.setVisibility(View.GONE);
+//                            txtSentence.setVisibility(View.GONE);
 
                         } else {
                             /*No results found. Keep the initial sentence in the txtSentence view,
                             and show no sentences found message in place of recyclerview */
                             mRecyclerView.setVisibility(View.GONE);
-                            txtNoLists.setVisibility(View.VISIBLE);
+//                            txtNoLists.setVisibility(View.VISIBLE);
                         }
                     }
 
@@ -370,7 +399,7 @@ public class TweetBreakDownFragment extends Fragment {
                     + " must implement OnHeadlineSelectedListener");
         }
     }
-    public void loadSavedArray(ArrayList<TweetKanjiColor> disectedSavedTweet, String entireSentence, TextView txtSentence ) {
+    public void loadSavedArray(ArrayList<WordEntry> disectedSavedTweet, String entireSentence, TextView txtSentence ) {
 
          /* Get metrics to pass density/width/height to adapters */
         DisplayMetrics metrics = new DisplayMetrics();
@@ -384,27 +413,27 @@ public class TweetBreakDownFragment extends Fragment {
             try {
                 final SpannableStringBuilder sb = new SpannableStringBuilder(entireSentence);
 
-                    for(final TweetKanjiColor color : disectedSavedTweet) {
+                    for(final WordEntry wordEntry : disectedSavedTweet) {
 //                        final ForegroundColorSpan fcs = new ForegroundColorSpan(ContextCompat.getColor(getContext(),color.getColorValue()));
 //                        sb.setSpan(fcs, color.getStartIndex(), color.getEndIndex(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 
                         ClickableSpan kanjiClick = new ClickableSpan() {
                             @Override
                             public void onClick(View textView) {
-                                Toast.makeText(getContext(), color.getFurigana(), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getContext(), wordEntry.getFurigana(), Toast.LENGTH_SHORT).show();
                             }
 
                             @Override
                             public void updateDrawState(TextPaint ds) {
                                 super.updateDrawState(ds);
-                                ds.setColor(ContextCompat.getColor(getContext(),color.getColorValue()));
+                                ds.setColor(ContextCompat.getColor(getContext(),wordEntry.getColorValue()));
                                 ds.setUnderlineText(false);
-                                ds.setAlpha(1);
+//                                ds.setAlpha(1);
 
                             }
                         };
 
-                        sb.setSpan(kanjiClick, color.getStartIndex(), color.getEndIndex(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                        sb.setSpan(kanjiClick, wordEntry.getStartIndex(), wordEntry.getEndIndex(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
                     }
                 txtSentence.setText(sb);
 //                holder.txtTweet.setText(text, TextView.BufferType.SPANNABLE);
@@ -423,8 +452,8 @@ public class TweetBreakDownFragment extends Fragment {
         * do not contain the kanji, definition or word score values for those kanji. This
         * converts the TweetKanjiColor Edic_ids into a single string, passes it
         * */
-        mDataSet = InternalDB.getInstance(getContext()).convertTweetKanjiColorToWordEntry(disectedSavedTweet);
-        mAdapter = new TweetBreakDownAdapter(getContext(),metrics,mDataSet,colorThresholds,activeFavoriteStars);
+//        mDataSet = InternalDB.getInstance(getContext()).convertTweetKanjiColorToWordEntry(disectedSavedTweet);
+        mAdapter = new TweetBreakDownAdapter(getContext(),metrics,disectedSavedTweet,colorThresholds,activeFavoriteStars);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
@@ -432,87 +461,87 @@ public class TweetBreakDownFragment extends Fragment {
 
     }
 
-    public void loadArray(ArrayList<ParseSentenceItem> disectedTweet) {
-
-         /* Get metrics to pass density/width/height to adapters */
-        DisplayMetrics metrics = new DisplayMetrics();
-        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        displaywidth = metrics.widthPixels;
-        displaymarginpadding =  (int)((float)(displaywidth)*0.055555556);
-
-
-        mDataSet = new ArrayList<>();
-        for(ParseSentenceItem parseSentenceItem : disectedTweet) {
-            if(BuildConfig.DEBUG) {
-                Log.d(TAG,"OUTPUT ITEM: " + parseSentenceItem.getKanjiConjugated());
-            }
-             /* Pull only the kanji items out of the list, to populate the TweetBreakDownAdapter*/
-            if(parseSentenceItem.isKanji() && parseSentenceItem.getWordEntry() != null) {
-                mDataSet.add(parseSentenceItem.getWordEntry());
-            }
-
-            /* Compile a clickable/browsable version of the tweet into the linearlayout_main,
-            * by stringing together the entries in "disectedTweet"
-            *
-            * */
-            if(parseSentenceItem.getKanjiConjugated().contains(System.getProperty("line.separator"))) {
-                ArrayList<ParseSentenceItem> subArray = new ArrayList<>();
-                String text = parseSentenceItem.getKanjiConjugated();
-                int startIndex = 0;
-                while (startIndex < text.length()) {
-                    int endIndex;
-                    Log.d(TAG,"while start: " + startIndex + ", sentlength: " + text.length());
-                    if(text.substring(startIndex,text.length()).contains(System.getProperty("line.separator"))) {
-                        Log.d(TAG,"BOO");
-                        endIndex = startIndex + text.substring(startIndex,text.length()).indexOf(System.getProperty("line.separator"));
-                        Log.d(TAG,"BOO2");
-
-                        subArray.add(new ParseSentenceItem(false,0,text.substring(startIndex,endIndex),null));
-                        Log.d(TAG,"ADDING: " + text.substring(startIndex,endIndex));
-                        subArray.add(new ParseSentenceItem(false,0,System.getProperty("line.separator"),null));
-
-                        startIndex = endIndex + 1;
-                        Log.d(TAG,"ADDING: Line seperatore, new startIndex: " + startIndex);
-                    } else {
-                        Log.d(TAG,"NEW subarray: Line seperatore, new startIndex: " + startIndex + ", end: " + text.length() );
-                        subArray.add(new ParseSentenceItem(false,0,text.substring(startIndex,text.length()),null));
-                        startIndex = text.length() ;
-                        Log.d(TAG,"ADDING: Line seperatore, new startIndex: " + startIndex);
-                    }
-                }
-
-                for(ParseSentenceItem item : subArray) {
-                    addToLayout(item);
-                }
-
-
-            } else {
-                addToLayout(parseSentenceItem);
-            }
-        }
-
-        /**Handle the last stragling remains of the thing*/
-        if (linearLayout.getChildCount() > 0) {
-            if(BuildConfig.DEBUG) {Log.d(TAG, "inserting last line");}
-            linearlayoutInsert(2, 1); // insert the last line on a new line
-        }
-
-        mAdapter = new TweetBreakDownAdapter(getContext(),metrics,mDataSet,colorThresholds,activeFavoriteStars);
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
-        mRecyclerView.setLayoutManager(mLayoutManager);
-        mRecyclerView.setAdapter(mAdapter);
-        mRecyclerView.setVerticalScrollBarEnabled(true);
-
-//        baseLayout.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-//                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+//    public void loadArray(ArrayList<ParseSentenceItem> disectedTweet) {
+//
+//         /* Get metrics to pass density/width/height to adapters */
+//        DisplayMetrics metrics = new DisplayMetrics();
+//        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+//        displaywidth = metrics.widthPixels;
+//        displaymarginpadding =  (int)((float)(displaywidth)*0.055555556);
 //
 //
-//        popupWindow = new PopupWindow(baseLayout, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-//        popupWindow.setBackgroundDrawable(new ColorDrawable());
-//        popupWindow.getContentView().setFocusableInTouchMode(true);
-//        popupWindow.setFocusable(true);
-//        popupWindow.setOutsideTouchable(true);
-    }
+//        mDataSet = new ArrayList<>();
+//        for(ParseSentenceItem parseSentenceItem : disectedTweet) {
+//            if(BuildConfig.DEBUG) {
+//                Log.d(TAG,"OUTPUT ITEM: " + parseSentenceItem.getKanjiConjugated());
+//            }
+//             /* Pull only the kanji items out of the list, to populate the TweetBreakDownAdapter*/
+//            if(parseSentenceItem.isKanji() && parseSentenceItem.getWordEntry() != null) {
+//                mDataSet.add(parseSentenceItem.getWordEntry());
+//            }
+//
+//            /* Compile a clickable/browsable version of the tweet into the linearlayout_main,
+//            * by stringing together the entries in "disectedTweet"
+//            *
+//            * */
+//            if(parseSentenceItem.getKanjiConjugated().contains(System.getProperty("line.separator"))) {
+//                ArrayList<ParseSentenceItem> subArray = new ArrayList<>();
+//                String text = parseSentenceItem.getKanjiConjugated();
+//                int startIndex = 0;
+//                while (startIndex < text.length()) {
+//                    int endIndex;
+//                    Log.d(TAG,"while start: " + startIndex + ", sentlength: " + text.length());
+//                    if(text.substring(startIndex,text.length()).contains(System.getProperty("line.separator"))) {
+//                        Log.d(TAG,"BOO");
+//                        endIndex = startIndex + text.substring(startIndex,text.length()).indexOf(System.getProperty("line.separator"));
+//                        Log.d(TAG,"BOO2");
+//
+//                        subArray.add(new ParseSentenceItem(false,0,text.substring(startIndex,endIndex),null));
+//                        Log.d(TAG,"ADDING: " + text.substring(startIndex,endIndex));
+//                        subArray.add(new ParseSentenceItem(false,0,System.getProperty("line.separator"),null));
+//
+//                        startIndex = endIndex + 1;
+//                        Log.d(TAG,"ADDING: Line seperatore, new startIndex: " + startIndex);
+//                    } else {
+//                        Log.d(TAG,"NEW subarray: Line seperatore, new startIndex: " + startIndex + ", end: " + text.length() );
+//                        subArray.add(new ParseSentenceItem(false,0,text.substring(startIndex,text.length()),null));
+//                        startIndex = text.length() ;
+//                        Log.d(TAG,"ADDING: Line seperatore, new startIndex: " + startIndex);
+//                    }
+//                }
+//
+//                for(ParseSentenceItem item : subArray) {
+//                    addToLayout(item);
+//                }
+//
+//
+//            } else {
+//                addToLayout(parseSentenceItem);
+//            }
+//        }
+//
+//        /**Handle the last stragling remains of the thing*/
+//        if (linearLayout.getChildCount() > 0) {
+//            if(BuildConfig.DEBUG) {Log.d(TAG, "inserting last line");}
+//            linearlayoutInsert(2, 1); // insert the last line on a new line
+//        }
+//
+//        mAdapter = new TweetBreakDownAdapter(getContext(),metrics,mDataSet,colorThresholds,activeFavoriteStars);
+//        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
+//        mRecyclerView.setLayoutManager(mLayoutManager);
+//        mRecyclerView.setAdapter(mAdapter);
+//        mRecyclerView.setVerticalScrollBarEnabled(true);
+//
+////        baseLayout.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+////                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+////
+////
+////        popupWindow = new PopupWindow(baseLayout, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+////        popupWindow.setBackgroundDrawable(new ColorDrawable());
+////        popupWindow.getContentView().setFocusableInTouchMode(true);
+////        popupWindow.setFocusable(true);
+////        popupWindow.setOutsideTouchable(true);
+//    }
 
     /**
      * Shows progress bar during API lookups, hides otherwise
@@ -528,280 +557,280 @@ public class TweetBreakDownFragment extends Fragment {
         }
     }
 
-
-    public void addToLayout(final ParseSentenceItem parseSentenceItem) {
-        String onScreenText = parseSentenceItem.getKanjiConjugated();
-        String onScreenFurigana = parseSentenceItem.getFuriganaClean();
-
-        if(parseSentenceItem.getKanjiConjugated().equals(System.getProperty("line.separator"))) {
-            //Log 2 rows, once to input the remaining current layout items,
-            //and another black row for the seperator
-            if(linewidth>0) {
-                linearlayoutInsert(2, 1);
-            }
-            linearlayoutInsert(2, 1);
-
-        } else if(parseSentenceItem.isKanji()) {
-
-                /* INPUT KANJI */
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "INPUT KANJI " + parseSentenceItem.getKanjiConjugated());
-            }
-            TextView textView_Test = new TextView(getContext());
-            textView_Test.setLayoutParams(new ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT));
-            textView_Test.setText(onScreenText);
-            textView_Test.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
-
-            Rect bounds = new Rect();
-            Paint textPaint = textView_Test.getPaint();
-            textPaint.getTextBounds(onScreenText, 0, onScreenText.length(), bounds);
-
-            int width = bounds.width();
-
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "REGULAR WIDTH  = " + width);
-                Log.d(TAG, "REGULAR FURIGANA WIDTH  = " + width);
-                Log.d(TAG, "measureText WIDTH = " + Math.round(textPaint.measureText(onScreenText)));
-            }
-             width = Math.round(textPaint.measureText(onScreenText));
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "FINAL WIDTH = " + width);
-            }
-
-            int widthExtra = (linewidth + width + displaymarginpadding) - displaywidth;
-            int maxWidthAllowed = displaywidth - linewidth - displaymarginpadding;
-
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "widthExtra = " + widthExtra);
-                Log.d(TAG, "maxWidthAllowed= " + maxWidthAllowed);
-            }
-
-            if (widthExtra > 0) {
-                linearlayoutInsert(2, 1);
-            }
-
-            LinearLayout innerLinearLayout3 = new LinearLayout(getContext());
-            innerLinearLayout3.setOrientation(LinearLayout.VERTICAL);
-            TextView textView = new TextView(getContext());
-
-            textView.setLayoutParams(new ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT));
-
-            textView.setText(onScreenText);
-            textView.setTextSize(24);
-                textView.setTextColor(ContextCompat.getColor(getContext(), android.R.color.holo_red_light));
-
-            textView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    //TODO replace this
-                    Toast.makeText(getActivity(), "" + parseSentenceItem.getFuriganaClean(), Toast.LENGTH_SHORT).show();
-
-                }
-            });
-
-
-            innerLinearLayout3.addView(textView);
-            innerLinearLayout3.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            linearLayout.addView(innerLinearLayout3);
-
-            linewidth = linewidth + width;
-
-
-        } else {
-
-            /** INPUT THE NORMAL WORD STRINGS */
-            if(BuildConfig.DEBUG) {Log.d(TAG, "INPUT REGULAR:  " + onScreenText);}
-            TextView textView_Test = new TextView(getContext());
-            textView_Test.setLayoutParams(new ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT));
-            textView_Test.setText(onScreenText);
-            textView_Test.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
-
-            Rect bounds = new Rect();
-            Paint textPaint = textView_Test.getPaint();
-            textPaint.getTextBounds(onScreenText, 0, onScreenText.length(), bounds);
-            int height = bounds.height();
-            int width = bounds.width();
-
-            if(BuildConfig.DEBUG) {
-                Log.d(TAG, "Prospective Height = " + height);
-                Log.d(TAG, "REGULAR WIDTH  = " + width);
-                Log.d(TAG, "measureText WIDTH = " + textPaint.measureText(onScreenText));
-            }
-
-            width = Math.round(textPaint.measureText(onScreenText));
-
-            if(BuildConfig.DEBUG) {
-                Log.d(TAG, "FINAL WIDTH = " + width);
-                Log.d(TAG, "onScreenText content = " + onScreenText);
-                Log.d(TAG, "current linewidth = " + linewidth);
-                Log.d(TAG, "onScreenText linewidth = " + width);
-            }
-
-            int widthExtra = (linewidth + width + displaymarginpadding) - displaywidth;
-            int maxWidthAllowed = displaywidth - linewidth - displaymarginpadding;
-
-            if(BuildConfig.DEBUG) {
-                Log.d(TAG, "widthExtra = " + widthExtra);
-                Log.d(TAG, "maxWidthAllowed= " + maxWidthAllowed);
-            }
-
-            if (widthExtra > 0) {
-                int substringstart = 0;
-                int currentendpoint = Math.round(((float) maxWidthAllowed / (float) width) * onScreenText.length());
-                if(BuildConfig.DEBUG) {Log.d(TAG, "curentendpoint: " + currentendpoint);}
-                int substringend = currentendpoint;
-                if (maxWidthAllowed > width || maxWidthAllowed < 0) {
-                    substringend = onScreenText.length();
-                    if(BuildConfig.DEBUG) {Log.d(TAG, "Substring end is the whole onScreenText");}
-                }
-
-                if(BuildConfig.DEBUG) {
-                    Log.d(TAG, "substringstart: " + substringstart);
-                    Log.d(TAG, "substringend: " + substringend);
-                }
-
-                while (widthExtra > 0) {
-
-                    if(BuildConfig.DEBUG) {Log.d(TAG, "max width allowed: " + maxWidthAllowed);}
-
-                    String choppedTextFragment = onScreenText.substring(substringstart, substringend);
-                    if(BuildConfig.DEBUG) {Log.d(TAG, "ChoppedFragment: " + choppedTextFragment);}
-                    TextView textView = new TextView(getContext());
-
-                    /** INSERTING THE TEXT BOXES INTO THE INNER LINEAR LAYOUT */
-
-                    LinearLayout innerLinearLayout3 = new LinearLayout(getContext());
-                    innerLinearLayout3.setOrientation(LinearLayout.VERTICAL);
-
-                    textView.setLayoutParams(new ViewGroup.LayoutParams(
-                            ViewGroup.LayoutParams.WRAP_CONTENT,
-                            ViewGroup.LayoutParams.WRAP_CONTENT));
-
-                    textView.setText(choppedTextFragment);
-                    textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
-                    innerLinearLayout3.addView(textView);
-                    innerLinearLayout3.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-                    linearLayout.addView(innerLinearLayout3);
-
-
-                    /** NEED TO FIX THIS SO IF substringend== substringstart (AND IT'S ALREADY VERY NEAR THE END OF A ROW (OR OVER IT), YOU
-                     * 1. MAKE A NEW ROW
-                     * 2. BUT DON'T TRY TO INPUT THE NONEXISTANT FRAGMENT, RESET THE METER AND THROW A NEW LARGER FRAGMENT IN THERE...*/
-                    if (substringend < substringstart) {
-                        linearlayoutInsert(2, 0); //DONT LOG A NEW ROW
-                    } else {
-
-                        linearlayoutInsert((linewidth + width + displaymarginpadding), displaywidth);
-                    }
-
-
-                    widthExtra = widthExtra - maxWidthAllowed;
-                    if(BuildConfig.DEBUG) {Log.d(TAG, "NEW widthExtra: " + widthExtra);}
-                    substringstart = substringend;
-
-                    if ((linewidth + width + displaymarginpadding) < displaywidth || widthExtra < 0) {
-                        substringend = onScreenText.length();
-
-                        if(BuildConfig.DEBUG) {
-                            Log.d(TAG, "choppedfragment substringstart: " + substringstart);
-                            Log.d(TAG, "choppedfragment substringend: " + substringend);
-                        }
-                        String choppedTextFragmentRemainder = onScreenText.substring(substringstart, substringend);
-                        if(BuildConfig.DEBUG) {Log.d(TAG, "choppedTextFragmentRemainder: " + choppedTextFragmentRemainder);}
-                        TextView textViewRemainder = new TextView(getContext());
-
-                        LinearLayout innerLinearLayout3Remainder = new LinearLayout(getContext());
-                        innerLinearLayout3Remainder.setOrientation(LinearLayout.VERTICAL);
-
-                        textViewRemainder.setLayoutParams(new ViewGroup.LayoutParams(
-                                ViewGroup.LayoutParams.WRAP_CONTENT,
-                                ViewGroup.LayoutParams.WRAP_CONTENT));
-
-                        textViewRemainder.setText(choppedTextFragmentRemainder);
-                        textViewRemainder.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
-
-                        Rect bounds2 = new Rect();
-                        Paint textPaint2 = textViewRemainder.getPaint();
-                        textPaint2.getTextBounds(choppedTextFragmentRemainder, 0, choppedTextFragmentRemainder.length(), bounds2);
-
-                        int width_chopped = bounds2.width();
-                        innerLinearLayout3Remainder.addView(textViewRemainder);
-                        innerLinearLayout3Remainder.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-                        linearLayout.addView(innerLinearLayout3Remainder);
-
-                        linewidth = linewidth + width_chopped;
-
-                        if(BuildConfig.DEBUG) {
-                            Log.d(TAG, "chopped linewidth: " + linewidth);
-                            Log.d(TAG, "chopped width: " + width);
-                        }
-
-                        widthExtra = (linewidth + displaymarginpadding) - displaywidth;
-                        maxWidthAllowed = displaywidth - linewidth - displaymarginpadding;
-
-
-                        if (linewidth == 0 && widthExtra > 0) {  // like if it's the last fragment of a line, starting on a new line. Just print the damn thing (on the new line)
-                            linearlayoutInsert((linewidth + (displaywidth + widthExtra) + displaymarginpadding), displaywidth);
-                        } else if (linewidth == 0 && widthExtra < 0) {
-                            linearlayoutInsert((linewidth + (displaywidth + widthExtra) + displaymarginpadding), displaywidth);
-                        } else {
-                            linearlayoutInsert((linewidth + displaymarginpadding), displaywidth);
-                        }
-
-                    } else {
-
-                        maxWidthAllowed = displaywidth - linewidth - displaymarginpadding;
-
-                        if(BuildConfig.DEBUG) {
-                            Log.d(TAG, "substringend calculation--maxwidthallowed: " + maxWidthAllowed);
-                            Log.d(TAG, "substringend calculation--width: " + width);
-                            Log.d(TAG, "substringend calculation--onScreenText.length: " + onScreenText.length());
-                        }
-
-                        substringend = Math.round(((float) maxWidthAllowed / (float) width) * onScreenText.length()) + substringstart;
-                        if(BuildConfig.DEBUG) {Log.d(TAG, "substring rounding: " + ((float) maxWidthAllowed / (float) width) * onScreenText.length());}
-                    }
-
-                    if(BuildConfig.DEBUG) {
-                        Log.d(TAG, "NEW substringstart: " + substringstart);
-                        Log.d(TAG, "NEW substringend: " + substringend);
-                    }
-                    if (substringend > onScreenText.length()) {
-                        if(BuildConfig.DEBUG) {Log.d(TAG, "SHIT WORKAROUND substringend Revised to: " + substringend);}
-                        substringend = onScreenText.length();
-                    }
-
-                }
-
-            } else {
-
-                LinearLayout innerLinearLayout3 = new LinearLayout(getContext());
-                innerLinearLayout3.setOrientation(LinearLayout.VERTICAL);
-
-                textView_Test.setLayoutParams(new ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT));
-
-                textView_Test.setText(onScreenText);
-                textView_Test.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
-                innerLinearLayout3.addView(textView_Test);
-                innerLinearLayout3.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-                linearLayout.addView(innerLinearLayout3);
-                linewidth = linewidth + width;
-                linearlayoutInsert((linewidth + displaymarginpadding), displaywidth);
-
-                if(BuildConfig.DEBUG) {Log.d(TAG, "new linewidth = " + linewidth);}
-
-            }
-
-        }
-    }
+//
+//    public void addToLayout(final ParseSentenceItem parseSentenceItem) {
+//        String onScreenText = parseSentenceItem.getKanjiConjugated();
+//        String onScreenFurigana = parseSentenceItem.getFuriganaClean();
+//
+//        if(parseSentenceItem.getKanjiConjugated().equals(System.getProperty("line.separator"))) {
+//            //Log 2 rows, once to input the remaining current layout items,
+//            //and another black row for the seperator
+//            if(linewidth>0) {
+//                linearlayoutInsert(2, 1);
+//            }
+//            linearlayoutInsert(2, 1);
+//
+//        } else if(parseSentenceItem.isKanji()) {
+//
+//                /* INPUT KANJI */
+//            if (BuildConfig.DEBUG) {
+//                Log.d(TAG, "INPUT KANJI " + parseSentenceItem.getKanjiConjugated());
+//            }
+//            TextView textView_Test = new TextView(getContext());
+//            textView_Test.setLayoutParams(new ViewGroup.LayoutParams(
+//                    ViewGroup.LayoutParams.WRAP_CONTENT,
+//                    ViewGroup.LayoutParams.WRAP_CONTENT));
+//            textView_Test.setText(onScreenText);
+//            textView_Test.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
+//
+//            Rect bounds = new Rect();
+//            Paint textPaint = textView_Test.getPaint();
+//            textPaint.getTextBounds(onScreenText, 0, onScreenText.length(), bounds);
+//
+//            int width = bounds.width();
+//
+//            if (BuildConfig.DEBUG) {
+//                Log.d(TAG, "REGULAR WIDTH  = " + width);
+//                Log.d(TAG, "REGULAR FURIGANA WIDTH  = " + width);
+//                Log.d(TAG, "measureText WIDTH = " + Math.round(textPaint.measureText(onScreenText)));
+//            }
+//             width = Math.round(textPaint.measureText(onScreenText));
+//            if (BuildConfig.DEBUG) {
+//                Log.d(TAG, "FINAL WIDTH = " + width);
+//            }
+//
+//            int widthExtra = (linewidth + width + displaymarginpadding) - displaywidth;
+//            int maxWidthAllowed = displaywidth - linewidth - displaymarginpadding;
+//
+//            if (BuildConfig.DEBUG) {
+//                Log.d(TAG, "widthExtra = " + widthExtra);
+//                Log.d(TAG, "maxWidthAllowed= " + maxWidthAllowed);
+//            }
+//
+//            if (widthExtra > 0) {
+//                linearlayoutInsert(2, 1);
+//            }
+//
+//            LinearLayout innerLinearLayout3 = new LinearLayout(getContext());
+//            innerLinearLayout3.setOrientation(LinearLayout.VERTICAL);
+//            TextView textView = new TextView(getContext());
+//
+//            textView.setLayoutParams(new ViewGroup.LayoutParams(
+//                    ViewGroup.LayoutParams.WRAP_CONTENT,
+//                    ViewGroup.LayoutParams.WRAP_CONTENT));
+//
+//            textView.setText(onScreenText);
+//            textView.setTextSize(24);
+//                textView.setTextColor(ContextCompat.getColor(getContext(), android.R.color.holo_red_light));
+//
+//            textView.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    //TODO replace this
+//                    Toast.makeText(getActivity(), "" + parseSentenceItem.getFuriganaClean(), Toast.LENGTH_SHORT).show();
+//
+//                }
+//            });
+//
+//
+//            innerLinearLayout3.addView(textView);
+//            innerLinearLayout3.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+//            linearLayout.addView(innerLinearLayout3);
+//
+//            linewidth = linewidth + width;
+//
+//
+//        } else {
+//
+//            /** INPUT THE NORMAL WORD STRINGS */
+//            if(BuildConfig.DEBUG) {Log.d(TAG, "INPUT REGULAR:  " + onScreenText);}
+//            TextView textView_Test = new TextView(getContext());
+//            textView_Test.setLayoutParams(new ViewGroup.LayoutParams(
+//                    ViewGroup.LayoutParams.WRAP_CONTENT,
+//                    ViewGroup.LayoutParams.WRAP_CONTENT));
+//            textView_Test.setText(onScreenText);
+//            textView_Test.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
+//
+//            Rect bounds = new Rect();
+//            Paint textPaint = textView_Test.getPaint();
+//            textPaint.getTextBounds(onScreenText, 0, onScreenText.length(), bounds);
+//            int height = bounds.height();
+//            int width = bounds.width();
+//
+//            if(BuildConfig.DEBUG) {
+//                Log.d(TAG, "Prospective Height = " + height);
+//                Log.d(TAG, "REGULAR WIDTH  = " + width);
+//                Log.d(TAG, "measureText WIDTH = " + textPaint.measureText(onScreenText));
+//            }
+//
+//            width = Math.round(textPaint.measureText(onScreenText));
+//
+//            if(BuildConfig.DEBUG) {
+//                Log.d(TAG, "FINAL WIDTH = " + width);
+//                Log.d(TAG, "onScreenText content = " + onScreenText);
+//                Log.d(TAG, "current linewidth = " + linewidth);
+//                Log.d(TAG, "onScreenText linewidth = " + width);
+//            }
+//
+//            int widthExtra = (linewidth + width + displaymarginpadding) - displaywidth;
+//            int maxWidthAllowed = displaywidth - linewidth - displaymarginpadding;
+//
+//            if(BuildConfig.DEBUG) {
+//                Log.d(TAG, "widthExtra = " + widthExtra);
+//                Log.d(TAG, "maxWidthAllowed= " + maxWidthAllowed);
+//            }
+//
+//            if (widthExtra > 0) {
+//                int substringstart = 0;
+//                int currentendpoint = Math.round(((float) maxWidthAllowed / (float) width) * onScreenText.length());
+//                if(BuildConfig.DEBUG) {Log.d(TAG, "curentendpoint: " + currentendpoint);}
+//                int substringend = currentendpoint;
+//                if (maxWidthAllowed > width || maxWidthAllowed < 0) {
+//                    substringend = onScreenText.length();
+//                    if(BuildConfig.DEBUG) {Log.d(TAG, "Substring end is the whole onScreenText");}
+//                }
+//
+//                if(BuildConfig.DEBUG) {
+//                    Log.d(TAG, "substringstart: " + substringstart);
+//                    Log.d(TAG, "substringend: " + substringend);
+//                }
+//
+//                while (widthExtra > 0) {
+//
+//                    if(BuildConfig.DEBUG) {Log.d(TAG, "max width allowed: " + maxWidthAllowed);}
+//
+//                    String choppedTextFragment = onScreenText.substring(substringstart, substringend);
+//                    if(BuildConfig.DEBUG) {Log.d(TAG, "ChoppedFragment: " + choppedTextFragment);}
+//                    TextView textView = new TextView(getContext());
+//
+//                    /** INSERTING THE TEXT BOXES INTO THE INNER LINEAR LAYOUT */
+//
+//                    LinearLayout innerLinearLayout3 = new LinearLayout(getContext());
+//                    innerLinearLayout3.setOrientation(LinearLayout.VERTICAL);
+//
+//                    textView.setLayoutParams(new ViewGroup.LayoutParams(
+//                            ViewGroup.LayoutParams.WRAP_CONTENT,
+//                            ViewGroup.LayoutParams.WRAP_CONTENT));
+//
+//                    textView.setText(choppedTextFragment);
+//                    textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
+//                    innerLinearLayout3.addView(textView);
+//                    innerLinearLayout3.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+//                    linearLayout.addView(innerLinearLayout3);
+//
+//
+//                    /** NEED TO FIX THIS SO IF substringend== substringstart (AND IT'S ALREADY VERY NEAR THE END OF A ROW (OR OVER IT), YOU
+//                     * 1. MAKE A NEW ROW
+//                     * 2. BUT DON'T TRY TO INPUT THE NONEXISTANT FRAGMENT, RESET THE METER AND THROW A NEW LARGER FRAGMENT IN THERE...*/
+//                    if (substringend < substringstart) {
+//                        linearlayoutInsert(2, 0); //DONT LOG A NEW ROW
+//                    } else {
+//
+//                        linearlayoutInsert((linewidth + width + displaymarginpadding), displaywidth);
+//                    }
+//
+//
+//                    widthExtra = widthExtra - maxWidthAllowed;
+//                    if(BuildConfig.DEBUG) {Log.d(TAG, "NEW widthExtra: " + widthExtra);}
+//                    substringstart = substringend;
+//
+//                    if ((linewidth + width + displaymarginpadding) < displaywidth || widthExtra < 0) {
+//                        substringend = onScreenText.length();
+//
+//                        if(BuildConfig.DEBUG) {
+//                            Log.d(TAG, "choppedfragment substringstart: " + substringstart);
+//                            Log.d(TAG, "choppedfragment substringend: " + substringend);
+//                        }
+//                        String choppedTextFragmentRemainder = onScreenText.substring(substringstart, substringend);
+//                        if(BuildConfig.DEBUG) {Log.d(TAG, "choppedTextFragmentRemainder: " + choppedTextFragmentRemainder);}
+//                        TextView textViewRemainder = new TextView(getContext());
+//
+//                        LinearLayout innerLinearLayout3Remainder = new LinearLayout(getContext());
+//                        innerLinearLayout3Remainder.setOrientation(LinearLayout.VERTICAL);
+//
+//                        textViewRemainder.setLayoutParams(new ViewGroup.LayoutParams(
+//                                ViewGroup.LayoutParams.WRAP_CONTENT,
+//                                ViewGroup.LayoutParams.WRAP_CONTENT));
+//
+//                        textViewRemainder.setText(choppedTextFragmentRemainder);
+//                        textViewRemainder.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
+//
+//                        Rect bounds2 = new Rect();
+//                        Paint textPaint2 = textViewRemainder.getPaint();
+//                        textPaint2.getTextBounds(choppedTextFragmentRemainder, 0, choppedTextFragmentRemainder.length(), bounds2);
+//
+//                        int width_chopped = bounds2.width();
+//                        innerLinearLayout3Remainder.addView(textViewRemainder);
+//                        innerLinearLayout3Remainder.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+//                        linearLayout.addView(innerLinearLayout3Remainder);
+//
+//                        linewidth = linewidth + width_chopped;
+//
+//                        if(BuildConfig.DEBUG) {
+//                            Log.d(TAG, "chopped linewidth: " + linewidth);
+//                            Log.d(TAG, "chopped width: " + width);
+//                        }
+//
+//                        widthExtra = (linewidth + displaymarginpadding) - displaywidth;
+//                        maxWidthAllowed = displaywidth - linewidth - displaymarginpadding;
+//
+//
+//                        if (linewidth == 0 && widthExtra > 0) {  // like if it's the last fragment of a line, starting on a new line. Just print the damn thing (on the new line)
+//                            linearlayoutInsert((linewidth + (displaywidth + widthExtra) + displaymarginpadding), displaywidth);
+//                        } else if (linewidth == 0 && widthExtra < 0) {
+//                            linearlayoutInsert((linewidth + (displaywidth + widthExtra) + displaymarginpadding), displaywidth);
+//                        } else {
+//                            linearlayoutInsert((linewidth + displaymarginpadding), displaywidth);
+//                        }
+//
+//                    } else {
+//
+//                        maxWidthAllowed = displaywidth - linewidth - displaymarginpadding;
+//
+//                        if(BuildConfig.DEBUG) {
+//                            Log.d(TAG, "substringend calculation--maxwidthallowed: " + maxWidthAllowed);
+//                            Log.d(TAG, "substringend calculation--width: " + width);
+//                            Log.d(TAG, "substringend calculation--onScreenText.length: " + onScreenText.length());
+//                        }
+//
+//                        substringend = Math.round(((float) maxWidthAllowed / (float) width) * onScreenText.length()) + substringstart;
+//                        if(BuildConfig.DEBUG) {Log.d(TAG, "substring rounding: " + ((float) maxWidthAllowed / (float) width) * onScreenText.length());}
+//                    }
+//
+//                    if(BuildConfig.DEBUG) {
+//                        Log.d(TAG, "NEW substringstart: " + substringstart);
+//                        Log.d(TAG, "NEW substringend: " + substringend);
+//                    }
+//                    if (substringend > onScreenText.length()) {
+//                        if(BuildConfig.DEBUG) {Log.d(TAG, "SHIT WORKAROUND substringend Revised to: " + substringend);}
+//                        substringend = onScreenText.length();
+//                    }
+//
+//                }
+//
+//            } else {
+//
+//                LinearLayout innerLinearLayout3 = new LinearLayout(getContext());
+//                innerLinearLayout3.setOrientation(LinearLayout.VERTICAL);
+//
+//                textView_Test.setLayoutParams(new ViewGroup.LayoutParams(
+//                        ViewGroup.LayoutParams.WRAP_CONTENT,
+//                        ViewGroup.LayoutParams.WRAP_CONTENT));
+//
+//                textView_Test.setText(onScreenText);
+//                textView_Test.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
+//                innerLinearLayout3.addView(textView_Test);
+//                innerLinearLayout3.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+//                linearLayout.addView(innerLinearLayout3);
+//                linewidth = linewidth + width;
+//                linearlayoutInsert((linewidth + displaymarginpadding), displaywidth);
+//
+//                if(BuildConfig.DEBUG) {Log.d(TAG, "new linewidth = " + linewidth);}
+//
+//            }
+//
+//        }
+//    }
 
     public void linearlayoutInsert(int totallinewidth, int displaywidth) {
 

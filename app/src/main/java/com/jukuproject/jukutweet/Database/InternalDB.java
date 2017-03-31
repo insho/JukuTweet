@@ -14,9 +14,7 @@ import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.ItemFavorites;
 import com.jukuproject.jukutweet.Models.MyListEntry;
-import com.jukuproject.jukutweet.Models.ParseSentenceItem;
 import com.jukuproject.jukutweet.Models.Tweet;
-import com.jukuproject.jukutweet.Models.TweetKanjiColor;
 import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
@@ -26,6 +24,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.PriorityBlockingQueue;
+
+//import com.jukuproject.jukutweet.Models.ParseSentenceItem;
+//import com.jukuproject.jukutweet.Models.TweetKanjiColor;
 
 /**
  * Database helper
@@ -1293,25 +1294,23 @@ public class InternalDB extends SQLiteOpenHelper {
      * star in the {@link com.jukuproject.jukutweet.Fragments.TweetBreakDownFragment} and the parseSentenceItems are already
      * created and passed here to be saved.
      *
-     * @param parseSentenceItems List of kanji found in a tweet
+//     * @param parseSentenceItems List of kanji found in a tweet
      * @param tweet_id String id of tweet
      * @return returnvalue int, -1 for error, otherwise the index value of final inserted row
      */
-    public int saveParsedTweetKanji(ArrayList<ParseSentenceItem> parseSentenceItems, String tweet_id) {
+    public int saveParsedTweetKanji(ArrayList<WordEntry> wordEntries, String tweet_id) {
         SQLiteDatabase db = sInstance.getReadableDatabase();
         int resultCode = -1;
 
         try {
-            if(parseSentenceItems.size()>0) {
-                for(int i=0;i<parseSentenceItems.size();i++) {
-                    if(parseSentenceItems.get(i).isKanji()) {
+            if(wordEntries.size()>0) {
+                for(int i=0;i<wordEntries.size();i++) {
                         ContentValues values = new ContentValues();
                         values.put(TSAVEDTWEET_COL2, tweet_id);
-                        values.put(TSAVEDTWEETITEMS_COL2, parseSentenceItems.get(i).getKanjiID());
-                        values.put(TSAVEDTWEETITEMS_COL3, parseSentenceItems.get(i).getStartIndex());
-                        values.put(TSAVEDTWEETITEMS_COL4, parseSentenceItems.get(i).getEndIndex());
+                        values.put(TSAVEDTWEETITEMS_COL2, wordEntries.get(i).getId());
+                        values.put(TSAVEDTWEETITEMS_COL3, wordEntries.get(i).getStartIndex());
+                        values.put(TSAVEDTWEETITEMS_COL4, wordEntries.get(i).getEndIndex());
                         resultCode = (int)db.insert(TABLE_SAVED_TWEET_KANJI, null, values);
-                    }
                 }
             }
             return resultCode;
@@ -1415,11 +1414,16 @@ public class InternalDB extends SQLiteOpenHelper {
                                 ",TweetLists.[Tweet_id]" +
                                 ",[ALLTweets].[Text] " +
                                 ",TweetKanji.Edict_id " +
-                                ",TweetKanji.Color " +
+                                ",TweetKanji.Kanji " +
+                                ",(CASE WHEN [TweetKanji].[Furigana] is null  then '' else [TweetKanji].[Furigana] end) as [Furigana] " +
+                                ",TweetKanji.Definition " +
+                            ",TweetKanji.Total " +
+                            ",TweetKanji.Percent " +
+                            ",TweetKanji.Color " +
                                 ",TweetKanji.StartIndex " +
                                 ",TweetKanji.EndIndex " +
                                 ",[ALLTweets].[Date]" +
-                            ",(CASE WHEN [TweetKanji].[Furigana] is null  then '' else [TweetKanji].[Furigana] end) as [Furigana] " +
+
                             "FROM  " +
                             " ( " +
                                 "SELECT  DISTINCT [Name]" +
@@ -1451,7 +1455,11 @@ public class InternalDB extends SQLiteOpenHelper {
                                     "WHEN CAST(ifnull(b.[Correct],0)  as float)/b.[Total] < " + colorThresholds.getRedThreshold() + "  THEN 'Red' " +
                                     "WHEN CAST(ifnull(b.[Correct],0)  as float)/b.[Total] <  " + colorThresholds.getYellowThreshold() + " THEN 'Yellow' " +
                                     "ELSE 'Green' END) as [Color]" +
-                            ",c.Furigana " +
+                            ",c.Furigana as [Furigana]" +
+                            ",c.Definition as [Definition] " +
+                            ",c.Kanji as [Kanji] " +
+                            ",b.[Total] as [Total]" +
+                            ",CAST(ifnull(b.[Correct],0)  as float)/b.[Total] as [Percent] " +
 
                             "FROM " +
                             "( " +
@@ -1466,6 +1474,7 @@ public class InternalDB extends SQLiteOpenHelper {
                             " (" +
                             "SELECT [_id] as [Edict_id]" +
                             ",sum([Correct]) as [Correct]" +
+
                             ",sum([Total]) as [Total] FROM [JScoreboard] " +
                             "where [_id] in (SELECT DISTINCT [Edict_id] FROM JSavedTweetKanji)" +
                             " GROUP BY [_id]" +
@@ -1474,7 +1483,9 @@ public class InternalDB extends SQLiteOpenHelper {
                             "LEFT JOIN " +
                             " (" +
                             "SELECT DISTINCT [_id] as [Edict_id]" +
+                            ",[Kanji]" +
                             ",[Furigana]" +
+                            ",[Definition]" +
                             "FROM [Edict] " +
                             "where [_id] in (SELECT DISTINCT [Edict_id] FROM JSavedTweetKanji)" +
                             ") as c " +
@@ -1520,12 +1531,18 @@ public class InternalDB extends SQLiteOpenHelper {
 
                     }
 
-                        TweetKanjiColor tweetKanjiColor = new TweetKanjiColor(c.getInt(7)
+
+                        WordEntry wordEntry = new WordEntry(c.getInt(7)
                                 ,c.getString(8)
-                                ,c.getInt(9)
-                                ,c.getInt(10)
-                                ,c.getString(12)); //Furigana
-                        tweet.addColorIndex(tweetKanjiColor);
+                                ,c.getString(9)
+                                ,c.getString(10)
+                                ,c.getInt(11)
+                                ,c.getFloat(12)
+                                ,c.getString(13)
+                                ,c.getInt(14)
+                                ,c.getInt(15));
+
+                        tweet.addWordEntry(wordEntry);
 
 
                     //FLush old tweet
@@ -1564,143 +1581,144 @@ public class InternalDB extends SQLiteOpenHelper {
 
 
 
-    public ArrayList<WordEntry> convertTweetKanjiColorToWordEntry(ArrayList<TweetKanjiColor> disectedSavedTweets) {
-
-        ArrayList<WordEntry> convertedWordEntries = new ArrayList<>();
-        SQLiteDatabase db = sInstance.getReadableDatabase();
-
-        try {
-            //get Edict dictionary information for edict_id in disectedSavedTweet
-        for (TweetKanjiColor kanjiColor : disectedSavedTweets) {
-
-            Cursor c = getWordEntryForKanjiId(kanjiColor.getKanjiId());
-//            Cursor c = db.rawQuery(
-//                    "SELECT [Kanji]" +
-//                            ",(CASE WHEN (Furigana is null OR  Furigana = '') then \"\" else \"(\" || Furigana || \")\" end) as [Furigana]" +
-//                            ",[Definition]" +
-//                            ",[Total]" +
-//                            ",[Percent]" +
-//                            " ,[Blue]" +
-//                            " ,[Red] " +
-//                            " ,[Green] " +
-//                            " ,[Yellow] " +
-//                            " ,[Purple] " +
-//                            " ,[Orange] " +
-//                            " ,[Other] " +
-//                            "FROM (" +
-//                            "SELECT [_id]" +
-//                            ",[Kanji]" +
-//                            ",[Furigana]" +
-//                            ",[Definition]" +
-//                            ",ifnull([Total],0) as [Total]" +
-//                            ",ifnull([Correct],0)  as [Correct]" +
-//                            ",CAST(ifnull([Correct],0)  as float)/[Total] as [Percent] " +
-//                            " ,[Blue]" +
-//                            " ,[Red] " +
-//                            " ,[Green] " +
-//                            " ,[Yellow] " +
-//                            " ,[Purple] " +
-//                            " ,[Orange] " +
 //
-//                            " ,[Other] " +
-//                            "FROM (" +
-//                            "SELECT [_id]" +
-//                            ",[Kanji]" +
-//                            ",[Furigana]" +
-//                            ",[Definition]  " +
-//                            "FROM [Edict] where [_id] = ?" +
-//                            ") NATURAL LEFT JOIN (" +
-//                            "SELECT [_id]" +
-//                            ",sum([Correct]) as [Correct]" +
-//                            ",sum([Total]) as [Total] " +
-//                            "from [JScoreboard] " +
-//                            "WHERE [_id] = ? GROUP BY [_id]" +
-//                            ") NATURAL LEFT JOIN (" +
-//                            "SELECT [_id]" +
-//                            ",SUM([Blue]) as [Blue]" +
-//                            ",SUM([Red]) as [Red]" +
-//                            ",SUM([Green]) as [Green]" +
-//                            ",SUM([Yellow]) as [Yellow]" +
-//                            ",SUM([Yellow]) as [Purple]" +
-//                            ",SUM([Yellow]) as [Orange]" +
 //
-//                            ", SUM([Other]) as [Other] " +
-//                            "FROM (" +
-//                            "SELECT [_id] " +
-//                            ",(CASE WHEN ([Sys] = 1 and Name = 'Blue') then 1 else 0 end) as [Blue]" +
-//                            ",(CASE WHEN ([Sys] = 1 AND Name = 'Red') then 1 else 0 end) as [Red]" +
-//                            ",(CASE WHEN ([Sys] = 1 AND Name = 'Green') then 1 else 0 end) as [Green]" +
-//                            ",(CASE WHEN ([Sys] = 1  AND Name = 'Yellow') then 1 else 0 end) as [Yellow]" +
-//                            ",(CASE WHEN ([Sys] = 1  AND Name = 'Purple') then 1 else 0 end) as [Purple]" +
-//                            ",(CASE WHEN ([Sys] = 1  AND Name = 'Orange') then 1 else 0 end) as [Orange]" +
-//                            ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
-//                            "FROM JFavorites " +
-//                            "WHERE [_id] = ?) as x Group by [_id]" +
+//    public ArrayList<WordEntry> convertTweetKanjiColorToWordEntry(ArrayList<TweetKanjiColor> disectedSavedTweets) {
 //
-//                            "))"
+//        ArrayList<WordEntry> convertedWordEntries = new ArrayList<>();
+//        SQLiteDatabase db = sInstance.getReadableDatabase();
 //
-//                    "SELECT  x.[_id]" +
-//                            ",x.[Kanji]" +
-//                            ",(CASE WHEN x.[Furigana] is null  then '' else x.[Furigana] end) as [Furigana] " +
-//                            ",x.[Definition]" +
-//                            ",ifnull(y.[Total],0)" +
-//                            ",(CASE WHEN [Total] >0 THEN CAST(ifnull([Correct],0)  as float)/[Total] ELSE 0 END) as [Percent] " +
-//                            "FROM " +
-//                            "(" +
-//                            "SELECT [_id]" +
-//                            ",[Kanji]" +
-//                            ",[Furigana]" +
-//                            ",[Definition]  " +
-//                            "FROM [Edict] " +
-//                            "WHERE [_id] =  ? " +
-//                            ") as x " +
-//                            "LEFT JOIN " +
-//                            "(" +
-//                            "SELECT [_id]" +
-//                            ",sum([Correct]) as [Correct]" +
-//                            ",sum([Total]) as [Total]  " +
-//                            "FROM [JScoreboard] " +
-//                            "WHERE [_id] = ? " +
-//                            ") as y " +
-//                            "ON x.[_id] = y.[_id]"
-//                    , new String[]{String.valueOf(kanjiColor.getKanjiId()), String.valueOf(kanjiColor.getKanjiId())});
+//        try {
+//            //get Edict dictionary information for edict_id in disectedSavedTweet
+//        for (TweetKanjiColor kanjiColor : disectedSavedTweets) {
+//
+//            Cursor c = getWordEntryForKanjiId(kanjiColor.getKanjiId());
+////            Cursor c = db.rawQuery(
+////                    "SELECT [Kanji]" +
+////                            ",(CASE WHEN (Furigana is null OR  Furigana = '') then \"\" else \"(\" || Furigana || \")\" end) as [Furigana]" +
+////                            ",[Definition]" +
+////                            ",[Total]" +
+////                            ",[Percent]" +
+////                            " ,[Blue]" +
+////                            " ,[Red] " +
+////                            " ,[Green] " +
+////                            " ,[Yellow] " +
+////                            " ,[Purple] " +
+////                            " ,[Orange] " +
+////                            " ,[Other] " +
+////                            "FROM (" +
+////                            "SELECT [_id]" +
+////                            ",[Kanji]" +
+////                            ",[Furigana]" +
+////                            ",[Definition]" +
+////                            ",ifnull([Total],0) as [Total]" +
+////                            ",ifnull([Correct],0)  as [Correct]" +
+////                            ",CAST(ifnull([Correct],0)  as float)/[Total] as [Percent] " +
+////                            " ,[Blue]" +
+////                            " ,[Red] " +
+////                            " ,[Green] " +
+////                            " ,[Yellow] " +
+////                            " ,[Purple] " +
+////                            " ,[Orange] " +
+////
+////                            " ,[Other] " +
+////                            "FROM (" +
+////                            "SELECT [_id]" +
+////                            ",[Kanji]" +
+////                            ",[Furigana]" +
+////                            ",[Definition]  " +
+////                            "FROM [Edict] where [_id] = ?" +
+////                            ") NATURAL LEFT JOIN (" +
+////                            "SELECT [_id]" +
+////                            ",sum([Correct]) as [Correct]" +
+////                            ",sum([Total]) as [Total] " +
+////                            "from [JScoreboard] " +
+////                            "WHERE [_id] = ? GROUP BY [_id]" +
+////                            ") NATURAL LEFT JOIN (" +
+////                            "SELECT [_id]" +
+////                            ",SUM([Blue]) as [Blue]" +
+////                            ",SUM([Red]) as [Red]" +
+////                            ",SUM([Green]) as [Green]" +
+////                            ",SUM([Yellow]) as [Yellow]" +
+////                            ",SUM([Yellow]) as [Purple]" +
+////                            ",SUM([Yellow]) as [Orange]" +
+////
+////                            ", SUM([Other]) as [Other] " +
+////                            "FROM (" +
+////                            "SELECT [_id] " +
+////                            ",(CASE WHEN ([Sys] = 1 and Name = 'Blue') then 1 else 0 end) as [Blue]" +
+////                            ",(CASE WHEN ([Sys] = 1 AND Name = 'Red') then 1 else 0 end) as [Red]" +
+////                            ",(CASE WHEN ([Sys] = 1 AND Name = 'Green') then 1 else 0 end) as [Green]" +
+////                            ",(CASE WHEN ([Sys] = 1  AND Name = 'Yellow') then 1 else 0 end) as [Yellow]" +
+////                            ",(CASE WHEN ([Sys] = 1  AND Name = 'Purple') then 1 else 0 end) as [Purple]" +
+////                            ",(CASE WHEN ([Sys] = 1  AND Name = 'Orange') then 1 else 0 end) as [Orange]" +
+////                            ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
+////                            "FROM JFavorites " +
+////                            "WHERE [_id] = ?) as x Group by [_id]" +
+////
+////                            "))"
+////
+////                    "SELECT  x.[_id]" +
+////                            ",x.[Kanji]" +
+////                            ",(CASE WHEN x.[Furigana] is null  then '' else x.[Furigana] end) as [Furigana] " +
+////                            ",x.[Definition]" +
+////                            ",ifnull(y.[Total],0)" +
+////                            ",(CASE WHEN [Total] >0 THEN CAST(ifnull([Correct],0)  as float)/[Total] ELSE 0 END) as [Percent] " +
+////                            "FROM " +
+////                            "(" +
+////                            "SELECT [_id]" +
+////                            ",[Kanji]" +
+////                            ",[Furigana]" +
+////                            ",[Definition]  " +
+////                            "FROM [Edict] " +
+////                            "WHERE [_id] =  ? " +
+////                            ") as x " +
+////                            "LEFT JOIN " +
+////                            "(" +
+////                            "SELECT [_id]" +
+////                            ",sum([Correct]) as [Correct]" +
+////                            ",sum([Total]) as [Total]  " +
+////                            "FROM [JScoreboard] " +
+////                            "WHERE [_id] = ? " +
+////                            ") as y " +
+////                            "ON x.[_id] = y.[_id]"
+////                    , new String[]{String.valueOf(kanjiColor.getKanjiId()), String.valueOf(kanjiColor.getKanjiId())});
+//
+//
+//            if (c.moveToFirst()) {
+//                WordEntry wordEntry = new WordEntry(kanjiColor.getKanjiId()
+//                        ,c.getString(0)
+//                        , c.getString(1)
+//                        , c.getString(2)
+//                        , c.getInt(3)
+//                        , c.getFloat(4));
+//                wordEntry.setItemFavorites(new ItemFavorites(c.getInt(5)
+//                        ,c.getInt(6)
+//                        ,c.getInt(7)
+//                        ,c.getInt(8)
+//                        ,c.getInt(9)
+//                        ,c.getInt(10)
+//                        ,c.getInt(11)));
+//                convertedWordEntries.add(wordEntry);
+//            }
+//            c.close();
+//        }
+//            } catch (SQLiteException e) {
+//                Log.e(TAG,"convertTweetKanjiColorToWordEntry Sqlite exception: " + e);
+//            } finally {
+//                db.close();
+//            }
+//
+//        return convertedWordEntries;
+//        }
 
 
-            if (c.moveToFirst()) {
-                WordEntry wordEntry = new WordEntry(kanjiColor.getKanjiId()
-                        ,c.getString(0)
-                        , c.getString(1)
-                        , c.getString(2)
-                        , c.getInt(3)
-                        , c.getFloat(4));
-                wordEntry.setItemFavorites(new ItemFavorites(c.getInt(5)
-                        ,c.getInt(6)
-                        ,c.getInt(7)
-                        ,c.getInt(8)
-                        ,c.getInt(9)
-                        ,c.getInt(10)
-                        ,c.getInt(11)));
-                convertedWordEntries.add(wordEntry);
-            }
-            c.close();
-        }
-            } catch (SQLiteException e) {
-                Log.e(TAG,"convertTweetKanjiColorToWordEntry Sqlite exception: " + e);
-            } finally {
-                db.close();
-            }
-
-        return convertedWordEntries;
-        }
-
-
-    public Cursor getWordEntryForKanjiId(int kanjiId) {
+    public Cursor getWordEntryForKanjiId(int kanjiId, ColorThresholds colorThresholds) {
         return sInstance.getWritableDatabase().rawQuery("SELECT [Kanji]" +
-                ",(CASE WHEN (Furigana is null then '' else Furigana  end) as [Furigana]" +
+                ",(CASE WHEN Furigana is null then '' else Furigana  end) as [Furigana]" +
                 ",[Definition]" +
                 ",[Total]" +
                 ",[Percent]" +
-//                    ",(CASE WHEN [Total] < " + mColorThresholds.getGreyThreshold() + " THEN 1 WHEN [Percent] < " + mColorThresholds.getRedThreshold() + "  THEN 2 WHEN ([Percent] >= " + mColorThresholds.getRedThreshold() + " and [Percent] <  " + mColorThresholds.getYellowThreshold() + ") THEN 3 WHEN [Percent]>= " + mColorThresholds.getYellowThreshold() + " THEN 4 END) as [Color] " +
                 " ,[Blue]" +
                 " ,[Red] " +
                 " ,[Green] " +
@@ -1709,7 +1727,14 @@ public class InternalDB extends SQLiteOpenHelper {
                 " ,[Orange] " +
 
                 " ,[Other] " +
-                "FROM (" +
+//                                            ",(CASE WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 1 WHEN [Percent] < " + colorThresholds.getRedThreshold() + "  THEN 2 WHEN ([Percent] >= " + colorThresholds.getRedThreshold() + " and [Percent] <  " + colorThresholds.getYellowThreshold() + ") THEN 3 WHEN [Percent]>= " + colorThresholds.getYellowThreshold() + " THEN 4 END) as [Color] " +
+                        ",(CASE WHEN [Total] is NULL THEN 'Grey' " +
+                        "WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 'Grey' " +
+                        "WHEN CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 'Red' " +
+                        "WHEN CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + " THEN 'Yellow' " +
+                        "ELSE 'Green' END) as [Color]" +
+
+                        "FROM (" +
                 "SELECT [_id]" +
                 ",[Kanji]" +
                 ",[Furigana]" +
