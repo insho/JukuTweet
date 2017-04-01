@@ -130,6 +130,11 @@
 
 
 
+    <string-array name="menuoptions_flashcards">
+        <item>Kanji</item>
+        <item>Kana</item>
+        <item>Definition</item>
+    </string-array>
 
 
 

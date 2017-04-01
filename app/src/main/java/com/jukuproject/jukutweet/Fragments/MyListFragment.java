@@ -158,7 +158,7 @@ public class MyListFragment  extends Fragment{
                 switch (childOption) {
                     case "Flash Cards":
                         if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
-                            QuizMenuDialog.newInstance("flashcards",mMenuHeader.get(groupPosition).getMyListEntry(),mMenuHeader.get(groupPosition).getColorBlockMeasurables()).show(getActivity().getSupportFragmentManager(),"dialogAddMyList");
+                            QuizMenuDialog.newInstance("flashcards",mMenuHeader.get(groupPosition).getMyListEntry(),mMenuHeader.get(groupPosition).getColorBlockMeasurables(),getdimenscore()).show(getActivity().getSupportFragmentManager(),"dialogAddMyList");
                         }
 
                         break;
