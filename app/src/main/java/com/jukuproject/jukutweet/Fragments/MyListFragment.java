@@ -25,6 +25,7 @@ import com.jukuproject.jukutweet.Adapters.MyListExpandableAdapter;
 import com.jukuproject.jukutweet.BaseContainerFragment;
 import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
+import com.jukuproject.jukutweet.Dialogs.QuizMenuDialog;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
@@ -155,10 +156,12 @@ public class MyListFragment  extends Fragment{
 //                Toast.makeText(getActivity(), "Header: " + mMenuHeader.get(groupPosition).getHeaderTitle() + ", child: " + mMenuHeader.get(groupPosition).getChildOptions().get(childPosition), Toast.LENGTH_SHORT).show();
 
                 switch (childOption) {
-//                    case "Flash Cards":
-//                        MenuOptionsDialog a = new MenuOptionsDialog(getActivity(), 0, 0, "flashcards", true, Header, sys, mylistposition);
-//                        a.CreateDialog();
-//                        break;
+                    case "Flash Cards":
+                        if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
+                            QuizMenuDialog.newInstance("flashcards",mMenuHeader.get(groupPosition).getMyListEntry(),mMenuHeader.get(groupPosition).getColorBlockMeasurables()).show(getActivity().getSupportFragmentManager(),"dialogAddMyList");
+                        }
+
+                        break;
                     case "Browse/Edit":
                         MyListBrowseFragment fragment = MyListBrowseFragment.newInstance(new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).getSystemList()));
                         ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"mylistbrowse");
@@ -281,80 +284,80 @@ public class MyListFragment  extends Fragment{
         ColorThresholds colorThresholds = sharedPrefManager.getColorThresholds();
        ArrayList<String> childOptions = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.menu_mylist)));
 
-        Cursor c = db.rawQuery("SELECT xx.[Name]" +
-                ",xx.[Sys]" +
-                ",ifnull(yy.[Total],0) as [Total]" +
-                ",ifnull(yy.[Grey],0) as [Grey]" +
-                ",ifnull(yy.[Red],0) as [Red]" +
-                ",ifnull(yy.[Yellow],0) as [Yellow]" +
-                ",ifnull(yy.[Green],0) as [Green] " +
-                "" +
-                "FROM (" +
-                        "SELECT [Name]" +
-                        ",0 as [Sys] " +
-                        "From JFavoritesLists " +
-                    "UNION " +
-                        "SELECT 'Blue' as [Name]" +
-                                ", 1 as [Sys] " +
-                        "Union " +
-                        "SELECT 'Red' as [Name]" +
-                                ",1 as [Sys] " +
-                        "Union " +
-                        "SELECT 'Green' as [Name]" +
-                                ",1 as [Sys] " +
-                        "Union " +
-                        "SELECT 'Yellow' as [Name]" +
-                                ",1 as [Sys]" +
-                "Union " +
-                "SELECT 'Purple' as [Name]" +
-                ",1 as [Sys]" +
-                "Union " +
-                "SELECT 'Orange' as [Name]" +
-                ",1 as [Sys]" +
-                        ") as [xx] " +
-                "LEFT JOIN (" +
-                "SELECT  [Name]" +
-                        ",[Sys]" +
-                        ",SUM([Grey]) + SUM([Red]) + SUM([Yellow]) + SUM([Green]) as [Total]" +
-                        ",SUM([Grey]) as [Grey]" +
-                        ",SUM([Red]) as [Red]" +
-                        ",SUM([Yellow]) as [Yellow]" +
-                        ",SUM([Green]) as [Green] " +
-                        "FROM (" +
-                            "SELECT [Name]" +
-                                    ",[Sys]" +
-                                    ",[_id] " +
-                                    ",(CASE WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 1 ELSE 0 END) as [Grey] " +
-                                    ",(CASE WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] < " + colorThresholds.getRedThreshold() + "  THEN 1  ELSE 0 END) as [Red] " +
-                                    ",(CASE WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and ([Percent] >= " + colorThresholds.getRedThreshold() + "  and [Percent] <  " + colorThresholds.getYellowThreshold() + ") THEN 1  ELSE 0 END) as [Yellow] " +
-                                    ",(CASE WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] >= " + colorThresholds.getYellowThreshold() + " THEN 1 ELSE 0 END) as [Green] " +
-                                    "FROM  (" +
-                                        "SELECT a.[Name]" +
-                                                ",a.[Sys]" +
-                                                ",a.[_id]" +
-                                                ",ifnull(b.[Total],0) as [Total] " +
-                                                ",ifnull(b.[Correct],0)  as [Correct]" +
-                                                ",CAST(ifnull(b.[Correct],0)  as float)/b.[Total] as [Percent] " +
-                                                "FROM (" +
-                                                        "SELECT  DISTINCT [Name]" +
-                                                                        ",[Sys]" +
-                                                                        ",[_id] " +
-                                                        "FROM JFavorites" +
-                                                    ") as a " +
-                                                "LEFT JOIN  (" +
-                                                    "SELECT [_id]" +
-                                                            ",sum([Correct]) as [Correct]" +
-                                                            ",sum([Total]) as [Total] FROM [JScoreboard] " +
-                                                            "where [_id] in (SELECT DISTINCT [_id] FROM JFavorites)" +
-                                                    " GROUP BY [_id]" +
-                                                    ") as b " +
-                                        "ON a.[_id] = b.[_id]) " +
-                                    " as x) as y " +
-                            "GROUP BY [Name],[Sys]" +
-                    ") as yy  " +
-                "ON xx.[Name] = yy.[Name] and xx.[sys] = yy.[sys]  " +
-                "Order by xx.[Sys] Desc,xx.[Name]",null);
-
+//        Cursor c = db.rawQuery("SELECT xx.[Name]" +
+//                ",xx.[Sys]" +
+//                ",ifnull(yy.[Total],0) as [Total]" +
+//                ",ifnull(yy.[Grey],0) as [Grey]" +
+//                ",ifnull(yy.[Red],0) as [Red]" +
+//                ",ifnull(yy.[Yellow],0) as [Yellow]" +
+//                ",ifnull(yy.[Green],0) as [Green] " +
+//                "" +
+//                "FROM (" +
+//                        "SELECT [Name]" +
+//                        ",0 as [Sys] " +
+//                        "From JFavoritesLists " +
+//                    "UNION " +
+//                        "SELECT 'Blue' as [Name]" +
+//                                ", 1 as [Sys] " +
+//                        "Union " +
+//                        "SELECT 'Red' as [Name]" +
+//                                ",1 as [Sys] " +
+//                        "Union " +
+//                        "SELECT 'Green' as [Name]" +
+//                                ",1 as [Sys] " +
+//                        "Union " +
+//                        "SELECT 'Yellow' as [Name]" +
+//                                ",1 as [Sys]" +
+//                "Union " +
+//                "SELECT 'Purple' as [Name]" +
+//                ",1 as [Sys]" +
+//                "Union " +
+//                "SELECT 'Orange' as [Name]" +
+//                ",1 as [Sys]" +
+//                        ") as [xx] " +
+//                "LEFT JOIN (" +
+//                "SELECT  [Name]" +
+//                        ",[Sys]" +
+//                        ",SUM([Grey]) + SUM([Red]) + SUM([Yellow]) + SUM([Green]) as [Total]" +
+//                        ",SUM([Grey]) as [Grey]" +
+//                        ",SUM([Red]) as [Red]" +
+//                        ",SUM([Yellow]) as [Yellow]" +
+//                        ",SUM([Green]) as [Green] " +
+//                        "FROM (" +
+//                            "SELECT [Name]" +
+//                                    ",[Sys]" +
+//                                    ",[_id] " +
+//                                    ",(CASE WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 1 ELSE 0 END) as [Grey] " +
+//                                    ",(CASE WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] < " + colorThresholds.getRedThreshold() + "  THEN 1  ELSE 0 END) as [Red] " +
+//                                    ",(CASE WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and ([Percent] >= " + colorThresholds.getRedThreshold() + "  and [Percent] <  " + colorThresholds.getYellowThreshold() + ") THEN 1  ELSE 0 END) as [Yellow] " +
+//                                    ",(CASE WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] >= " + colorThresholds.getYellowThreshold() + " THEN 1 ELSE 0 END) as [Green] " +
+//                                    "FROM  (" +
+//                                        "SELECT a.[Name]" +
+//                                                ",a.[Sys]" +
+//                                                ",a.[_id]" +
+//                                                ",ifnull(b.[Total],0) as [Total] " +
+//                                                ",ifnull(b.[Correct],0)  as [Correct]" +
+//                                                ",CAST(ifnull(b.[Correct],0)  as float)/b.[Total] as [Percent] " +
+//                                                "FROM (" +
+//                                                        "SELECT  DISTINCT [Name]" +
+//                                                                        ",[Sys]" +
+//                                                                        ",[_id] " +
+//                                                        "FROM JFavorites" +
+//                                                    ") as a " +
+//                                                "LEFT JOIN  (" +
+//                                                    "SELECT [_id]" +
+//                                                            ",sum([Correct]) as [Correct]" +
+//                                                            ",sum([Total]) as [Total] FROM [JScoreboard] " +
+//                                                            "where [_id] in (SELECT DISTINCT [_id] FROM JFavorites)" +
+//                                                    " GROUP BY [_id]" +
+//                                                    ") as b " +
+//                                        "ON a.[_id] = b.[_id]) " +
+//                                    " as x) as y " +
+//                            "GROUP BY [Name],[Sys]" +
+//                    ") as yy  " +
+//                "ON xx.[Name] = yy.[Name] and xx.[sys] = yy.[sys]  " +
+//                "Order by xx.[Sys] Desc,xx.[Name]",null);
+        Cursor c = InternalDB.getInstance(getContext()).getMyListColorBlockCursor(colorThresholds,null);
         c.moveToFirst();
         if(c.getCount()>0) {
             while (!c.isAfterLast()) {
@@ -371,6 +374,7 @@ public class MyListFragment  extends Fragment{
                     menuHeader.setChildOptions(childOptions);
                     menuHeader.setMyList(true);
 
+                    menuHeader.setMyListEntry(new MyListEntry(c.getString(0),c.getInt(1)));
                     if(c.getInt(1) == 1 ) {
                         if(BuildConfig.DEBUG){Log.d(TAG,c.getString(0) + " sys ==1 so adding to starlist");}
                         menuHeader.setSystemList(true);

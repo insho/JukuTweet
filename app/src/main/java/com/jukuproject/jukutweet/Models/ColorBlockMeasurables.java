@@ -1,15 +1,25 @@
 package com.jukuproject.jukutweet.Models;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 /**
  * Created by JClassic on 3/23/2017.
  */
 
-public class ColorBlockMeasurables {
+public class ColorBlockMeasurables implements Parcelable {
 
     private int greyCount;
     private int redCount;
     private int yellowCount;
     private int greenCount;
+    private int emptyCount;
+    private Integer greyMinWidth;
+    private Integer redMinWidth;
+    private Integer yellowMinWidth;
+    private Integer greenMinWidth;
+    private Integer emptyMinWidth;
+
 
     public int getEmptyCount() {
         return emptyCount;
@@ -28,13 +38,6 @@ public class ColorBlockMeasurables {
         this.emptyCount = emptyCount;
     }
 
-    private int emptyCount;
-
-    private Integer greyMinWidth;
-    private Integer redMinWidth;
-    private Integer yellowMinWidth;
-    private Integer greenMinWidth;
-    private Integer emptyMinWidth;
 
     public ColorBlockMeasurables() {}
 //
@@ -237,4 +240,53 @@ public class ColorBlockMeasurables {
 //
 //        return dimenscore;
 //    }
+
+
+
+    // Parcelling part
+    public ColorBlockMeasurables(Parcel in){
+
+        this.greyCount = in.readInt();
+        this.redCount = in.readInt();
+        this.yellowCount = in.readInt();
+        this.greenCount = in.readInt();
+        this.emptyCount = in.readInt();
+        this.greyMinWidth = in.readInt();
+        this.redMinWidth = in.readInt();
+        this.yellowMinWidth = in.readInt();
+        this.greenMinWidth = in.readInt();
+        this.emptyMinWidth = in.readInt();
+
+
+    }
+
+    public int describeContents(){
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+
+        dest.writeInt(greyCount);
+        dest.writeInt(redCount);
+        dest.writeInt(yellowCount);
+        dest.writeInt(greenCount);
+        dest.writeInt(emptyCount);
+        dest.writeInt(greyMinWidth);
+        dest.writeInt(redMinWidth);
+        dest.writeInt(yellowMinWidth);
+        dest.writeInt(greenMinWidth);
+        dest.writeInt(emptyMinWidth);
+
+    }
+
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+        public ColorBlockMeasurables createFromParcel(Parcel in) {
+            return new ColorBlockMeasurables(in);
+        }
+
+        public ColorBlockMeasurables[] newArray(int size) {
+            return new ColorBlockMeasurables[size];
+        }
+    };
 }

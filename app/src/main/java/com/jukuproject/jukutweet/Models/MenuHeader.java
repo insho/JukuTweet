@@ -15,6 +15,17 @@ public class MenuHeader {
     private Boolean showLblHeaderCount;
     private Boolean myList;
     private Boolean systemList;
+
+    public MyListEntry getMyListEntry() {
+        return myListEntry;
+    }
+
+    public void setMyListEntry(MyListEntry myListEntry) {
+        this.myListEntry = myListEntry;
+    }
+
+    private MyListEntry myListEntry;
+
     private Boolean colorList;
     private Boolean isExpanded;
 
@@ -37,6 +48,7 @@ public class MenuHeader {
         this.systemList = false;
         this.colorList = false;
         this.isExpanded = false;
+
     }
 
     public ColorBlockMeasurables getColorBlockMeasurables() {

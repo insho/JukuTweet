@@ -1,5 +1,8 @@
 package com.jukuproject.jukutweet.Models;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.ArrayList;
 
 /**
@@ -7,7 +10,44 @@ import java.util.ArrayList;
  * Tracks which favorites lists contain a given {@link WordEntry} OR {@link Tweet}
  */
 
-public class ItemFavorites {
+public class ItemFavorites implements Parcelable {
+
+    private int systemBlueCount;
+    private int systemRedCount;
+    private int systemGreenCount;
+    private int systemYellowCount;
+    private int systemPurpleCount;
+    private int systemOrangeCount;
+    private int userListCount;
+
+    //TODO explain this, we can't include inactive favorites so set them to 0...
+    public ItemFavorites(int systemBlueCount
+            , int systemRedCount
+            , int systemGreenCount
+            , int systemYellowCount
+            , int systemPurpleCount
+            , int systemOrangeCount
+            , int userListCount) {
+        this.systemBlueCount = systemBlueCount;
+        this.systemRedCount = systemRedCount;
+        this.systemGreenCount = systemGreenCount;
+        this.systemYellowCount = systemYellowCount;
+        this.systemPurpleCount = systemPurpleCount;
+        this.systemOrangeCount = systemOrangeCount;
+        this.userListCount = userListCount;
+    }
+
+    public ItemFavorites() {
+        this.systemBlueCount = 0;
+        this.systemRedCount = 0;
+        this.systemYellowCount = 0;
+        this.systemGreenCount = 0;
+        this.systemPurpleCount = 0;
+        this.systemOrangeCount = 0;
+
+        this.userListCount = 0;
+
+    }
 
     public int getSystemBlueCount() {
         if(systemBlueCount>0) {
@@ -63,13 +103,6 @@ public class ItemFavorites {
         this.systemGreenCount = systemGreenCount;
     }
 
-    public int getUserListCount() {
-        return userListCount;
-    }
-
-    public void setUserListCount(int userListCount) {
-        this.userListCount = userListCount;
-    }
 
     public void addToUserListCount(int addition) {
         this.userListCount += addition;
@@ -78,11 +111,7 @@ public class ItemFavorites {
         this.userListCount -= subtraction;
     }
 
-    private int systemBlueCount;
-    private int systemRedCount;
-    private int systemYellowCount;
-    private int systemGreenCount;
-    private int systemPurpleCount;
+
 
     public int getSystemOrangeCount() {
         return systemOrangeCount;
@@ -100,41 +129,13 @@ public class ItemFavorites {
         this.systemPurpleCount = systemPurpleCount;
     }
 
-    private int systemOrangeCount;
-
-    private int userListCount;
 
 
-    //TODO explain this, we can't include inactive favorites so set them to 0...
-    public ItemFavorites(int systemBlueCount
-            , int systemRedCount
-            , int systemGreenCount
-            , int systemYellowCount
-            , int systemPurpleCount
-            , int systemOrangeCount
-            , int userListCount) {
-            this.systemBlueCount = systemBlueCount;
-            this.systemRedCount = systemRedCount;
-            this.systemGreenCount = systemGreenCount;
-            this.systemYellowCount = systemYellowCount;
-            this.systemPurpleCount = systemPurpleCount;
-            this.systemOrangeCount = systemOrangeCount;
-
-            this.userListCount = userListCount;
-    }
 
 
-    public ItemFavorites() {
-        this.systemBlueCount = 0;
-        this.systemRedCount = 0;
-        this.systemYellowCount = 0;
-        this.systemGreenCount = 0;
-        this.systemPurpleCount = 0;
-        this.systemOrangeCount = 0;
 
-        this.userListCount = 0;
 
-    }
+
 
     /**
      * Determines whether, on a favorites star being clicked, the star should toggle
@@ -260,6 +261,44 @@ public class ItemFavorites {
                 break;
         }
     }
+
+
+
+    private ItemFavorites(Parcel in) {
+
+        systemBlueCount = in.readInt();
+        systemRedCount = in.readInt();
+        systemGreenCount = in.readInt();
+        systemYellowCount = in.readInt();
+        systemPurpleCount = in.readInt();
+        systemOrangeCount = in.readInt();
+        userListCount = in.readInt();
+
+    }
+
+    public void writeToParcel(Parcel out, int flags) {
+        out.writeInt(systemBlueCount);
+        out.writeInt(systemRedCount);
+        out.writeInt(systemGreenCount);
+        out.writeInt(systemYellowCount);
+        out.writeInt(systemPurpleCount);
+        out.writeInt(systemOrangeCount);
+        out.writeInt(userListCount);
+    }
+
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Parcelable.Creator<ItemFavorites> CREATOR = new Parcelable.Creator<ItemFavorites>() {
+        public ItemFavorites createFromParcel(Parcel in) {
+            return new ItemFavorites(in);
+        }
+
+        public ItemFavorites[] newArray(int size) {
+            return new ItemFavorites[size];
+        }
+    };
 
 
 }

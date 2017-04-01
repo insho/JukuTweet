@@ -18,6 +18,8 @@ public class WordEntry implements Parcelable {
 
     //Used when positioning a word in a broken-up sentence, and coloring it
     private String color;
+    private int startIndex;
+    private int endIndex;
 
     public String getColor() {
         return color;
@@ -31,8 +33,6 @@ public class WordEntry implements Parcelable {
         return endIndex;
     }
 
-    private int startIndex;
-    private int endIndex;
 
     public ItemFavorites getItemFavorites() {
         return itemFavorites;
@@ -207,6 +207,24 @@ public class WordEntry implements Parcelable {
         return stringBuilder.toString();
     }
 
+
+    public int getColorValue() {
+        if(color == null) {
+            return android.R.color.black;
+        } else if(color.equals("Grey")){
+            return R.color.colorJukuGrey;
+        }  else if(color.equals("Red")){
+            return R.color.colorJukuRed;
+        }  else if(color.equals("Yellow")){
+            return R.color.colorJukuGrey;
+        }  else if(color.equals("Green")){
+            return R.color.colorJukuYellow;
+        } else {
+            return android.R.color.black;
+        }
+
+    }
+
     private WordEntry(Parcel in) {
         id = in.readInt();
         kanji = in.readString();
@@ -214,6 +232,10 @@ public class WordEntry implements Parcelable {
         definition = in.readString();
         percentage = in.readFloat();
         total = in.readInt();
+        color = in.readString();
+        startIndex = in.readInt();
+        endIndex = in.readInt();
+        itemFavorites = (ItemFavorites) in.readParcelable(ItemFavorites.class.getClassLoader());
     }
 
     public void writeToParcel(Parcel out, int flags) {
@@ -223,6 +245,11 @@ public class WordEntry implements Parcelable {
         out.writeString(definition);
         out.writeFloat(percentage);
         out.writeInt(total);
+        out.writeString(color);
+        out.writeInt(startIndex);
+        out.writeInt(endIndex);
+        out.writeParcelable(itemFavorites,flags);
+
     }
 
     public int describeContents() {
@@ -242,20 +269,5 @@ public class WordEntry implements Parcelable {
 
 
 
-    public int getColorValue() {
-        if(color == null) {
-            return android.R.color.black;
-        } else if(color.equals("Grey")){
-            return R.color.colorJukuGrey;
-        }  else if(color.equals("Red")){
-            return R.color.colorJukuRed;
-        }  else if(color.equals("Yellow")){
-            return R.color.colorJukuGrey;
-        }  else if(color.equals("Green")){
-            return R.color.colorJukuYellow;
-        } else {
-            return android.R.color.black;
-        }
 
-    }
 }

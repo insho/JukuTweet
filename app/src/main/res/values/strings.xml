@@ -114,8 +114,55 @@
         <item>ariyoshihiroiki</item>
         <item>hajimesyacho</item>
         <item>Starbucks_J</item>
-
-
     </string-array>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <string-array name="stringarray_optionsquiztype">
+        <item>Kanji to English</item>
+        <item>Kanji to Furigana</item>
+        <item>Furigana to Kanji</item>
+        <item>English to Kanji</item>
+    </string-array>
+
+
+    <string-array name="stringarray_optionsbatchsize">
+        <item>3</item>
+        <item>10</item>
+        <item>15</item>
+        <item>20</item>
+        <item>25</item>
+        <item>30</item>
+        <item>35</item>
+        <item>40</item>
+        <item>45</item>
+        <item>50</item>
+    </string-array>
+
+    <string name="menuoptionskanjitodef">Kanji to Definition</string>
+    <string name="menuoptionskanjitokana">Kanji to Kana</string>
+    <string name="menuoptionskanji">Kanji</string>
+    <string name="menuoptionsdefinition">Definition</string>
+    <string name="menuoptionsnone">None</string>
+    <string name="menuoptionsten">10</string>
+    <string name="menuoptionssixty">60</string>
+    <string name="menuoptionswordbuildertype">Repeating</string>
 
 </resources>
