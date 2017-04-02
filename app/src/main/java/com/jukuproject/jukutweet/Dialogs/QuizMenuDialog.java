@@ -9,20 +9,16 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.CompoundButton;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import com.jukuproject.jukutweet.Adapters.MenuDropDownColorsPopupAdapter;
 import com.jukuproject.jukutweet.Adapters.MenuDropDownPopupAdapter;
 import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
@@ -37,8 +33,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import rx.functions.Action1;
-
-import static com.jukuproject.jukutweet.Adapters.CopyMyListItemsAdapter.setAppCompatCheckBoxColors;
 
 
 
@@ -68,7 +62,7 @@ public class QuizMenuDialog extends DialogFragment {
 //    private String sizeArray[];  //Array of quiz sizes
 //    private String timerArray[];
 
-    private PopupWindow popupWindowColors;
+//    private PopupWindow popupWindowColors;
 
     private TextView textViewColorBlock_grey;
     private TextView textViewColorBlock_red;
@@ -83,8 +77,8 @@ public class QuizMenuDialog extends DialogFragment {
 //    private String btn3Value;
 
     //Final Items passed on to quiz activity
-    private List<Integer> extra_blocknumbers = new ArrayList<Integer>();  //This one holds the sql data we pull about each block
-    private  ArrayList<Integer> checkedlist = new ArrayList<Integer>();
+//    private List<Integer> extra_blocknumbers = new ArrayList<Integer>();  //This one holds the sql data we pull about each block
+//    private  ArrayList<Integer> checkedlist = new ArrayList<Integer>();
 
     private static boolean debug = false;
 
@@ -166,88 +160,11 @@ public class QuizMenuDialog extends DialogFragment {
         layout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                popupWindowColors.showAsDropDown(v, -yadjustment, 0);
+                popupWindowColors().showAsDropDown(v, -yadjustment, 0);
             }
         });
-
-        //Set up spinner TextViews
-//        TextView buttonShowDropDown_Type = (TextView) view.findViewById(R.id.listitem_type_spinnerstyle);
-//        TextView buttonShowDropDown = (TextView) view.findViewById(R.id.listitem_size_spinnerstyle);
-//        TextView buttonShowDropDown_Timer = (TextView) view.findViewById(R.id.listitem_timer_spinnerstyle);
 //
-//        TextView textdescType = (TextView) view.findViewById(R.id.optionspopupTextType);
-//        TextView textdescSize = (TextView) view.findViewById(R.id.optionspopupTextSize);
-//        TextView textdescTimer = (TextView)view.findViewById(R.id.optionspopupTextTimer);
 //
-//        if(quizType.equalsIgnoreCase("flashcards")) {
-//            buttonShowDropDown_Type.setText(getActivity().getString(R.string.menuoptionskanji));
-//            buttonShowDropDown_Type.setTag(1);
-//
-//            buttonShowDropDown_Size.setText(getActivity().getString(R.string.menuoptionsdefinition));
-//            buttonShowDropDown_Size.setTag(4);
-//
-//            String front = "Front: ";
-//            String back = "Back: ";
-//            textdescType.setText(front);
-//            textdescSize.setText(back);
-//
-//            textdescTimer.setVisibility(TextView.GONE);
-//            buttonShowDropDown_Timer.setVisibility(View.GONE);
-//
-//        }
-//        else if (quizType.equalsIgnoreCase("fillinsentences")){
-//            buttonShowDropDown_Type.setVisibility(TextView.GONE);
-//            textdescType.setVisibility(TextView.GONE);
-//
-//            buttonShowDropDown_Size.setText(getActivity().getString(R.string.menuoptionsten));
-//            buttonShowDropDown_Size.setTag(10);
-//
-//            textdescTimer.setVisibility(TextView.GONE);
-//            buttonShowDropDown_Timer.setVisibility(View.GONE);
-//
-//        } else if(quizType.equalsIgnoreCase("wordbuilder")) {
-//            buttonShowDropDown_Type.setText(getActivity().getString(R.string.menuoptionswordbuildertype));
-//            buttonShowDropDown_Type.setTag(0);
-//
-//            textdescSize.setVisibility(View.GONE);
-//            buttonShowDropDown_Size.setVisibility(View.GONE);
-//
-//            textdescTimer.setVisibility(TextView.VISIBLE);
-//            buttonShowDropDown_Timer.setVisibility(View.VISIBLE);
-//
-//            buttonShowDropDown_Timer.setText(getActivity().getString(R.string.menuoptionssixty));
-//            buttonShowDropDown_Timer.setTag(60);
-//        } else if(quizType.equalsIgnoreCase("wordmatch")) {
-//            buttonShowDropDown_Type.setText(getActivity().getString(R.string.menuoptionskanjitokana));
-//            buttonShowDropDown_Type.setTag(1);
-//
-//            buttonShowDropDown_Size.setText(getActivity().getString(R.string.menuoptionsten));
-//            buttonShowDropDown_Size.setTag(10);
-//
-//            textdescTimer.setVisibility(TextView.VISIBLE);
-//            buttonShowDropDown_Timer.setVisibility(View.VISIBLE);
-//
-//            buttonShowDropDown_Timer.setText(getActivity().getString(R.string.menuoptionsnone));
-//            buttonShowDropDown_Timer.setTag(0);
-//
-//        } else {
-//            buttonShowDropDown_Type.setText(getActivity().getString(R.string.menuoptionskanjitodef));
-//            buttonShowDropDown_Type.setTag(0);
-//
-//            buttonShowDropDown_Size.setText(getActivity().getString(R.string.menuoptionsten));
-//            buttonShowDropDown_Size.setTag(10);
-//
-//            textdescTimer.setVisibility(TextView.VISIBLE);
-//            buttonShowDropDown_Timer.setVisibility(View.VISIBLE);
-//
-//            buttonShowDropDown_Timer.setText(getActivity().getString(R.string.menuoptionsnone));
-//            buttonShowDropDown_Timer.setTag(0);
-//
-//        }
-
-
-
-
 
         //Set up the colorblocks
         textViewColorBlock_grey = (TextView) view.findViewById(R.id.listitem_colors_1);
@@ -262,6 +179,12 @@ public class QuizMenuDialog extends DialogFragment {
                     ,textViewColorBlock_red
                     ,textViewColorBlock_yellow
                     ,textViewColorBlock_green);
+
+            mColorBlockMeasurables.setInitialSelectedColors();
+            //After setting up the blocks, decide whether each block will be visible or not
+            for(DropDownMenuOption option : mColorBlockMeasurables.getDropDownOptions()) {
+                setColorBlockVisibility(option);
+            }
 
         } else {
 
@@ -278,108 +201,23 @@ public class QuizMenuDialog extends DialogFragment {
 
 
 
-
+//        List<String> colorsList = new ArrayList<String>();
+//        colorsList.add("Grey::1");
+//        colorsList.add("Red::2");
+//        colorsList.add("Yellow::3");
+//        colorsList.add("Green::4");
 //
-//        if(quizType.equalsIgnoreCase("flashcards")) {
-//            typeslist.add("Kanji::1");
-//            typeslist.add("Kana::5");
-//            typeslist.add("Definition::4");
-//            sizelist.add("Kanji::1");
-//            sizelist.add("Kana::5");
-//            sizelist.add("Definition::4");
-//
-//        } else if(quizType.equalsIgnoreCase("fillinsentences")) {
-//
-//            sizelist.add("5::5");
-//            sizelist.add("10::10");
-//            sizelist.add("15::15");
-//            sizelist.add("20::20");
-//            sizelist.add("25::25");
-//            sizelist.add("30::30");
-//            sizelist.add("40::40");
-//            sizelist.add("50::50");
-//
-//        } else if(quizType.equalsIgnoreCase("wordbuilder")) {
-//
-//            typeslist.add("Repeating::0");
-//            typeslist.add("Straight::1");
-//
-//            timerlist.add("None::0");
-//            timerlist.add("30 Seconds::30");
-//            timerlist.add("60 Seconds::60");
-//            timerlist.add("90 Seconds::90");
-//            timerlist.add("120 Seconds::120");
-//            timerlist.add("180 Seconds::180");
-//            timerlist.add("240 Seconds::240");
-//            timerlist.add("300 Seconds::300");
-//
-//
-//        } else {
-//            if(!quizType.equalsIgnoreCase("wordmatch")) {
-//                typeslist.add("Kanji to Definition::0");
-//            }
-//            typeslist.add("Kanji to Kana::1");
-//            typeslist.add("Kana to Kanji::2");
-//            typeslist.add("Definition to Kanji::3");
-//
-//            sizelist.add("5::5");
-//            sizelist.add("10::10");
-//            sizelist.add("15::15");
-//            sizelist.add("20::20");
-//            sizelist.add("25::25");
-//            sizelist.add("30::30");
-//            sizelist.add("40::40");
-//            sizelist.add("50::50");
-//
-//
-//            timerlist.add("None::0");
-//            timerlist.add("5 Seconds::5");
-//            timerlist.add("6 Seconds::6");
-//            timerlist.add("7 Seconds::7");
-//            timerlist.add("8 Seconds::8");
-//            timerlist.add("9 Seconds::9");
-//            timerlist.add("10 Seconds::10");
-//            timerlist.add("15 Seconds::15");
-//            timerlist.add("20 Seconds::20");
-//        }
-
-        List<String> colorsList = new ArrayList<String>();
-        colorsList.add("Grey::1");
-        colorsList.add("Red::2");
-        colorsList.add("Yellow::3");
-        colorsList.add("Green::4");
-
-        // convert to simple array
-        colorsArray = new String[colorsList.size()];
-        colorsList.toArray(colorsArray);
-
-//        typesArray = new String[typeslist.size()];
-//        typeslist.toArray(typesArray);
-//
-//        sizeArray = new String[sizelist.size()];
-//        sizelist.toArray(sizeArray);
-//
-//        timerArray = new String[timerlist.size()];
-//        timerlist.toArray(timerArray);
+//        // convert to simple array
+//        colorsArray = new String[colorsList.size()];
+//        colorsList.toArray(colorsArray);
 
         // initialize pop up window
-        popupWindowColors = popupWindowColors();
+//        popupWindowColors = popupWindowColors();
 
         builder.setView(view);
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-//                if(destination.equalsIgnoreCase("flashcards")) {
-//                    sendMessage_FlashCards(level, block, Integer.parseInt(buttonShowDropDown_Type.getTag().toString()), Integer.parseInt(buttonShowDropDown_Size.getTag().toString()), mylists, listname, sys);
-//                } else if(destination.equalsIgnoreCase("fillinsentences")) {
-//                    sendMessage_FillInSentences(level, block, Integer.parseInt(buttonShowDropDown_Size.getTag().toString()),mylists, listname,sys);
-//                } else if(destination.equalsIgnoreCase("wordbuilder")) {
-//                    sendMessage_WordBuilder(level, block, 0, Integer.parseInt(buttonShowDropDown_Type.getTag().toString()), mylists, listname, sys, Integer.parseInt(buttonShowDropDown_Timer.getTag().toString()), mylistposition);
-//                } else if(destination.equalsIgnoreCase("wordmatch")) {
-//                    sendMessage_WordMatch(level, block, Integer.parseInt(buttonShowDropDown_Size.getTag().toString()), Integer.parseInt(buttonShowDropDown_Type.getTag().toString()), mylists, listname, sys, Integer.parseInt(buttonShowDropDown_Timer.getTag().toString()), mylistposition);
-//                }  else {
-//                    sendMessage_MultChoice(level, block, Integer.parseInt(buttonShowDropDown_Size.getTag().toString()), Integer.parseInt(buttonShowDropDown_Type.getTag().toString()),mylists, listname,sys,Integer.parseInt(buttonShowDropDown_Timer.getTag().toString()),mylistposition);
-//                }
 
             }
         });
@@ -392,8 +230,6 @@ public class QuizMenuDialog extends DialogFragment {
         });
         Dialog d = builder.show();
 
-//        db.close();
-//        helper.close();
         return d ;
     }
 
@@ -416,7 +252,6 @@ public class QuizMenuDialog extends DialogFragment {
                             switch (chosenOption.getButtonNumber()) {
                                 case 1:
                                     txtView1.setText(chosenOption.getChosenOption());
-
                                     break;
                                 case 2:
                                     txtView2.setText(chosenOption.getChosenOption());
@@ -432,58 +267,7 @@ public class QuizMenuDialog extends DialogFragment {
 
                 });
         recyclerView.setAdapter(adapter);
-//
-//        switch(buttonNumber) {
-//            case 1:
-//                mRxBus.toClickObserverable()
-//                        .subscribe(new Action1<Object>() {
-//                            @Override
-//                            public void call(Object event) {
-//                                if(event instanceof String) {
-//                                    String chosenOption = (String) event;
-//                                    txtView1.setText(chosenOption);
-//                                }
-//
-//                            }
-//
-//                        });
-//                recyclerView.setAdapter(adapter);
-//
-//                break;
-//            case 2:
-//                mRxBus.toClickObserverable()
-//                        .subscribe(new Action1<Object>() {
-//                            @Override
-//                            public void call(Object event) {
-//                                if(event instanceof String) {
-//                                    String chosenOption = (String) event;
-//                                    txtView2.setText(chosenOption);
-//                                }
-//
-//                            }
-//
-//                        });
-//                recyclerView.setAdapter(adapter);
-//
-//                break;
-//            case 3:
-//                mRxBus.toClickObserverable()
-//                        .subscribe(new Action1<Object>() {
-//                            @Override
-//                            public void call(Object event) {
-//                                if(event instanceof String) {
-//                                    String chosenOption = (String) event;
-//                                    txtView3.setText(chosenOption);
-//                                }
-//
-//                            }
-//
-//                        });
-//                recyclerView.setAdapter(adapter);
-//
-//                break;
-//
-//        }
+
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         popupWindow.setContentView(recyclerView);
@@ -495,347 +279,272 @@ public class QuizMenuDialog extends DialogFragment {
 
         return popupWindow;
     }
+
+
+//    private PopupWindow popupWindowColors() {
 //
-//    public class DropDownAdapter extends ArrayAdapter<String> {
+//        PopupWindow popupWindow = new PopupWindow(getActivity());
 //
-//        RxBus mRxBus;
+//        ListView listViewColors = new ListView(getActivity());
+//        listViewColors.setAdapter(listadapter_colors(colorsArray, extra_blocknumbers));
 //
-//        public DropDownAdapter(RxBus rxBus) {
-//            this.mRxBus = rxBus;
-//        }
-//
-//        @Override
-//        public View getView(int position, View convertView, ViewGroup parent) {
-//
-//            // ...
-//
-//            // Lookup view for data population
-//
-//            Button btButton = (Button) convertView.findViewById(R.id.btButton);
-//
-//            // Cache row position inside the button using `setTag`
-//
-//            btButton.setTag(position);
-//
-//            // Attach the click event handler
-//
-//            btButton.setOnClickListener(new View.OnClickListener() {
-//
-//                @Override
-//
-//                public void onClick(View view) {
-//
-//                    int position = (Integer) view.getTag();
-//
-//                    // Access the row position here to get the correct data item
-//
-//                    User user = getItem(position);
-//
-//                    // Do what you want here...
-//
-//                }
-//
-//            });
-//
-//            // ... other view population as needed...
-//
-//            // Return the completed view
-//
-//            return convertView;
-//
-//        }
-//
+//        popupWindow.setFocusable(true);
+//        popupWindow.setWidth(mAvailablePopupWidth);
+//        popupWindow.setClippingEnabled(false);
+//        popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+//        popupWindow.setContentView(listViewColors);
+//        popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.popup_drawable));
+//        return popupWindow;
 //    }
 
     private PopupWindow popupWindowColors() {
 
-        PopupWindow popupWindow = new PopupWindow(getActivity());
+        final PopupWindow popupWindow = new PopupWindow(getActivity());
+        popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.popup_drawable));
 
-        ListView listViewColors = new ListView(getActivity());
-        listViewColors.setAdapter(listadapter_colors(colorsArray, extra_blocknumbers));
+        RecyclerView recyclerView = new RecyclerView(getContext());
+//        String[] optionsStringArray = getResources().getStringArray(R.array.menuoptions_flashcards);
+//        ArrayList<String> optionsArray = new ArrayList<String>(Arrays.asList(optionsStringArray));
+        MenuDropDownColorsPopupAdapter adapter = new MenuDropDownColorsPopupAdapter(getContext(),mColorBlockMeasurables.getDropDownOptions(),mRxBus);
 
+        mRxBus.toClickObserverable()
+                .subscribe(new Action1<Object>() {
+                    @Override
+                    public void call(Object event) {
+                        if(event instanceof DropDownMenuOption) {
+                            DropDownMenuOption chosenOption = (DropDownMenuOption) event;
+                            if(chosenOption.getButtonNumber() == 5) {
+                                if(chosenOption.isColorSelected()) {
+                                    mColorBlockMeasurables. updateSelectedColorsAdd(chosenOption.getChosenOption());
+                                } else {
+                                    mColorBlockMeasurables. updateSelectedColorsRemove(chosenOption.getChosenOption());
+                                }
+                                setColorBlockVisibility(chosenOption);
+                            }
+
+                        }
+                        popupWindow.dismiss();
+                    }
+
+                });
+        recyclerView.setAdapter(adapter);
+
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        popupWindow.setContentView(recyclerView);
         popupWindow.setFocusable(true);
         popupWindow.setWidth(mAvailablePopupWidth);
         popupWindow.setClippingEnabled(false);
         popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-        popupWindow.setContentView(listViewColors);
-        popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.popup_drawable));
+
+
         return popupWindow;
     }
 
-
+//    private ArrayAdapter<String> listadapter_colors(String colorArray[], final List<Integer> blocknumbers) {
 //
-////    private ArrayAdapter<String> testAdapter = new ArrayAdapter<String>()
-//    //TODO SPLIT OUT??
-//    private ArrayAdapter<String> listadapter_dropdown(String Array[], String buttonNumber) {
+//        return new ArrayAdapter<String>(getActivity(), R.layout.dialogmenu_spinneritem, colorArray) {
 //
-////        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), R.layout.dialogmenu_spinneritem, Array) {
-//        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, Array) {
 //
 //            @Override
 //            public View getView(final int position, View convertView, ViewGroup parent) {
 //
 //                // setting the ID and text for every items in the list
-////                String item = getItem(position);
-//                TextView txt1 = (TextView) convertView.findViewById(android.R.id.text1);
-//                txt1.setText(getItem(position));
-////                txt1.setOnClickListener(new View.OnClickListener() {
-////                    @Override
-////                    public void onClick(View v) {
-////
-////                    }
-////                });
-//                txt1.setClickable(false);
-//                convertView.setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        switch (btnNumber) {
-//                            case 1:
-//                                break;
-//                            case 2:
-//                                break;
-//                            case 3:
-//                                break;
-//                            asdf
-//                        }
-//                    }
-//                });
+//                String item = getItem(position);
+//                String[] itemArr = item.split("::");
+//                String text = itemArr[0];
+//                final String id = itemArr[1];
+//
 //                LinearLayout layout = new LinearLayout(getContext());
 //                layout.setOrientation(LinearLayout.HORIZONTAL);
-//                layout.setLayoutParams(new AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT, AbsListView.LayoutParams.MATCH_PARENT));
-//                layout.getLayoutParams().height = (int) (35.0f * scale + 0.5f);
-//                TextView textView = new TextView(getActivity());
-////                textView.setId(R.id.listdropdown_insidelayout_textview);
-//                textView.setText(text);
-//                textView.setTag(id);
-//                textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
-////                textView.setPadding(msmallleftpadding, msmallmarginpadding, msmallmarginpadding, msmallmarginpadding);
-//                textView.setTextColor(ContextCompat.getColor(getContext(), android.R.color.black));
 //
+//                final AppCompatCheckBox checkbox = new AppCompatCheckBox(getActivity());
+//                final TextView textView = new TextView(getActivity());
+//                final Drawable drawable = ContextCompat.getDrawable(getActivity(), R.drawable.colorblock);
+//
+//                String grey = "";
+//                String red = "";
+//                String yellow = "";
+//                String green = "";
+//
+//                if (blocknumbers.size() > 0) {
+//                    //count = String.valueOf(blocknumbers.get(0));
+//                    red = String.valueOf(blocknumbers.get(2));
+//                    yellow = String.valueOf(blocknumbers.get(3));
+//                    green = String.valueOf(blocknumbers.get(4));
+//
+//                    //Basically if all colors are 0, it means user hasn't done this block, so "Grey" == "total count of block"
+//                    if (blocknumbers.get(2) + blocknumbers.get(3) + blocknumbers.get(4) == 0) {
+//                        grey = String.valueOf(blocknumbers.get(0));
+//                    } else {
+//                        grey = String.valueOf(blocknumbers.get(1));
+//                    }
+//                }
+//
+//
+//                if (checkedlist.get(position) >= 1) {
+//                    checkbox.setChecked(true);
+//                } else {
+//                    checkbox.setChecked(false);
+//                }
+//
+//                switch (text) {
+//                    case "Grey":
+//                        drawable.setColorFilter(ContextCompat.getColor(getActivity(), R.color.colorJukuGrey), PorterDuff.Mode.MULTIPLY);
+//                        textView.setText(grey);
+//                        break;
+//                    case "Red":
+//                        drawable.setColorFilter(ContextCompat.getColor(getActivity(), R.color.colorJukuRed), PorterDuff.Mode.MULTIPLY);
+//                        textView.setText(red);
+//                        break;
+//                    case "Yellow":
+//                        drawable.setColorFilter(ContextCompat.getColor(getActivity(), R.color.colorJukuYellow), PorterDuff.Mode.MULTIPLY);
+//                        textView.setText(yellow);
+//                        break;
+//                    case "Green":
+//                        drawable.setColorFilter(ContextCompat.getColor(getActivity(), R.color.colorJukuGreen), PorterDuff.Mode.MULTIPLY);
+//                        textView.setText(green);
+//                        break;
+//                }
+//
+//
+//                if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+//                    textView.setBackground(drawable);
+//                } else {
+//                    textView.setBackgroundDrawable(drawable);
+//                }
+//
+//                checkbox.setTag(id);
+//                checkbox.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+//
+//                //TODO MAKE IT WORK
+//                setAppCompatCheckBoxColors(checkbox, ContextCompat.getColor(getActivity(), android.R.color.black), ContextCompat.getColor(getActivity(), android.R.color.black));
+//
+//                layout.addView(checkbox);
 //                layout.addView(textView);
+//
+//                checkbox.measure(0, 0);
+//                if (debug) {
+//                    Log.d(TAG, "checkbox width: " + checkbox.getWidth());
+//                }
+//                ;
+//                checkbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//                    @Override
+//                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//
+//                        int checkedcount = 0;
+//                        for (int x = 0; x < checkedlist.size(); x++) {
+//                            if (checkedlist.get(x) > 0) {
+//                                checkedcount += 1;
+//                            }
+//                        }
+//
+//                        if (debug) {
+//                            Log.d(TAG, "checkedcount = " + checkedcount);
+//                        }
+//
+//                        if (!checkbox.isChecked() && checkedcount <= 1) {
+//
+//                            checkbox.setChecked(true);
+//                            checkedlist.set(position, Integer.parseInt(id));
+//
+//
+//                        } else if (isChecked) {
+//                            checkbox.setChecked(true);
+//                            checkedlist.set(position, Integer.parseInt(id));
+//                        } else {
+//                            checkbox.setChecked(false);
+//                            checkedlist.set(position, 0);
+//                        }
+//
+//                        assigncolorblocks();
+//
+//                    }
+//                });
+//
+//                layout.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//
+//                        int checkedcount = 0;
+//                        for (int x = 0; x < checkedlist.size(); x++) {
+//                            if (checkedlist.get(x) > 0) {
+//                                checkedcount += 1;
+//                            }
+//
+//                        }
+//
+//                        if (debug) {
+//                            Log.d(TAG, "checkedcount = " + checkedcount);
+//                        }
+//
+//                        if (checkbox.isChecked() && checkedcount <= 1) {
+//
+//                        } else if (checkbox.isChecked()) {
+//                            checkbox.setChecked(false);
+//                            checkedlist.set(position, 0);
+//                        } else {
+//
+//                            checkbox.setChecked(true);
+//                            checkedlist.set(position, Integer.parseInt(id));
+//                        }
+//
+//                        assigncolorblocks();
+//
+//                    }
+//                });
+//
 //
 //                return layout;
 //            }
+//
 //        };
+//    };
+
 //
-//        return adapter;
-//    }
 //
-
-
-    private ArrayAdapter<String> listadapter_colors(String colorArray[], final List<Integer> blocknumbers) {
-
-        return new ArrayAdapter<String>(getActivity(), R.layout.dialogmenu_spinneritem, colorArray) {
-
-
-            @Override
-            public View getView(final int position, View convertView, ViewGroup parent) {
-
-                // setting the ID and text for every items in the list
-                String item = getItem(position);
-                String[] itemArr = item.split("::");
-                String text = itemArr[0];
-                final String id = itemArr[1];
-
-                LinearLayout layout = new LinearLayout(getContext());
-                layout.setOrientation(LinearLayout.HORIZONTAL);
-
-                final AppCompatCheckBox checkbox = new AppCompatCheckBox(getActivity());
-                final TextView textView = new TextView(getActivity());
-                final Drawable drawable = ContextCompat.getDrawable(getActivity(), R.drawable.colorblock);
-
-                String grey = "";
-                String red = "";
-                String yellow = "";
-                String green = "";
-
-                if (blocknumbers.size() > 0) {
-                    //count = String.valueOf(blocknumbers.get(0));
-                    red = String.valueOf(blocknumbers.get(2));
-                    yellow = String.valueOf(blocknumbers.get(3));
-                    green = String.valueOf(blocknumbers.get(4));
-
-                    //Basically if all colors are 0, it means user hasn't done this block, so "Grey" == "total count of block"
-                    if (blocknumbers.get(2) + blocknumbers.get(3) + blocknumbers.get(4) == 0) {
-                        grey = String.valueOf(blocknumbers.get(0));
-                    } else {
-                        grey = String.valueOf(blocknumbers.get(1));
-                    }
-                }
-
-
-                if (checkedlist.get(position) >= 1) {
-                    checkbox.setChecked(true);
-                } else {
-                    checkbox.setChecked(false);
-                }
-
-                switch (text) {
-                    case "Grey":
-                        drawable.setColorFilter(ContextCompat.getColor(getActivity(), R.color.colorJukuGrey), PorterDuff.Mode.MULTIPLY);
-                        textView.setText(grey);
-                        break;
-                    case "Red":
-                        drawable.setColorFilter(ContextCompat.getColor(getActivity(), R.color.colorJukuRed), PorterDuff.Mode.MULTIPLY);
-                        textView.setText(red);
-                        break;
-                    case "Yellow":
-                        drawable.setColorFilter(ContextCompat.getColor(getActivity(), R.color.colorJukuYellow), PorterDuff.Mode.MULTIPLY);
-                        textView.setText(yellow);
-                        break;
-                    case "Green":
-                        drawable.setColorFilter(ContextCompat.getColor(getActivity(), R.color.colorJukuGreen), PorterDuff.Mode.MULTIPLY);
-                        textView.setText(green);
-                        break;
-                }
-
-
-                if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    textView.setBackground(drawable);
-                } else {
-                    textView.setBackgroundDrawable(drawable);
-                }
-
-                checkbox.setTag(id);
-                checkbox.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
-
-                //TODO MAKE IT WORK
-                setAppCompatCheckBoxColors(checkbox, ContextCompat.getColor(getActivity(), android.R.color.black), ContextCompat.getColor(getActivity(), android.R.color.black));
-
-//                if (debug) {
-//                    Log.d(TAG, "checkbox scale : " + scale);
+//    private void assigncolorblocks() {
+//
+//        textViewColorBlock_grey.setVisibility(View.GONE);
+//        textViewColorBlock_red.setVisibility(View.GONE);
+//        textViewColorBlock_yellow.setVisibility(View.GONE);
+//        textViewColorBlock_green.setVisibility(View.GONE);
+//
+//        int allcategories = 0;
+//        for (int i = 0; i < checkedlist.size(); ++i) {
+//            if (checkedlist.get(i) >= 1) {
+//
+//                String item = colorsArray[i];
+//                String[] itemArr = item.split("::");
+//                String text = itemArr[0];
+//                if(debug){Log.d(TAG, "text--" + text);}
+//                switch (text) {
+//                    case "Grey":
+//                        textViewColorBlock_grey.setVisibility(View.VISIBLE);
+//                        break;
+//                    case "Red":
+//                        textViewColorBlock_red.setVisibility(View.VISIBLE);
+//                        break;
+//                    case "Yellow":
+//                        textViewColorBlock_yellow.setVisibility(View.VISIBLE);
+//                        break;
+//                    case "Green":
+//                        textViewColorBlock_green.setVisibility(View.VISIBLE);
+//                        break;
+//
 //                }
-//                ;
-//                checkbox.setPadding(checkbox.getPaddingLeft() + (int) (5.0f * scale + 0.5f),
-//                        checkbox.getPaddingLeft() + (int) (10.0f * scale + 0.5f),
-//                        checkbox.getPaddingRight(),
-//                        checkbox.getPaddingLeft() + (int) (10.0f * scale + 0.5f));
-
-                layout.addView(checkbox);
-                layout.addView(textView);
-
-                checkbox.measure(0, 0);
-                if (debug) {
-                    Log.d(TAG, "checkbox width: " + checkbox.getWidth());
-                }
-                ;
-                checkbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    @Override
-                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-
-                        int checkedcount = 0;
-                        for (int x = 0; x < checkedlist.size(); x++) {
-                            if (checkedlist.get(x) > 0) {
-                                checkedcount += 1;
-                            }
-                        }
-
-                        if (debug) {
-                            Log.d(TAG, "checkedcount = " + checkedcount);
-                        }
-
-                        if (!checkbox.isChecked() && checkedcount <= 1) {
-
-                            checkbox.setChecked(true);
-                            checkedlist.set(position, Integer.parseInt(id));
-
-
-                        } else if (isChecked) {
-                            checkbox.setChecked(true);
-                            checkedlist.set(position, Integer.parseInt(id));
-                        } else {
-                            checkbox.setChecked(false);
-                            checkedlist.set(position, 0);
-                        }
-
-                        assigncolorblocks();
-
-                    }
-                });
-
-                layout.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-
-                        int checkedcount = 0;
-                        for (int x = 0; x < checkedlist.size(); x++) {
-                            if (checkedlist.get(x) > 0) {
-                                checkedcount += 1;
-                            }
-
-                        }
-
-                        if (debug) {
-                            Log.d(TAG, "checkedcount = " + checkedcount);
-                        }
-
-                        if (checkbox.isChecked() && checkedcount <= 1) {
-
-                        } else if (checkbox.isChecked()) {
-                            checkbox.setChecked(false);
-                            checkedlist.set(position, 0);
-                        } else {
-
-                            checkbox.setChecked(true);
-                            checkedlist.set(position, Integer.parseInt(id));
-                        }
-
-                        assigncolorblocks();
-
-                    }
-                });
-
-
-                return layout;
-            }
-
-        };
-    };
-
-
-
-    private void assigncolorblocks() {
-
-        textViewColorBlock_grey.setVisibility(View.GONE);
-        textViewColorBlock_red.setVisibility(View.GONE);
-        textViewColorBlock_yellow.setVisibility(View.GONE);
-        textViewColorBlock_green.setVisibility(View.GONE);
-
-        int allcategories = 0;
-        for (int i = 0; i < checkedlist.size(); ++i) {
-            if (checkedlist.get(i) >= 1) {
-
-                String item = colorsArray[i];
-                String[] itemArr = item.split("::");
-                String text = itemArr[0];
-                if(debug){Log.d(TAG, "text--" + text);}
-                switch (text) {
-                    case "Grey":
-                        textViewColorBlock_grey.setVisibility(View.VISIBLE);
-                        break;
-                    case "Red":
-                        textViewColorBlock_red.setVisibility(View.VISIBLE);
-                        break;
-                    case "Yellow":
-                        textViewColorBlock_yellow.setVisibility(View.VISIBLE);
-                        break;
-                    case "Green":
-                        textViewColorBlock_green.setVisibility(View.VISIBLE);
-                        break;
-
-                }
-                ++allcategories;
-            }
-        }
-
-        if(allcategories == 0) {
-            textViewColorBlock_grey.setVisibility(View.INVISIBLE);
-            textViewColorBlock_red.setVisibility(View.INVISIBLE);
-            textViewColorBlock_yellow.setVisibility(View.INVISIBLE);
-            textViewColorBlock_green.setVisibility(View.INVISIBLE);
-        }
-
-    }
+//                ++allcategories;
+//            }
+//        }
+//
+//        if(allcategories == 0) {
+//            textViewColorBlock_grey.setVisibility(View.INVISIBLE);
+//            textViewColorBlock_red.setVisibility(View.INVISIBLE);
+//            textViewColorBlock_yellow.setVisibility(View.INVISIBLE);
+//            textViewColorBlock_green.setVisibility(View.INVISIBLE);
+//        }
+//
+//    }
 
 
 //
@@ -1033,6 +742,44 @@ public class QuizMenuDialog extends DialogFragment {
 
     }
 
+
+    public void setColorBlockVisibility(DropDownMenuOption option) {
+
+            if(option.isColorSelected()) {
+                switch (option.getChosenOption()) {
+                    case "Grey":
+                        textViewColorBlock_grey.setVisibility(View.VISIBLE);
+                        break;
+                    case "Red":
+                        textViewColorBlock_red.setVisibility(View.VISIBLE);
+                        break;
+                    case "Yellow":
+                        textViewColorBlock_yellow.setVisibility(View.VISIBLE);
+                        break;
+                    case "Green":
+                        textViewColorBlock_green.setVisibility(View.VISIBLE);
+                        break;
+                }
+            } else {
+                if(option.isColorSelected()) {
+                    switch (option.getChosenOption()) {
+                        case "Grey":
+                            textViewColorBlock_grey.setVisibility(View.GONE);
+                            break;
+                        case "Red":
+                            textViewColorBlock_red.setVisibility(View.GONE);
+                            break;
+                        case "Yellow":
+                            textViewColorBlock_yellow.setVisibility(View.GONE);
+                            break;
+                        case "Green":
+                            textViewColorBlock_green.setVisibility(View.GONE);
+                            break;
+                    }
+                }
+            }
+
+    }
 
 
 }

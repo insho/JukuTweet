@@ -3,6 +3,8 @@ package com.jukuproject.jukutweet.Models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.ArrayList;
+
 /**
  * Created by JClassic on 3/23/2017.
  */
@@ -19,6 +21,115 @@ public class ColorBlockMeasurables implements Parcelable {
     private Integer yellowMinWidth;
     private Integer greenMinWidth;
     private Integer emptyMinWidth;
+    private ArrayList<String> selectedColorOptions;
+
+
+
+    public void setInitialSelectedColors() {
+        selectedColorOptions = new ArrayList<>();
+        if(greyCount>0) {
+            selectedColorOptions.add("Grey");
+        }
+        if(redCount>0) {
+            selectedColorOptions.add("Red");
+        }
+        if(yellowCount>0) {
+            selectedColorOptions.add("Yellow");
+        }
+        if(greenCount>0) {
+            selectedColorOptions.add("Green");
+        }
+    }
+
+    public ArrayList<DropDownMenuOption> getDropDownOptions() {
+        ArrayList<DropDownMenuOption> possibleDropDownOptions = new ArrayList<>();
+        if(greyCount>0) {
+            possibleDropDownOptions.add(new DropDownMenuOption("Grey",greyCount,true));
+        }
+        if(redCount>0) {
+            possibleDropDownOptions.add(new DropDownMenuOption("Red",redCount,true));
+        }
+        if(yellowCount>0) {
+            possibleDropDownOptions.add(new DropDownMenuOption("Yellow",yellowCount,true));
+        }
+        if(greenCount>0) {
+            possibleDropDownOptions.add(new DropDownMenuOption("Green",greenCount,true));
+        }
+
+        return possibleDropDownOptions;
+    }
+
+//    public void setSelected(DropDownMenuOption option) {
+//        switch (option.getChosenOption()) {
+//            case "Grey":
+//                updateSelectedColorsRemove()
+//                break;
+//            case "Red":
+//                sb.append("2");
+//                break;
+//            case "Yellow":
+//                sb.append("3");
+//                break;
+//            case "Green":
+//                sb.append("4");
+//                break;
+//        }
+//    }
+    public ArrayList<String> updateSelectedColorsRemove(String colorToRemove) {
+        if(selectedColorOptions == null) {
+            setInitialSelectedColors();
+        }
+
+        if(selectedColorOptions.contains(colorToRemove)) {
+            selectedColorOptions.remove(colorToRemove);
+        }
+
+        return selectedColorOptions;
+    }
+    public ArrayList<String> updateSelectedColorsAdd(String colorToAdd) {
+        if(selectedColorOptions == null) {
+            setInitialSelectedColors();
+        }
+            if(!selectedColorOptions.contains(colorToAdd)) {
+                selectedColorOptions.add(colorToAdd);
+
+        }
+
+        return selectedColorOptions;
+    }
+
+
+
+
+    public String getSelectedColorString() {
+        if(selectedColorOptions== null || selectedColorOptions.size() == 0) {
+            return "1,2,3,4";
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for(String color : selectedColorOptions) {
+                if(sb.length()>0) {
+                    sb.append(",");
+                }
+                switch (color) {
+                    case "Grey":
+                        sb.append("1");
+                        break;
+                    case "Red":
+                        sb.append("2");
+                        break;
+                    case "Yellow":
+                        sb.append("3");
+                        break;
+                    case "Green":
+                        sb.append("4");
+                        break;
+                }
+
+            }
+            return sb.toString();
+        }
+
+    }
 
 
     public int getEmptyCount() {
@@ -124,7 +235,7 @@ public class ColorBlockMeasurables implements Parcelable {
 
 
     /**
-     * Determines the width of the grey color block in the header row of {@link com.jukuproject.jukutweet.Adapters.MenuExpandableListAdapter}
+//     * Determines the width of the grey color block in the header row of
      *  Size of color blocks are proportional to the ratio of the color's count/total count, but are also constrained by
      *  the minimum widths of the other remaining color blocks. There is an order of assigning colorblock widths. It goes:
      *  Empty, Grey, Red, Yellow, Green. Where green essentially takes whatever available space is left.
@@ -256,6 +367,7 @@ public class ColorBlockMeasurables implements Parcelable {
         this.yellowMinWidth = in.readInt();
         this.greenMinWidth = in.readInt();
         this.emptyMinWidth = in.readInt();
+//        this.selectedColors = in.readArrayList(Class.String);
 
 
     }
@@ -277,6 +389,7 @@ public class ColorBlockMeasurables implements Parcelable {
         dest.writeInt(yellowMinWidth);
         dest.writeInt(greenMinWidth);
         dest.writeInt(emptyMinWidth);
+//        dest.writeStringArray();
 
     }
 
