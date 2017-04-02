@@ -2,6 +2,7 @@ package com.jukuproject.jukutweet.Fragments;
 
 import android.animation.Animator;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.view.ViewPager;
@@ -11,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.jukuproject.jukutweet.Models.WordEntry;
+import com.jukuproject.jukutweet.R;
 
 import java.util.ArrayList;
 
@@ -26,8 +28,12 @@ public class FlashCardsFragment extends Fragment {
     ViewPager vp;	//Reference to class to swipe views
     ArrayList<WordEntry> mDataset;
 
-    int currentPosition;
-    boolean flipped;  //whether or not the card is flipped to the back side (true), or not (false)
+    int currentPosition = 0;
+    boolean frontShowing = true;
+    boolean freshdeck = true;
+    String mFrontValue;
+    String mBackValue;
+
     private GestureDetectorCompat mDetector;
     View page;
     private GestureDetector mGestureDetector;
@@ -39,16 +45,12 @@ public class FlashCardsFragment extends Fragment {
     Animator animator_leftout;
     Animator animator_upin;
 
-    boolean freshdeck = true;
-    String frontValue;
-    String backValue;
-    private static boolean debug = true;
-//    SharedPrefManager sharedPrefManager;
+
 
 
     public FlashCardsFragment() {}
 
-    public static FlashCardsFragment newInstanceTimeLine(ArrayList<WordEntry> wordEntries, String frontValue, String backValue) {
+    public static FlashCardsFragment newInstance(ArrayList<WordEntry> wordEntries, String frontValue, String backValue) {
         FlashCardsFragment fragment = new FlashCardsFragment();
         Bundle args = new Bundle();
         args.putString("frontValue",frontValue);
@@ -62,21 +64,18 @@ public class FlashCardsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-//        View view  = LayoutInflater.from(getActivity()).inflate(R.layout.flashcard, null);
-////        mTweet = getArguments().getParcelable("tweet");
-//
-//        mDataset = getArguments().getParcelableArrayList("wordEntries");
-//        frontValue = getArguments().getString("frontValue");
-//        backValue = getArguments().getString("backValue");
-//
-//        page = LayoutInflater.from(getActivity()).inflate(R.layout.flashcard_item, null);
-//        vp=(ViewPager) view.findViewById(R.id.viewPager);
-//        currentPosition = 0;
+        View view  = LayoutInflater.from(getActivity()).inflate(R.layout.flashcard, null);
+        mDataset = getArguments().getParcelableArrayList("wordEntries");
+        mFrontValue = getArguments().getString("frontValue");
+        mBackValue = getArguments().getString("backValue");
+
+        page = LayoutInflater.from(getActivity()).inflate(R.layout.flashcard_item, null);
+        vp=(ViewPager) view.findViewById(R.id.viewPager);
+        currentPosition = 0;
 //        vp.setAdapter(new MyPagesAdapter_Array());
-//
-//
-//
-//        FloatingActionButton fab_shuffle = (FloatingActionButton) view.findViewById(R.id.fab);
+
+
+        FloatingActionButton fab_shuffle = (FloatingActionButton) view.findViewById(R.id.fab);
 //        fab_shuffle.setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View v) {
@@ -101,7 +100,7 @@ public class FlashCardsFragment extends Fragment {
 //                animator_rightin.start();
 //                animator_rightin.setStartDelay(100);
 //                animator_rightin.start();
-//                flipped = false; //toggle the boolean to reflect current flipped state
+//                frontShowing = true; //toggle the boolean to reflect current flipped state
 //
 //                /**  THIS IS THE ACTION BUTTON SHUFFLE BLOCK*/
 //                //Reset the currentcount to 1 (since it's a new deck now)
@@ -110,21 +109,21 @@ public class FlashCardsFragment extends Fragment {
 //                String stringcount = currentcount + "/" + totalcount;
 //                ((TextView) page.findViewById(R.id.scorecount)).setText(stringcount);
 //
-//                if(frontValue.equals("Kanji") && tmparray.get(frontValue) == null) { //If the furigana entry is null, use the kanji one homie
+//                if(mFrontValue.equals("Kanji") && tmparray.get(mFrontValue) == null) { //If the furigana entry is null, use the kanji one homie
 //                    ((TextView) page.findViewById(R.id.textMessage)).setText(tmparray.get(1));
 //                } else {
 //                    ((TextView) page.findViewById(R.id.textMessage)).setText(tmparray.get(frontValue));
 //                    ((TextView) page.findViewById(R.id.furigana)).setText(tmparray.get(5));
 //                }
 //
-//                if(debug) {
-//                    Log.d(TAG, "fronvalue (shuffle): " + frontValue);
+//                if(BuildConfig.DEBUG) {
+//                    Log.d(TAG, "fronvalue (shuffle): " + mFrontValue);
 //                    Log.d(TAG, "furigana (shuffle): " + tmparray.get(5));
 //                }
 //
 //            }
 //        });
-//
+
 //
 //        final GestureDetector.SimpleOnGestureListener listener = new GestureDetector.SimpleOnGestureListener() {
 //            @Override

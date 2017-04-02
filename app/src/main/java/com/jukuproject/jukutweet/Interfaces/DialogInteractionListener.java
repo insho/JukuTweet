@@ -25,4 +25,7 @@ public interface DialogInteractionListener {
     void saveAndUpdateMyLists(String kanjiIdString, ArrayList<MyListEntry> listsToCopyTo, boolean move, MyListEntry currentList);
     void saveAndUpdateTweetLists(String tweetIds, ArrayList<MyListEntry> listsToCopyTo, boolean move, MyListEntry currentList);
 
+    //From quizmenu popup to main activity (starting quizzes)
+    void showFlashCardFragment(int tabNumber, MyListEntry listEntry, String frontValue, String backValue, String selectedColorString);
+
 }

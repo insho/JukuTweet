@@ -103,27 +103,30 @@ public class ColorBlockMeasurables implements Parcelable {
 
     public String getSelectedColorString() {
         if(selectedColorOptions== null || selectedColorOptions.size() == 0) {
-            return "1,2,3,4";
+            return "'Grey','Red','Yellow','Green'";
         } else {
             StringBuilder sb = new StringBuilder();
             for(String color : selectedColorOptions) {
                 if(sb.length()>0) {
                     sb.append(",");
                 }
-                switch (color) {
-                    case "Grey":
-                        sb.append("1");
-                        break;
-                    case "Red":
-                        sb.append("2");
-                        break;
-                    case "Yellow":
-                        sb.append("3");
-                        break;
-                    case "Green":
-                        sb.append("4");
-                        break;
-                }
+                sb.append("'");
+                sb.append(color);
+                sb.append("'");
+//                switch (color) {
+//                    case "Grey":
+//                        sb.append("1");
+//                        break;
+//                    case "Red":
+//                        sb.append("2");
+//                        break;
+//                    case "Yellow":
+//                        sb.append("3");
+//                        break;
+//                    case "Green":
+//                        sb.append("4");
+//                        break;
+//                }
 
             }
             return sb.toString();
@@ -367,6 +370,7 @@ public class ColorBlockMeasurables implements Parcelable {
         this.yellowMinWidth = in.readInt();
         this.greenMinWidth = in.readInt();
         this.emptyMinWidth = in.readInt();
+        this.selectedColorOptions = in.createStringArrayList();
 //        this.selectedColors = in.readArrayList(Class.String);
 
 
@@ -389,6 +393,7 @@ public class ColorBlockMeasurables implements Parcelable {
         dest.writeInt(yellowMinWidth);
         dest.writeInt(greenMinWidth);
         dest.writeInt(emptyMinWidth);
+        dest.writeStringList(selectedColorOptions);
 //        dest.writeStringArray();
 
     }

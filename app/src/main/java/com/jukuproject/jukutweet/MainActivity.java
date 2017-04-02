@@ -35,12 +35,15 @@ import com.jukuproject.jukutweet.Dialogs.AddUserCheckDialog;
 import com.jukuproject.jukutweet.Dialogs.AddUserDialog;
 import com.jukuproject.jukutweet.Dialogs.EditMyListDialog;
 import com.jukuproject.jukutweet.Dialogs.RemoveUserDialog;
+import com.jukuproject.jukutweet.Fragments.FlashCardsFragment;
 import com.jukuproject.jukutweet.Fragments.MyListBrowseFragment;
 import com.jukuproject.jukutweet.Fragments.SavedTweetsBrowseFragment;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.MyListEntry;
+import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.Models.UserInfo;
+import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.TabContainers.Tab1Container;
 import com.jukuproject.jukutweet.TabContainers.Tab2Container;
 import com.jukuproject.jukutweet.TabContainers.Tab3Container;
@@ -981,6 +984,44 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             }
 
         }
+    }
+
+    public void showFlashCardFragment(int tabNumber
+            , MyListEntry listEntry
+            , String frontValue
+            , String backValue
+            ,String selectedColorString) {
+
+
+        //Pull data for flashcard fragment
+        if(tabNumber == 1) {
+            //Its a mylist fragment
+            ArrayList<WordEntry> dataset = InternalDB.getInstance(getBaseContext())
+                    .getMyListWords("Tweet",listEntry,SharedPrefManager.getInstance(getBaseContext()).getColorThresholds(),selectedColorString);
+
+            if(findFragmentByPosition(tabNumber) != null
+                    && findFragmentByPosition(tabNumber) instanceof Tab2Container) {
+
+                FlashCardsFragment flashCardsFragment = FlashCardsFragment.newInstance(dataset,frontValue,backValue);
+                ((BaseContainerFragment)findFragmentByPosition(tabNumber)).replaceFragment(flashCardsFragment,true,"flashcards");
+
+            }
+        } else if(tabNumber == 2) {
+            //Its a mylist fragment
+            ArrayList<WordEntry> dataset = InternalDB.getInstance(getBaseContext())
+                    .getMyListWords("Word",listEntry,SharedPrefManager.getInstance(getBaseContext()).getColorThresholds(),selectedColorString);
+
+            if(findFragmentByPosition(tabNumber) != null
+                    && findFragmentByPosition(tabNumber) instanceof Tab2Container) {
+
+                //Initialize Flashcards fragment
+                FlashCardsFragment flashCardsFragment = FlashCardsFragment.newInstance(dataset,frontValue,backValue);
+                //Replace the current fragment bucket with flashcards
+                ((BaseContainerFragment)findFragmentByPosition(tabNumber)).replaceFragment(flashCardsFragment,true,"flashcards");
+
+            }
+        }
+
     }
 
     //Changes sss

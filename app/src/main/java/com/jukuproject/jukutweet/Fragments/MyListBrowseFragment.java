@@ -100,7 +100,7 @@ public class MyListBrowseFragment extends Fragment  {
 
 
         //Pull list of word entries in the database for a given list
-        mWords = InternalDB.getInstance(getContext()).getMyListWords(mMyListEntry);
+        mWords = InternalDB.getInstance(getContext()).getMyListWords("Word",mMyListEntry,mColorThresholds,"'Grey','Red','Yellow','Green'");
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
 
@@ -244,7 +244,7 @@ public class MyListBrowseFragment extends Fragment  {
     public void removeKanjiFromList(String kanjiIdString, MyListEntry currentList){
         try {
             InternalDB.getInstance(getContext()).removeBulkKanjiFromMyList(kanjiIdString,currentList);
-            mWords = InternalDB.getInstance(getContext()).getMyListWords(mMyListEntry);
+            mWords = InternalDB.getInstance(getContext()).getMyListWords("Word",mMyListEntry,mColorThresholds,"'Grey','Red','Yellow','Green'");
             mSelectedEntries = new ArrayList<>();
             mAdapter.swapDataSet(mWords);
         } catch (NullPointerException e) {
@@ -261,7 +261,7 @@ public class MyListBrowseFragment extends Fragment  {
         try {
             final String kanjiString = getSelectedIntsAsString(mSelectedEntries);
             InternalDB.getInstance(getContext()).removeBulkKanjiFromMyList(kanjiString,mMyListEntry);
-            mWords = InternalDB.getInstance(getContext()).getMyListWords(mMyListEntry);
+            mWords = InternalDB.getInstance(getContext()).getMyListWords("Word",mMyListEntry,mColorThresholds,"'Grey','Red','Yellow','Green'");
             mAdapter.swapDataSet(mWords);
             showUndoPopup(kanjiString,mMyListEntry);
         } catch (NullPointerException e) {
@@ -308,7 +308,7 @@ public class MyListBrowseFragment extends Fragment  {
                 try {
 
                     InternalDB.getInstance(getContext()).addBulkKanjiToList(currentList,kanjiIdString);
-                    mWords = InternalDB.getInstance(getContext()).getMyListWords(mMyListEntry);
+                    mWords = InternalDB.getInstance(getContext()).getMyListWords("Word",mMyListEntry,mColorThresholds,"'Grey','Red','Yellow','Green'");
                     mSelectedEntries.clear();
                     mAdapter.swapDataSet(mWords);
                     try {
