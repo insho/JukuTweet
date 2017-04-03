@@ -156,17 +156,23 @@ public class MyListFragment  extends Fragment{
 //                Toast.makeText(getActivity(), "Header: " + mMenuHeader.get(groupPosition).getHeaderTitle() + ", child: " + mMenuHeader.get(groupPosition).getChildOptions().get(childPosition), Toast.LENGTH_SHORT).show();
 
                 switch (childOption) {
-                    case "Flash Cards":
-                        if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
-                            QuizMenuDialog.newInstance("flashcards",2,mMenuHeader.get(groupPosition).getMyListEntry(),mMenuHeader.get(groupPosition).getColorBlockMeasurables(),getdimenscore()).show(getActivity().getSupportFragmentManager(),"dialogAddMyList");
-                        }
-
-                        break;
                     case "Browse/Edit":
                         MyListBrowseFragment fragment = MyListBrowseFragment.newInstance(new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).getSystemList()));
                         ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"mylistbrowse");
                         //Hide the fab
                         mCallback.showFab(false,"");
+                        break;
+                    case "Flash Cards":
+                        if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
+                            QuizMenuDialog.newInstance("flashcards",2,mMenuHeader.get(groupPosition).getMyListEntry(),mMenuHeader.get(groupPosition).getColorBlockMeasurables(),getdimenscore()).show(getActivity().getSupportFragmentManager(),"dialogQuizMenu");
+                        }
+
+                        break;
+                    case "Multiple Choice":
+                        if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
+                            QuizMenuDialog.newInstance("multiplechoice",2,mMenuHeader.get(groupPosition).getMyListEntry(),mMenuHeader.get(groupPosition).getColorBlockMeasurables(),getdimenscore()).show(getActivity().getSupportFragmentManager(),"dialogQuizMenu");
+                        }
+
                         break;
 
                     default:

@@ -36,10 +36,12 @@ import com.jukuproject.jukutweet.Dialogs.AddUserDialog;
 import com.jukuproject.jukutweet.Dialogs.EditMyListDialog;
 import com.jukuproject.jukutweet.Dialogs.RemoveUserDialog;
 import com.jukuproject.jukutweet.Fragments.FlashCardsFragment;
+import com.jukuproject.jukutweet.Fragments.MultipleChoiceFragment;
 import com.jukuproject.jukutweet.Fragments.MyListBrowseFragment;
 import com.jukuproject.jukutweet.Fragments.SavedTweetsBrowseFragment;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
+import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.Models.UserInfo;
@@ -997,23 +999,33 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         if(tabNumber == 1) {
             //Its a mylist fragment
             ArrayList<WordEntry> dataset = InternalDB.getInstance(getBaseContext())
-                    .getMyListWords("Tweet",listEntry,SharedPrefManager.getInstance(getBaseContext()).getColorThresholds(),selectedColorString);
+                    .getMyListWords("Tweet"
+                            ,listEntry
+                            ,SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
+                            ,selectedColorString
+                            ,null
+                            ,null);
 
             if(findFragmentByPosition(tabNumber) != null
                     && findFragmentByPosition(tabNumber) instanceof Tab2Container) {
 
                 FlashCardsFragment flashCardsFragment = FlashCardsFragment.newInstance(dataset,frontValue,backValue);
                 ((BaseContainerFragment)findFragmentByPosition(tabNumber)).replaceFragment(flashCardsFragment,true,"flashcards");
-
             }
         } else if(tabNumber == 2) {
             //Its a mylist fragment
             ArrayList<WordEntry> dataset = InternalDB.getInstance(getBaseContext())
-                    .getMyListWords("Word",listEntry,SharedPrefManager.getInstance(getBaseContext()).getColorThresholds(),selectedColorString);
+                    .getMyListWords("Word"
+                            ,listEntry
+                            ,SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
+                            ,selectedColorString
+                            ,null
+                            ,null);
 
             if(findFragmentByPosition(tabNumber) != null
-                    && findFragmentByPosition(tabNumber) instanceof Tab2Container) {
+                    && findFragmentByPosition(tabNumber) instanceof Tab3Container) {
 
+//                Log.d(TAG,"kanji: " + dataset.get(0).getKanji() + ", furigana: " + dataset.get(0).getFurigana());
                 //Initialize Flashcards fragment
                 FlashCardsFragment flashCardsFragment = FlashCardsFragment.newInstance(dataset,frontValue,backValue);
                 //Replace the current fragment bucket with flashcards
@@ -1022,6 +1034,145 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             }
         }
 
+    }
+
+    public void showMultipleChoiceFragment(int tabNumber
+            , MyListEntry listEntry
+            , String quizType
+            , String quizSize
+            , String quizTimer
+            ,String selectedColorString) {
+
+        //GET Actionbar height and viewpager height
+
+// Calculate ActionBar height
+
+        Integer timer = -1;
+        if(!quizTimer.equals("None")) {
+            timer = Integer.parseInt(quizTimer);
+        }
+
+        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getApplicationContext()).getColorThresholds();
+
+        if(tabNumber == 1) {
+            //Its a mylist fragment
+            ArrayList<WordEntry> dataset = InternalDB.getInstance(getBaseContext())
+                    .getMyListWords("Tweet"
+                            ,listEntry
+                            ,SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
+                            ,selectedColorString
+                            ,null
+                            ,100);
+
+           double totalweight = assignWordWeightsAndGetTotalWeight(dataset);
+
+            if(findFragmentByPosition(tabNumber) != null
+                    && findFragmentByPosition(tabNumber) instanceof Tab2Container) {
+
+                MultipleChoiceFragment multipleChoiceFragment = MultipleChoiceFragment.newInstance(dataset
+                ,quizType
+                ,timer
+                ,Integer.parseInt(quizSize)
+                ,totalweight
+                ,"Tweet"
+                ,selectedColorString
+                ,listEntry);
+                ((BaseContainerFragment)findFragmentByPosition(tabNumber)).replaceFragment(multipleChoiceFragment,true,"multiplechoice");
+            }
+        } else if(tabNumber == 2) {
+            //Its a mylist fragment
+            ArrayList<WordEntry> dataset = InternalDB.getInstance(getBaseContext())
+                    .getMyListWords("Word"
+                            ,listEntry
+                            ,SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
+                            ,selectedColorString
+                            ,null
+                            ,100);
+
+            double totalweight = assignWordWeightsAndGetTotalWeight(dataset);
+
+            if(findFragmentByPosition(tabNumber) != null
+                    && findFragmentByPosition(tabNumber) instanceof Tab3Container) {
+
+                MultipleChoiceFragment multipleChoiceFragment = MultipleChoiceFragment.newInstance(dataset
+                        ,quizType
+                        ,timer
+                        ,Integer.parseInt(quizSize)
+                        ,totalweight
+                        ,"Word"
+                        ,selectedColorString
+                        ,listEntry);
+                ((BaseContainerFragment)findFragmentByPosition(tabNumber)).replaceFragment(multipleChoiceFragment,true,"multiplechoice");
+
+            }
+        }
+
+//        ArrayList<WordEntry> wordEntries = InternalDB.getInstance(getBaseContext()).fillMultipleChoiceKeyPool(tabNumber,listEntry,quizType,colorThresholds,selectedColorString);
+//
+//        if(tabNumber == 1) {
+//            //Its a mylist fragment
+//            ArrayList<WordEntry> dataset = InternalDB.getInstance(getBaseContext())
+//                    .getMyListWords("Tweet",listEntry,SharedPrefManager.getInstance(getBaseContext()).getColorThresholds(),selectedColorString);
+//
+//            if(findFragmentByPosition(tabNumber) != null
+//                    && findFragmentByPosition(tabNumber) instanceof Tab2Container) {
+//
+//                FlashCardsFragment flashCardsFragment = FlashCardsFragment.newInstance(dataset,frontValue,backValue);
+//                ((BaseContainerFragment)findFragmentByPosition(tabNumber)).replaceFragment(flashCardsFragment,true,"flashcards");
+//            }
+//        } else if(tabNumber == 2) {
+//            //Its a mylist fragment
+//            ArrayList<WordEntry> dataset = InternalDB.getInstance(getBaseContext())
+//                    .getMyListWords("Word",listEntry,SharedPrefManager.getInstance(getBaseContext()).getColorThresholds(),selectedColorString);
+//
+//            if(findFragmentByPosition(tabNumber) != null
+//                    && findFragmentByPosition(tabNumber) instanceof Tab3Container) {
+//
+////                Log.d(TAG,"kanji: " + dataset.get(0).getKanji() + ", furigana: " + dataset.get(0).getFurigana());
+//                //Initialize Flashcards fragment
+//                FlashCardsFragment flashCardsFragment = FlashCardsFragment.newInstance(dataset,frontValue,backValue);
+//                //Replace the current fragment bucket with flashcards
+//                ((BaseContainerFragment)findFragmentByPosition(tabNumber)).replaceFragment(flashCardsFragment,true,"flashcards");
+//
+//            }
+//        }
+
+    }
+
+    public double assignWordWeightsAndGetTotalWeight(ArrayList<WordEntry> wordEntries) {
+        final Double sliderUpperBound = .50;
+        final Double sliderLowerBound = .025;
+        final int sliderCountMax = 30;
+        final double sliderMultipler = SharedPrefManager.getInstance(getBaseContext()).getSliderMultiplier();
+
+        double totalWeight = 0.0d;
+
+        for(WordEntry wordEntry : wordEntries) {
+            double percentage =wordEntry.getPercentage();
+            double total = (double)wordEntry.getTotal();
+
+            /* The slider multiplier is what affects how rapidly a word diverges from the natural weight of .25.
+            * The higher the multiplier, the faster it will diverge with an increased count.*/
+            double countMultiplier = (double)total/(double)sliderCountMax*(percentage-(double)sliderUpperBound)*(double)sliderMultipler;
+
+            if(total>100) {
+                total = (double)100;
+            }
+
+            double a = ((double)sliderUpperBound/(double)2)-(double)sliderUpperBound*(countMultiplier) ;
+
+            double b = sliderLowerBound;
+            if(a>=sliderUpperBound) {
+                b = sliderUpperBound;
+            } else if(a>=sliderLowerBound) {
+                b = a;
+            }
+
+            wordEntry.setQuizWeight(b);
+            totalWeight += b;
+        }
+
+        return totalWeight;
     }
 
     //Changes sss

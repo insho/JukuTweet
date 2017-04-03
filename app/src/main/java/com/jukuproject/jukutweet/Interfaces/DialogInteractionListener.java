@@ -27,5 +27,11 @@ public interface DialogInteractionListener {
 
     //From quizmenu popup to main activity (starting quizzes)
     void showFlashCardFragment(int tabNumber, MyListEntry listEntry, String frontValue, String backValue, String selectedColorString);
+    void showMultipleChoiceFragment(int tabNumber
+            , MyListEntry listEntry
+            , String quizType
+            , String quizSize
+            , String quizTimer
+            ,String selectedColorString);
 
 }

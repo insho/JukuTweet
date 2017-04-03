@@ -674,7 +674,81 @@ public class SentenceParserTest {
         return kanjibreakupArray;
     }
 
+    /**
+     * Creates various combinations of a kanji block. If it is impossible to create a match for a large kanji  (like + 3 characters), look for matches
+     * by breaking up those characters into smaller sets (of at least 1 kanji). And if there is a match for every piece of the broken-up kanji, insert
+     * those pieces into the kanjifinal_clean_integer
+     *
+     * @param coreKanjiBlock Kanji block to chop up
+     * @return Arraylist containing arrays of different combinations. The arrays will then be compared against the dictionary.
+     *
+     * // SEE MULTIPLE CHOICE!!!
+    //     * @see #chopandCompare(ParseSentencePossibleKanji, SQLiteDatabase)
+    //     * @see #addEntrytoFinalKanjiIDs(ParseSentencePossibleKanji, SQLiteDatabase, ArrayList)
+     */
+    public static ArrayList<String> chopKanjiIntoASingleSetOfCombinations(String coreKanjiBlock) {
+        ArrayList<String> kanjibreakupArray = new ArrayList<>();
+        StringBuilder kanjibreakupBuilder = new StringBuilder();
+        int divisor = coreKanjiBlock.length() - 1;
+        if(debug){Log.d(TAG,"initial divisor: " + divisor);}
+        int innerstart =0;
+        int outerstart = 0;
+        while (divisor >= 1) {
 
+//            ArrayList<String> tmp = new ArrayList<>();
+            kanjibreakupBuilder.setLength(0);
+
+            /* Attach the preceding straggling chars (outside of divisor chunks) */
+            while ((innerstart + divisor) <= coreKanjiBlock.length() && !(innerstart == divisor && (innerstart + divisor) == coreKanjiBlock.length())) {
+
+                for (int l = 0; l < innerstart; l++) {
+                    kanjibreakupBuilder.append(coreKanjiBlock.charAt(l));
+                }
+                if(kanjibreakupBuilder.length()>0) {
+                    if(!kanjibreakupArray.contains(kanjibreakupBuilder.toString())) {
+                        kanjibreakupArray.add(kanjibreakupBuilder.toString());
+                    }
+                    kanjibreakupBuilder.setLength(0);
+                }
+
+                for (int l = 0; l < divisor; l++) {
+                    kanjibreakupBuilder.append(coreKanjiBlock.charAt(innerstart + l));
+                }
+                if(!kanjibreakupArray.contains(kanjibreakupBuilder.toString())) {
+                    kanjibreakupArray.add(kanjibreakupBuilder.toString());
+                }
+                innerstart = innerstart + divisor;
+                kanjibreakupBuilder.setLength(0);
+
+                if(innerstart + divisor >= coreKanjiBlock.length()) {
+                    /* Attach the following (last) straggling chars (outside of divisor chunks) */
+                    for (int l = innerstart; l < coreKanjiBlock.length(); l++) {
+                        kanjibreakupBuilder.append(coreKanjiBlock.charAt(l));
+                    }
+                    if(kanjibreakupBuilder.length()>0) {
+                        if(debug){Log.d(TAG, "BREAKUP(1) div(" + divisor + ") added post-div chunk: " + kanjibreakupBuilder.toString());}
+                        if(!kanjibreakupArray.contains(kanjibreakupBuilder.toString())) {
+                            kanjibreakupArray.add(kanjibreakupBuilder.toString());
+                        }
+                        kanjibreakupBuilder.setLength(0);
+                    }
+                }
+            }
+
+            if(outerstart + divisor > coreKanjiBlock.length()) {
+                divisor = divisor - 1;
+                outerstart = 0;
+                innerstart = 0;
+                if(debug){Log.d(TAG," new divisor: " + divisor);}
+            } else {
+                outerstart = outerstart +1;
+                innerstart = outerstart;
+            }
+
+        }
+        if(debug){Log.d(TAG, "BREAKUP(2) kanjibreakupArray size: " + kanjibreakupArray.size());}
+        return kanjibreakupArray;
+    }
 
     /**
      //     * @param db Sqlite database
@@ -795,7 +869,7 @@ public class SentenceParserTest {
      * (including plain text portions as well as the correctly identified kanji).
      * Note: Updated (3/25/17) to take "SpecialS spans" -- links, spinner kanji, anything else that
      * enters the parses but that we KNOW does not need to be changed or parsed, and mix them back into the
-     * final map in this method and its sub-method {@link #assignEntrytoResults(int, int, int, ParseSentenceItem, ArrayList, ArrayList, int)} and {@link #assignLastEntrytoResults(int, ArrayList, ArrayList, int)}
+//     * final map in this method and its sub-method {@link #assignEntrytoResults(int, int, int, ParseSentenceItem, ArrayList, ArrayList, int)} and {@link #assignLastEntrytoResults(int, ArrayList, ArrayList, int)}
      //     * @param db Sqlite database connection
      * @param cleanKanjiIDs list of finalized ids for the kanji contained in the sentence
      * @return List of ParseSentenceItems, some of which are kanji (to be used for lists of kanji in a sentence), others of which are the
@@ -851,7 +925,7 @@ public class SentenceParserTest {
                             ,c.getString(1)
                             ,c.getString(2)
                             ,c.getInt(3)
-                            ,c.getFloat(4)
+                            ,c.getInt(4)
                             ,c.getString(12)
                             ,(foundKanjiPosition + startposition)
                             ,(foundKanjiPosition + startposition + coreKanji.length()));

@@ -803,6 +803,32 @@ public class InternalDB extends SQLiteOpenHelper {
         return  false;
     }
 
+
+    public boolean addScoreToScoreBoard(int kanjiId,  int total,int correct) {
+        SQLiteDatabase db = sInstance.getReadableDatabase();
+
+        try {
+        ContentValues values = new ContentValues();
+        values.clear();
+        values.put(COL_ID, kanjiId);
+        values.put(TSCOREBOARD_COL0, total);
+        values.put(TSCOREBOARD_COL1, correct);
+        db.insertWithOnConflict(InternalDB.TABLE_SCOREBOARD, null, values,
+                SQLiteDatabase.CONFLICT_REPLACE);
+            return true;
+
+        } catch (SQLiteException e) {
+            Log.e(TAG, "addScoreToScoreBoard sqlite exception: " + e);
+            return false;
+
+        } catch (NullPointerException e) {
+            Log.e(TAG, "addScoreToScoreBoard something was null: " + e);
+            return false;
+        } finally {
+            db.close();
+        }
+    }
+
     public boolean addTweetToMyList(String tweet_id,String user_id,String listName, int listSys) {
         SQLiteDatabase db = sInstance.getReadableDatabase();
 
@@ -1057,7 +1083,27 @@ public class InternalDB extends SQLiteOpenHelper {
      * @param colorString
      * @return
      */
-    public ArrayList<WordEntry> getMyListWords(String mylistType, MyListEntry myListEntry, ColorThresholds colorThresholds, String colorString) {
+    public ArrayList<WordEntry> getMyListWords(String mylistType
+            , MyListEntry myListEntry
+            , ColorThresholds colorThresholds
+            , String colorString
+            , @Nullable Integer excludeIdInteger
+            , @Nullable Integer resultLimit) {
+
+        String idToExclude;
+        if(excludeIdInteger ==null) {
+            idToExclude = "";
+        } else {
+            idToExclude = String.valueOf(excludeIdInteger);
+        }
+
+        Log.d(TAG,"ID TO EXCLUDE ENTER: " + excludeIdInteger + ", idto exclude string: " + idToExclude );
+        String limit;
+        if(resultLimit == null) {
+            limit = "";
+        } else {
+            limit = "LIMIT " + String.valueOf(resultLimit);
+        }
 
         String favoritesTable;
         if(mylistType.equals("Tweet")) {
@@ -1069,7 +1115,8 @@ public class InternalDB extends SQLiteOpenHelper {
         ArrayList<WordEntry> wordEntries = new ArrayList<>();
         SQLiteDatabase db = sInstance.getReadableDatabase();
         try {
-            Cursor c = db.rawQuery("Select Kanji " +
+            Cursor c = db.rawQuery("Select [_id]" +
+                    ",Kanji " +
                     ",Furigana " +
                     ",Definition " +
                     ",Correct " +
@@ -1103,7 +1150,7 @@ public class InternalDB extends SQLiteOpenHelper {
                                             "WHERE [_id] IN (" +
                                                             "SELECT [_id] " +
                                                             "FROM " + favoritesTable +  "  " +
-                                                            "WHERE ([Sys] = ? and [Name] = ?)" +
+                                                            "WHERE ([Sys] = ? and [Name] = ? and _id <> ?)" +
                                                             ") " +
                                              "ORDER BY [_id]" +
                                              ") as x " +
@@ -1116,13 +1163,13 @@ public class InternalDB extends SQLiteOpenHelper {
                                                 "WHERE [_id] IN (" +
                                                             "SELECT [_id] " +
                                                             "FROM " + favoritesTable +  "  " +
-                                                            "WHERE ([Sys] = ? and [Name] = ?))  " +
+                                                            "WHERE ([Sys] = ? and [Name] = ? and _id <> ?))  " +
                                              "GROUP BY [_id]" +
                                              ") as y " +
                                           "ON x.[_id] = y.[_id] " +
                     ") " +
-                    "WHERE [Color] in (" +  colorString + ")"
-                    , new String[]{String.valueOf(myListEntry.getListsSys()),myListEntry.getListName(),String.valueOf(myListEntry.getListsSys()),myListEntry.getListName()});
+                    "WHERE [Color] in (" +  colorString + ") " + limit + " "
+                    , new String[]{String.valueOf(myListEntry.getListsSys()),myListEntry.getListName(),idToExclude,String.valueOf(myListEntry.getListsSys()),myListEntry.getListName(),idToExclude});
             if(c.getCount()>0) {
                 c.moveToFirst();
                 while (!c.isAfterLast())
@@ -1133,8 +1180,8 @@ public class InternalDB extends SQLiteOpenHelper {
                     wordEntry.setKanji(c.getString(1));
                     wordEntry.setFurigana(c.getString(2));
                     wordEntry.setDefinition(c.getString(3));
+                    wordEntry.setCorrect(c.getInt(4));
                     wordEntry.setTotal(c.getInt(5));
-                    wordEntry.setPercentage(c.getFloat(6));
                     wordEntries.add(wordEntry);
 
                     c.moveToNext();
@@ -1456,7 +1503,7 @@ public class InternalDB extends SQLiteOpenHelper {
                                 ",(CASE WHEN [TweetKanji].[Furigana] is null  then '' else [TweetKanji].[Furigana] end) as [Furigana] " +
                                 ",TweetKanji.Definition " +
                             ",TweetKanji.Total " +
-                            ",TweetKanji.Percent " +
+                            ",TweetKanji.Correct " +
                             ",TweetKanji.Color " +
                                 ",TweetKanji.StartIndex " +
                                 ",TweetKanji.EndIndex " +
@@ -1497,7 +1544,8 @@ public class InternalDB extends SQLiteOpenHelper {
                             ",c.Definition as [Definition] " +
                             ",c.Kanji as [Kanji] " +
                             ",b.[Total] as [Total]" +
-                            ",CAST(ifnull(b.[Correct],0)  as float)/b.[Total] as [Percent] " +
+                            ",b.[Correct] as [Correct] " +
+//                            ",CAST(ifnull(b.[Correct],0)  as float)/b.[Total] as [Percent] " +
 
                             "FROM " +
                             "( " +
@@ -1569,13 +1617,12 @@ public class InternalDB extends SQLiteOpenHelper {
 
                     }
 
-
                         WordEntry wordEntry = new WordEntry(c.getInt(7)
                                 ,c.getString(8)
                                 ,c.getString(9)
                                 ,c.getString(10)
                                 ,c.getInt(11)
-                                ,c.getFloat(12)
+                                ,c.getInt(12)
                                 ,c.getString(13)
                                 ,c.getInt(14)
                                 ,c.getInt(15));
@@ -1624,7 +1671,7 @@ public class InternalDB extends SQLiteOpenHelper {
                 ",(CASE WHEN Furigana is null then '' else Furigana  end) as [Furigana]" +
                 ",[Definition]" +
                 ",[Total]" +
-                ",[Percent]" +
+                ",[Correct]" +
                 " ,[Blue]" +
                 " ,[Red] " +
                 " ,[Green] " +
@@ -1944,81 +1991,276 @@ public class InternalDB extends SQLiteOpenHelper {
 
     }
 
-
-
+//asdf
 //
-//    public ArrayList<WordEntry> getWordEntryForKanjiId(int kanjiId, ColorThresholds colorThresholds) {
-//        return sInstance.getWritableDatabase().rawQuery("SELECT [Kanji]" +
-//                ",(CASE WHEN Furigana is null then '' else Furigana  end) as [Furigana]" +
-//                ",[Definition]" +
-//                ",[Total]" +
-//                ",[Percent]" +
-//                " ,[Blue]" +
-//                " ,[Red] " +
-//                " ,[Green] " +
-//                " ,[Yellow] " +
-//                " ,[Purple] " +
-//                " ,[Orange] " +
+//    public ArrayList<WordEntry> fillMultipleChoiceKeyPool(Context context, int tabNumber, MyListEntry listEntry, String quizType, String colorString) {
+//        final Double sliderUpperBound = .50;
+//        final Double sliderLowerBound = .025;
+//        final int sliderCountMax = 30;
 //
-//                " ,[Other] " +
-////                                            ",(CASE WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 1 WHEN [Percent] < " + colorThresholds.getRedThreshold() + "  THEN 2 WHEN ([Percent] >= " + colorThresholds.getRedThreshold() + " and [Percent] <  " + colorThresholds.getYellowThreshold() + ") THEN 3 WHEN [Percent]>= " + colorThresholds.getYellowThreshold() + " THEN 4 END) as [Color] " +
-//                ",(CASE WHEN [Total] is NULL THEN 'Grey' " +
-//                "WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 'Grey' " +
-//                "WHEN CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 'Red' " +
-//                "WHEN CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + " THEN 'Yellow' " +
-//                "ELSE 'Green' END) as [Color]" +
+//        SQLiteDatabase db = sInstance.getWritableDatabase();
+//        SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(context);
+//        ColorThresholds colorThresholds = sharedPrefManager.getColorThresholds();
+//        ArrayList<WordEntry> wordEntries = new ArrayList<>();
 //
-//                "FROM (" +
-//                "SELECT [_id]" +
-//                ",[Kanji]" +
-//                ",[Furigana]" +
-//                ",[Definition]" +
-//                ",ifnull([Total],0) as [Total]" +
-//                ",ifnull([Correct],0)  as [Correct]" +
-//                ",CAST(ifnull([Correct],0)  as float)/[Total] as [Percent] " +
-//                " ,[Blue]" +
-//                " ,[Red] " +
-//                " ,[Green] " +
-//                " ,[Yellow] " +
-//                " ,[Purple] " +
-//                " ,[Orange] " +
 //
-//                " ,[Other] " +
-//                "FROM (" +
-//                "SELECT [_id]" +
-//                ",[Kanji]" +
-//                ",[Furigana]" +
-//                ",[Definition]  " +
-//                "FROM [Edict] where [_id] = ?" +
-//                ") NATURAL LEFT JOIN (" +
-//                "SELECT [_id]" +
-//                ",sum([Correct]) as [Correct]" +
-//                ",sum([Total]) as [Total] " +
-//                "from [JScoreboard] " +
-//                "WHERE [_id] = ? GROUP BY [_id]" +
-//                ") NATURAL LEFT JOIN (" +
-//                "SELECT [_id]" +
-//                ",SUM([Blue]) as [Blue]" +
-//                ",SUM([Red]) as [Red]" +
-//                ",SUM([Green]) as [Green]" +
-//                ",SUM([Yellow]) as [Yellow]" +
-//                ",SUM([Yellow]) as [Purple]" +
-//                ",SUM([Yellow]) as [Orange]" +
+//        try {
 //
-//                ", SUM([Other]) as [Other] " +
-//                "FROM (" +
-//                "SELECT [_id] " +
-//                ",(CASE WHEN ([Sys] = 1 and Name = 'Blue') then 1 else 0 end) as [Blue]" +
-//                ",(CASE WHEN ([Sys] = 1 AND Name = 'Red') then 1 else 0 end) as [Red]" +
-//                ",(CASE WHEN ([Sys] = 1 AND Name = 'Green') then 1 else 0 end) as [Green]" +
-//                ",(CASE WHEN ([Sys] = 1  AND Name = 'Yellow') then 1 else 0 end) as [Yellow]" +
-//                ",(CASE WHEN ([Sys] = 1  AND Name = 'Purple') then 1 else 0 end) as [Purple]" +
-//                ",(CASE WHEN ([Sys] = 1  AND Name = 'Orange') then 1 else 0 end) as [Orange]" +
-//                ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
-//                "FROM JFavorites " +
-//                "WHERE [_id] = ?) as x Group by [_id]" +
+//            Cursor c;
+//            //User is in mylist WORD tab
+//            if(tabNumber == 2) {
+//                if(BuildConfig.DEBUG) {Log.d(TAG,"we're in the mylists bit");}
+//                if(quizType.equals("Kanji to Kana") || quizType.equals("Kana to Kanji")) {
+//                    c = db.rawQuery("SELECT a.[_id]" +
+//                            ",a.[Percent]" +
+//                            ",a.[Total] " +
+//                            "FROM " +
+//                            "(" +
+//                            "SELECT [_id]" +
+//                            ",(CASE WHEN [Color] = 'Grey' THEN .4 ELSE [Percent] END) as [Percent]" +
+//                            ",[Total] " +
+//                            "FROM " +
+//                            "(" +
+//                            "SELECT [_id]" +
+////                                ",(CASE WHEN [Total] < " + colorThresholds.getGreyThreshold() +  " THEN 1 WHEN [Percent] < " +  colorThresholds.getRedThreshold()  + "  THEN 2 WHEN ([Percent] >= "  + colorThresholds.getRedThreshold() + " and [Percent] <  " + colorThresholds.getYellowThreshold() + ") THEN 3 WHEN [Percent]>= " + colorThresholds.getYellowThreshold()  + " THEN 4 END) as [Color]" +
+//                            " ,(CASE WHEN [Total] is NULL THEN 'Grey' " +
+//                            "WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 'Grey' " +
+//                            "WHEN CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 'Red' " +
+//                            "WHEN CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + " THEN 'Yellow' " +
+//                            "ELSE 'Green' END) as [Color] " +
 //
-//                "))", new String[]{String.valueOf(kanjiId),String.valueOf(kanjiId),String.valueOf(kanjiId)});
+//                            ",[Percent]" +
+//                            ",[Total]  " +
+//                            "FROM  " +
+//                            "( " +
+//                            "SELECT x.[_id]" +
+//                            ",ifnull([Total],0) as [Total] " +
+//                            ",ifnull([Correct],0)  as [Correct]" +
+//                            ",(CASE WHEN ifnull([Total],0) = 0 THEN 0 ELSE CAST(ifnull([Correct],0)  as float)/[Total] END) as [Percent]  " +
+//                            "FROM  " +
+//                            "(" +
+//                            "SELECT [_id] " +
+//                            "FROM [JFavorites] " +
+//                            "WHERE ([Sys] = "  + listEntry.getListsSys() +  " and [Name] = '" + listEntry.getListName()  + "')" +
+//                            ") x " +
+//                            "LEFT JOIN " +
+//                            "(" +
+//                            "SELECT [_id]" +
+//                            ",sum([Correct]) as [Correct]" +
+//                            ",sum([Total]) as [Total]  " +
+//                            "FROM [JScoreboard]  " +
+//                            "GROUP BY [_id]" +
+//                            ") y " +
+//                            "ON x.[_id] = y.[_id]" +
+//                            ")" +
+//                            ") " +
+//                            "WHERE [Color] in (" +  colorString + ") " +
+//                            "ORDER BY RANDOM()" +
+//                            ") as a " +
+//                            "LEFT JOIN " +
+//                            "(" +
+//                            "SELECT DISTINCT [_id]" +
+//                            ",[Furigana] " +
+//                            ",[Definition] " +
+//                            ",[Furigana] " +
+//
+//                            "FROM [Edict] " +
+//                            "WHERE [_id] in (SELECT [_id] FROM [JFavorites] WHERE ([Sys] = "  + listEntry.getListsSys() +  " and [Name] = '" + listEntry.getListName()  + "'))" +
+//                            ") as b " +
+//                            "ON a.[_id]  = b.[_id]  ",null);
+//                }
+//
+//            }
+////        else {
+////            //User is in mylist TWEET tab
+////            if(BuildConfig.DEBUG) {Log.d(TAG,"we're in the mylists bit");}
+////            if(quizType.equals("Kanji to Kana") || quizType.equals("Kana to Kanji")) {
+////                c = db.rawQuery("SELECT a.[_id],a.[Percent],a.[Total] FROM (SELECT [_id],(CASE WHEN [Color] = 'Grey' THEN .4 ELSE [Percent] END) as [Percent],[Total] FROM (SELECT [_id],(CASE WHEN [Total] < " + colorThresholds.getGreyThreshold() +  " THEN 1 WHEN [Percent] < " +  colorThresholds.getRedThreshold()  + "  THEN 2 WHEN ([Percent] >= "  + colorThresholds.getRedThreshold() + " and [Percent] <  " + colorThresholds.getYellowThreshold() + ") THEN 3 WHEN [Percent]>= " + colorThresholds.getYellowThreshold()  + " THEN 4 END) as [Color],[Percent],[Total]  FROM  ( SELECT x.[_id],ifnull([Total],0) as [Total] ,ifnull([Correct],0)  as [Correct],(CASE WHEN ifnull([Total],0) = 0 THEN 0 ELSE CAST(ifnull([Correct],0)  as float)/[Total] END) as [Percent]  FROM  (SELECT [_id] FROM [JFavorites] WHERE ([Sys] = "  + listEntry.getListsSys() +  " and [Name] = '" + listEntry.getListName()  + "')) x LEFT JOIN (SELECT [_id],sum([Correct]) as [Correct],sum([Total]) as [Total]  FROM [JScoreboard]  GROUP BY [_id]) y ON x.[_id] = y.[_id])) WHERE [Color] in (" +  colorString + ") ORDER BY RANDOM()) as a LEFT JOIN (SELECT DISTINCT [_id],[Furigana] FROM [Edict] WHERE [_id] in (SELECT [_id] FROM [JFavorites] WHERE ([Sys] = "  + listEntry.getListsSys() +  " and [Name] = '" + listEntry.getListName()  + "'))) as b ON a.[_id]  = b.[_id]  ",null);
+////            } else {
+////                c = db.rawQuery("SELECT [_id],(CASE WHEN [Color] = 'Grey' THEN .4 ELSE [Percent] END) as [Percent],[Total] FROM (SELECT [_id],(CASE WHEN [Total] < " + colorThresholds.getGreyThreshold() +  " THEN 1 WHEN [Percent] < " +  colorThresholds.getRedThreshold()  + "  THEN 2 WHEN ([Percent] >= "  + colorThresholds.getRedThreshold() + " and [Percent] <  " + colorThresholds.getYellowThreshold() + ") THEN 3 WHEN [Percent]>= " + colorThresholds.getYellowThreshold()  + " THEN 4 END) as [Color],[Percent],[Total]  FROM  ( SELECT x.[_id],ifnull([Total],0) as [Total] ,ifnull([Correct],0)  as [Correct],(CASE WHEN ifnull([Total],0) = 0 THEN 0 ELSE CAST(ifnull([Correct],0)  as float)/[Total] END) as [Percent]  FROM  (SELECT [_id] FROM [JFavorites] WHERE ([Sys] = "  + listEntry.getListsSys() +  " and [Name] = '" + listEntry.getListName()  + "')) x LEFT JOIN (SELECT [_id],sum([Correct]) as [Correct],sum([Total]) as [Total]  FROM [JScoreboard]  GROUP BY [_id]) y ON x.[_id] = y.[_id])) WHERE [Color] in (" +  colorString + ") ORDER BY RANDOM()",null);
+////            }
+////        }
+//
+//            if(BuildConfig.DEBUG) {Log.d(TAG,"c.count: " + c.getCount());}
+//
+//            if(c.getCount()>0) {
+//                c.moveToFirst();
+//                int i=0;
+//                while (!c.isAfterLast()) {
+//                    /** Add the PKey (_id) to the keypool array (we'll pull it out by index)... */
+//                    keyPool.add(c.getInt(0)); //[Key]
+//                    if(BuildConfig.DEBUG) {Log.d(TAG,"(wordweight) ****** START ID: " + c.getString(0) );}
+//                    /** Add index (i) and weight to the hashmap */
+//                    double percentage =c.getDouble(1);
+//                    double total = c.getDouble(2);
+//
+//                    /* The slider multiplier is what affects how rapidly a word diverges from the natural weight of .25.
+//                     * The higher the multiplier, the faster it will diverge with an increased count.*/
+//                    double countMultiplier = (double)total/(double)sliderCountMax*(percentage-(double)sliderUpperBound)*(double)sharedPrefManager.getSliderMultiplier();
+//
+//                    if(total>100) {
+//                        total = (double)100;
+//                    }
+//                    if(BuildConfig.DEBUG) {
+//                        Log.d(TAG,"(wordweight) (" + c.getString(0) + ") Percentage: " + c.getDouble(1) + ", Total: " + c.getString(2));
+//                        Log.d(TAG,"(wordweight) count multiplier: " + countMultiplier);
+//                    }
+//                    double a = ((double)sliderUpperBound/(double)2)-(double)sliderUpperBound*(countMultiplier) ;
+//                    if(BuildConfig.DEBUG) {Log.d(TAG,"(wordweight) (" + c.getString(0) + ") a: " + a);}
+//
+//
+//                    double b = sliderLowerBound;
+//                    if(a>=sliderUpperBound) {
+//                        b = sliderUpperBound;
+//                    } else if(a>=sliderLowerBound) {
+//                        b = a;
+//                    }
+//                    if(BuildConfig.DEBUG) {
+//                        Log.d(TAG, "(wordweight) FINAL b value = " + b);
+//                        Log.d(TAG, "(wordweight) (" + c.getString(0) + ") final weight: " + b);
+//                    }
+//                    keypoolhashmap.put(i, b); // put _id and weight value into map
+//                    i++;
+//                    c.moveToNext();
+//                }
+//            }
+//            c.close();
+//
+//
+//        } catch (SQLiteException e) {
+//            Log.e(TAG,"fillMultipleChoiceKeyPool sqlite problem: " + e);
+//        } catch (Exception e) {
+//            Log.e(TAG,"fillMultipleChoiceKeyPool other exception... " + e);
+//        } finally {
+//            db.close();
+//        }
+//
+//
+//
+//        return wordEntries;
+//
 //    }
 
+
+    public Cursor getPossibleMultipleChoiceMatch(String quizType
+            , WordEntry correctWordEntry
+            , String alreadyaddedkanji
+            , String kanjiToBreak
+            , String possibleKanjiPart) {
+        if (quizType.equals("Kanji to Kana")) {
+            return sInstance.getWritableDatabase().rawQuery("SELECT  x.[_id]" +
+                    ",x.[Kanji]" +
+                    ",(CASE WHEN x.[Furigana] is null  then '' else x.[Furigana] end) as [Furigana] " +
+                    ",x.[Definition]" +
+                    ",ifnull(y.[Correct],0) as [Correct] " +
+                    ",ifnull(y.[Total],0) as [Total] " +
+                    ",(CASE WHEN [Total] >0 THEN CAST(ifnull([Correct],0)  as float)/[Total] ELSE 0 END) as [Percent] " +
+                    "FROM " +
+                    "(" +
+                    "SELECT [_id]" +
+                    ",[Kanji]" +
+                    ",[Furigana]" +
+                    ",[Definition]  " +
+                    "FROM [Edict] " +
+                    "Where  [Common] = 1 " +
+                    "and [Furigana] is not null " +
+                    "AND [_ID] <>  " + correctWordEntry.getId() + " " +
+                    "AND [_ID] not in (" + alreadyaddedkanji + ") " +
+                    "and [Furigana] <> \"" + correctWordEntry.getFurigana() + "\"  " +
+                    "and Length([Furigana]) between " + (kanjiToBreak.length()) + " and " + (kanjiToBreak.length() + 1) + " " +
+                    "and [Furigana] like \"%" + possibleKanjiPart + "%\"   LIMIT 5" +
+                    ") as x " +
+                    "LEFT JOIN " +
+                    "(" +
+                    "SELECT [_id]" +
+                    ",sum([Correct]) as [Correct]" +
+                    ",sum([Total]) as [Total]  " +
+                    "FROM [JScoreboard] " +
+                    "GROUP BY [_id]" +
+                    ") as y " +
+                    "ON x.[_id] = y.[_id] ", null);
+
+//                    "SELECT DISTINCT [_id] " +
+//                    "FROM Edict " +
+//                    "Where  [Common] = 1 " +
+//                    "and [Furigana] is not null " +
+//                    "AND [_ID] <>  " + correctWordEntry.getId() + " " +
+//                    "AND [_ID] not in (" + alreadyaddedkanji + ") " +
+//                    "and [Furigana] <> \"" + correctWordEntry.getFurigana()  + "\"  " +
+//                    "and Length([Furigana]) between "+ (kanjiToBreak.length() ) + " and "+ (kanjiToBreak.length() + 1) + " " +
+//                    "and [Furigana] like \"%" + possibleKanjiPart + "%\"   LIMIT 5",null);
+        } else {
+            return sInstance.getWritableDatabase().rawQuery("SELECT  x.[_id]" +
+                    ",x.[Kanji]" +
+                    ",(CASE WHEN x.[Furigana] is null  then '' else x.[Furigana] end) as [Furigana] " +
+                    ",x.[Definition]" +
+                    ",ifnull(y.[Correct],0) as [Correct] " +
+                    ",ifnull(y.[Total],0) as [Total] " +
+                    ",(CASE WHEN [Total] >0 THEN CAST(ifnull([Correct],0)  as float)/[Total] ELSE 0 END) as [Percent] " +
+                    "FROM " +
+                    "(" +
+                    "SELECT [_id]" +
+                    ",[Kanji]" +
+                    ",[Furigana]" +
+                    ",[Definition]  " +
+                    "FROM [Edict] " +
+                    "Where  [Common] = 1 " +
+                    "and [_ID] <> " + correctWordEntry.getId() + " " +
+                    "AND [_ID] not in (" + alreadyaddedkanji + ") " +
+                    "and Length([Kanji]) between " + (kanjiToBreak.length()) + " and " + (kanjiToBreak.length() + 1) + " " +
+                    "and [Kanji] <> \"" + correctWordEntry.getKanji() + "\" " +
+                    "and [Kanji] like \"%" + possibleKanjiPart + "%\"   LIMIT 5" +
+                    ") as x " +
+                    "LEFT JOIN " +
+                    "(" +
+                    "SELECT [_id]" +
+                    ",sum([Correct]) as [Correct]" +
+                    ",sum([Total]) as [Total]  " +
+                    "FROM [JScoreboard] " +
+                    "GROUP BY [_id]" +
+                    ") as y " +
+                    "ON x.[_id] = y.[_id] ", null);
+
+
+//                    "SELECT DISTINCT [_id]  " +
+//                    "FROM Edict " +
+//                    "Where  [Common] = 1 " +
+//                    "and [_ID] <> " + correctWordEntry.getId() + " " +
+//                    "AND [_ID] not in (" + alreadyaddedkanji + ") " +
+//                    "and Length([Kanji]) between "+ (kanjiToBreak.length() ) + " and " + (kanjiToBreak.length() + 1) + " " +
+//                    "and [Kanji] <> \"" +  correctWordEntry.getKanji()  + "\" " +
+//                    "and [Kanji] like \"%" + possibleKanjiPart + "%\"   LIMIT 5",null);
+        }
+
+    }
+
+    public Cursor getRandomKanji(String keysToExclude, int limit) {
+        return sInstance.getWritableDatabase().rawQuery("SELECT [_id]" +
+                ",[Kanji]" +
+                ",[Furigana]" +
+                ",[Definition]" +
+                ",ifnull([Correct],0) " +
+                ",ifnull([Total],0)" +
+                ",(CASE WHEN [Total] >0 THEN CAST(ifnull([Correct],0)  as float)/[Total] ELSE 0 END) as [Percent] " +
+                "FROM " +
+                "(" +
+                "SELECT [_id]" +
+                ",[Kanji]" +
+                ",[Furigana]" +
+                ",[Definition]  " +
+                "FROM [Edict] " +
+                "where [_id]  not in (" +  keysToExclude + ") " +
+                                    " and [Furigana] is not null " +
+                " ORDER BY RANDOM() LIMIT "+ limit +" " +
+                ") " +
+                " NATURAL LEFT JOIN " +
+                "(" +
+                "SELECT [_id]" +
+                ",sum([Correct]) as [Correct]" +
+                ",sum([Total]) as [Total] " +
+                "from [JScoreboard] " +
+                "GROUP BY [_id]" +
+                ") ORDER BY RANDOM()  Limit " + limit + " ",null);
+
+    }
 }

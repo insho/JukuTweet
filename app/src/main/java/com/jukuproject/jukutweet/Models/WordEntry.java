@@ -2,6 +2,7 @@ package com.jukuproject.jukutweet.Models;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import com.jukuproject.jukutweet.R;
 
@@ -12,7 +13,8 @@ public class WordEntry implements Parcelable {
     private String kanji;
     private String furigana;
     private String definition;
-    private float percentage;
+    private Integer correct;
+//    private float percentage;
     private Integer total;
     private ItemFavorites itemFavorites;
 
@@ -20,6 +22,7 @@ public class WordEntry implements Parcelable {
     private String color;
     private int startIndex;
     private int endIndex;
+    private double quizWeight;
 
     public String getColor() {
         return color;
@@ -46,22 +49,24 @@ public class WordEntry implements Parcelable {
 
     public WordEntry() {}
 
-    public WordEntry(Integer id, String kanji, String furigana, String definition,Integer total, float percentage ) {
+    public WordEntry(Integer id, String kanji, String furigana, String definition,Integer total, Integer correct) {
         this.id = id;
         this.kanji = kanji;
         this.furigana = furigana;
         this.definition = definition;
         this.total = total;
-        this.percentage = percentage;
+        this.correct = correct;
+//        this.percentage = percentage;
         this.itemFavorites = new ItemFavorites();
     }
+
 
     public WordEntry(Integer id
             , String kanji
             , String furigana
             , String definition
             ,Integer total
-            , float percentage
+            , Integer correct
             , String color
             , Integer startIndex
             , Integer endIndex) {
@@ -70,7 +75,7 @@ public class WordEntry implements Parcelable {
         this.furigana = furigana;
         this.definition = definition;
         this.total = total;
-        this.percentage = percentage;
+//        this.percentage = percentage;
         this.itemFavorites = new ItemFavorites();
         this.color = color;
         this.startIndex  = startIndex;
@@ -113,12 +118,20 @@ public class WordEntry implements Parcelable {
     }
 
     public float getPercentage() {
-        return percentage;
+        try {
+            return (float)correct/(float)total;
+        } catch (NullPointerException e) {
+            Log.e("Test-WordEntry", "Null pointer in Word Entry percentage calculation: " + e);
+            return 0;
+        } catch (Exception e) {
+            Log.e("Test-WordEntry", "Other exception in Word Entry percentage calculation: " + e);
+            return 0;
+        }
     }
 
-    public void setPercentage(float percentage) {
-        this.percentage = percentage;
-    }
+//    public void setPercentage(float percentage) {
+//        this.percentage = percentage;
+//    }
 
     public Integer getTotal() {
         return total;
@@ -128,9 +141,15 @@ public class WordEntry implements Parcelable {
         this.total = total;
     }
 
+    public Integer getCorrect() {
+        return correct;
+    }
 
+    public void setCorrect(Integer correct) {
+        this.correct = correct;
+    }
 
-//    public ArrayList<String> getDefinitionArray() {
+    //    public ArrayList<String> getDefinitionArray() {
 //        ArrayList<String> definitionArray = new ArrayList<>();
 //
 //        if(definition != null) {
@@ -225,16 +244,59 @@ public class WordEntry implements Parcelable {
 
     }
 
+    public String getQuizQuestion(String quizType) {
+        switch(quizType) {
+
+            case "Kanji to English":
+                return kanji;
+            case "Kanji to Furigana":
+                return kanji;
+            case "Furigana to Kanji":
+                return furigana;
+            case "English to Kanji":
+                return getDefinitionMultiLineString(10);
+            default:
+                return kanji;
+
+        }
+    };
+
+    public String getQuizAnswer(String quizType) {
+        switch(quizType) {
+
+            case "Kanji to English":
+                return definition;
+            case "Kanji to Furigana":
+                return furigana;
+            case "Furigana to Kanji":
+                return kanji;
+            case "English to Kanji":
+                return kanji;
+            default:
+                return definition;
+
+        }
+    };
+
+    public double getQuizWeight() {
+        return quizWeight;
+    }
+
+    public void setQuizWeight(double quizWeight) {
+        this.quizWeight = quizWeight;
+    }
+
     private WordEntry(Parcel in) {
         id = in.readInt();
         kanji = in.readString();
         furigana = in.readString();
         definition = in.readString();
-        percentage = in.readFloat();
+        correct = in.readInt();
         total = in.readInt();
         color = in.readString();
         startIndex = in.readInt();
         endIndex = in.readInt();
+        quizWeight = in.readDouble();
         itemFavorites = (ItemFavorites) in.readParcelable(ItemFavorites.class.getClassLoader());
     }
 
@@ -243,11 +305,12 @@ public class WordEntry implements Parcelable {
         out.writeString(kanji);
         out.writeString(furigana);
         out.writeString(definition);
-        out.writeFloat(percentage);
+        out.writeInt(correct);
         out.writeInt(total);
         out.writeString(color);
         out.writeInt(startIndex);
         out.writeInt(endIndex);
+        out.writeDouble(quizWeight);
         out.writeParcelable(itemFavorites,flags);
 
     }

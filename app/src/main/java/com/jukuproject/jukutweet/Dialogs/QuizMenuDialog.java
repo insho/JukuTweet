@@ -100,37 +100,73 @@ public class QuizMenuDialog extends DialogFragment {
         txtView2 = (TextView) view.findViewById(R.id.btnRow2);
         txtView3 = (TextView) view.findViewById(R.id.btnRow3);
 
+        TextView txtShowFront = (TextView) view.findViewById(R.id.txtRow1);
+        TextView txtShowBack= (TextView) view.findViewById(R.id.txtRow2);
+        TextView txtShowTimer= (TextView) view.findViewById(R.id.txtRow3);
+
         switch(quizType) {
             case "flashcards":
-
-                TextView txtShowFront = (TextView) view.findViewById(R.id.txtRow1);
                 txtShowFront.setText("Front: ");
                 txtView1.setText(getActivity().getString(R.string.menuoptionskanji));
 
-                TextView txtShowBack= (TextView) view.findViewById(R.id.txtRow2);
                 txtShowBack.setText("Back: ");
                 txtView2.setText(getActivity().getString(R.string.menuoptionsdefinition));
 
                 ((TextView)view.findViewById(R.id.txtRow3)).setVisibility(View.GONE);
                 ((TextView) view.findViewById(R.id.btnRow3)).setVisibility(View.GONE);
 
+                final String[] optionsFlashCards = getResources().getStringArray(R.array.menuoptions_flashcards);
 
                 txtView1.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        popupDropDownWindow(1).showAsDropDown(v, -yadjustment, 0);
+                        popupDropDownWindow(1,optionsFlashCards).showAsDropDown(v, -yadjustment, 0);
                     }
                 });
 
                 txtView2.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        popupDropDownWindow(2).showAsDropDown(v, -yadjustment, 0);
+                        popupDropDownWindow(2,optionsFlashCards).showAsDropDown(v, -yadjustment, 0);
                     }
                 });
 
                 break;
             case "multiplechoice":
+                txtShowFront.setText("Type: ");
+                txtView1.setText(getActivity().getString(R.string.menuoptionskanjitodef));
+
+                txtShowBack.setText("Size: ");
+                txtView2.setText(getActivity().getString(R.string.menuoptionsten));
+
+                txtShowTimer.setText("Timer: ");
+                txtView3.setText(getActivity().getString(R.string.menuoptionsnone));
+
+
+                final String[] optionsMultipleChoiceType = getResources().getStringArray(R.array.menuoptions_multiplechoicetype);
+                final String[] optionsMultipleChoiceSize = getResources().getStringArray(R.array.menuoptions_quizSize);
+                final String[] optionsMultipleChoiceTimer = getResources().getStringArray(R.array.menuoptions_timer);
+
+                txtView1.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        popupDropDownWindow(1,optionsMultipleChoiceType).showAsDropDown(v, -yadjustment, 0);
+                    }
+                });
+
+                txtView2.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        popupDropDownWindow(2,optionsMultipleChoiceSize).showAsDropDown(v, -yadjustment, 0);
+                    }
+                });
+
+                txtView2.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        popupDropDownWindow(3,optionsMultipleChoiceTimer).showAsDropDown(v, -yadjustment, 0);
+                    }
+                });
 
                 break;
             default:
@@ -189,6 +225,16 @@ public class QuizMenuDialog extends DialogFragment {
 
                         dialog.dismiss();
                         break;
+                    case "multiplechoice":
+                        mCallback.showMultipleChoiceFragment(mTabNumber
+                                , mMyListEntry
+                                , txtView1.getText().toString()
+                                , txtView2.getText().toString()
+                                , txtView3.getText().toString()
+                                , mColorBlockMeasurables.getSelectedColorString());
+
+                        dialog.dismiss();
+                        break;
                     default:
                         dialog.dismiss();
                 }
@@ -205,14 +251,14 @@ public class QuizMenuDialog extends DialogFragment {
         return builder.show() ;
     }
 
-    private PopupWindow popupDropDownWindow(int buttonNumber) {
+    private PopupWindow popupDropDownWindow(int buttonNumber, String[] options) {
 
         final PopupWindow popupWindow = new PopupWindow(getActivity());
         popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.popup_drawable));
 
         RecyclerView recyclerView = new RecyclerView(getContext());
-        String[] optionsStringArray = getResources().getStringArray(R.array.menuoptions_flashcards);
-        ArrayList<String> optionsArray = new ArrayList<String>(Arrays.asList(optionsStringArray));
+
+        ArrayList<String> optionsArray = new ArrayList<String>(Arrays.asList(options));
         MenuDropDownPopupAdapter adapter = new MenuDropDownPopupAdapter(buttonNumber,optionsArray,mRxBus);
 
         mRxBus.toClickObserverable()

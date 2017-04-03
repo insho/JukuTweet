@@ -21,4 +21,6 @@
     <color name="primarylight">#BBDEFB</color>
 
     <color name="colorTextDark">#90FFFFFF</color>
+
+    <color name="multiplechoiceIncorrectColor">#525C61</color>
 </resources>

@@ -140,25 +140,37 @@
 
 
 
-    <string-array name="stringarray_optionsquiztype">
+    <string-array name="menuoptions_multiplechoicetype">
         <item>Kanji to English</item>
-        <item>Kanji to Furigana</item>
-        <item>Furigana to Kanji</item>
+        <item>Kanji to Kana</item>
+        <item>Kana to Kanji</item>
         <item>English to Kanji</item>
     </string-array>
 
 
-    <string-array name="stringarray_optionsbatchsize">
-        <item>3</item>
+    <string-array name="menuoptions_quizSize">
+        <item>5</item>
         <item>10</item>
         <item>15</item>
         <item>20</item>
         <item>25</item>
         <item>30</item>
-        <item>35</item>
         <item>40</item>
-        <item>45</item>
         <item>50</item>
+    </string-array>
+
+    <string-array name="menuoptions_timer">
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
+        <item>15</item>
     </string-array>
 
     <string name="menuoptionskanjitodef">Kanji to Definition</string>
