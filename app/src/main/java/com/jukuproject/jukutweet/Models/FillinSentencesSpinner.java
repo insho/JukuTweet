@@ -14,12 +14,22 @@ public class FillinSentencesSpinner implements Parcelable {
     private String selectedOption;
     private boolean isCorrect;
     private boolean hasBeenAnswered;
+    private boolean correctFirstTry;
 
     public FillinSentencesSpinner() {
         this.isCorrect = false;
         this.hasBeenAnswered = false;
+        this.correctFirstTry = true;
         this.options = new ArrayList<>();
 
+    }
+
+    public boolean isCorrectFirstTry() {
+        return correctFirstTry;
+    }
+
+    public void setCorrectFirstTry(boolean correctFirstTry) {
+        this.correctFirstTry = correctFirstTry;
     }
 
     public ArrayList<String> getOptions() {
@@ -38,7 +48,7 @@ public class FillinSentencesSpinner implements Parcelable {
         isCorrect = correct;
     }
 
-    public boolean isHasBeenAnswered() {
+    public boolean hasBeenAnswered() {
         return hasBeenAnswered;
     }
 
@@ -54,6 +64,7 @@ public class FillinSentencesSpinner implements Parcelable {
         this.hasBeenAnswered = in.readByte() != 0;
         options = in.createStringArrayList();
         selectedOption = in.readString();
+        correctFirstTry = in.readByte() != 0;
     }
 
     public void writeToParcel(Parcel out, int flags) {
@@ -61,6 +72,7 @@ public class FillinSentencesSpinner implements Parcelable {
         out.writeByte((byte) (this.hasBeenAnswered ? 1 : 0));
         out.writeStringList(this.options);
         out.writeString(this.selectedOption);
+        out.writeByte((byte) (this.correctFirstTry ? 1 : 0));
     }
 
     public int describeContents() {

@@ -1108,72 +1108,160 @@ public class InternalDB extends SQLiteOpenHelper {
             limit = "LIMIT " + String.valueOf(resultLimit);
         }
 
-        String favoritesTable;
-        if(mylistType.equals("Tweet")) {
-            favoritesTable = TABLE_FAVORITES_LISTS_TWEETS_ENTRIES;
-        } else {
-            favoritesTable = TABLE_FAVORITES_LIST_ENTRIES;
-        }
+//        String favoritesTable;
 
         ArrayList<WordEntry> wordEntries = new ArrayList<>();
         SQLiteDatabase db = sInstance.getReadableDatabase();
         try {
-            Cursor c = db.rawQuery("Select [_id]" +
-                    ",Kanji " +
-                    ",Furigana " +
-                    ",Definition " +
-                    ",Correct " +
-                    ",Total " +
-                    ",Percent " +
-                    ",Color " +
-                    "FROM (" +
-                    "SELECT  x.[_id]" +
-                                            ",x.[Kanji]" +
+            Cursor c;
+            if(mylistType.equals("Tweet")) {
+                c = db.rawQuery("Select [_id]" +
+                                ",Kanji " +
+                                ",Furigana " +
+                                ",Definition " +
+                                ",Correct " +
+                                ",Total " +
+                                ",Percent " +
+                                ",Color " +
+                                "FROM (" +
+                                "SELECT  x.[_id]" +
+                                ",x.[Kanji]" +
 //                                            ",(CASE WHEN (x.Furigana is null OR  x.Furigana = '') then \"\" else \"(\" || x.Furigana || \")\" end) as [Furigana]" +
-                            ",(CASE WHEN x.[Furigana] is null  then '' else x.[Furigana] end) as [Furigana] " +
+                                ",(CASE WHEN x.[Furigana] is null  then '' else x.[Furigana] end) as [Furigana] " +
 
 
 
-                                            ",x.[Definition]" +
-                                            ",ifnull(y.[Correct],0) as [Correct] " +
-                                            ",ifnull(y.[Total],0) as [Total] " +
-                                            ",(CASE WHEN [Total] >0 THEN CAST(ifnull([Correct],0)  as float)/[Total] ELSE 0 END) as [Percent] " +
-                            " ,(CASE WHEN [Total] is NULL THEN 'Grey' " +
-                            "WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 'Grey' " +
-                            "WHEN CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 'Red' " +
-                            "WHEN CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + " THEN 'Yellow' " +
-                            "ELSE 'Green' END) as [Color] " +
-                                        "FROM " +
-                                             "(" +
-                                                "SELECT [_id]" +
-                                                ",[Kanji]" +
-                                                ",[Furigana]" +
-                                                ",[Definition]  " +
-                                            "FROM [Edict] " +
-                                            "WHERE [_id] IN (" +
-                                                            "SELECT [_id] " +
-                                                            "FROM " + favoritesTable +  "  " +
-                                                            "WHERE ([Sys] = ? and [Name] = ? and _id <> ?)" +
-                                                            ") " +
-                                             "ORDER BY [_id]" +
-                                             ") as x " +
-                                        "LEFT JOIN " +
-                                            "(" +
-                                                 "SELECT [_id]" +
-                                                ",sum([Correct]) as [Correct]" +
-                                                ",sum([Total]) as [Total]  " +
-                                                "FROM [JScoreboard] " +
-                                                "WHERE [_id] IN (" +
-                                                            "SELECT [_id] " +
-                                                            "FROM " + favoritesTable +  "  " +
-                                                            "WHERE ([Sys] = ? and [Name] = ? and _id <> ?))  " +
-                                             "GROUP BY [_id]" +
-                                             ") as y " +
-                                          "ON x.[_id] = y.[_id] " +
-                    ") " +
-                    "WHERE [Color] in (" +  colorString + ") "  +
-                    " ORDER BY RANDOM() " + limit + " "
-                    , new String[]{String.valueOf(myListEntry.getListsSys()),myListEntry.getListName(),idToExclude,String.valueOf(myListEntry.getListsSys()),myListEntry.getListName(),idToExclude});
+                                ",x.[Definition]" +
+                                ",ifnull(y.[Correct],0) as [Correct] " +
+                                ",ifnull(y.[Total],0) as [Total] " +
+                                ",(CASE WHEN [Total] >0 THEN CAST(ifnull([Correct],0)  as float)/[Total] ELSE 0 END) as [Percent] " +
+                                " ,(CASE WHEN [Total] is NULL THEN 'Grey' " +
+                                "WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 'Grey' " +
+                                "WHEN CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 'Red' " +
+                                "WHEN CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + " THEN 'Yellow' " +
+                                "ELSE 'Green' END) as [Color] " +
+                                "FROM " +
+                                "(" +
+                                "SELECT [_id]" +
+                                ",[Kanji]" +
+                                ",[Furigana]" +
+                                ",[Definition]  " +
+                                "FROM [Edict] " +
+                                "WHERE [_id] IN (" +
+                                    "SELECT DISTINCT Edict_id as [_id] " +
+                                    "FROM "+
+                                    "( " +
+                                    "SELECT DISTINCT Tweet_id " +
+                                    "FROM " + TABLE_FAVORITES_LIST_ENTRIES + " " +
+                                    " WHERE [Name] = ? and [Sys] = ? and [_id] <> ? " +
+                                    ") as x " +
+                                    "LEFT JOIN "  +
+                                    "( " +
+                                    "SELECT DISTINCT Tweet_id,Edict_id " +
+                                    "FROM " + TABLE_SAVED_TWEET_KANJI + " " +
+                                    ")  as y " +
+                                    " ON x.Tweet_id = y.Tweet_id " +
+
+
+                                ") " +
+                                "ORDER BY [_id]" +
+                                ") as x " +
+                                "LEFT JOIN " +
+                                "(" +
+                                "SELECT [_id]" +
+                                ",sum([Correct]) as [Correct]" +
+                                ",sum([Total]) as [Total]  " +
+                                "FROM [JScoreboard] " +
+                                "WHERE [_id] IN (" +
+
+                                    "SELECT DISTINCT Edict_id as [_id] " +
+                                    "FROM "+
+                                    "( " +
+                                    "SELECT DISTINCT Tweet_id " +
+                                    "FROM " + TABLE_FAVORITES_LIST_ENTRIES + " " +
+                                    " WHERE [Name] = ? and [Sys] = ? and [_id] <> ? " +
+                                    ") as x " +
+                                    "LEFT JOIN "  +
+                                    "( " +
+                                    "SELECT DISTINCT Tweet_id,Edict_id " +
+                                    "FROM " + TABLE_SAVED_TWEET_KANJI + " " +
+                                    ")  as y " +
+                                    " ON x.Tweet_id = y.Tweet_id " +
+
+                        ") " +
+                                "GROUP BY [_id]" +
+                                ") as y " +
+                                "ON x.[_id] = y.[_id] " +
+                                ") " +
+                                "WHERE [Color] in (" +  colorString + ") "  +
+                                " ORDER BY RANDOM() " + limit + " "
+                        , new String[]{String.valueOf(myListEntry.getListsSys()),myListEntry.getListName(),idToExclude,String.valueOf(myListEntry.getListsSys()),myListEntry.getListName(),idToExclude});
+
+
+            } else {
+                c = db.rawQuery("Select [_id]" +
+                                ",Kanji " +
+                                ",Furigana " +
+                                ",Definition " +
+                                ",Correct " +
+                                ",Total " +
+                                ",Percent " +
+                                ",Color " +
+                                "FROM (" +
+                                "SELECT  x.[_id]" +
+                                ",x.[Kanji]" +
+//                                            ",(CASE WHEN (x.Furigana is null OR  x.Furigana = '') then \"\" else \"(\" || x.Furigana || \")\" end) as [Furigana]" +
+                                ",(CASE WHEN x.[Furigana] is null  then '' else x.[Furigana] end) as [Furigana] " +
+
+
+
+                                ",x.[Definition]" +
+                                ",ifnull(y.[Correct],0) as [Correct] " +
+                                ",ifnull(y.[Total],0) as [Total] " +
+                                ",(CASE WHEN [Total] >0 THEN CAST(ifnull([Correct],0)  as float)/[Total] ELSE 0 END) as [Percent] " +
+                                " ,(CASE WHEN [Total] is NULL THEN 'Grey' " +
+                                "WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 'Grey' " +
+                                "WHEN CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 'Red' " +
+                                "WHEN CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + " THEN 'Yellow' " +
+                                "ELSE 'Green' END) as [Color] " +
+                                "FROM " +
+                                "(" +
+                                "SELECT [_id]" +
+                                ",[Kanji]" +
+                                ",[Furigana]" +
+                                ",[Definition]  " +
+                                "FROM [Edict] " +
+                                "WHERE [_id] IN (" +
+                                "SELECT [_id] " +
+                                "FROM " + TABLE_FAVORITES_LIST_ENTRIES +  "  " +
+                                "WHERE ([Sys] = ? and [Name] = ? and _id <> ?)" +
+                                ") " +
+                                "ORDER BY [_id]" +
+                                ") as x " +
+                                "LEFT JOIN " +
+                                "(" +
+                                "SELECT [_id]" +
+                                ",sum([Correct]) as [Correct]" +
+                                ",sum([Total]) as [Total]  " +
+                                "FROM [JScoreboard] " +
+                                "WHERE [_id] IN (" +
+                                "SELECT [_id] " +
+                                "FROM " + TABLE_FAVORITES_LIST_ENTRIES +  "  " +
+                                "WHERE ([Sys] = ? and [Name] = ? and _id <> ?))  " +
+                                "GROUP BY [_id]" +
+                                ") as y " +
+                                "ON x.[_id] = y.[_id] " +
+                                ") " +
+                                "WHERE [Color] in (" +  colorString + ") "  +
+                                " ORDER BY RANDOM() " + limit + " "
+                        , new String[]{String.valueOf(myListEntry.getListsSys()),myListEntry.getListName(),idToExclude,String.valueOf(myListEntry.getListsSys()),myListEntry.getListName(),idToExclude});
+
+
+
+
+            }
+
+
             if(c.getCount()>0) {
                 c.moveToFirst();
                 while (!c.isAfterLast())
@@ -2835,7 +2923,12 @@ public class InternalDB extends SQLiteOpenHelper {
 //        return savedTweets;
 //    }
 
-    public void setSpinnersForTweetWithMyListWords(Tweet tweet, ArrayList<Integer> wordListEdictIds) {
+    public void setSpinnersForTweetWithMyListWords(SQLiteDatabase db
+            , String myListType
+            , MyListEntry myListEntry
+            , Tweet tweet
+            , ArrayList<Integer> wordListEdictIds) {
+
         ArrayList<WordEntry> wordEntries = tweet.getWordEntries();
         int spinnerAddedCount = 0;
 
@@ -2846,14 +2939,136 @@ public class InternalDB extends SQLiteOpenHelper {
 
         /* Pick random kanji from the wordEntries list to be spinners (with maximum of the spinner limit)*/
         Collections.shuffle(wordEntries);
+
         for(int i=0;i<wordEntries.size() && spinnerAddedCount<spinnerLimit;i++) {
             if(wordListEdictIds.contains(wordEntries.get(i).getId())) {
                 wordEntries.get(i).setSpinner(true);
+
+                ArrayList<String> arrayOptions = getDummySpinnerOptions(db,myListEntry,wordEntries.get(i),myListType);
+                wordEntries.get(i).getFillinSentencesSpinner().setOptions(arrayOptions);
+
                 spinnerAddedCount += 1;
             }
         }
     }
 
+    public ArrayList<String> getDummySpinnerOptions(SQLiteDatabase db
+            , MyListEntry myListEntry
+            , WordEntry wordEntry
+            , String mylistType) {
+        ArrayList<String> dummyOptions = new ArrayList<>();
+//        String favoritesTable;
+
+        try {
+        Cursor c;
+        if(mylistType.equals("Tweet")) {
+
+            c = db.rawQuery("SELECT [Kanji] " +
+                    "FROM " +
+                    "(" +
+                    "SELECT [Kanji] " +
+                    "FROM " +
+                    "(" +
+                    "Select DISTINCT [Kanji] " +
+                    "FROM [Edict] where [_id] in (" +
+                        "SELECT DISTINCT Edict_id as [_id] " +
+                        "FROM "+
+                        "( " +
+                        "SELECT DISTINCT Tweet_id " +
+                        "FROM " + TABLE_FAVORITES_LIST_ENTRIES + " " +
+                        " WHERE [Name] = ? and [Sys] = ? and [_id] <> ? " +
+                        ") as x " +
+                        "LEFT JOIN "  +
+                        "( " +
+                        "SELECT DISTINCT Tweet_id,Edict_id " +
+                        "FROM " + TABLE_SAVED_TWEET_KANJI + " " +
+                        ")  as y " +
+                        " ON x.Tweet_id = y.Tweet_id " +
+                    " ORDER BY RANDOM()  LIMIT 8 " +
+                    ") OR [_id] in (" +
+                    "SELECT DISTINCT [_id] " +
+                    "FROM [XRef] " +
+                    "WHERE [_id] <> ? " +
+                    "ORDER BY RANDOM()  LIMIT 4" +
+                    ") ORDER BY RANDOM() LIMIT 3)  " +
+                    "UNION " +
+                    "SELECT '" + wordEntry.getKanji() + "' as [Kanji]) " +
+                    "ORDER BY RANDOM() ",new String[]{myListEntry.getListName()
+                    ,String.valueOf(myListEntry.getListsSys())
+                    ,String.valueOf(wordEntry.getId())
+                    ,String.valueOf(wordEntry.getId())});
+        } else {
+
+            c = db.rawQuery("SELECT [Kanji] " +
+                    "FROM " +
+                    "(" +
+                    "SELECT [Kanji] " +
+                    "FROM " +
+                    "(" +
+                    "Select DISTINCT [Kanji] " +
+                    "FROM [Edict] where [_id] in (" +
+                    "SELECT DISTINCT [_id] " +
+                    "FROM " +  TABLE_FAVORITES_LIST_ENTRIES + " " +
+                    " WHERE [Name] = ? and [Sys] = ? and [_id] <> ? " +
+                    "ORDER BY RANDOM()  LIMIT 8 " +
+                    ") OR [_id] in (" +
+                    "SELECT DISTINCT [_id] " +
+                    "FROM [XRef] " +
+                    "WHERE [_id] <> ? " +
+                    "ORDER BY RANDOM()  LIMIT 4" +
+                    ") ORDER BY RANDOM() LIMIT 3)  " +
+                    "UNION " +
+                    "SELECT '" + wordEntry.getKanji() + "' as [Kanji]) " +
+                    "ORDER BY RANDOM() ",new String[]{myListEntry.getListName()
+                    ,String.valueOf(myListEntry.getListsSys())
+                    ,String.valueOf(wordEntry.getId())
+                    ,String.valueOf(wordEntry.getId())});
+        }
+
+//            Cursor c = db.rawQuery("SELECT [Kanji] " +
+//                    "FROM " +
+//                    "(" +
+//                    "SELECT [Kanji] " +
+//                    "FROM " +
+//                    "(" +
+//                    "Select DISTINCT [Kanji] " +
+//                    "FROM [Edict] where [_id] in (" +
+//                    "SELECT DISTINCT [_id] " +
+//                    "FROM " +  favoritesTable + " " +
+//                    " WHERE [Name] = ? and [Sys] = ? and [_id] <> ? " +
+//                    "ORDER BY RANDOM()  LIMIT 8 " +
+//                    ") OR [_id] in (" +
+//                    "SELECT DISTINCT [_id] " +
+//                    "FROM [XRef] " +
+//                    "WHERE [_id] <> ? " +
+//                    "ORDER BY RANDOM()  LIMIT 4" +
+//                    ") ORDER BY RANDOM() LIMIT 3)  " +
+//                    "UNION " +
+//                    "SELECT '" + wordEntry.getKanji() + "' as [Kanji]) " +
+//                    "ORDER BY RANDOM() ",new String[]{myListEntry.getListName()
+//                    ,String.valueOf(myListEntry.getListsSys())
+//                    ,String.valueOf(wordEntry.getId())
+//                    ,String.valueOf(wordEntry.getId())});
+
+            if(c.getCount()>0) {
+                c.moveToFirst();
+                while (!c.isAfterLast()) {
+                    dummyOptions.add(c.getString(0));
+                    c.moveToNext();
+                }
+                c.close();
+            }
+        } catch (SQLiteException e){
+            Log.e(TAG,"getDummySpinnerOptions Sqlite exception: " + e);
+        } catch (Exception e) {
+            Log.e(TAG,"getDummySpinnerOptions generic exception: " + e);
+        } finally {
+            db.close();
+        }
+
+        return dummyOptions;
+
+    }
 
     public ArrayList<Integer> getIdsForWordList(MyListEntry myListEntry) {
         ArrayList<Integer> ids = new ArrayList<>();
@@ -3227,8 +3442,6 @@ public class InternalDB extends SQLiteOpenHelper {
     }
 
 
-
-
     public ArrayList<Tweet> getFillintheBlanksTweetsForAWordList(MyListEntry myListEntry
             , ColorThresholds colorThresholds
             , String colorString
@@ -3249,11 +3462,6 @@ public class InternalDB extends SQLiteOpenHelper {
         ArrayList<Tweet> savedTweets = new ArrayList<>();
         SQLiteDatabase db = sInstance.getReadableDatabase();
         try {
-
-
-
-
-
 
 
             Cursor c = db.rawQuery("SELECT TweetIds.[Tweet_id]" +
@@ -3496,10 +3704,6 @@ public class InternalDB extends SQLiteOpenHelper {
                             ,myListEntry.getListName()
                             ,String.valueOf(myListEntry.getListsSys())});
 
-            long startTime5 = System.nanoTime();
-            Log.d(TAG,"C COUNT : " + c.getCount());
-            long endTime5 = System.nanoTime();
-            Log.e(TAG,"ELLAPSED TIME C COUNT: " + (endTime5 - startTime5) / 1000000000.0);
 
             /* The query pulls a list of tweetdata paired with each parsed-kanji in the tweet, resulting in
             * multiple duplicate lines of tweetdata. So the cursor ony adds tweet data once, when a new tweetid is found. Meanwhile
@@ -3515,15 +3719,12 @@ public class InternalDB extends SQLiteOpenHelper {
                 {
 
                     if(c.isFirst()) {
-                        long startTime2 = System.nanoTime();
                         tweet.setIdString(c.getString(0));
                         tweet.setCreatedAt(c.getString(5));
                         tweet.getUser().setUserId(c.getString(3));
                         tweet.setText(c.getString(4));
                         tweet.getUser().setScreen_name(c.getString(1));
                         tweet.getUser().setName(c.getString(2));
-                        long endTime2 = System.nanoTime();
-                        Log.e(TAG,"ELLAPSED TIME FIRST: " + (endTime2 - startTime2) / 1000000000.0);
                     }
 
 
@@ -3538,22 +3739,14 @@ public class InternalDB extends SQLiteOpenHelper {
                             ,c.getInt(14));
 
                     //Designate spinner kanji if they exist
-
                     tweet.addWordEntry(wordEntry);
 
 
                     //FLush old tweet
                     if(!currentTweetId.equals(c.getString(0))){
 
-
-                        long startTime1 = System.nanoTime();
-
-                        setSpinnersForTweetWithMyListWords(tweet,possibleSpinners);
+                        setSpinnersForTweetWithMyListWords(db,"Word",myListEntry,tweet,possibleSpinners);
                         savedTweets.add(new Tweet(tweet));
-
-
-                        long endTime1 = System.nanoTime();
-                        Log.e(TAG,"ELLAPSED FLUSH TWEET: " + (endTime1 - startTime1) / 1000000000.0);
 
                         currentTweetId = c.getString(0);
                         tweet = new Tweet();
@@ -3567,7 +3760,7 @@ public class InternalDB extends SQLiteOpenHelper {
 
                     if(c.isLast()) {
                         Tweet lastTweet = new Tweet(tweet);
-                        setSpinnersForTweetWithMyListWords(lastTweet,possibleSpinners);
+                        setSpinnersForTweetWithMyListWords(db,"Word",myListEntry,lastTweet,possibleSpinners);
                         savedTweets.add(lastTweet);
                     }
                     c.moveToNext();

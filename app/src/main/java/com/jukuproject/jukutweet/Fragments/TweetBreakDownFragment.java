@@ -399,6 +399,9 @@ public class TweetBreakDownFragment extends Fragment {
                     + " must implement OnHeadlineSelectedListener");
         }
     }
+
+
+
     public void loadSavedArray(ArrayList<WordEntry> disectedSavedTweet, String entireSentence, TextView txtSentence ) {
 
          /* Get metrics to pass density/width/height to adapters */

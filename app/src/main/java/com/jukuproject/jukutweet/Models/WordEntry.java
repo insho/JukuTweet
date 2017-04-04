@@ -26,8 +26,15 @@ public class WordEntry implements Parcelable {
     private boolean isSpinner;
     private FillinSentencesSpinner fillinSentencesSpinner;
 
+    public FillinSentencesSpinner getFillinSentencesSpinner() {
+     if(fillinSentencesSpinner == null) {
+         fillinSentencesSpinner = new FillinSentencesSpinner();
+     }
+        return fillinSentencesSpinner;
+    }
+
+
     public void setSpinner(boolean isSpinner) {
-        fillinSentencesSpinner = new FillinSentencesSpinner();
         this.isSpinner = isSpinner;
     }
 
