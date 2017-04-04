@@ -100,7 +100,7 @@ public class SavedTweetsBrowseFragment extends Fragment {
 
 
     public void pullData(MyListEntry myListEntry){
-        mDataset = InternalDB.getInstance(getContext()).getSavedTweets(myListEntry,mColorThresholds);
+        mDataset = InternalDB.getInstance(getContext()).getTweetsForSavedTweetsList(myListEntry,mColorThresholds);
 
 //        for(Tweet tweet : mDataset) {
 //            Log.d("XXX-Z:", "tweet id receieved: " + tweet.getIdString() + ", text: " + tweet.getText());
@@ -270,7 +270,7 @@ public class SavedTweetsBrowseFragment extends Fragment {
         try {
             InternalDB.getInstance(getContext()).removeBulkTweetsFromSavedTweets(bulkTweetIds,currentList);
             mSelectedEntries = new ArrayList<>();
-            mDataset = InternalDB.getInstance(getContext()).getSavedTweets(mMyListEntry,mColorThresholds);
+            mDataset = InternalDB.getInstance(getContext()).getTweetsForSavedTweetsList(mMyListEntry,mColorThresholds);
             mAdapter.swapDataSet(mDataset);
         } catch (NullPointerException e) {
             Log.e(TAG,"Nullpointer in SavedTweetsBrowseFragment removeTweetFromList : " + e);
@@ -288,7 +288,7 @@ public class SavedTweetsBrowseFragment extends Fragment {
             final String tweetIds = joinSelectedStrings(mSelectedEntries);
 //            Log.d(TAG,"FINAL STRING: " + tweetIds);
             InternalDB.getInstance(getContext()).removeBulkTweetsFromSavedTweets(tweetIds,mMyListEntry);
-            mDataset = InternalDB.getInstance(getContext()).getSavedTweets(mMyListEntry,mColorThresholds);
+            mDataset = InternalDB.getInstance(getContext()).getTweetsForSavedTweetsList(mMyListEntry,mColorThresholds);
             mAdapter.swapDataSet(mDataset);
             showUndoPopupTweets(tweetIds,mMyListEntry);
         } catch (NullPointerException e) {
@@ -348,7 +348,7 @@ public class SavedTweetsBrowseFragment extends Fragment {
             public void onClick(View v) {
                 try {
                     InternalDB.getInstance(getContext()).addBulkTweetsToList(currentList,bulkTweetIds);
-                    mDataset = InternalDB.getInstance(getContext()).getSavedTweets(mMyListEntry,mColorThresholds);
+                    mDataset = InternalDB.getInstance(getContext()).getTweetsForSavedTweetsList(mMyListEntry,mColorThresholds);
                     mSelectedEntries.clear();
                     mAdapter.swapDataSet(mDataset);
                     try {

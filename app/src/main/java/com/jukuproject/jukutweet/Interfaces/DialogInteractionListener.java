@@ -34,4 +34,8 @@ public interface DialogInteractionListener {
             , String quizTimer
             ,String selectedColorString);
 
+    void showFillintheBlanksFragment(int tabNumber
+            , MyListEntry listEntry
+            , String quizSize
+            ,String selectedColorString);
 }

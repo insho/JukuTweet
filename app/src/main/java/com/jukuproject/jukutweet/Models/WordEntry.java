@@ -23,6 +23,17 @@ public class WordEntry implements Parcelable {
     private int startIndex;
     private int endIndex;
     private double quizWeight;
+    private boolean isSpinner;
+    private FillinSentencesSpinner fillinSentencesSpinner;
+
+    public void setSpinner(boolean isSpinner) {
+        fillinSentencesSpinner = new FillinSentencesSpinner();
+        this.isSpinner = isSpinner;
+    }
+
+    public boolean isSpinner() {
+        return isSpinner;
+    }
 
     public String getColor() {
         return color;
@@ -58,6 +69,7 @@ public class WordEntry implements Parcelable {
         this.correct = correct;
 //        this.percentage = percentage;
         this.itemFavorites = new ItemFavorites();
+        this.isSpinner = false;
     }
 
 
@@ -75,11 +87,12 @@ public class WordEntry implements Parcelable {
         this.furigana = furigana;
         this.definition = definition;
         this.total = total;
-//        this.percentage = percentage;
+        this.correct = correct;
         this.itemFavorites = new ItemFavorites();
         this.color = color;
         this.startIndex  = startIndex;
         this.endIndex = endIndex;
+        this.isSpinner = false;
     }
 
 
@@ -298,6 +311,7 @@ public class WordEntry implements Parcelable {
         endIndex = in.readInt();
         quizWeight = in.readDouble();
         itemFavorites = (ItemFavorites) in.readParcelable(ItemFavorites.class.getClassLoader());
+        fillinSentencesSpinner = (FillinSentencesSpinner) in.readParcelable(FillinSentencesSpinner.class.getClassLoader());
     }
 
     public void writeToParcel(Parcel out, int flags) {
@@ -312,7 +326,7 @@ public class WordEntry implements Parcelable {
         out.writeInt(endIndex);
         out.writeDouble(quizWeight);
         out.writeParcelable(itemFavorites,flags);
-
+        out.writeParcelable(fillinSentencesSpinner,flags);
     }
 
     public int describeContents() {

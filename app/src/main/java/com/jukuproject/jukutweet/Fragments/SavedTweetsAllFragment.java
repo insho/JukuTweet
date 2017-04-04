@@ -163,7 +163,7 @@ public class SavedTweetsAllFragment  extends Fragment {
 //
 //                    case "Fill in the Blanks":
 //                        /** I'm being lazy here, and inputing groupposition in the "levelblock" place*/
-//                        MenuOptionsDialog b = new MenuOptionsDialog(getActivity(), 0, groupPosition, "fillinsentences", true, Header, sys, mylistposition);
+//                        MenuOptionsDialog b = new MenuOptionsDialog(getActivity(), 0, groupPosition, "fragment_fillintheblanks", true, Header, sys, mylistposition);
 //                        b.CreateDialog();
 //
 //                        break;

@@ -81,7 +81,7 @@ public class MultipleChoiceFragment extends Fragment {
 
     public TextView txtviewhighlight;
     public GridView Publicgrid;
-    public boolean isfirsttry = true;
+    public boolean isCorrectFirstTry = true;
     Integer totalheightofanswergrid; // This designates the individual size of the "answer" rows when the phone is in horizontal mode. It gets passed to the adapter and used there. Ignored if =0;
 
     private ArrayList<MultChoiceResult> questionResults;
@@ -190,7 +190,7 @@ public class MultipleChoiceFragment extends Fragment {
     public void setUpQuestion() {
         //Reset the question set
         questionSet = new ArrayList<>();
-        isfirsttry = true;
+        isCorrectFirstTry = true;
 
         /* Get next question from wordEntry pool, and add it as the
          first question of the set */
@@ -387,7 +387,7 @@ public class MultipleChoiceFragment extends Fragment {
                                 final Boolean correct;
 
                                 //IF user is correct (on first try)
-                                if (isfirsttry) {
+                                if (isCorrectFirstTry) {
                                     currentTotal = currentTotal + 1;
                                     currentCorrect = currentCorrect + 1;
                                     currentPlusMinus = currentPlusMinus + 1;
@@ -519,7 +519,7 @@ public class MultipleChoiceFragment extends Fragment {
                         final TextView txtviewhighlight = (TextView) v.findViewById(R.id.text1);
                         txtviewhighlight.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorJukuRed));
                         wronganswerpositions.add(questionSet.get(position).getId());
-                        isfirsttry = false;
+                        isCorrectFirstTry = false;
                         Runnable mMyRunnable = new Runnable() {
                             @Override
                             public void run() {

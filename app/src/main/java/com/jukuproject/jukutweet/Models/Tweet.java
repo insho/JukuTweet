@@ -24,6 +24,12 @@ public class Tweet  implements Parcelable {
     private String id_str;
     private Integer retweet_count;
     private String text;
+    private UserInfo user;
+    private ItemFavorites itemFavorites;
+    private TweetEntities entities;
+    private ArrayList<WordEntry> wordEntries;
+    private double quizWeight;
+
 
     public Tweet(){};
 
@@ -59,7 +65,6 @@ public class Tweet  implements Parcelable {
         return wordEntries;
     }
 
-    private ArrayList<WordEntry> wordEntries;
 
     public ItemFavorites getItemFavorites() {
         return itemFavorites;
@@ -69,17 +74,15 @@ public class Tweet  implements Parcelable {
         this.itemFavorites = itemFavorites;
     }
 
-    private ItemFavorites itemFavorites;
 
     public TweetEntities getEntities() {
         return entities;
     }
-    private TweetEntities entities;
 
     /* Each time a saved user's timeline is clicked, pull the user info
     * (if it exists) within the api response, and check it against the userInfo from the db and
     * update db if necessary with new user data */
-    private UserInfo user;
+
     public UserInfo getUser() {
         if(user == null) {
             user = new UserInfo();
@@ -92,6 +95,13 @@ public class Tweet  implements Parcelable {
     }
 
 
+    public double getQuizWeight() {
+        return quizWeight;
+    }
+
+    public void setQuizWeight(double quizWeight) {
+        this.quizWeight = quizWeight;
+    }
 
     public void addWordEntry(WordEntry entry) {
         if(wordEntries  == null){
@@ -257,6 +267,8 @@ public class Tweet  implements Parcelable {
     }
 
 
+
+
     public void setRetweet_count(Integer retweet_count) {
         this.retweet_count = retweet_count;
     }
@@ -270,6 +282,7 @@ public class Tweet  implements Parcelable {
     }
 
 
+
     // Parcelling part
     public Tweet(Parcel in){
 
@@ -280,8 +293,9 @@ public class Tweet  implements Parcelable {
         this.retweet_count = in.readInt();
         this.favorite_count  = in.readInt();
         this.text = in.readString();
-
-
+        this.quizWeight = in.readDouble();
+        this.itemFavorites = in.readParcelable(ItemFavorites.class.getClassLoader());
+        this.wordEntries = in.readArrayList(WordEntry.class.getClassLoader());
 
     }
 
@@ -302,7 +316,9 @@ public class Tweet  implements Parcelable {
         dest.writeInt(this.retweet_count);
         dest.writeInt(this.favorite_count);
         dest.writeString(this.text);
-
+        dest.writeDouble(this.quizWeight);
+        dest.writeParcelable(this.itemFavorites,flags);
+        dest.writeList(this.wordEntries);
 
     }
 
@@ -315,6 +331,7 @@ public class Tweet  implements Parcelable {
             return new Tweet[size];
         }
     };
+
 
 
 

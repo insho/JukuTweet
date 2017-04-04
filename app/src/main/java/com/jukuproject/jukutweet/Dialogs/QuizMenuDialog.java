@@ -45,7 +45,7 @@ import rx.functions.Action1;
 
 public class QuizMenuDialog extends DialogFragment {
 
-    private String TAG = "Test-quizmendlog";
+    private final String TAG = "Test-quizmendlog";
     public DialogInteractionListener mCallback;
 
     private String quizType;
@@ -169,6 +169,29 @@ public class QuizMenuDialog extends DialogFragment {
                 });
 
                 break;
+
+            case "fillintheblanks":
+
+                ((TextView)view.findViewById(R.id.txtRow1)).setVisibility(View.GONE);
+                ((TextView) view.findViewById(R.id.btnRow1)).setVisibility(View.GONE);
+
+                txtShowBack.setText("Size: ");
+                txtView2.setText(getActivity().getString(R.string.menuoptionsten));
+
+                ((TextView)view.findViewById(R.id.txtRow3)).setVisibility(View.GONE);
+                ((TextView) view.findViewById(R.id.btnRow3)).setVisibility(View.GONE);
+
+                final String[] optionsFillintheBlanksSize = getResources().getStringArray(R.array.menuoptions_quizSize);
+
+                txtView2.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        popupDropDownWindow(2,optionsFillintheBlanksSize).showAsDropDown(v, -yadjustment, 0);
+                    }
+                });
+
+                break;
+
             default:
                 view = getActivity().getLayoutInflater().inflate(R.layout.dialogmenupopup, null);
                 break;
@@ -231,6 +254,14 @@ public class QuizMenuDialog extends DialogFragment {
                                 , txtView1.getText().toString()
                                 , txtView2.getText().toString()
                                 , txtView3.getText().toString()
+                                , mColorBlockMeasurables.getSelectedColorString());
+
+                        dialog.dismiss();
+                        break;
+                    case "fillintheblanks":
+                        mCallback.showFillintheBlanksFragment(mTabNumber
+                                , mMyListEntry
+                                , txtView2.getText().toString()
                                 , mColorBlockMeasurables.getSelectedColorString());
 
                         dialog.dismiss();

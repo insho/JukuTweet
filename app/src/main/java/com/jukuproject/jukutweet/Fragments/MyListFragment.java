@@ -175,6 +175,15 @@ public class MyListFragment  extends Fragment{
 
                         break;
 
+                    case "Fill in the Blanks":
+                        if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
+                            QuizMenuDialog.newInstance("fillintheblanks",2,mMenuHeader.get(groupPosition).getMyListEntry(),mMenuHeader.get(groupPosition).getColorBlockMeasurables(),getdimenscore()).show(getActivity().getSupportFragmentManager(),"dialogQuizMenu");
+                        }
+                        break;
+                    case "Stats":
+                        InternalDB.getInstance(getContext()).TEST(mMenuHeader.get(groupPosition).getMyListEntry());
+                        break;
+
                     default:
 
                         break;
@@ -187,7 +196,7 @@ public class MyListFragment  extends Fragment{
 //
 //                    case "Fill in the Blanks":
 //                        /** I'm being lazy here, and inputing groupposition in the "levelblock" place*/
-//                        MenuOptionsDialog b = new MenuOptionsDialog(getActivity(), 0, groupPosition, "fillinsentences", true, Header, sys, mylistposition);
+//                        MenuOptionsDialog b = new MenuOptionsDialog(getActivity(), 0, groupPosition, "fragment_fillintheblanks", true, Header, sys, mylistposition);
 //                        b.CreateDialog();
 //
 //                        break;
