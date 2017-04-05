@@ -18,8 +18,6 @@ import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.R;
 
-//import android.app.DialogFragment;
-
 /**
  * Dialog for "following" a new twitter user. New user name is entered into edittext
  * and then input into the database
@@ -39,21 +37,23 @@ public class AddOrRenameMyListDialog extends DialogFragment {
         }
     }
 
-    public static AddOrRenameMyListDialog newInstance(String oldList) {
+    public static AddOrRenameMyListDialog newInstance(String listType, String oldList) {
 
         AddOrRenameMyListDialog frag = new AddOrRenameMyListDialog();
         Bundle args = new Bundle();
         args.putString("oldList", oldList);
         args.putBoolean("isRename",true);
+        args.putString("listType",listType);
         frag.setArguments(args);
         return frag;
     }
 
-    public static AddOrRenameMyListDialog newInstance() {
+    public static AddOrRenameMyListDialog newInstance(String listType) {
 
         AddOrRenameMyListDialog frag = new AddOrRenameMyListDialog();
         Bundle args = new Bundle();
         args.putBoolean("isRename",false);
+        args.putString("listType",listType);
         frag.setArguments(args);
         return frag;
     }
@@ -62,6 +62,7 @@ public class AddOrRenameMyListDialog extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 
         final Boolean isRename = getArguments().getBoolean("isRename");
+        final String listType = getArguments().getString("listType");
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
@@ -97,13 +98,15 @@ public class AddOrRenameMyListDialog extends DialogFragment {
                     Toast.makeText(getActivity(), "MyList name can not be blank", Toast.LENGTH_SHORT).show();
                 } else if (editText.getText().toString().trim().length() > 30) {
                     Toast.makeText(getActivity(), "List name should be less than 30 characters", Toast.LENGTH_LONG).show();
-                } else if(InternalDB.getInstance(getActivity()).duplicateMyList(editText.getText().toString().trim())) {
+                } else if(listType.equals("MyList") && InternalDB.getInstance(getActivity()).duplicateWordList(editText.getText().toString().trim())) {
+                    Toast.makeText(getActivity(), "MyList name already exists", Toast.LENGTH_SHORT).show();
+                } else if(listType.equals("TweetList") && InternalDB.getTweetInterfaceInstance(getContext()).duplicateTweetList(editText.getText().toString().trim())) {
                     Toast.makeText(getActivity(), "MyList name already exists", Toast.LENGTH_SHORT).show();
                 } else if(isRename){
-                    mAddRSSDialogListener.onRenameMyListDialogPositiveClick(getArguments().getString("oldList"),editText.getText().toString().trim());
+                    mAddRSSDialogListener.onRenameMyListDialogPositiveClick(listType, getArguments().getString("oldList"),editText.getText().toString().trim());
                     dialog.dismiss();
                 } else {
-                    mAddRSSDialogListener.onAddMyListDialogPositiveClick(editText.getText().toString().trim());
+                    mAddRSSDialogListener.onAddMyListDialogPositiveClick(listType, editText.getText().toString().trim());
                     dialog.dismiss();
                 }
             }
@@ -118,12 +121,5 @@ public class AddOrRenameMyListDialog extends DialogFragment {
         builder.setCancelable(true);
         return builder.create();
     }
-
-    @Override
-    public void onDismiss(DialogInterface dialog) {
-        super.onDismiss(dialog);
-        mAddRSSDialogListener.onDialogDismiss();
-    }
-
 
 }

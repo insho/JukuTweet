@@ -107,12 +107,6 @@ public class AddUserDialog extends DialogFragment {
         return builder.create();
     }
 
-    @Override
-    public void onDismiss(DialogInterface dialog) {
-        super.onDismiss(dialog);
-        mAddUserDialogListener.onDialogDismiss();
-    }
-
     /**
      * Checks whether a string begins with the "@" sign, and removes it if it exists
      * @param inputString raw input string (of prospective user handle)

@@ -28,7 +28,7 @@ import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
-import com.jukuproject.jukutweet.SentenceParserTest;
+import com.jukuproject.jukutweet.TweetParser;
 import com.jukuproject.jukutweet.TwitterUserClient;
 
 import java.util.ArrayList;
@@ -45,7 +45,7 @@ import rx.schedulers.Schedulers;
 
 //import com.jukuproject.jukutweet.Models.ParseSentenceItem;
 //import com.jukuproject.jukutweet.Models.ParseSentenceSpecialSpan;
-//import com.jukuproject.jukutweet.SentenceParser;
+//import com.jukuproject.jukutweet.TweetParser;
 
 /**
  * Shows last X tweets from a twitter timeline. User can click on a tweet to bring up
@@ -208,7 +208,7 @@ public class UserTimeLineFragment extends Fragment {
                                                     }
 //                                            Log.d(TAG,"DB OPEN BEFORE: " + db.isOpen());
                                                     ColorThresholds colorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
-                                                    return SentenceParserTest.getInstance().parseSentence(getContext()
+                                                    return TweetParser.getInstance().parseSentence(getContext()
                                                             ,tweet.getText()
                                                             ,spansToExclude
                                                             ,colorThresholds);

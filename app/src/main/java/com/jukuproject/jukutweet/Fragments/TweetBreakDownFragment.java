@@ -41,7 +41,7 @@ import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
-import com.jukuproject.jukutweet.SentenceParserTest;
+import com.jukuproject.jukutweet.TweetParser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,7 +57,7 @@ import rx.schedulers.Schedulers;
 //import com.jukuproject.jukutweet.Models.ParseSentenceItem;
 //import com.jukuproject.jukutweet.Models.ParseSentenceSpecialSpan;
 //import com.jukuproject.jukutweet.Models.TweetKanjiColor;
-//import com.jukuproject.jukutweet.SentenceParser;
+//import com.jukuproject.jukutweet.TweetParser;
 
 
 /**
@@ -288,7 +288,7 @@ public class TweetBreakDownFragment extends Fragment {
          tweet will not have been previously attached. So attach them now: */
 
         for(WordEntry wordEntry : mTweet.getWordEntries()) {
-            Cursor c = InternalDB.getInstance(getContext()).getWordEntryForKanjiId(wordEntry.getId(),colorThresholds);
+            Cursor c = InternalDB.getInstance(getContext()).getWordEntryForWordId(wordEntry.getId(),colorThresholds);
             if(c.getCount()>0) {
                 c.moveToFirst();
                 wordEntry.setItemFavorites(new ItemFavorites(c.getInt(5)
@@ -312,7 +312,7 @@ public class TweetBreakDownFragment extends Fragment {
         final ArrayList<String> spansToExclude = new ArrayList<>();
 
         /* Create a list of "SpecialSpan" objects from the urls contained the Tweet. These will be
-        * passed into the SentenceParser, but will skip all the "parsing" and will be reintegrated at the end, and
+        * passed into the TweetParser, but will skip all the "parsing" and will be reintegrated at the end, and
         * designated as "url" in the ParseSentenceItems that emerge from the parser. They can then be shown as clickable links when
         * the tweet text is reassembled */
 
@@ -337,7 +337,7 @@ public class TweetBreakDownFragment extends Fragment {
         Single<ArrayList<WordEntry>> disectTweet = Single.fromCallable(new Callable<ArrayList<WordEntry>>() {
             @Override
             public ArrayList<WordEntry> call() throws Exception {
-                return SentenceParserTest.getInstance().parseSentence(getContext()
+                return TweetParser.getInstance().parseSentence(getContext()
                         ,sentence
                         ,spansToExclude
                         ,colorThresholds);

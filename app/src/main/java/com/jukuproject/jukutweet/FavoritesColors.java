@@ -134,13 +134,13 @@ public class FavoritesColors {
 
             if(itemFavorites.isEmpty(preferenceFavorites)) {
                 String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Blue","Red","Green","Yellow","Purple","Orange"});
-                if(InternalDB.getInstance(context).changeFavoriteListEntry(wordEntry.getId(),"Black",nextColor)) {
+                if(InternalDB.getInstance(context).changeWordListStarColor(wordEntry.getId(),"Black",nextColor)) {
                     itemFavorites.setSystemColor(nextColor);
                 }
 
             } else if(preferenceFavorites.contains("Blue") && itemFavorites.getSystemBlueCount() > 0) {
                 String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Red","Green","Yellow","Purple","Orange"});
-                if(InternalDB.getInstance(context).changeFavoriteListEntry(wordEntry.getId(),"Blue",nextColor)) {
+                if(InternalDB.getInstance(context).changeWordListStarColor(wordEntry.getId(),"Blue",nextColor)) {
                     itemFavorites.setSystemBlueCount(0);
                     itemFavorites.setSystemColor(nextColor);
                 }
@@ -148,7 +148,7 @@ public class FavoritesColors {
             }
             else if(preferenceFavorites.contains("Red") && itemFavorites.getSystemRedCount() > 0) {
                 String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Green","Yellow","Purple","Orange"});
-                if(InternalDB.getInstance(context).changeFavoriteListEntry(wordEntry.getId(),"Red",nextColor)) {
+                if(InternalDB.getInstance(context).changeWordListStarColor(wordEntry.getId(),"Red",nextColor)) {
                     itemFavorites.setSystemRedCount(0);
                     itemFavorites.setSystemColor(nextColor);
                 }
@@ -156,7 +156,7 @@ public class FavoritesColors {
             }
             else if(preferenceFavorites.contains("Green") && itemFavorites.getSystemGreenCount() > 0) {
                 String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Yellow","Purple","Orange"});
-                if(InternalDB.getInstance(context).changeFavoriteListEntry(wordEntry.getId(),"Green",nextColor)) {
+                if(InternalDB.getInstance(context).changeWordListStarColor(wordEntry.getId(),"Green",nextColor)) {
                     itemFavorites.setSystemGreenCount(0);
                     itemFavorites.setSystemColor(nextColor);
                 }
@@ -164,7 +164,7 @@ public class FavoritesColors {
             }
             else if(preferenceFavorites.contains("Yellow") && itemFavorites.getSystemYellowCount() > 0) {
                 String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Purple","Orange"});
-                if(InternalDB.getInstance(context).changeFavoriteListEntry(wordEntry.getId(),"Yellow",nextColor)) {
+                if(InternalDB.getInstance(context).changeWordListStarColor(wordEntry.getId(),"Yellow",nextColor)) {
                     itemFavorites.setSystemYellowCount(0);
                     itemFavorites.setSystemColor(nextColor);
                 }
@@ -172,14 +172,14 @@ public class FavoritesColors {
             }
             else if(preferenceFavorites.contains("Purple") && itemFavorites.getSystemPurpleCount() > 0) {
                 String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Orange"});
-                if(InternalDB.getInstance(context).changeFavoriteListEntry(wordEntry.getId(),"Purple",nextColor)) {
+                if(InternalDB.getInstance(context).changeWordListStarColor(wordEntry.getId(),"Purple",nextColor)) {
                     itemFavorites.setSystemPurpleCount(0);
                     itemFavorites.setSystemColor(nextColor);
                 }
 
             } else if(preferenceFavorites.contains("Orange") && itemFavorites.getSystemOrangeCount() > 0) {
 
-                if(InternalDB.getInstance(context).changeFavoriteListEntry(wordEntry.getId(),"Orange","Black")) {
+                if(InternalDB.getInstance(context).changeWordListStarColor(wordEntry.getId(),"Orange","Black")) {
                     itemFavorites.setSystemOrangeCount(0);
                 }
             }
@@ -200,13 +200,13 @@ public class FavoritesColors {
 
             if(itemFavorites.isEmpty(preferenceFavorites)) {
                 String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Blue","Red","Green","Yellow","Purple","Orange"});
-                if(InternalDB.getInstance(context).changeFavoriteListEntryTweet(tweet.getIdString(),userId,"Black",nextColor)) {
+                if(InternalDB.getInstance(context).changeTweetListStarColor(tweet.getIdString(),userId,"Black",nextColor)) {
                     itemFavorites.setSystemColor(nextColor);
                 }
 
             } else if(preferenceFavorites.contains("Blue") && itemFavorites.getSystemBlueCount() > 0) {
                 String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Red","Green","Yellow","Purple","Orange"});
-                if(InternalDB.getInstance(context).changeFavoriteListEntryTweet(tweet.getIdString(),userId,"Blue",nextColor)) {
+                if(InternalDB.getInstance(context).changeTweetListStarColor(tweet.getIdString(),userId,"Blue",nextColor)) {
                     itemFavorites.setSystemBlueCount(0);
                     itemFavorites.setSystemColor(nextColor);
                 }
@@ -214,7 +214,7 @@ public class FavoritesColors {
             }
             else if(preferenceFavorites.contains("Red") && itemFavorites.getSystemRedCount() > 0) {
                 String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Green","Yellow","Purple","Orange"});
-                if(InternalDB.getInstance(context).changeFavoriteListEntryTweet(tweet.getIdString(),userId,"Red",nextColor)) {
+                if(InternalDB.getInstance(context).changeTweetListStarColor(tweet.getIdString(),userId,"Red",nextColor)) {
                     itemFavorites.setSystemRedCount(0);
                     itemFavorites.setSystemColor(nextColor);
                 }
@@ -222,7 +222,7 @@ public class FavoritesColors {
             }
             else if(preferenceFavorites.contains("Green") && itemFavorites.getSystemGreenCount() > 0) {
                 String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Yellow","Purple","Orange"});
-                if(InternalDB.getInstance(context).changeFavoriteListEntryTweet(tweet.getIdString(),userId,"Green",nextColor)) {
+                if(InternalDB.getInstance(context).changeTweetListStarColor(tweet.getIdString(),userId,"Green",nextColor)) {
                     itemFavorites.setSystemGreenCount(0);
                     itemFavorites.setSystemColor(nextColor);
                 }
@@ -230,7 +230,7 @@ public class FavoritesColors {
             }
             else if(preferenceFavorites.contains("Yellow") && itemFavorites.getSystemYellowCount() > 0) {
                 String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Purple","Orange"});
-                if(InternalDB.getInstance(context).changeFavoriteListEntryTweet(tweet.getIdString(),userId,"Yellow",nextColor)) {
+                if(InternalDB.getInstance(context).changeTweetListStarColor(tweet.getIdString(),userId,"Yellow",nextColor)) {
                     itemFavorites.setSystemYellowCount(0);
                     itemFavorites.setSystemColor(nextColor);
                 }
@@ -238,14 +238,14 @@ public class FavoritesColors {
             }
             else if(preferenceFavorites.contains("Purple") && itemFavorites.getSystemPurpleCount() > 0) {
                 String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Orange"});
-                if(InternalDB.getInstance(context).changeFavoriteListEntryTweet(tweet.getIdString(),userId,"Purple",nextColor)) {
+                if(InternalDB.getInstance(context).changeTweetListStarColor(tweet.getIdString(),userId,"Purple",nextColor)) {
                     itemFavorites.setSystemPurpleCount(0);
                     itemFavorites.setSystemColor(nextColor);
                 }
 
             } else if(preferenceFavorites.contains("Orange") && itemFavorites.getSystemOrangeCount() > 0) {
 
-                if(InternalDB.getInstance(context).changeFavoriteListEntryTweet(tweet.getIdString(),userId,"Orange","Black")) {
+                if(InternalDB.getInstance(context).changeTweetListStarColor(tweet.getIdString(),userId,"Orange","Black")) {
                     itemFavorites.setSystemOrangeCount(0);
                 }
             }
@@ -284,34 +284,34 @@ public class FavoritesColors {
 //
 //            if(itemFavorites.isEmpty(preferenceFavorites)) {
 //                String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Blue","Green","Red","Yellow"});
-//                if(InternalDB.getInstance(context).changeFavoriteListEntry(wordEntry.getId(),"Black",nextColor)) {
+//                if(InternalDB.getInstance(context).changeWordListStarColor(wordEntry.getId(),"Black",nextColor)) {
 //                    itemFavorites.setSystemColor(nextColor);
 //                }
 //
 //            } else if(preferenceFavorites.contains("Blue") && itemFavorites.getSystemBlueCount() > 0) {
 //                String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Green","Red","Yellow"});
-//                if(InternalDB.getInstance(context).changeFavoriteListEntry(wordEntry.getId(),"Blue",nextColor)) {
+//                if(InternalDB.getInstance(context).changeWordListStarColor(wordEntry.getId(),"Blue",nextColor)) {
 //                    itemFavorites.setSystemBlueCount(0);
 //                    itemFavorites.setSystemColor(nextColor);
 //                }
 //
 //            } else if(preferenceFavorites.contains("Green") && itemFavorites.getSystemGreenCount() > 0) {
 //                String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Red","Yellow"});
-//                if(InternalDB.getInstance(context).changeFavoriteListEntry(wordEntry.getId(),"Green",nextColor)) {
+//                if(InternalDB.getInstance(context).changeWordListStarColor(wordEntry.getId(),"Green",nextColor)) {
 //                    itemFavorites.setSystemGreenCount(0);
 //                    itemFavorites.setSystemColor(nextColor);
 //                }
 //
 //            } else if(preferenceFavorites.contains("Red") && itemFavorites.getSystemRedCount() > 0) {
 //                String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Yellow"});
-//                if(InternalDB.getInstance(context).changeFavoriteListEntry(wordEntry.getId(),"Red",nextColor)) {
+//                if(InternalDB.getInstance(context).changeWordListStarColor(wordEntry.getId(),"Red",nextColor)) {
 //                    itemFavorites.setSystemRedCount(0);
 //                    itemFavorites.setSystemColor(nextColor);
 //                }
 //
 //            } else if(preferenceFavorites.contains("Yellow") && itemFavorites.getSystemYellowCount() > 0) {
 //
-//                if(InternalDB.getInstance(context).changeFavoriteListEntry(wordEntry.getId(),"Yellow","Black")) {
+//                if(InternalDB.getInstance(context).changeWordListStarColor(wordEntry.getId(),"Yellow","Black")) {
 //                    itemFavorites.setSystemYellowCount(0);
 //                }
 //            }

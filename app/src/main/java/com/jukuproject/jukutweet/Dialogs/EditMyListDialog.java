@@ -33,10 +33,11 @@ public class EditMyListDialog extends DialogFragment {
         }
     }
 
-    public static EditMyListDialog newInstance(String listName, boolean isStarFavorite) {
+    public static EditMyListDialog newInstance(String listType, String listName, boolean isStarFavorite) {
 
         EditMyListDialog frag = new EditMyListDialog();
         Bundle args = new Bundle();
+        args.putString("listType",listType);
         args.putString("listName", listName);
         args.putBoolean("isStarFavorite",isStarFavorite);
         frag.setArguments(args);
@@ -49,7 +50,7 @@ public class EditMyListDialog extends DialogFragment {
 
         final String listName = getArguments().getString("listName");
         final boolean isStarFavorite = getArguments().getBoolean("isStarFavorite");
-
+        final String listType = getArguments().getString("listType");
 
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.dialog_editmylists, null);
@@ -161,7 +162,7 @@ public class EditMyListDialog extends DialogFragment {
                 if(mSelectedItem == 0) {
                     Toast.makeText(getActivity(), getString(R.string.clickanoption), Toast.LENGTH_SHORT).show();
                 } else {
-                    mEditMyListDialogListener.onEditMyListDialogPositiveClick(mSelectedItem, listName,isStarFavorite);
+                    mEditMyListDialogListener.onEditMyListDialogPositiveClick(listType, mSelectedItem, listName,isStarFavorite);
                     dialog.dismiss();
                 }
             }
@@ -177,9 +178,9 @@ public class EditMyListDialog extends DialogFragment {
         return builder.create();
     }
 
-    @Override
-    public void onDismiss(DialogInterface dialog) {
-        super.onDismiss(dialog);
-        mEditMyListDialogListener.onDialogDismiss();
-    }
+//    @Override
+//    public void onDismiss(DialogInterface dialog) {
+//        super.onDismiss(dialog);
+//        mEditMyListDialogListener.onDialogDismiss();
+//    }
 }

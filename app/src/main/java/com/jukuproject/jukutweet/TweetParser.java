@@ -25,7 +25,7 @@ import java.util.HashMap;
  * Takes a sentence (or piece of text), finds the kanji in it and creates an array of those kanji
  */
 
-public class SentenceParserTest {
+public class TweetParser {
 
 
     private static boolean debug = true;
@@ -41,8 +41,8 @@ public class SentenceParserTest {
     private ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence;
     private final int minKanjiLengthtoSplit = 2; //Smallest # of characters in a kanji combo for the kanji breakup builder to try splitting
 
-    public static SentenceParserTest getInstance() {
-        return new SentenceParserTest();
+    public static TweetParser getInstance() {
+        return new TweetParser();
     }
 
     public ArrayList<WordEntry> parseSentence(Context context
@@ -886,7 +886,7 @@ public class SentenceParserTest {
         for(int index = 0; index < cleanKanjiIDs.size(); index ++) {
             if(debug){Log.d(TAG, "clean_int: " + cleanKanjiIDs.get(index));}
 
-            Cursor c = InternalDB.getInstance(mContext).getWordEntryForKanjiId(cleanKanjiIDs.get(index),mColorThresholds);
+            Cursor c = InternalDB.getInstance(mContext).getWordEntryForWordId(cleanKanjiIDs.get(index),mColorThresholds);
 
             if (c.getCount() > 0) {
                 c.moveToFirst();

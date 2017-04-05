@@ -284,7 +284,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                             });
                     if(chooseFavoritesPopup == null) {
 
-                        ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getInstance(mContext).getFavoritesListsForKanji(mActiveFavoriteStars,String.valueOf(mWords.get(holder.getAdapterPosition()).getId()),null);
+                        ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getInstance(mContext).getWordListsForAWord(mActiveFavoriteStars,String.valueOf(mWords.get(holder.getAdapterPosition()).getId()),null);
                         chooseFavoritesPopup= new TestPopupWindow(mContext,mMetrics,rxBus,availableFavoriteLists,mWords.get(holder.getAdapterPosition()).getId()).onCreateView();
 
 
@@ -384,34 +384,34 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
 //
 //            if(itemFavorites.isEmpty(mActiveFavoriteStars)) {
 //                String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Blue","Green","Red","Yellow"});
-//                if(InternalDB.getInstance(mContext).changeFavoriteListEntry(wordEntry.getId(),"Black",nextColor)) {
+//                if(InternalDB.getInstance(mContext).changeWordListStarColor(wordEntry.getId(),"Black",nextColor)) {
 //                    itemFavorites.setSystemColor(nextColor);
 //                }
 //
 //            } else if(preferenceFavorites.contains("Blue") && itemFavorites.getSystemBlueCount() > 0) {
 //                String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Green","Red","Yellow"});
-//                if(InternalDB.getInstance(mContext).changeFavoriteListEntry(wordEntry.getId(),"Blue",nextColor)) {
+//                if(InternalDB.getInstance(mContext).changeWordListStarColor(wordEntry.getId(),"Blue",nextColor)) {
 //                    itemFavorites.setSystemBlueCount(0);
 //                    itemFavorites.setSystemColor(nextColor);
 //                }
 //
 //            } else if(preferenceFavorites.contains("Green") && itemFavorites.getSystemGreenCount() > 0) {
 //                String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Red","Yellow"});
-//                if(InternalDB.getInstance(mContext).changeFavoriteListEntry(wordEntry.getId(),"Green",nextColor)) {
+//                if(InternalDB.getInstance(mContext).changeWordListStarColor(wordEntry.getId(),"Green",nextColor)) {
 //                    itemFavorites.setSystemGreenCount(0);
 //                    itemFavorites.setSystemColor(nextColor);
 //                }
 //
 //            } else if(preferenceFavorites.contains("Red") && itemFavorites.getSystemRedCount() > 0) {
 //                String nextColor = findNextFavoritesColor(preferenceFavorites,new String[]{"Yellow"});
-//                if(InternalDB.getInstance(mContext).changeFavoriteListEntry(wordEntry.getId(),"Red",nextColor)) {
+//                if(InternalDB.getInstance(mContext).changeWordListStarColor(wordEntry.getId(),"Red",nextColor)) {
 //                    itemFavorites.setSystemRedCount(0);
 //                    itemFavorites.setSystemColor(nextColor);
 //                }
 //
 //            } else if(preferenceFavorites.contains("Yellow") && itemFavorites.getSystemYellowCount() > 0) {
 //
-//                if(InternalDB.getInstance(mContext).changeFavoriteListEntry(wordEntry.getId(),"Yellow","Black")) {
+//                if(InternalDB.getInstance(mContext).changeWordListStarColor(wordEntry.getId(),"Yellow","Black")) {
 //                    itemFavorites.setSystemYellowCount(0);
 //                }
 //            }

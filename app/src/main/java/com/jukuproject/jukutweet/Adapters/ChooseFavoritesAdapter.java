@@ -148,7 +148,7 @@ public class ChooseFavoritesAdapter extends RecyclerView.Adapter<ChooseFavorites
 
         //If initially not selected, set selected
         if(myListEntry.getSelectionLevel() == 0) {
-            if(InternalDB.getInstance(mContext).addKanjiToMyList(mKanjiId,myListEntry.getListName(),myListEntry.getListsSys())) {
+            if(InternalDB.getInstance(mContext).addWordToWordList(mKanjiId,myListEntry.getListName(),myListEntry.getListsSys())) {
                 holder.checkbox.setChecked(true);
                 myListEntry.setSelectionLevel(1);
                 /* Send the updated mylistentry back to the tweetbreakdown adapter, where the WordEntry.ItemFavorites object
@@ -158,7 +158,7 @@ public class ChooseFavoritesAdapter extends RecyclerView.Adapter<ChooseFavorites
                 Log.e(TAG,"Unable to addkanji to mylist in choosefavorites adapter!");
             }
         } else {
-            if(InternalDB.getInstance(mContext).removeKanjiFromMyList(mKanjiId,myListEntry.getListName(),myListEntry.getListsSys())) {
+            if(InternalDB.getInstance(mContext).removeWordFromWordList(mKanjiId,myListEntry.getListName(),myListEntry.getListsSys())) {
                 holder.checkbox.setChecked(false);
                 myListEntry.setSelectionLevel(0);
                 /* Send the updated mylistentry back to the tweetbreakdown adapter, where the WordEntry.ItemFavorites object

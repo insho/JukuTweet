@@ -100,8 +100,7 @@ public class MyListBrowseFragment extends Fragment  {
 
 
         //Pull list of word entries in the database for a given list
-        mWords = InternalDB.getInstance(getContext()).getMyListWords("Word"
-                ,mMyListEntry
+        mWords = InternalDB.getInstance(getContext()).getWordsFromATweetList(mMyListEntry
                 ,mColorThresholds
                 ,"'Grey','Red','Yellow','Green'"
                 ,null
@@ -222,7 +221,7 @@ public class MyListBrowseFragment extends Fragment  {
 
         try {
             for(MyListEntry entry : listsToCopyTo) {
-                helper.addBulkKanjiToList(entry,kanjiIdString);
+                helper.addMultipleWordsToWordList(entry,kanjiIdString);
             }
 
             if(move) {
@@ -246,9 +245,8 @@ public class MyListBrowseFragment extends Fragment  {
 
     public void removeKanjiFromList(String kanjiIdString, MyListEntry currentList){
         try {
-            InternalDB.getInstance(getContext()).removeBulkKanjiFromMyList(kanjiIdString,currentList);
-            mWords = InternalDB.getInstance(getContext()).getMyListWords("Word"
-                    ,mMyListEntry
+            InternalDB.getInstance(getContext()).removeMultipleWordsFromWordList(kanjiIdString,currentList);
+            mWords = InternalDB.getInstance(getContext()).getWordsFromATweetList(mMyListEntry
                     ,mColorThresholds
                     ,"'Grey','Red','Yellow','Green'"
                     ,null
@@ -268,9 +266,8 @@ public class MyListBrowseFragment extends Fragment  {
     public void removeKanjiFromList(){
         try {
             final String kanjiString = getSelectedIntsAsString(mSelectedEntries);
-            InternalDB.getInstance(getContext()).removeBulkKanjiFromMyList(kanjiString,mMyListEntry);
-            mWords = InternalDB.getInstance(getContext()).getMyListWords("Word"
-                    ,mMyListEntry
+            InternalDB.getInstance(getContext()).removeMultipleWordsFromWordList(kanjiString,mMyListEntry);
+            mWords = InternalDB.getInstance(getContext()).getWordsFromATweetList(mMyListEntry
                     ,mColorThresholds
                     ,"'Grey','Red','Yellow','Green'"
                     ,null
@@ -320,9 +317,8 @@ public class MyListBrowseFragment extends Fragment  {
             public void onClick(View v) {
                 try {
 
-                    InternalDB.getInstance(getContext()).addBulkKanjiToList(currentList,kanjiIdString);
-                    mWords = InternalDB.getInstance(getContext()).getMyListWords("Word"
-                            ,mMyListEntry
+                    InternalDB.getInstance(getContext()).addMultipleWordsToWordList(currentList,kanjiIdString);
+                    mWords = InternalDB.getInstance(getContext()).getWordsFromATweetList(mMyListEntry
                             ,mColorThresholds
                             ,"'Grey','Red','Yellow','Green'"
                             ,null

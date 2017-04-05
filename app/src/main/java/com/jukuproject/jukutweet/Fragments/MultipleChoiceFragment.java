@@ -34,7 +34,7 @@ import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
-import com.jukuproject.jukutweet.SentenceParserTest;
+import com.jukuproject.jukutweet.TweetParser;
 
 import java.util.ArrayList;
 
@@ -406,7 +406,7 @@ public class MultipleChoiceFragment extends Fragment {
 
 
                                 if(SharedPrefManager.getInstance(getContext()).getIncludemultiplechoicecores()) {
-                                    InternalDB.getInstance(getContext()).addScoreToScoreBoard(currentCorrectAnswer.getId(),currentCorrectAnswer.getTotal(),currentCorrectAnswer.getCorrect());
+                                    InternalDB.getInstance(getContext()).addWordScoreToScoreBoard(currentCorrectAnswer.getId(),currentCorrectAnswer.getTotal(),currentCorrectAnswer.getCorrect());
                                 }
 
                                 //String that gets passed to tab 2 (and displayed there)
@@ -613,7 +613,7 @@ public class MultipleChoiceFragment extends Fragment {
             }
 
             //Break up word into a list of word parts
-            ArrayList<String> probablekanjiparts = SentenceParserTest.chopKanjiIntoASingleSetOfCombinations(kanjiToBreak);
+            ArrayList<String> probablekanjiparts = TweetParser.chopKanjiIntoASingleSetOfCombinations(kanjiToBreak);
 
             int i = 0;
             ArrayList<String> finalids = new ArrayList<>();
@@ -656,7 +656,7 @@ public class MultipleChoiceFragment extends Fragment {
         } else {
 
 
-        incorrectAnswerSet = InternalDB.getInstance(mContext).getMyListWords(myListType,myListEntry,colorThresholds,colorString,correctWordEntry.getId(),6);
+        incorrectAnswerSet = InternalDB.getInstance(mContext).getWordsFromATweetList(myListEntry,colorThresholds,colorString,correctWordEntry.getId(),6);
 
 
         }

@@ -13,6 +13,7 @@ public class MyListEntry implements Parcelable {
     public MyListEntry(String listName, Integer listsSys) {
         this.listName = listName;
         this.listsSys = listsSys;
+        this.selectionLevel = 0;
     }
 
     public MyListEntry(String listName, Integer listsSys, Integer selectionLevel) {

@@ -181,7 +181,7 @@ public class MyListFragment  extends Fragment{
                         }
                         break;
                     case "Stats":
-                        InternalDB.getInstance(getContext()).TEST(mMenuHeader.get(groupPosition).getMyListEntry());
+//                        InternalDB.getInstance(getContext()).TEST(mMenuHeader.get(groupPosition).getMyListEntry());
                         break;
 
                     default:
@@ -231,58 +231,11 @@ public class MyListFragment  extends Fragment{
         expListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-        mCallback.showEditMyListDialog(mMenuHeader.get(position).getHeaderTitle(),mMenuHeader.get(position).isSystemList());
-//                if (ExpandableListView.getPackedPositionType(id) == ExpandableListView.PACKED_POSITION_TYPE_GROUP) {
-//                    int groupPosition = ExpandableListView.getPackedPositionGroup(id);
-//                    int itemType = ExpandableListView.getPackedPositionType(id);
-//
-//                    if (itemType == ExpandableListView.PACKED_POSITION_TYPE_GROUP) {
-//                        String Header = listDataHeader.get(groupPosition);
-//                        groupPosition = ExpandableListView.getPackedPositionGroup(id);
-//
-//                            boolean favoritesclick = false;
-//                            if (BuildConfig.DEBUG) {
-//                                Log.d(TAG, "addStarList.size: " + addStarList.size());
-//                                Log.d(TAG, "groupPosition: " + groupPosition);
-//                            }
-//                            favoritesclick = groupPosition < (addStarList.size());
-//                            deleteDialog2(Header, position, favoritesclick);
-//
-//
-//                        return true; //true if we consumed the click, false if not
-//
-//                    } else {
-//                        // null item; we don't consume the click
-//                        return false;
-//                    }
-//
-//                }
-
+        mCallback.showEditMyListDialog("MyList",mMenuHeader.get(position).getHeaderTitle(),mMenuHeader.get(position).isSystemList());
                 return false;
             }
         });
 
-
-
-        /** deciding which mylist to open on activity start */
-
-//        if(mylistposition<0 && mylistposition >=0) {
-//            mylistposition = mylistposition;
-//        }
-//        if(mylistposition >=0) {
-//            if(BuildConfig.DEBUG){Log.d(TAG,"heres the mylispos right here: " + mylistposition);}
-//
-//            lastExpandedPosition = mylistposition;
-//            expListView.expandGroup(mylistposition);
-//            expListView.setSelectedGroup(mylistposition);
-//
-//        } else if(listDataHeader != null && listDataHeader.size()>1) {
-//
-//
-//            expListView.expandGroup(0);
-//        } else {
-//            if(BuildConfig.DEBUG){Log.d(TAG, "NO LISTS TO EXPAND");}
-//        }
         expListView.setGroupIndicator(null);
 
         setRetainInstance(true);
@@ -299,80 +252,7 @@ public class MyListFragment  extends Fragment{
         ColorThresholds colorThresholds = sharedPrefManager.getColorThresholds();
        ArrayList<String> childOptions = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.menu_mylist)));
 
-//        Cursor c = db.rawQuery("SELECT xx.[Name]" +
-//                ",xx.[Sys]" +
-//                ",ifnull(yy.[Total],0) as [Total]" +
-//                ",ifnull(yy.[Grey],0) as [Grey]" +
-//                ",ifnull(yy.[Red],0) as [Red]" +
-//                ",ifnull(yy.[Yellow],0) as [Yellow]" +
-//                ",ifnull(yy.[Green],0) as [Green] " +
-//                "" +
-//                "FROM (" +
-//                        "SELECT [Name]" +
-//                        ",0 as [Sys] " +
-//                        "From JFavoritesLists " +
-//                    "UNION " +
-//                        "SELECT 'Blue' as [Name]" +
-//                                ", 1 as [Sys] " +
-//                        "Union " +
-//                        "SELECT 'Red' as [Name]" +
-//                                ",1 as [Sys] " +
-//                        "Union " +
-//                        "SELECT 'Green' as [Name]" +
-//                                ",1 as [Sys] " +
-//                        "Union " +
-//                        "SELECT 'Yellow' as [Name]" +
-//                                ",1 as [Sys]" +
-//                "Union " +
-//                "SELECT 'Purple' as [Name]" +
-//                ",1 as [Sys]" +
-//                "Union " +
-//                "SELECT 'Orange' as [Name]" +
-//                ",1 as [Sys]" +
-//                        ") as [xx] " +
-//                "LEFT JOIN (" +
-//                "SELECT  [Name]" +
-//                        ",[Sys]" +
-//                        ",SUM([Grey]) + SUM([Red]) + SUM([Yellow]) + SUM([Green]) as [Total]" +
-//                        ",SUM([Grey]) as [Grey]" +
-//                        ",SUM([Red]) as [Red]" +
-//                        ",SUM([Yellow]) as [Yellow]" +
-//                        ",SUM([Green]) as [Green] " +
-//                        "FROM (" +
-//                            "SELECT [Name]" +
-//                                    ",[Sys]" +
-//                                    ",[_id] " +
-//                                    ",(CASE WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 1 ELSE 0 END) as [Grey] " +
-//                                    ",(CASE WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] < " + colorThresholds.getRedThreshold() + "  THEN 1  ELSE 0 END) as [Red] " +
-//                                    ",(CASE WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and ([Percent] >= " + colorThresholds.getRedThreshold() + "  and [Percent] <  " + colorThresholds.getYellowThreshold() + ") THEN 1  ELSE 0 END) as [Yellow] " +
-//                                    ",(CASE WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] >= " + colorThresholds.getYellowThreshold() + " THEN 1 ELSE 0 END) as [Green] " +
-//                                    "FROM  (" +
-//                                        "SELECT a.[Name]" +
-//                                                ",a.[Sys]" +
-//                                                ",a.[_id]" +
-//                                                ",ifnull(b.[Total],0) as [Total] " +
-//                                                ",ifnull(b.[Correct],0)  as [Correct]" +
-//                                                ",CAST(ifnull(b.[Correct],0)  as float)/b.[Total] as [Percent] " +
-//                                                "FROM (" +
-//                                                        "SELECT  DISTINCT [Name]" +
-//                                                                        ",[Sys]" +
-//                                                                        ",[_id] " +
-//                                                        "FROM JFavorites" +
-//                                                    ") as a " +
-//                                                "LEFT JOIN  (" +
-//                                                    "SELECT [_id]" +
-//                                                            ",sum([Correct]) as [Correct]" +
-//                                                            ",sum([Total]) as [Total] FROM [JScoreboard] " +
-//                                                            "where [_id] in (SELECT DISTINCT [_id] FROM JFavorites)" +
-//                                                    " GROUP BY [_id]" +
-//                                                    ") as b " +
-//                                        "ON a.[_id] = b.[_id]) " +
-//                                    " as x) as y " +
-//                            "GROUP BY [Name],[Sys]" +
-//                    ") as yy  " +
-//                "ON xx.[Name] = yy.[Name] and xx.[sys] = yy.[sys]  " +
-//                "Order by xx.[Sys] Desc,xx.[Name]",null);
-        Cursor c = InternalDB.getInstance(getContext()).getMyListColorBlockCursor(colorThresholds,null);
+        Cursor c = InternalDB.getInstance(getContext()).getWordListColorBlockCursor(colorThresholds,null);
         c.moveToFirst();
         if(c.getCount()>0) {
             while (!c.isAfterLast()) {
@@ -383,7 +263,6 @@ public class MyListFragment  extends Fragment{
                 /* We do not want to include favorites star lists that are not active in the user
                 * preferences. So if an inactivated list shows up in the sql query, ignore it (don't add to mMenuHeader)*/
 
-//                Log.d(TAG,"availableFavoritesStars: " + availableFavoritesStars);
                 if(c.getInt(1) != 1 || (availableFavoritesStars.contains(c.getString(0)))) {
                     MenuHeader menuHeader = new MenuHeader(c.getString(0));
                     menuHeader.setChildOptions(childOptions);

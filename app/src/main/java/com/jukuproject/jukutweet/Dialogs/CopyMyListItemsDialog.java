@@ -127,7 +127,7 @@ public class CopyMyListItemsDialog extends DialogFragment {
         final ArrayList<Integer> selectedEntries = getArguments().getIntegerArrayList("selectedEntries");
         mCurrentList = getArguments().getParcelable("currentList");
         final String kanjiString = getSelectedIntsAsString(selectedEntries);
-        mFavoritesLists = InternalDB.getInstance(getContext()).getFavoritesListsForKanji(mActiveFavoriteStars,"",mCurrentList);
+        mFavoritesLists = InternalDB.getInstance(getContext()).getWordListsForAWord(mActiveFavoriteStars,"",mCurrentList);
 
         //Iterate back through and remove the current list from the lists... bad design
 //        for(MyListEntry entry : mFavoritesLists) {

@@ -96,7 +96,7 @@ public class ParseSentencePossibleKanji {
         this.suffixes = suffixes;
     }
 
-    /** This initializer is used in the SentenceParser */
+    /** This initializer is used in the TweetParser */
     public ParseSentencePossibleKanji(@NonNull Integer positionInSentence, @NonNull Integer listIndex, @NonNull String possibleKanji) {
         this.positionInSentence = positionInSentence;
         this.listIndex = listIndex;
@@ -108,7 +108,7 @@ public class ParseSentencePossibleKanji {
         this.foundInDictionary = false;
         this.isKatakana = false;
     }
-    /** This initializer is used in the SentenceParser */
+    /** This initializer is used in the TweetParser */
     public ParseSentencePossibleKanji(@NonNull Integer positionInSentence, @NonNull Integer listIndex, @NonNull String possibleKanji, Boolean isKatakana) {
         this.positionInSentence = positionInSentence;
         this.listIndex = listIndex;

@@ -73,9 +73,9 @@ public class RemoveUserDialog extends DialogFragment {
         return builder.create();
     }
 
-    @Override
-    public void onDismiss(DialogInterface dialog) {
-        super.onDismiss(dialog);
-        mRemoveUserDialogListener.onDialogDismiss();
-    }
+//    @Override
+//    public void onDismiss(DialogInterface dialog) {
+//        super.onDismiss(dialog);
+//        mRemoveUserDialogListener.onDialogDismiss();
+//    }
 }

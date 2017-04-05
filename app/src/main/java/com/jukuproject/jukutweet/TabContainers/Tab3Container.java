@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.jukuproject.jukutweet.BaseContainerFragment;
-import com.jukuproject.jukutweet.Fragments.MyListBrowseFragment;
 import com.jukuproject.jukutweet.Fragments.MyListFragment;
 import com.jukuproject.jukutweet.R;
 
@@ -60,50 +59,13 @@ public class Tab3Container extends BaseContainerFragment {
         }
     }
 
-    public boolean selectAll() {
-        try {
-            ((MyListBrowseFragment) getChildFragmentManager().findFragmentByTag("mylistbrowse")).selectAll();
-            return true;
-        } catch (Exception e) {
-            Log.e("Tab3Container","Could not find MyListBrowseFragment");
-            return false;
-        }
-    }
 
-    public boolean deselectAll() {
-        try {
-            ((MyListBrowseFragment) getChildFragmentManager().findFragmentByTag("mylistbrowse")).deselectAll();
-            return true;
-        } catch (Exception e) {
-            Log.e("Tab3Container","Could not find MyListBrowseFragment");
-            return false;
-        }
-    }
-
-//    public boolean openCopyDialog() {
-//        try {
-//            ((MyListBrowseFragment) getChildFragmentManager().findFragmentByTag("mylistbrowse")).showCopyMyListDialog();
-//            return true;
-//        } catch (Exception e) {
-//            Log.e("Tab3Container","Could not find MyListBrowseFragment");
-//            return false;
-//        }
-//    }
-//
-//    public boolean openCopyDialog() {
-//        try {
-//            ((MyListBrowseFragment) getChildFragmentManager().findFragmentByTag("mylistbrowse")).showCopyMyListDialog();
-//            return true;
-//        } catch (Exception e) {
-//            Log.e("Tab3Container","Could not find MyListBrowseFragment");
-//            return false;
-//        }
-//    }
 
 
     public boolean isTopFragmentShowing() {
         try {
             (getChildFragmentManager().findFragmentByTag("mylistfragment")).isVisible();
+            Log.d("TEST","Apparently mylistfragment is on top...");
             return true;
         } catch (Exception e) {
             Log.e("Tab3Container","Could not find userListFragment");

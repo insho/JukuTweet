@@ -14,11 +14,9 @@ import java.util.ArrayList;
 public interface DialogInteractionListener {
     void onAddUserDialogPositiveClick(String user);
     void onRemoveUserDialogPositiveClick(String user);
-    void onAddMyListDialogPositiveClick(String mylist);
-
-    void onEditMyListDialogPositiveClick(int selectedItem, String listName, boolean isStarFavorite);
-    void onDialogDismiss();
-    void onRenameMyListDialogPositiveClick(String oldListName, String listName);
+    void onAddMyListDialogPositiveClick(String listType, String listName);
+    void onEditMyListDialogPositiveClick(String listType, int selectedItem, String listName, boolean isStarFavorite);
+    void onRenameMyListDialogPositiveClick(String listType, String oldListName, String listName);
 
     void saveAndUpdateUserInfoList(UserInfo userInfo);
 
@@ -26,7 +24,11 @@ public interface DialogInteractionListener {
     void saveAndUpdateTweetLists(String tweetIds, ArrayList<MyListEntry> listsToCopyTo, boolean move, MyListEntry currentList);
 
     //From quizmenu popup to main activity (starting quizzes)
-    void showFlashCardFragment(int tabNumber, MyListEntry listEntry, String frontValue, String backValue, String selectedColorString);
+    void showFlashCardFragment(int tabNumber
+            , MyListEntry listEntry
+            , String frontValue
+            , String backValue
+            , String selectedColorString);
     void showMultipleChoiceFragment(int tabNumber
             , MyListEntry listEntry
             , String quizType

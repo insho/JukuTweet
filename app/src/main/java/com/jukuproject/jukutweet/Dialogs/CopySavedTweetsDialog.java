@@ -122,7 +122,7 @@ public class CopySavedTweetsDialog extends DialogFragment {
         final ArrayList<String> selectedEntries = getArguments().getStringArrayList("selectedEntries");
         mCurrentList = getArguments().getParcelable("currentList");
         final String tweetids = joinSelectedStrings(selectedEntries);
-        mFavoritesLists = InternalDB.getInstance(getContext()).getFavoritesListsForTweet(mActiveFavoriteTweetStars,"",mCurrentList);
+        mFavoritesLists = InternalDB.getInstance(getContext()).getTweetListsForTweet(mActiveFavoriteTweetStars,"",mCurrentList);
 
         if(mFavoritesLists.contains(mCurrentList)) {
             mFavoritesLists.remove(mCurrentList);

@@ -198,7 +198,7 @@ public class SavedTweetsAllFragment  extends Fragment {
         expListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                mCallback.showEditMyListDialog(mMenuHeader.get(position).getHeaderTitle(),mMenuHeader.get(position).isSystemList());
+                mCallback.showEditMyListDialog("TweetList",mMenuHeader.get(position).getHeaderTitle(),mMenuHeader.get(position).isSystemList());
 //                if (ExpandableListView.getPackedPositionType(id) == ExpandableListView.PACKED_POSITION_TYPE_GROUP) {
 //                    int groupPosition = ExpandableListView.getPackedPositionGroup(id);
 //                    int itemType = ExpandableListView.getPackedPositionType(id);

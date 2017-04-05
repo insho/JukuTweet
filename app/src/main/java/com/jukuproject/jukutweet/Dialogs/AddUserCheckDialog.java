@@ -29,8 +29,6 @@ import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-//import android.app.DialogFragment;
-
 /**
  * Dialog for "following" a new twitter user. New user name is entered into edittext
  * and then input into the database
@@ -56,8 +54,6 @@ public class AddUserCheckDialog extends DialogFragment {
 
     }
 
-
-
     public static AddUserCheckDialog newInstance(UserInfo userInfo) {
 
         AddUserCheckDialog frag = new AddUserCheckDialog();
@@ -68,7 +64,6 @@ public class AddUserCheckDialog extends DialogFragment {
 
         return frag;
     }
-
 
 
     @Override
@@ -140,17 +135,7 @@ public class AddUserCheckDialog extends DialogFragment {
             text.setSpan(new URLSpan(userInfo.getUrl()), 0, userInfo.getUrl().length(), 0);
             txtUrl.setMovementMethod(LinkMovementMethod.getInstance());
             txtUrl.setText(text, TextView.BufferType.SPANNABLE);
-
-//            txtUrl.setText(userInfo.getUrl());
-
-
-        } else {
-
         }
-
-//        Log.d(TAG,"followers: " + userInfo.getFollowerCount());
-//        Log.d(TAG,"followers string: " + userInfo.getFollowerCountString());
-
 
         TextView txtFollowing = (TextView) dialogView.findViewById(R.id.txtFollowing);
         txtFollowing.setText(userInfo.getFriendCountString());
@@ -182,39 +167,10 @@ public class AddUserCheckDialog extends DialogFragment {
             }
         });
         builder.setCancelable(true);
-//        Dialog dialog = builder.create();
-//        dialog.getWindow().setLayout(300,500);
 
         Log.d(TAG,"BUilder create");
         return builder.create();
     }
-
-    @Override
-    public void onDismiss(DialogInterface dialog) {
-        super.onDismiss(dialog);
-        mAddUserDialogListener.onDialogDismiss();
-    }
-
-//    @Override
-//    public void onStart()
-//    {
-//        super.onStart();
-//
-//        // safety check
-//        if (getDialog() == null)
-//            return;
-//
-////        int dialogWidth = getDialog().getWindow().getWindowManager().getw // specify a value here
-////        int dialogHeight = ... // specify a value here
-//
-//        int width = (int) (400 * Resources.getSystem().getDisplayMetrics().density);
-//        int height = (int) (600 * Resources.getSystem().getDisplayMetrics().density);
-//
-//        getDialog().getWindow().setLayout(width,height);
-////        getDialog().getWindow().setLayout(dialogWidth, dialogHeight);
-//
-//        // ... other stuff you want to do in your onStart() method
-//    }
 
     private void loadBestFitBanner(final String screenName, final ImageView imgBanner) {
 
@@ -251,15 +207,11 @@ public class AddUserCheckDialog extends DialogFragment {
                                                 @Override
                                                 public void onSuccess() {
                                                     //TODO load with banner
-//                                                    showBanner(true);
-//                                                    mAddUserDialogListener.showAddUserCheckDialog();
                                                 }
 
                                                 @Override
                                                 public void onError() {
                                                     //TODO load without banner
-//                                                    showBanner(false);
-//                                                    mAddUserDialogListener.showAddUserCheckDialog();
                                                     onCreateDialog(null);
                                                 }
                                             });
@@ -284,15 +236,12 @@ public class AddUserCheckDialog extends DialogFragment {
                     @Override public void onError(Throwable e) {
                         e.printStackTrace();
                         if(BuildConfig.DEBUG){Log.d(TAG, "BestFitBannerURL In onError()");}
-//                        Toast.makeText(getBaseContext(), "Unable to connect to Twitter API", Toast.LENGTH_SHORT).show();
-//                        showBanner(false);
                         Log.d(TAG,"ERROR CAUSE: " + e.getCause());
                     }
 
                     @Override public void onNext(UserProfileBanner userProfileBanner) {
                         if(BuildConfig.DEBUG) {
                             Log.d(TAG, "BestFitBannerURL In onNext()");
-//                            Log.d(TAG, "userInfo: " + userInfo.getUserId() + ", " + userInfo.getDescription());
                         }
 
                         /***TMP**/
@@ -305,15 +254,6 @@ public class AddUserCheckDialog extends DialogFragment {
                 });
 
     }
-
-
-
-
-
-
-//    public void showBanner(boolean show) {
-//
-//    }
 
 
 }
