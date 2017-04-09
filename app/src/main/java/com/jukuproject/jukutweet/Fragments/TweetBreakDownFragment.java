@@ -34,6 +34,7 @@ import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.FavoritesColors;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
+import com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.ItemFavorites;
 import com.jukuproject.jukutweet.Models.SharedPrefManager;
@@ -151,9 +152,6 @@ public class TweetBreakDownFragment extends Fragment {
         linearLayoutVerticalMain = (LinearLayout) v.findViewById(R.id.sentence_layout);
         linearLayout = new LinearLayout(getActivity());
         linearLayout.setOrientation(LinearLayout.HORIZONTAL);
-
-//        mScrollView = (ScrollView) v.findViewById(R.id.scrollView);
-
         return v;
     }
 
@@ -201,8 +199,8 @@ public class TweetBreakDownFragment extends Fragment {
 
                 /*  1. Change star color favorites star based previous star color
                     2. Check for tweet in db, save if necessary*/
-                        InternalDB helper = InternalDB.getInstance(getContext());
-
+//                        InternalDB helper = InternalDB.getInstance(getContext());
+                        TweetListOperationsInterface helperTweetOps = InternalDB.getTweetInterfaceInstance(getContext());
                         //Toggle favorite list association for this tweet
                         if(FavoritesColors.onFavoriteStarToggleTweet(getContext(),mActiveTweetFavoriteStars,mTweet.getUser().getUserId(),mTweet)) {
                             imgStar.setImageResource(FavoritesColors.assignStarResource(mTweet.getItemFavorites(),mActiveTweetFavoriteStars));
@@ -214,14 +212,14 @@ public class TweetBreakDownFragment extends Fragment {
                         try {
 
                             //If tweet doesn't already exist in db, insert it
-                            if(helper.tweetExistsInDB(mTweet) == 0 && mTweet.getUser() != null){
+                            if(helperTweetOps.tweetExistsInDB(mTweet) == 0 && mTweet.getUser() != null){
 
-                                int addTweetResultCode = helper.saveTweetToDB(mTweet.getUser(),mTweet);
+                                int addTweetResultCode = helperTweetOps.saveTweetToDB(mTweet.getUser(),mTweet);
 
                                 if(addTweetResultCode > 0 && mDisectedTweet != null) {
                                 /*DB insert successfull, now save tweet urls and parsed kanji into database */
-                                    InternalDB.getInstance(getContext()).saveParsedTweetKanji(mDisectedTweet,mTweet.getIdString());
-                                    InternalDB.getInstance(getContext()).saveTweetUrls(mTweet);
+                                    helperTweetOps.saveParsedTweetKanji(mDisectedTweet,mTweet.getIdString());
+                                    helperTweetOps.saveTweetUrls(mTweet);
                                 }
                             }
 
@@ -288,7 +286,7 @@ public class TweetBreakDownFragment extends Fragment {
          tweet will not have been previously attached. So attach them now: */
 
         for(WordEntry wordEntry : mTweet.getWordEntries()) {
-            Cursor c = InternalDB.getInstance(getContext()).getWordEntryForWordId(wordEntry.getId(),colorThresholds);
+            Cursor c = InternalDB.getWordInterfaceInstance(getContext()).getWordEntryForWordId(wordEntry.getId(),colorThresholds);
             if(c.getCount()>0) {
                 c.moveToFirst();
                 wordEntry.setItemFavorites(new ItemFavorites(c.getInt(5)
@@ -469,8 +467,8 @@ public class TweetBreakDownFragment extends Fragment {
 //         /* Get metrics to pass density/width/height to adapters */
 //        DisplayMetrics metrics = new DisplayMetrics();
 //        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
-//        displaywidth = metrics.widthPixels;
-//        displaymarginpadding =  (int)((float)(displaywidth)*0.055555556);
+//        displayWidth = metrics.widthPixels;
+//        displayMarginPadding =  (int)((float)(displayWidth)*0.055555556);
 //
 //
 //        mDataSet = new ArrayList<>();
@@ -568,7 +566,7 @@ public class TweetBreakDownFragment extends Fragment {
 //        if(parseSentenceItem.getKanjiConjugated().equals(System.getProperty("line.separator"))) {
 //            //Log 2 rows, once to input the remaining current layout items,
 //            //and another black row for the seperator
-//            if(linewidth>0) {
+//            if(lineWidth>0) {
 //                linearlayoutInsert(2, 1);
 //            }
 //            linearlayoutInsert(2, 1);
@@ -602,8 +600,8 @@ public class TweetBreakDownFragment extends Fragment {
 //                Log.d(TAG, "FINAL WIDTH = " + width);
 //            }
 //
-//            int widthExtra = (linewidth + width + displaymarginpadding) - displaywidth;
-//            int maxWidthAllowed = displaywidth - linewidth - displaymarginpadding;
+//            int widthExtra = (lineWidth + width + displayMarginPadding) - displayWidth;
+//            int maxWidthAllowed = displayWidth - lineWidth - displayMarginPadding;
 //
 //            if (BuildConfig.DEBUG) {
 //                Log.d(TAG, "widthExtra = " + widthExtra);
@@ -640,7 +638,7 @@ public class TweetBreakDownFragment extends Fragment {
 //            innerLinearLayout3.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 //            linearLayout.addView(innerLinearLayout3);
 //
-//            linewidth = linewidth + width;
+//            lineWidth = lineWidth + width;
 //
 //
 //        } else {
@@ -671,12 +669,12 @@ public class TweetBreakDownFragment extends Fragment {
 //            if(BuildConfig.DEBUG) {
 //                Log.d(TAG, "FINAL WIDTH = " + width);
 //                Log.d(TAG, "onScreenText content = " + onScreenText);
-//                Log.d(TAG, "current linewidth = " + linewidth);
-//                Log.d(TAG, "onScreenText linewidth = " + width);
+//                Log.d(TAG, "current lineWidth = " + lineWidth);
+//                Log.d(TAG, "onScreenText lineWidth = " + width);
 //            }
 //
-//            int widthExtra = (linewidth + width + displaymarginpadding) - displaywidth;
-//            int maxWidthAllowed = displaywidth - linewidth - displaymarginpadding;
+//            int widthExtra = (lineWidth + width + displayMarginPadding) - displayWidth;
+//            int maxWidthAllowed = displayWidth - lineWidth - displayMarginPadding;
 //
 //            if(BuildConfig.DEBUG) {
 //                Log.d(TAG, "widthExtra = " + widthExtra);
@@ -729,7 +727,7 @@ public class TweetBreakDownFragment extends Fragment {
 //                        linearlayoutInsert(2, 0); //DONT LOG A NEW ROW
 //                    } else {
 //
-//                        linearlayoutInsert((linewidth + width + displaymarginpadding), displaywidth);
+//                        linearlayoutInsert((lineWidth + width + displayMarginPadding), displayWidth);
 //                    }
 //
 //
@@ -737,7 +735,7 @@ public class TweetBreakDownFragment extends Fragment {
 //                    if(BuildConfig.DEBUG) {Log.d(TAG, "NEW widthExtra: " + widthExtra);}
 //                    substringstart = substringend;
 //
-//                    if ((linewidth + width + displaymarginpadding) < displaywidth || widthExtra < 0) {
+//                    if ((lineWidth + width + displayMarginPadding) < displayWidth || widthExtra < 0) {
 //                        substringend = onScreenText.length();
 //
 //                        if(BuildConfig.DEBUG) {
@@ -767,28 +765,28 @@ public class TweetBreakDownFragment extends Fragment {
 //                        innerLinearLayout3Remainder.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 //                        linearLayout.addView(innerLinearLayout3Remainder);
 //
-//                        linewidth = linewidth + width_chopped;
+//                        lineWidth = lineWidth + width_chopped;
 //
 //                        if(BuildConfig.DEBUG) {
-//                            Log.d(TAG, "chopped linewidth: " + linewidth);
+//                            Log.d(TAG, "chopped lineWidth: " + lineWidth);
 //                            Log.d(TAG, "chopped width: " + width);
 //                        }
 //
-//                        widthExtra = (linewidth + displaymarginpadding) - displaywidth;
-//                        maxWidthAllowed = displaywidth - linewidth - displaymarginpadding;
+//                        widthExtra = (lineWidth + displayMarginPadding) - displayWidth;
+//                        maxWidthAllowed = displayWidth - lineWidth - displayMarginPadding;
 //
 //
-//                        if (linewidth == 0 && widthExtra > 0) {  // like if it's the last fragment of a line, starting on a new line. Just print the damn thing (on the new line)
-//                            linearlayoutInsert((linewidth + (displaywidth + widthExtra) + displaymarginpadding), displaywidth);
-//                        } else if (linewidth == 0 && widthExtra < 0) {
-//                            linearlayoutInsert((linewidth + (displaywidth + widthExtra) + displaymarginpadding), displaywidth);
+//                        if (lineWidth == 0 && widthExtra > 0) {  // like if it's the last fragment of a line, starting on a new line. Just print the damn thing (on the new line)
+//                            linearlayoutInsert((lineWidth + (displayWidth + widthExtra) + displayMarginPadding), displayWidth);
+//                        } else if (lineWidth == 0 && widthExtra < 0) {
+//                            linearlayoutInsert((lineWidth + (displayWidth + widthExtra) + displayMarginPadding), displayWidth);
 //                        } else {
-//                            linearlayoutInsert((linewidth + displaymarginpadding), displaywidth);
+//                            linearlayoutInsert((lineWidth + displayMarginPadding), displayWidth);
 //                        }
 //
 //                    } else {
 //
-//                        maxWidthAllowed = displaywidth - linewidth - displaymarginpadding;
+//                        maxWidthAllowed = displayWidth - lineWidth - displayMarginPadding;
 //
 //                        if(BuildConfig.DEBUG) {
 //                            Log.d(TAG, "substringend calculation--maxwidthallowed: " + maxWidthAllowed);
@@ -825,10 +823,10 @@ public class TweetBreakDownFragment extends Fragment {
 //                innerLinearLayout3.addView(textView_Test);
 //                innerLinearLayout3.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 //                linearLayout.addView(innerLinearLayout3);
-//                linewidth = linewidth + width;
-//                linearlayoutInsert((linewidth + displaymarginpadding), displaywidth);
+//                lineWidth = lineWidth + width;
+//                linearlayoutInsert((lineWidth + displayMarginPadding), displayWidth);
 //
-//                if(BuildConfig.DEBUG) {Log.d(TAG, "new linewidth = " + linewidth);}
+//                if(BuildConfig.DEBUG) {Log.d(TAG, "new lineWidth = " + lineWidth);}
 //
 //            }
 //

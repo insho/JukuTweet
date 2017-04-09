@@ -35,7 +35,6 @@ import rx.schedulers.Schedulers;
  */
 public class AddUserCheckDialog extends DialogFragment {
 
-    private AlertDialog.Builder builder;
     public DialogInteractionListener mAddUserDialogListener;
     private ImageView imgBanner;
     String TAG = "TEST-AddUser";

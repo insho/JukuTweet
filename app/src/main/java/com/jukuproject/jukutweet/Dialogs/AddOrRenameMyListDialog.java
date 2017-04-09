@@ -98,7 +98,7 @@ public class AddOrRenameMyListDialog extends DialogFragment {
                     Toast.makeText(getActivity(), "MyList name can not be blank", Toast.LENGTH_SHORT).show();
                 } else if (editText.getText().toString().trim().length() > 30) {
                     Toast.makeText(getActivity(), "List name should be less than 30 characters", Toast.LENGTH_LONG).show();
-                } else if(listType.equals("MyList") && InternalDB.getInstance(getActivity()).duplicateWordList(editText.getText().toString().trim())) {
+                } else if(listType.equals("MyList") && InternalDB.getWordInterfaceInstance(getActivity()).duplicateWordList(editText.getText().toString().trim())) {
                     Toast.makeText(getActivity(), "MyList name already exists", Toast.LENGTH_SHORT).show();
                 } else if(listType.equals("TweetList") && InternalDB.getTweetInterfaceInstance(getContext()).duplicateTweetList(editText.getText().toString().trim())) {
                     Toast.makeText(getActivity(), "MyList name already exists", Toast.LENGTH_SHORT).show();

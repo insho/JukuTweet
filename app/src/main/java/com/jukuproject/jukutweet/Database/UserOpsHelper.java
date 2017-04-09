@@ -14,15 +14,6 @@ import com.jukuproject.jukutweet.Models.UserInfo;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.jukuproject.jukutweet.Database.InternalDB.TABLE_USERS;
-import static com.jukuproject.jukutweet.Database.InternalDB.TMAIN_COL0;
-import static com.jukuproject.jukutweet.Database.InternalDB.TMAIN_COL1;
-import static com.jukuproject.jukutweet.Database.InternalDB.TMAIN_COL2;
-import static com.jukuproject.jukutweet.Database.InternalDB.TMAIN_COL3;
-import static com.jukuproject.jukutweet.Database.InternalDB.TMAIN_COL4;
-import static com.jukuproject.jukutweet.Database.InternalDB.TMAIN_COL5;
-import static com.jukuproject.jukutweet.Database.InternalDB.TMAIN_COL6;
-import static com.jukuproject.jukutweet.Database.InternalDB.TMAIN_COL7;
 
 /**
  * Created by JClassic on 4/5/2017.
@@ -44,7 +35,7 @@ public class UserOpsHelper implements UserOperationsInterface {
 
         /** Before inserting record, check to see if feed already exists */
         SQLiteDatabase db = sqlOpener.getWritableDatabase();
-        String queryRecordExists = "Select _id From " + TABLE_USERS + " where " + TMAIN_COL0 + " = ?" ;
+        String queryRecordExists = "Select _id From " + InternalDB.Tables.TABLE_USERS + " where " + InternalDB.Columns.TMAIN_COL0 + " = ?" ;
         Cursor c = db.rawQuery(queryRecordExists, new String[]{user});
         try {
             if (c.moveToFirst()) {
@@ -75,29 +66,29 @@ public class UserOpsHelper implements UserOperationsInterface {
                 if(BuildConfig.DEBUG) {
                     Log.d(TAG,"saving user: " + userInfo.getScreenName() );
                 }
-                values.put(TMAIN_COL0, userInfo.getScreenName().trim());
+                values.put(InternalDB.Columns.TMAIN_COL0, userInfo.getScreenName().trim());
 
                 if(userInfo.getDescription() != null) {
-                    values.put(TMAIN_COL1, userInfo.getUserId());
+                    values.put(InternalDB.Columns.TMAIN_COL1, userInfo.getUserId());
                 }
                 if(userInfo.getDescription() != null) {
-                    values.put(TMAIN_COL2, userInfo.getDescription().trim());
+                    values.put(InternalDB.Columns.TMAIN_COL2, userInfo.getDescription().trim());
                 }
                 if(userInfo.getFollowerCount() != null ) {
-                    values.put(TMAIN_COL3, userInfo.getFollowerCount());
+                    values.put(InternalDB.Columns.TMAIN_COL3, userInfo.getFollowerCount());
                 }
                 if(userInfo.getFriendCount() != null){
-                    values.put(TMAIN_COL4, userInfo.getFriendCount());
+                    values.put(InternalDB.Columns.TMAIN_COL4, userInfo.getFriendCount());
                 }
                 if(userInfo.getProfileImageUrl() != null) {
-                    values.put(TMAIN_COL5, userInfo.getProfileImageUrl().trim());
+                    values.put(InternalDB.Columns.TMAIN_COL5, userInfo.getProfileImageUrl().trim());
                 }
 
                 if(userInfo.getProfileImageUrl() != null) {
-                    values.put(TMAIN_COL7, userInfo.getName().trim());
+                    values.put(InternalDB.Columns.TMAIN_COL7, userInfo.getName().trim());
                 }
 
-                db.insert(TABLE_USERS, null, values);
+                db.insert(InternalDB.Tables.TABLE_USERS, null, values);
 
                 return true;
             } else {
@@ -122,7 +113,7 @@ public class UserOpsHelper implements UserOperationsInterface {
     public boolean deleteUser(String user) {
         try{
             SQLiteDatabase db = sqlOpener.getWritableDatabase();
-            db.delete(TABLE_USERS, TMAIN_COL0 + "= ?", new String[]{user});
+            db.delete(InternalDB.Tables.TABLE_USERS, InternalDB.Columns.TMAIN_COL0 + "= ?", new String[]{user});
             db.close();
             return true;
         } catch(SQLiteException exception) {
@@ -139,8 +130,8 @@ public class UserOpsHelper implements UserOperationsInterface {
 //        Log.d(TAG,"URI VALUE: " + rowID + " - " + URI);
         SQLiteDatabase db = sqlOpener.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(TMAIN_COL6, URI);
-        db.update(TABLE_USERS, values, TMAIN_COL0 + "= ?", new String[] {screenName});
+        values.put(InternalDB.Columns.TMAIN_COL6, URI);
+        db.update(InternalDB.Tables.TABLE_USERS, values, InternalDB.Columns.TMAIN_COL0 + "= ?", new String[] {screenName});
         db.close();
         Log.d(TAG,"SUCESSFUL INSERT URI for name: " + screenName);
 
@@ -154,7 +145,7 @@ public class UserOpsHelper implements UserOperationsInterface {
     public List<UserInfo> getSavedUserInfo() {
         List<UserInfo> userInfoList = new ArrayList<UserInfo>();
 
-        String querySelectAll = "Select distinct ScreenName,IFNULL(Description,''),FollowerCount, FriendCount, IFNULL(ProfileImgUrl,''),UserId, ProfileImgFilePath, UserName From " + TABLE_USERS;
+        String querySelectAll = "Select distinct ScreenName,IFNULL(Description,''),FollowerCount, FriendCount, IFNULL(ProfileImgUrl,''),UserId, ProfileImgFilePath, UserName From " + InternalDB.Tables.TABLE_USERS;
         SQLiteDatabase db = sqlOpener.getReadableDatabase();
         Cursor c = db.rawQuery(querySelectAll, null);
 
@@ -236,28 +227,28 @@ public class UserOpsHelper implements UserOperationsInterface {
             /*The user's screenName field can change, but the user id won't. So if possible user the userId as the
               key for making updates */
             if(oldUserInfo.getUserId() != null && !oldUserInfo.getScreenName().equals(recentUserInfo.getScreenName())) {
-                values.put(InternalDB.TMAIN_COL0, recentUserInfo.getScreenName().trim());
+                values.put(InternalDB.Columns.TMAIN_COL0, recentUserInfo.getScreenName().trim());
             }
             if(recentUserInfo.getDescription() != null && !oldUserInfo.getDescription().equals(recentUserInfo.getDescription())) {
-                values.put(TMAIN_COL2, recentUserInfo.getDescription().trim());
+                values.put(InternalDB.Columns.TMAIN_COL2, recentUserInfo.getDescription().trim());
             }
             if(recentUserInfo.getFollowerCount() != null && oldUserInfo.getFollowerCount() != recentUserInfo.getFollowerCount()) {
-                values.put(TMAIN_COL3, recentUserInfo.getFollowerCount());
+                values.put(InternalDB.Columns.TMAIN_COL3, recentUserInfo.getFollowerCount());
             }
             if(recentUserInfo.getFriendCount() != null && oldUserInfo.getFriendCount() != recentUserInfo.getFriendCount()) {
-                values.put(TMAIN_COL4, recentUserInfo.getFriendCount());
+                values.put(InternalDB.Columns.TMAIN_COL4, recentUserInfo.getFriendCount());
             }
             if(recentUserInfo.getProfileImageUrl() != null && !oldUserInfo.getProfileImageUrl().equals(recentUserInfo.getProfileImageUrl())) {
-                values.put(TMAIN_COL5, recentUserInfo.getProfileImageUrl().trim());
+                values.put(InternalDB.Columns.TMAIN_COL5, recentUserInfo.getProfileImageUrl().trim());
             }
 
             if(values.size()>0) {
                 if(oldUserInfo.getUserId() != null) {
                     SQLiteDatabase db = sqlOpener.getReadableDatabase();
-                    db.update(TABLE_USERS, values, TMAIN_COL1 + "= ?", new String[]{String.valueOf(oldUserInfo.getUserId())});
+                    db.update(InternalDB.Tables.TABLE_USERS, values, InternalDB.Columns.TMAIN_COL1 + "= ?", new String[]{String.valueOf(oldUserInfo.getUserId())});
                 } else {
                     SQLiteDatabase db = sqlOpener.getReadableDatabase();
-                    db.update(TABLE_USERS, values, TMAIN_COL0 + "= ?", new String[]{oldUserInfo.getScreenName()});
+                    db.update(InternalDB.Tables.TABLE_USERS, values, InternalDB.Columns.TMAIN_COL0 + "= ?", new String[]{oldUserInfo.getScreenName()});
                 }
             }
 

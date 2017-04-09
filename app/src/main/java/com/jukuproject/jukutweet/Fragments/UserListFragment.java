@@ -89,7 +89,7 @@ public class UserListFragment extends Fragment {
     public void updateAdapter() {
 
         //Pull list of followed twitter users from the database
-        List<UserInfo> savedUserInfo = InternalDB.getInstance(getContext()).getSavedUserInfo();
+        List<UserInfo> savedUserInfo = InternalDB.getUserInterfaceInstance(getContext()).getSavedUserInfo();
 
         //Create UserListAdapter and attach rxBus click listeners to it
         if(savedUserInfo != null && savedUserInfo.size() > 0) {

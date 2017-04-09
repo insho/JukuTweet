@@ -24,6 +24,7 @@ import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.CopyMyListItemsDialog;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
+import com.jukuproject.jukutweet.Interfaces.WordListOperationsInterface;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.SharedPrefManager;
@@ -100,7 +101,7 @@ public class MyListBrowseFragment extends Fragment  {
 
 
         //Pull list of word entries in the database for a given list
-        mWords = InternalDB.getInstance(getContext()).getWordsFromATweetList(mMyListEntry
+        mWords = InternalDB.getWordInterfaceInstance(getContext()).getWordsFromAWordList(mMyListEntry
                 ,mColorThresholds
                 ,"'Grey','Red','Yellow','Green'"
                 ,null
@@ -217,11 +218,11 @@ public class MyListBrowseFragment extends Fragment  {
 
     //TODO add error message to this
     public void saveAndUpdateMyLists(String kanjiIdString,ArrayList<MyListEntry> listsToCopyTo, boolean move,MyListEntry currentList) {
-        InternalDB helper = InternalDB.getInstance(getContext());
+        WordListOperationsInterface helperWordOps = InternalDB.getWordInterfaceInstance(getContext());
 
         try {
             for(MyListEntry entry : listsToCopyTo) {
-                helper.addMultipleWordsToWordList(entry,kanjiIdString);
+                helperWordOps.addMultipleWordsToWordList(entry,kanjiIdString);
             }
 
             if(move) {
@@ -235,8 +236,6 @@ public class MyListBrowseFragment extends Fragment  {
         } catch (SQLiteException e) {
             Log.e(TAG,"SQLiteException in MyListBrowseFragment saveAndUpdateMyLists : " + e);
             Toast.makeText(getContext(), "Unable to update lists", Toast.LENGTH_SHORT).show();
-        } finally {
-            helper.close();
         }
 
 
@@ -245,8 +244,8 @@ public class MyListBrowseFragment extends Fragment  {
 
     public void removeKanjiFromList(String kanjiIdString, MyListEntry currentList){
         try {
-            InternalDB.getInstance(getContext()).removeMultipleWordsFromWordList(kanjiIdString,currentList);
-            mWords = InternalDB.getInstance(getContext()).getWordsFromATweetList(mMyListEntry
+            InternalDB.getWordInterfaceInstance(getContext()).removeMultipleWordsFromWordList(kanjiIdString,currentList);
+            mWords = InternalDB.getWordInterfaceInstance(getContext()).getWordsFromAWordList(mMyListEntry
                     ,mColorThresholds
                     ,"'Grey','Red','Yellow','Green'"
                     ,null
@@ -266,8 +265,8 @@ public class MyListBrowseFragment extends Fragment  {
     public void removeKanjiFromList(){
         try {
             final String kanjiString = getSelectedIntsAsString(mSelectedEntries);
-            InternalDB.getInstance(getContext()).removeMultipleWordsFromWordList(kanjiString,mMyListEntry);
-            mWords = InternalDB.getInstance(getContext()).getWordsFromATweetList(mMyListEntry
+            InternalDB.getWordInterfaceInstance(getContext()).removeMultipleWordsFromWordList(kanjiString,mMyListEntry);
+            mWords = InternalDB.getWordInterfaceInstance(getContext()).getWordsFromAWordList(mMyListEntry
                     ,mColorThresholds
                     ,"'Grey','Red','Yellow','Green'"
                     ,null
@@ -317,8 +316,8 @@ public class MyListBrowseFragment extends Fragment  {
             public void onClick(View v) {
                 try {
 
-                    InternalDB.getInstance(getContext()).addMultipleWordsToWordList(currentList,kanjiIdString);
-                    mWords = InternalDB.getInstance(getContext()).getWordsFromATweetList(mMyListEntry
+                    InternalDB.getWordInterfaceInstance(getContext()).addMultipleWordsToWordList(currentList,kanjiIdString);
+                    mWords = InternalDB.getWordInterfaceInstance(getContext()).getWordsFromAWordList(mMyListEntry
                             ,mColorThresholds
                             ,"'Grey','Red','Yellow','Green'"
                             ,null

@@ -43,6 +43,7 @@ public interface QuizOperationsInterface {
             , String colorString
             , @Nullable Integer resultLimit);
     void setRandomSpinnersForTweet(Tweet tweet);
-
+    ArrayList<Integer> getIdsForWordList(MyListEntry myListEntry);
+    boolean addWordScoreToScoreBoard(int wordId, int total, int correct);
 
 }

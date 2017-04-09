@@ -19,10 +19,10 @@ import java.util.HashMap;
  * Database helper
  */
 public class InternalDB extends SQLiteOpenHelper
-        implements WordListOperationsInterface
-        ,TweetListOperationsInterface
-        ,UserOperationsInterface
-        ,QuizOperationsInterface
+//        implements TweetListOperationsInterface
+//        ,WordListOperationsInterface
+//        ,UserOperationsInterface
+//        ,QuizOperationsInterface
 {
 
     public static TweetListOperationsInterface tweetOpsHelper;
@@ -31,7 +31,7 @@ public class InternalDB extends SQLiteOpenHelper
     public static WordListOperationsInterface wordOpsHelper;
 //    private final PriorityBlockingQueue queue = new PriorityBlockingQueue();
 
-    private static boolean debug = true;
+//    private static boolean debug = true;
     private static String TAG = "TEST-Internal";
     private static InternalDB sInstance;
 
@@ -39,48 +39,52 @@ public class InternalDB extends SQLiteOpenHelper
     public static String DATABASE_NAME = DB_NAME + ".db";
     public static final int DB_VERSION = 1;
 
-    public static final String TABLE_USERS = "Users";
-    public static final String COL_ID = "_id";
-    public static final String TMAIN_COL0 = "ScreenName";
-    public static final String TMAIN_COL1 = "UserId";
-    public static final String TMAIN_COL2 = "Description";
-    public static final String TMAIN_COL3 = "FollowerCount";
-    public static final String TMAIN_COL4 = "FriendCount";
-    public static final String TMAIN_COL5 = "ProfileImgUrl";
-    public static final String TMAIN_COL6 = "ProfileImgFilePath";
-    public static final String TMAIN_COL7 = "UserName";
+    public class Tables {
+        public static final String TABLE_USERS = "Users";
+        public static final String TABLE_SCOREBOARD = "JScoreboard";
+        public static final String TABLE_FAVORITES_LISTS = "JFavoritesLists";
+        public static final String TABLE_SAVED_TWEETS = "JSavedTweets";
+        public static final String TABLE_FAVORITES_LISTS_TWEETS = "JFavoritesTweetLists";
+        public static final String TABLE_FAVORITES_LISTS_TWEETS_ENTRIES = "JFavoritesTweets";
+        public static final String TABLE_SAVED_TWEET_KANJI = "JSavedTweetKanji";
+        public static final String TABLE_SAVED_TWEET_URLS = "JSavedTweetUrls";
+        public static final String TABLE_FAVORITES_LIST_ENTRIES = "JFavorites";
+    }
 
-    public static final String TABLE_SCOREBOARD = "JScoreboard";
-    public static final String TSCOREBOARD_COL0 = "Total";
-    public static final String TSCOREBOARD_COL1 = "Correct";
+    public class Columns {
 
-    public static final String TABLE_FAVORITES_LISTS = "JFavoritesLists";
-    public static final String TFAVORITES_COL0 = "Name";
+        public static final String COL_ID = "_id";
+        public static final String TMAIN_COL0 = "ScreenName";
+        public static final String TMAIN_COL1 = "UserId";
+        public static final String TMAIN_COL2 = "Description";
+        public static final String TMAIN_COL3 = "FollowerCount";
+        public static final String TMAIN_COL4 = "FriendCount";
+        public static final String TMAIN_COL5 = "ProfileImgUrl";
+        public static final String TMAIN_COL6 = "ProfileImgFilePath";
+        public static final String TMAIN_COL7 = "UserName";
 
-    public static final String TABLE_FAVORITES_LIST_ENTRIES = "JFavorites";
-    public static final String TFAVORITES_COL1 = "Sys";
+        public static final String TSCOREBOARD_COL0 = "Total";
+        public static final String TSCOREBOARD_COL1 = "Correct";
 
-    /* Tables for saving Tweets (including kanji associated with tweets), adding tweets to favorite lists*/
-    public static final String TABLE_FAVORITES_LISTS_TWEETS = "JFavoritesTweetLists";
-    public static final String TABLE_FAVORITES_LISTS_TWEETS_ENTRIES = "JFavoritesTweets";
+        public static final String TFAVORITES_COL0 = "Name";
+        public static final String TFAVORITES_COL1 = "Sys";
 
-    public static final String TABLE_SAVED_TWEETS = "JSavedTweets";
-    public static final String TSAVEDTWEET_COL0 = "UserId";
-    public static final String TSAVEDTWEET_COL1 = "UserScreenName";
-    public static final String TSAVEDTWEET_COL2 = "Tweet_id";
-    public static final String TSAVEDTWEET_COL3 = "CreatedAt";
-    public static final String TSAVEDTWEET_COL4 = "Text";
+        public static final String TSAVEDTWEET_COL0 = "UserId";
+        public static final String TSAVEDTWEET_COL1 = "UserScreenName";
+        public static final String TSAVEDTWEET_COL2 = "Tweet_id";
+        public static final String TSAVEDTWEET_COL3 = "CreatedAt";
+        public static final String TSAVEDTWEET_COL4 = "Text";
 
-    public static final String TABLE_SAVED_TWEET_KANJI = "JSavedTweetKanji";
-//    public static final String TSAVEDTWEETITEMS_COL0 = "Tweet_id"; //JSavedTweets Primary Key!
-    public static final String TSAVEDTWEETITEMS_COL2 = "Edict_id"; //Edict Primary Key!
-    public static final String TSAVEDTWEETITEMS_COL3 = "StartIndex"; //Edict Primary Key!
-    public static final String TSAVEDTWEETITEMS_COL4 = "EndIndex"; //Edict Primary Key!
+        public static final String TSAVEDTWEETITEMS_COL2 = "Edict_id"; //Edict Primary Key!
+        public static final String TSAVEDTWEETITEMS_COL3 = "StartIndex"; //Edict Primary Key!
+        public static final String TSAVEDTWEETITEMS_COL4 = "EndIndex"; //Edict Primary Key!
 
-    public static final String TABLE_SAVED_TWEET_URLS = "JSavedTweetUrls";
-    public static final String TSAVEDTWEETURLS_COL1 = "Url";
-    public static final String TSAVEDTWEETURLS_COL2 = "StartIndex";
-    public static final String TSAVEDTWEETURLS_COL3 = "EndIndex";
+        public static final String TSAVEDTWEETURLS_COL1 = "Url";
+        public static final String TSAVEDTWEETURLS_COL2 = "StartIndex";
+        public static final String TSAVEDTWEETURLS_COL3 = "EndIndex";
+
+    }
+
 
     public static synchronized InternalDB getInstance(Context context) {
         if (sInstance == null) {
@@ -89,31 +93,31 @@ public class InternalDB extends SQLiteOpenHelper
         return sInstance;
     }
 
-    public static synchronized WordListOperationsInterface getWordInterfaceInstance() {
+    public static synchronized WordListOperationsInterface getWordInterfaceInstance(Context context) {
         if (wordOpsHelper == null) {
-            wordOpsHelper = new WordOpsHelper(sInstance);
+            wordOpsHelper = new WordOpsHelper(InternalDB.getInstance(context.getApplicationContext()));
         }
         return wordOpsHelper;
     }
 
 
-    public static synchronized TweetListOperationsInterface getTweetInterfaceInstance() {
+    public static synchronized TweetListOperationsInterface getTweetInterfaceInstance(Context context) {
         if (tweetOpsHelper == null) {
-            tweetOpsHelper = new TweetOpsHelper(sInstance);
+            tweetOpsHelper = new TweetOpsHelper(InternalDB.getInstance(context.getApplicationContext()));
         }
         return tweetOpsHelper;
     }
 
-    public static synchronized UserOperationsInterface getUserInterfaceInstance() {
+    public static synchronized UserOperationsInterface getUserInterfaceInstance(Context context) {
         if (userOpsHelper == null) {
-            userOpsHelper  = new UserOpsHelper(sInstance);
+            userOpsHelper  = new UserOpsHelper(InternalDB.getInstance(context.getApplicationContext()));
         }
         return userOpsHelper ;
     }
 
-    public static synchronized QuizOperationsInterface getQuizInterfaceInstance() {
+    public static synchronized QuizOperationsInterface getQuizInterfaceInstance(Context context) {
         if (quizOpsHelper == null) {
-            quizOpsHelper  = new QuizOpsHelper(sInstance);
+            quizOpsHelper  = new QuizOpsHelper(InternalDB.getInstance(context.getApplicationContext()));
         }
         return quizOpsHelper ;
     }
@@ -141,16 +145,16 @@ public class InternalDB extends SQLiteOpenHelper
                                 "%s INTEGER, " +
                                 "%s TEXT, " +
                                 "%s TEXT, " +
-                                "%s TEXT) ", TABLE_USERS,
-                        COL_ID,
-                        TMAIN_COL0,
-                        TMAIN_COL1,
-                        TMAIN_COL2,
-                        TMAIN_COL3,
-                        TMAIN_COL4,
-                        TMAIN_COL5,
-                        TMAIN_COL6,
-                        TMAIN_COL7);
+                                "%s TEXT) ", Tables.TABLE_USERS,
+                        Columns.COL_ID,
+                        Columns.TMAIN_COL0,
+                        Columns.TMAIN_COL1,
+                        Columns.TMAIN_COL2,
+                        Columns.TMAIN_COL3,
+                        Columns.TMAIN_COL4,
+                        Columns.TMAIN_COL5,
+                        Columns.TMAIN_COL6,
+                        Columns.TMAIN_COL7);
 
         sqlDB.execSQL(sqlQueryUsers);
 
@@ -160,10 +164,10 @@ public class InternalDB extends SQLiteOpenHelper
                 String.format("CREATE TABLE IF NOT EXISTS %s (" +
                                 "%s INTEGER PRIMARY KEY, " +
                                 "%s INTEGER, " +
-                                "%s INTEGER)", TABLE_SCOREBOARD,
-                        COL_ID, //_id
-                        TSCOREBOARD_COL0, //Total
-                        TSCOREBOARD_COL1); // Correct
+                                "%s INTEGER)", Tables.TABLE_SCOREBOARD,
+                        Columns.COL_ID, //_id
+                        Columns.TSCOREBOARD_COL0, //Total
+                        Columns.TSCOREBOARD_COL1); // Correct
 
         sqlDB.execSQL(sqlQueryJScoreBoard);
 
@@ -171,8 +175,8 @@ public class InternalDB extends SQLiteOpenHelper
         /* Reference table of unique user-created word lists */
         String sqlQueryJFavoritesLists =
                 String.format("CREATE TABLE IF NOT EXISTS %s (" +
-                                "%s TEXT)", TABLE_FAVORITES_LISTS,
-                        TFAVORITES_COL0);
+                                "%s TEXT)", Tables.TABLE_FAVORITES_LISTS,
+                        Columns.TFAVORITES_COL0);
 
         sqlDB.execSQL(sqlQueryJFavoritesLists);
 
@@ -181,10 +185,10 @@ public class InternalDB extends SQLiteOpenHelper
                 String.format("CREATE TABLE IF NOT EXISTS  %s (" +
                                 "%s INTEGER, " +
                                 "%s TEXT, " +
-                                "%s INTEGER)", TABLE_FAVORITES_LIST_ENTRIES,
-                        COL_ID,
-                        TFAVORITES_COL0,
-                        TFAVORITES_COL1); // if this column = 1, it is a system table (i.e. blue, red, yellow), if user-created the value is 0
+                                "%s INTEGER)", Tables.TABLE_FAVORITES_LIST_ENTRIES,
+                        Columns.COL_ID,
+                        Columns.TFAVORITES_COL0,
+                        Columns.TFAVORITES_COL1); // if this column = 1, it is a system table (i.e. blue, red, yellow), if user-created the value is 0
 
         sqlDB.execSQL(sqlQueryJFavoritesListEntries);
 
@@ -192,8 +196,8 @@ public class InternalDB extends SQLiteOpenHelper
         /* Reference table of unique user-created tweet lists */
         String sqlQueryJFavoritesListsTweets =
                 String.format("CREATE TABLE IF NOT EXISTS %s (" +
-                                "%s TEXT)", TABLE_FAVORITES_LISTS_TWEETS,
-                        TFAVORITES_COL0);
+                                "%s TEXT)", Tables.TABLE_FAVORITES_LISTS_TWEETS,
+                        Columns.TFAVORITES_COL0);
 
         sqlDB.execSQL(sqlQueryJFavoritesListsTweets);
 
@@ -203,12 +207,12 @@ public class InternalDB extends SQLiteOpenHelper
                                 "%s TEXT, " +
                                 "%s TEXT, " +
                                 "%s TEXT, " +
-                                "%s TEXT)", TABLE_FAVORITES_LISTS_TWEETS_ENTRIES,
+                                "%s TEXT)", Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES,
 
-                        COL_ID, //Tweet id!
-                        TSAVEDTWEET_COL0, // User id
-                        TFAVORITES_COL0, //name
-                        TFAVORITES_COL1); // Sys
+                        Columns.COL_ID, //Tweet id!
+                        Columns.TSAVEDTWEET_COL0, // User id
+                        Columns.TFAVORITES_COL0, //name
+                        Columns.TFAVORITES_COL1); // Sys
 
         sqlDB.execSQL(sqlQueryJFavoritesListTweetsEntries);
 
@@ -221,13 +225,13 @@ public class InternalDB extends SQLiteOpenHelper
                                 "%s TEXT, " +
                                 "%s TEXT, " +
                                 "%s TEXT, " +
-                                "%s TEXT)", TABLE_SAVED_TWEETS,
-                        COL_ID, //_id
-                        TSAVEDTWEET_COL0, //UserId
-                        TSAVEDTWEET_COL1, //UserScreenName
-                        TSAVEDTWEET_COL2, // Tweet_id
-                        TSAVEDTWEET_COL3, //CreatedAt
-                        TSAVEDTWEET_COL4); // Text
+                                "%s TEXT)", Tables.TABLE_SAVED_TWEETS,
+                        Columns.COL_ID, //_id
+                        Columns.TSAVEDTWEET_COL0, //UserId
+                        Columns.TSAVEDTWEET_COL1, //UserScreenName
+                        Columns.TSAVEDTWEET_COL2, // Tweet_id
+                        Columns.TSAVEDTWEET_COL3, //CreatedAt
+                        Columns.TSAVEDTWEET_COL4); // Text
 
         sqlDB.execSQL(sqlQueryJSavedTweet);
 
@@ -239,12 +243,12 @@ public class InternalDB extends SQLiteOpenHelper
                                 "%s TEXT, " +
                                 "%s INTEGER, " +
                                 "%s INTEGER, " +
-                                "%s INTEGER)", TABLE_SAVED_TWEET_KANJI,
-                        COL_ID, //_id (unique)
-                        TSAVEDTWEET_COL2, //STweet_id (JSavedTweet _id)
-                        TSAVEDTWEETITEMS_COL2, // Edict_id
-                        TSAVEDTWEETITEMS_COL3, //STart index
-                        TSAVEDTWEETITEMS_COL4); //End INdex
+                                "%s INTEGER)", Tables.TABLE_SAVED_TWEET_KANJI,
+                        Columns.COL_ID, //_id (unique)
+                        Columns.TSAVEDTWEET_COL2, //STweet_id (JSavedTweet _id)
+                        Columns.TSAVEDTWEETITEMS_COL2, // Edict_id
+                        Columns.TSAVEDTWEETITEMS_COL3, //STart index
+                        Columns.TSAVEDTWEETITEMS_COL4); //End INdex
 
         sqlDB.execSQL(sqlQueryJSavedTweetEntries);
 
@@ -255,12 +259,12 @@ public class InternalDB extends SQLiteOpenHelper
                                 "%s INTEGER, " +
                                 "%s TEXT, " +
                                 "%s INTEGER, " +
-                                "%s INTEGER)", TABLE_SAVED_TWEET_URLS,
-                        COL_ID, //_id (unique)
-                        TSAVEDTWEET_COL2, //STweet_id (JSavedTweet _id)
-                        TSAVEDTWEETURLS_COL1, // Url text
-                        TSAVEDTWEETURLS_COL2, // start index of url
-                        TSAVEDTWEETURLS_COL3); // end index of url
+                                "%s INTEGER)", Tables.TABLE_SAVED_TWEET_URLS,
+                        Columns.COL_ID, //_id (unique)
+                        Columns.TSAVEDTWEET_COL2, //STweet_id (JSavedTweet _id)
+                        Columns.TSAVEDTWEETURLS_COL1, // Url text
+                        Columns.TSAVEDTWEETURLS_COL2, // start index of url
+                        Columns.TSAVEDTWEETURLS_COL3); // end index of url
 
         sqlDB.execSQL(sqlQueryJSavedTweetUrls);
 
@@ -270,16 +274,6 @@ public class InternalDB extends SQLiteOpenHelper
     public void onUpgrade(SQLiteDatabase sqlDB, int i, int i2) {
         onCreate(sqlDB);
     }
-
-
-
-
-
-
-
-
-
-
 
 
 

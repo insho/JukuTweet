@@ -147,14 +147,7 @@ public class MyListFragment  extends Fragment{
             @Override
             public boolean onChildClick(ExpandableListView parent, View v,
                                         int groupPosition, int childPosition, long id) {
-//                String Header = listDataHeader.get(groupPosition);
                 String childOption = mMenuHeader.get(groupPosition).getChildOptions().get(childPosition); //This is the text in the child that the user clicked
-//                if (BuildConfig.DEBUG) {
-//                    Log.d(TAG, "Header: " + mMenuHeader.get(groupPosition).getHeaderTitle());
-//                    Log.d(TAG, "Child: " + mMenuHeader.get(groupPosition).getChildOptions().get(childPosition));
-//                }
-//                Toast.makeText(getActivity(), "Header: " + mMenuHeader.get(groupPosition).getHeaderTitle() + ", child: " + mMenuHeader.get(groupPosition).getChildOptions().get(childPosition), Toast.LENGTH_SHORT).show();
-
                 switch (childOption) {
                     case "Browse/Edit":
                         MyListBrowseFragment fragment = MyListBrowseFragment.newInstance(new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).getSystemList()));
@@ -185,44 +178,7 @@ public class MyListFragment  extends Fragment{
                         break;
 
                     default:
-
                         break;
-//                        sendMessage(parent, Header, sys);
-//                        break;
-//                    case "Multiple Choice":
-//                        MenuOptionsDialog x = new MenuOptionsDialog(getActivity(), 0, 0, "multiplechoice", true, Header, sys, mylistposition);
-//                        x.CreateDialog();
-//                        break;
-//
-//                    case "Fill in the Blanks":
-//                        /** I'm being lazy here, and inputing groupposition in the "levelblock" place*/
-//                        MenuOptionsDialog b = new MenuOptionsDialog(getActivity(), 0, groupPosition, "fragment_fillintheblanks", true, Header, sys, mylistposition);
-//                        b.CreateDialog();
-//
-//                        break;
-//
-//                    case "Word Builder":
-//                        MenuOptionsDialog c = new MenuOptionsDialog(getActivity(), 0, groupPosition, "wordbuilder", true, Header, sys, mylistposition);
-//                        c.CreateDialog();
-//                        break;
-//                    case "Word Match":
-//                        MenuOptionsDialog d = new MenuOptionsDialog(getActivity(), 0, groupPosition, "wordmatch", true, Header, sys, mylistposition);
-//                        d.CreateDialog();
-//                        break;
-//
-//                    case "Stats":
-//
-//                        Intent intent = new Intent(getActivity(), BlockStatsNoTab.class);
-//                        intent.putExtra("blockNumber", 0);
-//                        intent.putExtra("levelNumber", 0);
-//                        intent.putExtra("mylists", true);
-//                        intent.putExtra("mylistposition", lastExpandedPosition);
-//                        intent.putExtra("Header", Header);
-//                        intent.putExtra("Sys", sys);
-//                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-//                        getActivity().finish();
-//                        startActivity(intent);
-//                        break;
                 }
                 return false;
             }
@@ -252,7 +208,7 @@ public class MyListFragment  extends Fragment{
         ColorThresholds colorThresholds = sharedPrefManager.getColorThresholds();
        ArrayList<String> childOptions = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.menu_mylist)));
 
-        Cursor c = InternalDB.getInstance(getContext()).getWordListColorBlockCursor(colorThresholds,null);
+        Cursor c = InternalDB.getWordInterfaceInstance(getContext()).getWordListColorBlockCursor(colorThresholds,null);
         c.moveToFirst();
         if(c.getCount()>0) {
             while (!c.isAfterLast()) {

@@ -25,6 +25,7 @@ import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.CopySavedTweetsDialog;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
+import com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.SharedPrefManager;
@@ -93,18 +94,13 @@ public class SavedTweetsBrowseFragment extends Fragment {
     @Override
     public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
         super.onViewStateRestored(savedInstanceState);
-//        updateAdapter();
 
         //TODO Put something in place to repull data on resume...
     }
 
 
     public void pullData(MyListEntry myListEntry){
-        mDataset = InternalDB.getInstance(getContext()).getTweetsForSavedTweetsList(myListEntry,mColorThresholds);
-
-//        for(Tweet tweet : mDataset) {
-//            Log.d("XXX-Z:", "tweet id receieved: " + tweet.getIdString() + ", text: " + tweet.getText());
-//        }
+        mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(myListEntry,mColorThresholds);
         mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
@@ -243,10 +239,10 @@ public class SavedTweetsBrowseFragment extends Fragment {
 
     //TODO add error message to this
     public void saveAndUpdateTweets(String tweetIds,ArrayList<MyListEntry> listsToCopyTo, boolean move,MyListEntry currentList) {
-        InternalDB helper = InternalDB.getInstance(getContext());
+        TweetListOperationsInterface helperTweetOps = InternalDB.getTweetInterfaceInstance(getContext());
         try {
             for(MyListEntry entry : listsToCopyTo) {
-                helper.addMultipleTweetsToTweetList(entry,tweetIds);
+                helperTweetOps.addMultipleTweetsToTweetList(entry,tweetIds);
             }
             if(move) {
                 removeTweetFromList(tweetIds,currentList);
@@ -259,8 +255,6 @@ public class SavedTweetsBrowseFragment extends Fragment {
         } catch (SQLiteException e) {
             Log.e(TAG,"SQLiteException in MyListBrowseFragment saveAndUpdateMyLists : " + e);
             Toast.makeText(getContext(), "Unable to update lists", Toast.LENGTH_SHORT).show();
-        } finally {
-            helper.close();
         }
 
 
@@ -268,9 +262,9 @@ public class SavedTweetsBrowseFragment extends Fragment {
     }
     public void removeTweetFromList(String bulkTweetIds, MyListEntry currentList){
         try {
-            InternalDB.getInstance(getContext()).removeMultipleTweetsFromTweetList(bulkTweetIds,currentList);
+            InternalDB.getTweetInterfaceInstance(getContext()).removeMultipleTweetsFromTweetList(bulkTweetIds,currentList);
             mSelectedEntries = new ArrayList<>();
-            mDataset = InternalDB.getInstance(getContext()).getTweetsForSavedTweetsList(mMyListEntry,mColorThresholds);
+            mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mMyListEntry,mColorThresholds);
             mAdapter.swapDataSet(mDataset);
         } catch (NullPointerException e) {
             Log.e(TAG,"Nullpointer in SavedTweetsBrowseFragment removeTweetFromList : " + e);
@@ -286,9 +280,8 @@ public class SavedTweetsBrowseFragment extends Fragment {
     public void removeTweetFromList(){
         try {
             final String tweetIds = joinSelectedStrings(mSelectedEntries);
-//            Log.d(TAG,"FINAL STRING: " + tweetIds);
-            InternalDB.getInstance(getContext()).removeMultipleTweetsFromTweetList(tweetIds,mMyListEntry);
-            mDataset = InternalDB.getInstance(getContext()).getTweetsForSavedTweetsList(mMyListEntry,mColorThresholds);
+            InternalDB.getTweetInterfaceInstance(getContext()).removeMultipleTweetsFromTweetList(tweetIds,mMyListEntry);
+            mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mMyListEntry,mColorThresholds);
             mAdapter.swapDataSet(mDataset);
             showUndoPopupTweets(tweetIds,mMyListEntry);
         } catch (NullPointerException e) {
@@ -320,18 +313,13 @@ public class SavedTweetsBrowseFragment extends Fragment {
 
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
-//        LinearLayout viewGroup = (LinearLayout) context.findViewById(R.id.llSortChangePopup);
         LayoutInflater layoutInflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View v = layoutInflater.inflate(R.layout.popup_undo, null);
 
         final PopupWindow popupWindow = new PopupWindow(getContext());
-//        popupWindow.setWidth(popupwindowwidth);
-//        popupWindow.setHeight(poupwindowheight);
         popupWindow.setFocusable(true);
         popupWindow.setClippingEnabled(false);
         popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-//        View v = getLayoutInflater().inflate(R.layout.popup_undo,null);
-
         popupWindow.setWidth((int)(metrics.widthPixels*.66f));
 
         undoSubscription  =  Observable.timer(3, SECONDS).subscribeOn(Schedulers.computation())
@@ -347,8 +335,8 @@ public class SavedTweetsBrowseFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 try {
-                    InternalDB.getInstance(getContext()).addMultipleTweetsToTweetList(currentList,bulkTweetIds);
-                    mDataset = InternalDB.getInstance(getContext()).getTweetsForSavedTweetsList(mMyListEntry,mColorThresholds);
+                    InternalDB.getTweetInterfaceInstance(getContext()).addMultipleTweetsToTweetList(currentList,bulkTweetIds);
+                    mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mMyListEntry,mColorThresholds);
                     mSelectedEntries.clear();
                     mAdapter.swapDataSet(mDataset);
                     try {
@@ -374,7 +362,6 @@ public class SavedTweetsBrowseFragment extends Fragment {
         popupWindow.setContentView(v);
         popupWindow.showAtLocation(mRecyclerView, Gravity.BOTTOM, 0, (int)(metrics.heightPixels / (float)9.5));
         // create a single event in 10 seconds time
-
 
     }
 

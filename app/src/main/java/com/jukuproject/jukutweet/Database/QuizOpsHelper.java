@@ -1,5 +1,6 @@
 package com.jukuproject.jukutweet.Database;
 
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
@@ -17,12 +18,6 @@ import com.jukuproject.jukutweet.Models.WordEntry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
-
-import static com.jukuproject.jukutweet.Database.InternalDB.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES;
-import static com.jukuproject.jukutweet.Database.InternalDB.TABLE_FAVORITES_LIST_ENTRIES;
-import static com.jukuproject.jukutweet.Database.InternalDB.TABLE_SAVED_TWEETS;
-import static com.jukuproject.jukutweet.Database.InternalDB.TABLE_SAVED_TWEET_KANJI;
-import static com.jukuproject.jukutweet.Database.InternalDB.TABLE_USERS;
 
 /**
  * Created by JClassic on 4/5/2017.
@@ -190,13 +185,13 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                         "FROM "+
                         "( " +
                         "SELECT DISTINCT Tweet_id " +
-                        "FROM " + TABLE_FAVORITES_LIST_ENTRIES + " " +
+                        "FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
                         " WHERE [Name] = ? and [Sys] = ? and [_id] <> ? " +
                         ") as x " +
                         "LEFT JOIN "  +
                         "( " +
                         "SELECT DISTINCT Tweet_id,Edict_id " +
-                        "FROM " + TABLE_SAVED_TWEET_KANJI + " " +
+                        "FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI + " " +
                         ")  as y " +
                         " ON x.Tweet_id = y.Tweet_id " +
                         " ORDER BY RANDOM()  LIMIT 8 " +
@@ -223,7 +218,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                         "Select DISTINCT [Kanji] " +
                         "FROM [Edict] where [_id] in (" +
                         "SELECT DISTINCT [_id] " +
-                        "FROM " +  TABLE_FAVORITES_LIST_ENTRIES + " " +
+                        "FROM " +  InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
                         " WHERE [Name] = ? and [Sys] = ? and [_id] <> ? " +
                         "ORDER BY RANDOM()  LIMIT 8 " +
                         ") OR [_id] in (" +
@@ -334,7 +329,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             "(" +
                             /* Select all tweets that contain words from the MyList */
                             "SELECT DISTINCT _id as [Tweet_id]" +
-                            " FROM " + TABLE_FAVORITES_LISTS_TWEETS_ENTRIES  + " " +
+                            " FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES  + " " +
                             " WHERE [Name] = ? and  [Sys] = ?   " +
                             ") as TweetLists " +
                             " LEFT JOIN " +
@@ -350,11 +345,11 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             "( " +
                             " SELECT Tweet_id" +
                             ",Edict_id " +
-                            "From " + TABLE_SAVED_TWEET_KANJI  + " " +
+                            "From " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + " " +
                             " WHERE Tweet_id in(" +
                             /* Select all tweets that contain words from the MyList */
                             "SELECT DISTINCT _id as [Tweet_id]" +
-                            " FROM " + TABLE_FAVORITES_LISTS_TWEETS_ENTRIES  + " " +
+                            " FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES  + " " +
                             " WHERE [Name] = ? and  [Sys] = ?   " +
                             ") " +
                             ") as a " +
@@ -363,7 +358,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             "SELECT [_id] as [Edict_id]" +
                             ",sum([Correct]) as [Correct]" +
                             ",sum([Total]) as [Total] FROM [JScoreboard] " +
-                            "where [_id] in (SELECT DISTINCT [Edict_id] FROM " + TABLE_SAVED_TWEET_KANJI  + ")" +
+                            "where [_id] in (SELECT DISTINCT [Edict_id] FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + ")" +
                             " GROUP BY [_id]" +
                             ") as b " +
                             "ON a.[Edict_id] = b.[Edict_id] " +
@@ -396,7 +391,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             ",[Text]" +
                             ",[UserId] " +
                             ",[CreatedAt]  as [Date] " +
-                            " FROM "+ TABLE_SAVED_TWEETS + " " +
+                            " FROM "+ InternalDB.Tables.TABLE_SAVED_TWEETS + " " +
                             ") as [TweetData] " +
 
 
@@ -405,7 +400,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             "SELECT DISTINCT [UserId] " +
                             ", [ScreenName] " +
                             ", [UserName] " +
-                            " FROM " + TABLE_USERS +" " +
+                            " FROM " + InternalDB.Tables.TABLE_USERS +" " +
                             ") as [UserData] " +
                             "On TweetData.UserId = UserData.UserId " +
                             ") as [MetaData] " +
@@ -437,15 +432,15 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             ",Edict_id " +
                             ",[StartIndex]" +
                             ",[EndIndex]" +
-                            "From " + TABLE_SAVED_TWEET_KANJI  + " " +
+                            "From " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + " " +
                             " WHERE [Edict_id] is not NULL and StartIndex is not NULL and EndIndex is not NULL and EndIndex > StartIndex " +
                             "and Tweet_id in (" +
                                 /* Get a list of tweets that contain the kanji we are interested in */
                             "SELECT DISTINCT [Tweet_id]" +
-                            " FROM " + TABLE_SAVED_TWEET_KANJI  + " " +
+                            " FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + " " +
                             "WHERE [Edict_id] in (" +
                             "SELECT DISTINCT [_id]" +
-                            " FROM " + TABLE_FAVORITES_LIST_ENTRIES + " " +
+                            " FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
                             " WHERE [Name] = ? and  [Sys] = ?   " +
 
                             ") " +
@@ -459,7 +454,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             ",sum([Correct]) as [Correct]" +
 
                             ",sum([Total]) as [Total] FROM [JScoreboard] " +
-                            "where [_id] in (SELECT DISTINCT [Edict_id] FROM " + TABLE_SAVED_TWEET_KANJI  + ")" +
+                            "where [_id] in (SELECT DISTINCT [Edict_id] FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + ")" +
                             " GROUP BY [_id]" +
                             ") as b " +
                             "ON a.[Edict_id] = b.[Edict_id] " +
@@ -473,7 +468,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
 
                             "WHERE [_id] in (" +
                             "SELECT DISTINCT [_id]" +
-                            " FROM " + TABLE_FAVORITES_LIST_ENTRIES + " " +
+                            " FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
                             " WHERE [Name] = ? and  [Sys] = ?   " +
 
                             ") " +
@@ -576,10 +571,8 @@ public class QuizOpsHelper implements QuizOperationsInterface {
             , String colorString
             , @Nullable Integer resultLimit) {
 
-        long startTime = System.nanoTime();
-        ArrayList<Integer> possibleSpinners = WordOpsHelper.getIdsForWordList(myListEntry);
-        long endTime = System.nanoTime();
-        Log.e(TAG,"ELLAPSED POSSIBLE SPINNERS: " + (endTime - startTime) / 1000000000.0);
+
+        ArrayList<Integer> possibleSpinners = getIdsForWordList(myListEntry);
 
         String limit;
         if(resultLimit == null) {
@@ -653,10 +646,10 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             "(" +
                             /* Select all tweets that contain words from the MyList */
                             "SELECT DISTINCT [Tweet_id]" +
-                            " FROM " + TABLE_SAVED_TWEET_KANJI  + " " +
+                            " FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + " " +
                             "WHERE [Edict_id] in (" +
                             "SELECT DISTINCT [_id]" +
-                            " FROM " + TABLE_FAVORITES_LIST_ENTRIES + " " +
+                            " FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
                             " WHERE [Name] = ?  and [Sys] = ? " +
                             ") " +
                             ") as TweetLists " +
@@ -673,13 +666,13 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             "( " +
                             " SELECT Tweet_id" +
                             ",Edict_id " +
-                            "From " + TABLE_SAVED_TWEET_KANJI  + " " +
+                            "From " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + " " +
                             " WHERE Tweet_id in(" +
                             "SELECT DISTINCT [Tweet_id]" +
-                            " FROM " + TABLE_SAVED_TWEET_KANJI  + " " +
+                            " FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + " " +
                             "WHERE [Edict_id] in (" +
                             "SELECT DISTINCT [_id]" +
-                            " FROM " + TABLE_FAVORITES_LIST_ENTRIES + " " +
+                            " FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
                             " WHERE [Name] = ? and  [Sys] = ?   " +
                             ") " +
                             ") " +
@@ -689,7 +682,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             "SELECT [_id] as [Edict_id]" +
                             ",sum([Correct]) as [Correct]" +
                             ",sum([Total]) as [Total] FROM [JScoreboard] " +
-                            "where [_id] in (SELECT DISTINCT [Edict_id] FROM " + TABLE_SAVED_TWEET_KANJI  + ")" +
+                            "where [_id] in (SELECT DISTINCT [Edict_id] FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + ")" +
                             " GROUP BY [_id]" +
                             ") as b " +
                             "ON a.[Edict_id] = b.[Edict_id] " +
@@ -722,7 +715,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             ",[Text]" +
                             ",[UserId] " +
                             ",[CreatedAt]  as [Date] " +
-                            " FROM "+ TABLE_SAVED_TWEETS + " " +
+                            " FROM "+ InternalDB.Tables.TABLE_SAVED_TWEETS + " " +
                             ") as [TweetData] " +
 
 
@@ -731,7 +724,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             "SELECT DISTINCT [UserId] " +
                             ", [ScreenName] " +
                             ", [UserName] " +
-                            " FROM " + TABLE_USERS +" " +
+                            " FROM " + InternalDB.Tables.TABLE_USERS +" " +
                             ") as [UserData] " +
                             "On TweetData.UserId = UserData.UserId " +
                             ") as [MetaData] " +
@@ -763,15 +756,15 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             ",Edict_id " +
                             ",[StartIndex]" +
                             ",[EndIndex]" +
-                            "From " + TABLE_SAVED_TWEET_KANJI  + " " +
+                            "From " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + " " +
                             " WHERE [Edict_id] is not NULL and StartIndex is not NULL and EndIndex is not NULL and EndIndex > StartIndex " +
                             "and Tweet_id in (" +
                                 /* Get a list of tweets that contain the kanji we are interested in */
                             "SELECT DISTINCT [Tweet_id]" +
-                            " FROM " + TABLE_SAVED_TWEET_KANJI  + " " +
+                            " FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + " " +
                             "WHERE [Edict_id] in (" +
                             "SELECT DISTINCT [_id]" +
-                            " FROM " + TABLE_FAVORITES_LIST_ENTRIES + " " +
+                            " FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
                             " WHERE [Name] = ? and  [Sys] = ?   " +
                             ") " +
                             ") " +
@@ -782,7 +775,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             ",sum([Correct]) as [Correct]" +
 
                             ",sum([Total]) as [Total] FROM [JScoreboard] " +
-                            "where [_id] in (SELECT DISTINCT [Edict_id] FROM " + TABLE_SAVED_TWEET_KANJI  + ")" +
+                            "where [_id] in (SELECT DISTINCT [Edict_id] FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + ")" +
                             " GROUP BY [_id]" +
                             ") as b " +
                             "ON a.[Edict_id] = b.[Edict_id] " +
@@ -795,7 +788,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             "FROM [Edict] " +
                             "WHERE [_id] in (" +
                             "SELECT DISTINCT [_id]" +
-                            " FROM " + TABLE_FAVORITES_LIST_ENTRIES + " " +
+                            " FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
                             " WHERE [Name] = ? and  [Sys] = ?   " +
 
                             ") " +
@@ -851,7 +844,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                     //Designate spinner kanji if they exist
                     tweet.addWordEntry(wordEntry);
 
-
                     //FLush old tweet
                     if(!currentTweetId.equals(c.getString(0))){
 
@@ -890,6 +882,38 @@ public class QuizOpsHelper implements QuizOperationsInterface {
         return savedTweets;
     }
 
+    public ArrayList<Integer> getIdsForWordList(MyListEntry myListEntry) {
+        ArrayList<Integer> ids = new ArrayList<>();
+        SQLiteDatabase db = sqlOpener.getReadableDatabase();
+        try {
+            Cursor c = db.rawQuery(
+                    "SELECT DISTINCT [_id]" +
+                            " FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
+                            " WHERE [Sys] = ? and [Name] = ? ",new String[]{myListEntry.getListName()
+                            ,String.valueOf(myListEntry.getListsSys())});
+            if(c.getCount()>0) {
+                c.moveToFirst();
+                String currentTweetId = c.getString(0);
+                Tweet tweet = new Tweet();
+                while (!c.isAfterLast()) {
+                    ids.add(c.getInt(0));
+                    c.moveToNext();
+                }
+
+                c.close();
+            }
+
+        } catch (SQLiteException e){
+            Log.e(TAG,"getIdsForWordList Sqlite exception: " + e);
+        } catch (Exception e) {
+            Log.e(TAG,"getIdsForWordList generic exception: " + e);
+        } finally {
+            db.close();
+        }
+
+        return ids;
+    }
+
 
     public void setRandomSpinnersForTweet(Tweet tweet) {
         ArrayList<WordEntry> wordEntries = tweet.getWordEntries();
@@ -908,5 +932,36 @@ public class QuizOpsHelper implements QuizOperationsInterface {
         }
     }
 
+    /**
+     * Adds the score for a word to the scoreboard table
+     * @param wordId id of word in question
+     * @param total updated total questions involving that word
+     * @param correct update total correct answers for the word
+     * @return bool true if insert was succesful, false if not
+     */
+    public boolean addWordScoreToScoreBoard(int wordId, int total, int correct) {
+        SQLiteDatabase db = sqlOpener.getReadableDatabase();
+
+        try {
+            ContentValues values = new ContentValues();
+            values.clear();
+            values.put(InternalDB.Columns.COL_ID, wordId);
+            values.put(InternalDB.Columns.TSCOREBOARD_COL0, total);
+            values.put(InternalDB.Columns.TSCOREBOARD_COL1, correct);
+            db.insertWithOnConflict(InternalDB.Tables.TABLE_SCOREBOARD, null, values,
+                    SQLiteDatabase.CONFLICT_REPLACE);
+            return true;
+
+        } catch (SQLiteException e) {
+            Log.e(TAG, "addWordScoreToScoreBoard sqlite exception: " + e);
+            return false;
+
+        } catch (NullPointerException e) {
+            Log.e(TAG, "addWordScoreToScoreBoard something was null: " + e);
+            return false;
+        } finally {
+            db.close();
+        }
+    }
 
 }

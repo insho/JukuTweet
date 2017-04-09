@@ -13,9 +13,6 @@ import android.widget.TextView;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.R;
 
-//        import android.app.DialogFragment;
-
-
 public class RemoveUserDialog extends DialogFragment {
 
     public DialogInteractionListener mRemoveUserDialogListener;
@@ -72,10 +69,4 @@ public class RemoveUserDialog extends DialogFragment {
 
         return builder.create();
     }
-
-//    @Override
-//    public void onDismiss(DialogInterface dialog) {
-//        super.onDismiss(dialog);
-//        mRemoveUserDialogListener.onDialogDismiss();
-//    }
 }

@@ -88,7 +88,7 @@ public class MultipleChoiceFragment extends Fragment {
     Double sliderUpperBound = .50;
     Double sliderLowerBound = .025;
     int sliderCountMax = 30;
-//    int displaywidth = 0;
+//    int displayWidth = 0;
 //    int displayheight = 0;
 //    private Integer previousPKey = 0;
     int widthofquestionpane = 0;
@@ -406,7 +406,7 @@ public class MultipleChoiceFragment extends Fragment {
 
 
                                 if(SharedPrefManager.getInstance(getContext()).getIncludemultiplechoicecores()) {
-                                    InternalDB.getInstance(getContext()).addWordScoreToScoreBoard(currentCorrectAnswer.getId(),currentCorrectAnswer.getTotal(),currentCorrectAnswer.getCorrect());
+                                    InternalDB.getQuizInterfaceInstance(getContext()).addWordScoreToScoreBoard(currentCorrectAnswer.getId(),currentCorrectAnswer.getTotal(),currentCorrectAnswer.getCorrect());
                                 }
 
                                 //String that gets passed to tab 2 (and displayed there)
@@ -444,9 +444,7 @@ public class MultipleChoiceFragment extends Fragment {
                                         for (int i=1; i<=6; i++) {
                                             String s = "(" + String.valueOf(i) + ")";
                                             String sNext = "(" + String.valueOf(i + 1) + ")";
-//                                            if(debug) {Log.d(TAG, "s = " + s);}
                                             int slength = s.length();
-
 
                                             if (currentCorrectAnswer.getDefinitionMultiLineString(10).contains(s)) {
                                                 int endIndex = currentCorrectAnswer.getDefinitionMultiLineString(10).length();
@@ -459,7 +457,6 @@ public class MultipleChoiceFragment extends Fragment {
                                                 if (sentence.length() > 1) {
                                                     sentence = sentence.substring(0, 1).toUpperCase() + sentence.substring(1).toLowerCase();
                                                 }
-//                                                if(debug) {Log.d(TAG, "added def: " + sentence);}
 
                                                 SpannableString ss1=  new SpannableString(System.getProperty("line.separator") + "\u2022 " + sentence );
                                                 ss1.setSpan(new AbsoluteSizeSpan(12), 0, ss1.length(), 0);
@@ -549,8 +546,7 @@ public class MultipleChoiceFragment extends Fragment {
 
     public static WordEntry getRandomWordEntry(ArrayList<WordEntry> wordEntries, double totalWeight, @Nullable Integer previousId) {
 
-        if(BuildConfig.DEBUG) {
-            Log.d("MultipleChoice","(wordweight) weightedrand total weight: " + totalWeight);}
+        if(BuildConfig.DEBUG) {Log.d("MultipleChoice","(wordweight) weightedrand total weight: " + totalWeight);}
         int randomIndex = -1;
         double random = Math.random() * totalWeight;
         if(BuildConfig.DEBUG) {Log.d("MultipleChoice","(wordweight) FIRST random (random # * totalweight): " + random);}
@@ -578,12 +574,7 @@ public class MultipleChoiceFragment extends Fragment {
             }
 
         }
-
-
-
-
         return wordEntries.get(randomIndex);
-
     }
 
 
@@ -621,7 +612,7 @@ public class MultipleChoiceFragment extends Fragment {
 
                 while(i<probablekanjiparts.size() && finalids.size()<5) {
                     String alreadyaddedkanji = getSelectedItemsAsString(finalids);
-                        Cursor c = InternalDB.getInstance(mContext).getPossibleMultipleChoiceMatch(quizType
+                        Cursor c = InternalDB.getQuizInterfaceInstance(mContext).getPossibleMultipleChoiceMatch(quizType
                                 ,correctWordEntry
                                 ,alreadyaddedkanji
                                 ,kanjiToBreak
@@ -649,23 +640,15 @@ public class MultipleChoiceFragment extends Fragment {
                     c.close();
                 }
             }
-
-
-
-
         } else {
-
-
-        incorrectAnswerSet = InternalDB.getInstance(mContext).getWordsFromATweetList(myListEntry,colorThresholds,colorString,correctWordEntry.getId(),6);
-
-
+        incorrectAnswerSet = InternalDB.getTweetInterfaceInstance(mContext).getWordsFromATweetList(myListEntry,colorThresholds,colorString,correctWordEntry.getId(),6);
         }
 
         /* Fill in remaining entries if necessary */
         final int remainingIncorrectAnswerSlots = 5-incorrectAnswerSet.size();
         if(remainingIncorrectAnswerSlots>0) { //We're filling the rest of the array with random records (in the case that we didn't have 6 initial records to begin with)
 
-            Cursor c = InternalDB.getInstance(mContext).getRandomKanji(String.valueOf(correctWordEntry.getId()),remainingIncorrectAnswerSlots);
+            Cursor c = InternalDB.getQuizInterfaceInstance(mContext).getRandomKanji(String.valueOf(correctWordEntry.getId()),remainingIncorrectAnswerSlots);
 
             if(c.getCount()>0) {
                 c.moveToFirst();
@@ -699,7 +682,7 @@ public class MultipleChoiceFragment extends Fragment {
                 sb.append(", ");
             }
             foundOne = true;
-            sb.append(list.get(i).toString());
+            sb.append(list.get(i));
         }
         return sb.toString();
     }

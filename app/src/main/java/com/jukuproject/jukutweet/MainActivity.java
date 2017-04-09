@@ -373,7 +373,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     public void onAddUserDialogPositiveClick(String inputText) {
 
         /** Check to DB to see if the new feed is a duplicate*/
-        if(InternalDB.getInstance(getBaseContext()).duplicateUser(inputText.trim())) {
+        if(InternalDB.getUserInterfaceInstance(getBaseContext()).duplicateUser(inputText.trim())) {
             Toast.makeText(this, "UserInfo already exists", Toast.LENGTH_SHORT).show();
         } else if (!isOnline()) {
             Toast.makeText(getBaseContext(), "Unable to access internet", Toast.LENGTH_SHORT).show();
@@ -401,7 +401,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     @Override
     public void onRemoveUserDialogPositiveClick(String screenName) {
 
-        if (InternalDB.getInstance(getBaseContext()).deleteUser(screenName) ) {
+        if (InternalDB.getUserInterfaceInstance(getBaseContext()).deleteUser(screenName) ) {
 
             // Locate Tab1Continer and update the UserListInfo adapter to reflect removed item
             if(findFragmentByPosition(0) != null && findFragmentByPosition(0) instanceof Tab1Container) {
@@ -481,7 +481,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
 
     public void saveAndUpdateUserInfoList(UserInfo userInfoInstance) {
-        if(InternalDB.getInstance(getBaseContext()).saveUser(userInfoInstance)) {
+        if(InternalDB.getUserInterfaceInstance(getBaseContext()).saveUser(userInfoInstance)) {
 
             try{
 
@@ -538,7 +538,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
                                 //TODO == clearer way of saving this image to a file...
                                 Uri uri = Uri.fromFile(file);
-                                InternalDB.getInstance(getBaseContext()).addMediaURItoDB(uri.toString(),screenName);
+                                InternalDB.getUserInterfaceInstance(getBaseContext()).addMediaURItoDB(uri.toString(),screenName);
                             }
 
                         } catch (IOException e) {
@@ -698,7 +698,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     public void onAddMyListDialogPositiveClick(String listType, String listName) {
         if(listType.equals("MyList")) {
 
-            if(InternalDB.getInstance(getBaseContext()).saveWordList(listName)) {
+            if(InternalDB.getWordInterfaceInstance(getBaseContext()).saveWordList(listName)) {
             /* Locate Tab2Continer and update the MyList adapter to reflect removed item */
                 if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
                     ((Tab3Container) findFragmentByPosition(1)).updateMyListFragment();
@@ -706,7 +706,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             }
         } else if(listType.equals("TweetList")) {
 
-            if(InternalDB.getInstance(getBaseContext()).saveTweetList(listName)) {
+            if(InternalDB.getTweetInterfaceInstance(getBaseContext()).saveTweetList(listName)) {
             /* Locate Tab2Continer and update the MyList adapter to reflect removed item */
                 if(findFragmentByPosition(1) != null && findFragmentByPosition(1) instanceof Tab2Container) {
                     ((Tab2Container) findFragmentByPosition(1)).updateTweetListFragment();
@@ -755,7 +755,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     @Override
     public void onRenameMyListDialogPositiveClick(String listType,String oldListName, String listName) {
         if(listType.equals("MyList")) {
-            if(InternalDB.getInstance(getBaseContext()).renameWordList(oldListName,listName)) {
+            if(InternalDB.getWordInterfaceInstance(getBaseContext()).renameWordList(oldListName,listName)) {
                 if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
                     ((Tab3Container) findFragmentByPosition(2)).updateMyListFragment();
                 }
@@ -763,7 +763,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 Toast.makeText(this, "Unable to rename list", Toast.LENGTH_SHORT).show();
             }
         } else if(listType.equals("TweetList")) {
-            if(InternalDB.getInstance(getBaseContext()).renameTweetList(oldListName,listName)) {
+            if(InternalDB.getTweetInterfaceInstance(getBaseContext()).renameTweetList(oldListName,listName)) {
                 if(findFragmentByPosition(1) != null && findFragmentByPosition(1) instanceof Tab2Container) {
                     ((Tab2Container) findFragmentByPosition(1)).updateTweetListFragment();
                 }
@@ -806,9 +806,9 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             public void onClick(DialogInterface dialog, int which) {
                 if(listType.equals("MyList")) {
                     if(delete) {
-                        InternalDB.getInstance(getBaseContext()).deleteWordList(name);
+                        InternalDB.getWordInterfaceInstance(getBaseContext()).deleteWordList(name);
                     } else {
-                        InternalDB.getInstance(getBaseContext()).clearWordList(name,isStarFavorite);
+                        InternalDB.getWordInterfaceInstance(getBaseContext()).clearWordList(name,isStarFavorite);
                     }
 
                     /* Locate Tab2Continer and update the MyList adapter to reflect removed item */
@@ -818,9 +818,9 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
                 } else if(listType.equals("TweetList")) {
                     if(delete) {
-                        InternalDB.getInstance(getBaseContext()).deleteTweetList(name);
+                        InternalDB.getTweetInterfaceInstance(getBaseContext()).deleteTweetList(name);
                     } else {
-                        InternalDB.getInstance(getBaseContext()).clearTweetList(name,isStarFavorite);
+                        InternalDB.getTweetInterfaceInstance(getBaseContext()).clearTweetList(name,isStarFavorite);
                     }
 
                     /* Locate Tab1Continer and update the TweetList adapter to reflect removed item */
@@ -974,7 +974,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         //Pull data for flashcard fragment
         if(tabNumber == 1) {
             //Its a mylist fragment
-            ArrayList<WordEntry> dataset = InternalDB.getInstance(getBaseContext())
+            ArrayList<WordEntry> dataset = InternalDB.getTweetInterfaceInstance(getBaseContext())
                     .getWordsFromATweetList(listEntry
                             ,SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
                             ,selectedColorString
@@ -989,7 +989,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             }
         } else if(tabNumber == 2) {
             //Its a mylist fragment
-            ArrayList<WordEntry> dataset = InternalDB.getInstance(getBaseContext())
+            ArrayList<WordEntry> dataset = InternalDB.getWordInterfaceInstance(getBaseContext())
                     .getWordsFromAWordList(listEntry
                             ,SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
                             ,selectedColorString
@@ -1026,7 +1026,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
         if (tabNumber == 1) {
             //Its a mylist fragment
-            ArrayList<WordEntry> dataset = InternalDB.getInstance(getBaseContext())
+            ArrayList<WordEntry> dataset = InternalDB.getTweetInterfaceInstance(getBaseContext())
                     .getWordsFromATweetList(listEntry
                             , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
                             , selectedColorString
@@ -1050,7 +1050,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             }
         } else if (tabNumber == 2) {
             //Its a mylist fragment
-            ArrayList<WordEntry> dataset = InternalDB.getInstance(getBaseContext())
+            ArrayList<WordEntry> dataset = InternalDB.getTweetInterfaceInstance(getBaseContext())
                     .getWordsFromATweetList(listEntry
                             , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
                             , selectedColorString
@@ -1089,7 +1089,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
             //The request is coming from the saved tweets fragment
             //The request is coming from the saved words fragment
-            ArrayList<Tweet> dataset = InternalDB.getInstance(getBaseContext())
+            ArrayList<Tweet> dataset = InternalDB.getQuizInterfaceInstance(getBaseContext())
                     .getFillintheBlanksTweetsForATweetList(myListEntry
                             , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
                             , selectedColorString
@@ -1112,7 +1112,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         } else if (tabNumber == 2) {
 
             //The request is coming from the saved words fragment
-           ArrayList<Tweet> dataset = InternalDB.getInstance(getBaseContext())
+           ArrayList<Tweet> dataset = InternalDB.getQuizInterfaceInstance(getBaseContext())
                     .getFillintheBlanksTweetsForAWordList(myListEntry
                             , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
                             , selectedColorString

@@ -52,18 +52,15 @@ public class FillInTheBlankFragment extends Fragment {
     double mTotalWeight;
     MyListEntry mMyListEntry;
     String mColorString;
-//    ColorThresholds mColorThresholds;
 
-
-    int linewidth = 0;
-    int displaywidth = 0;
-    int displaymarginpadding = 30; //How much to pad the edge of the screen by when laying down the sentenceblocks (so the sentence doesn't overlap the screen or get cut up too much)
-    int spinnerwidth = 200;
-    int spinnerheight = 55;
+    int lineWidth = 0;
+    int displayWidth = 0;
+    int displayMarginPadding = 30; //How much to pad the edge of the screen by when laying down the sentenceblocks (so the sentence doesn't overlap the screen or get cut up too much)
+    int spinnerWidth = 200;
+    int spinnerHeight = 55;
 
     LinearLayout linearLayoutVerticalMain;  //This is the main linear layout, that we will fill row by row with horizontal linear layouts, which are     // in turn filled with vertical layouts (with furigana on top and japanese on bottom)
     LinearLayout linearLayout;
-//    TextView text;
 
     public FillInTheBlankFragment() {}
 
@@ -107,17 +104,14 @@ public class FillInTheBlankFragment extends Fragment {
         /** Get width of screen */
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        displaywidth = metrics.widthPixels;
-        displaymarginpadding = (int) ((float) (displaywidth) * 0.055555556);
-        spinnerwidth = (int) (160.0f * metrics.density + 0.5f);
-        spinnerheight = (int) (37.0f * metrics.density + 0.5f);
-
-
+        displayWidth = metrics.widthPixels;
+        displayMarginPadding = (int) ((float) (displayWidth) * 0.055555556);
+        spinnerWidth = (int) (160.0f * metrics.density + 0.5f);
+        spinnerHeight = (int) (37.0f * metrics.density + 0.5f);
 
         linearLayoutVerticalMain = (LinearLayout) view.findViewById(R.id.sentence_layout);
         linearLayout = new LinearLayout(getContext());
         linearLayout.setOrientation(LinearLayout.HORIZONTAL);
-//        text = (TextView) view.findViewById(R.id.sentence_eng);
 
         /* Reset the lists and layouts */
         //TODO -- test set up the sentence!
@@ -129,19 +123,8 @@ public class FillInTheBlankFragment extends Fragment {
 
         //Set up tweet and spinners
         setUpQuestion(mDataset.get(currentDataSetindex));
-
-
-//        text.setText(mDataset.get(0).getText());
-
-
         return view;
     }
-
-//    private void setUpQuestion(Tweet tweet) {
-//
-//
-//    }
-
 
     public void setUpQuestion(Tweet tweet) {
 
@@ -152,8 +135,8 @@ public class FillInTheBlankFragment extends Fragment {
          /* Get metrics to pass density/width/height to adapters */
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        displaywidth = metrics.widthPixels;
-        displaymarginpadding =  (int)((float)(displaywidth)*0.055555556);
+        displayWidth = metrics.widthPixels;
+        displayMarginPadding =  (int)((float)(displayWidth)*0.055555556);
 
         /* Set tweet color spans. If the saved Tweet object includes a "colorIndex" object (
         * which comes from the savedTweetKanji table and contains the id, positions and color designation
@@ -224,7 +207,7 @@ public class FillInTheBlankFragment extends Fragment {
 //        if(parseSentenceItem.getKanjiConjugated().equals(System.getProperty("line.separator"))) {
 //            //Log 2 rows, once to input the remaining current layout items,
 //            //and another black row for the seperator
-//            if(linewidth>0) {
+//            if(lineWidth>0) {
 //                linearlayoutInsert(2, 1);
 //            }
 //            linearlayoutInsert(2, 1);
@@ -258,8 +241,8 @@ public class FillInTheBlankFragment extends Fragment {
 //                Log.d(TAG, "FINAL WIDTH = " + width);
 //            }
 //
-//            int widthExtra = (linewidth + width + displaymarginpadding) - displaywidth;
-//            int maxWidthAllowed = displaywidth - linewidth - displaymarginpadding;
+//            int widthExtra = (lineWidth + width + displayMarginPadding) - displayWidth;
+//            int maxWidthAllowed = displayWidth - lineWidth - displayMarginPadding;
 //
 //            if (BuildConfig.DEBUG) {
 //                Log.d(TAG, "widthExtra = " + widthExtra);
@@ -296,7 +279,7 @@ public class FillInTheBlankFragment extends Fragment {
 //            innerLinearLayout3.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 //            linearLayout.addView(innerLinearLayout3);
 //
-//            linewidth = linewidth + width;
+//            lineWidth = lineWidth + width;
 //
 //
 //        } else {
@@ -328,12 +311,12 @@ public class FillInTheBlankFragment extends Fragment {
             if(BuildConfig.DEBUG) {
                 Log.d(TAG, "FINAL WIDTH = " + width);
                 Log.d(TAG, "onScreenText content = " + onScreenText.toString());
-                Log.d(TAG, "current linewidth = " + linewidth);
-                Log.d(TAG, "onScreenText linewidth = " + width);
+                Log.d(TAG, "current lineWidth = " + lineWidth);
+                Log.d(TAG, "onScreenText lineWidth = " + width);
             }
 
-            int widthExtra = (linewidth + width + displaymarginpadding) - displaywidth;
-            int maxWidthAllowed = displaywidth - linewidth - displaymarginpadding;
+            int widthExtra = (lineWidth + width + displayMarginPadding) - displayWidth;
+            int maxWidthAllowed = displayWidth - lineWidth - displayMarginPadding;
 
             if(BuildConfig.DEBUG) {
                 Log.d(TAG, "widthExtra = " + widthExtra);
@@ -388,7 +371,7 @@ public class FillInTheBlankFragment extends Fragment {
                         linearlayoutInsert(2, 0); //DONT LOG A NEW ROW
                     } else {
 
-                        linearlayoutInsert((linewidth + width + displaymarginpadding), displaywidth);
+                        linearlayoutInsert((lineWidth + width + displayMarginPadding), displayWidth);
                     }
 
 
@@ -396,7 +379,7 @@ public class FillInTheBlankFragment extends Fragment {
                     if(BuildConfig.DEBUG) {Log.d(TAG, "NEW widthExtra: " + widthExtra);}
                     substringstart = substringend;
 
-                    if ((linewidth + width + displaymarginpadding) < displaywidth || widthExtra < 0) {
+                    if ((lineWidth + width + displayMarginPadding) < displayWidth || widthExtra < 0) {
                         substringend = onScreenText.length();
 
                         if(BuildConfig.DEBUG) {
@@ -429,28 +412,28 @@ public class FillInTheBlankFragment extends Fragment {
                         innerLinearLayout3Remainder.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
                         linearLayout.addView(innerLinearLayout3Remainder);
 
-                        linewidth = linewidth + width_chopped;
+                        lineWidth = lineWidth + width_chopped;
 
                         if(BuildConfig.DEBUG) {
-                            Log.d(TAG, "chopped linewidth: " + linewidth);
+                            Log.d(TAG, "chopped lineWidth: " + lineWidth);
                             Log.d(TAG, "chopped width: " + width);
                         }
 
-                        widthExtra = (linewidth + displaymarginpadding) - displaywidth;
-                        maxWidthAllowed = displaywidth - linewidth - displaymarginpadding;
+                        widthExtra = (lineWidth + displayMarginPadding) - displayWidth;
+                        maxWidthAllowed = displayWidth - lineWidth - displayMarginPadding;
 
 
-                        if (linewidth == 0 && widthExtra > 0) {  // like if it's the last fragment of a line, starting on a new line. Just print the damn thing (on the new line)
-                            linearlayoutInsert((linewidth + (displaywidth + widthExtra) + displaymarginpadding), displaywidth);
-                        } else if (linewidth == 0 && widthExtra < 0) {
-                            linearlayoutInsert((linewidth + (displaywidth + widthExtra) + displaymarginpadding), displaywidth);
+                        if (lineWidth == 0 && widthExtra > 0) {  // like if it's the last fragment of a line, starting on a new line. Just print the damn thing (on the new line)
+                            linearlayoutInsert((lineWidth + (displayWidth + widthExtra) + displayMarginPadding), displayWidth);
+                        } else if (lineWidth == 0 && widthExtra < 0) {
+                            linearlayoutInsert((lineWidth + (displayWidth + widthExtra) + displayMarginPadding), displayWidth);
                         } else {
-                            linearlayoutInsert((linewidth + displaymarginpadding), displaywidth);
+                            linearlayoutInsert((lineWidth + displayMarginPadding), displayWidth);
                         }
 
                     } else {
 
-                        maxWidthAllowed = displaywidth - linewidth - displaymarginpadding;
+                        maxWidthAllowed = displayWidth - lineWidth - displayMarginPadding;
 
                         if(BuildConfig.DEBUG) {
                             Log.d(TAG, "substringend calculation--maxwidthallowed: " + maxWidthAllowed);
@@ -488,10 +471,10 @@ public class FillInTheBlankFragment extends Fragment {
                 innerLinearLayout3.addView(textView_Test);
                 innerLinearLayout3.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
                 linearLayout.addView(innerLinearLayout3);
-                linewidth = linewidth + width;
-                linearlayoutInsert((linewidth + displaymarginpadding), displaywidth);
+                lineWidth = lineWidth + width;
+                linearlayoutInsert((lineWidth + displayMarginPadding), displayWidth);
 
-                if(BuildConfig.DEBUG) {Log.d(TAG, "new linewidth = " + linewidth);}
+                if(BuildConfig.DEBUG) {Log.d(TAG, "new lineWidth = " + lineWidth);}
 
             }
 
@@ -500,10 +483,10 @@ public class FillInTheBlankFragment extends Fragment {
 
     public void addSpinnerToLayout(WordEntry wordEntry) {
 /** INPUT THE SPINNER */
-        if (linewidth + spinnerwidth > displaywidth) {
+        if (lineWidth + spinnerWidth > displayWidth) {
             if(BuildConfig.DEBUG) {
-                Log.d(TAG, "special insert linewidth: " + linewidth);
-                Log.d(TAG, "special insert displaywidth: " + displaywidth);
+                Log.d(TAG, "special insert lineWidth: " + lineWidth);
+                Log.d(TAG, "special insert displayWidth: " + displayWidth);
             }
             linearlayoutInsert(2, 1); // if there isn't room for the special kanji box, insert it all on a new line
         }
@@ -536,7 +519,7 @@ public class FillInTheBlankFragment extends Fragment {
                 spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spinner.setAdapter(spinnerArrayAdapter);
 
-                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(spinnerwidth, ViewGroup.LayoutParams.MATCH_PARENT);
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(spinnerWidth, ViewGroup.LayoutParams.MATCH_PARENT);
                 params.weight = 1.0f;
                 params.gravity = Gravity.BOTTOM;
                 spinner.setLayoutParams(params);
@@ -548,7 +531,7 @@ public class FillInTheBlankFragment extends Fragment {
             spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinner.setAdapter(spinnerArrayAdapter);
 
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(spinnerwidth, ViewGroup.LayoutParams.MATCH_PARENT);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(spinnerWidth, ViewGroup.LayoutParams.MATCH_PARENT);
             params.weight = 1.0f;
             params.gravity = Gravity.BOTTOM;
             spinner.setLayoutParams(params);
@@ -595,8 +578,8 @@ public class FillInTheBlankFragment extends Fragment {
         innerLinearLayout4.addView(spinner);
         innerLinearLayout4.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         linearLayout.addView(innerLinearLayout4);
-        linewidth = linewidth + spinnerwidth;
-        linearlayoutInsert((linewidth + displaymarginpadding), displaywidth);
+        lineWidth = lineWidth + spinnerWidth;
+        linearlayoutInsert((lineWidth + displayMarginPadding), displayWidth);
 
 
 
@@ -605,7 +588,7 @@ public class FillInTheBlankFragment extends Fragment {
     public void linearlayoutInsert(int totallinewidth, int displaywidth) {
 
         if (displaywidth == 0) {
-            linewidth = 0;
+            lineWidth = 0;
         } else if (totallinewidth >= displaywidth) {
 
             LinearLayout tmplinearLayout = linearLayout;
@@ -614,7 +597,7 @@ public class FillInTheBlankFragment extends Fragment {
             //now reset the linear layout... (hope that works)
             linearLayout = new LinearLayout(getContext());
             linearLayout.setOrientation(LinearLayout.HORIZONTAL);
-            linewidth = 0;
+            lineWidth = 0;
             if(BuildConfig.DEBUG) {
                 Log.d(TAG, "BIGLAYOUT childcount: " + linearLayoutVerticalMain.getChildCount());
                 Log.d(TAG, "linearlayoutInsert Completed");

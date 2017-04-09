@@ -19,17 +19,10 @@ import com.jukuproject.jukutweet.TabContainers.Tab3Container;
  //     */
 public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
-//    public String tab1Title;
-//    public String tab2Title;
-//    public int mTabCount;
     String[] mCurrentTabs;
-//    private long baseId = 0;
 
     public SectionsPagerAdapter(FragmentManager fm,String[] currentTabs) {
         super(fm);
-//        this.tab1Title = "Users";
-//        this.tab1Title = ""
-//        this.mTabCount = tabCount;
         this.mCurrentTabs = currentTabs;
     }
 

@@ -20,6 +20,7 @@ import android.widget.TextView;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.FavoritesColors;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
+import com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.Models.UserInfo;
@@ -46,18 +47,17 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
         public TextView txtCreated;
         public TextView txtFavorited;
         public TextView txtReTweeted;
-
         public TextView txtUserName;
         public TextView txtUserScreenName;
         public ImageButton imgStar;
         public FrameLayout imgStarLayout;
+
         public ViewHolder(View v) {
             super(v);
             txtTweet = (TextView) v.findViewById(R.id.tweet);
             txtCreated = (TextView) v.findViewById(R.id.createdAt);
             txtFavorited = (TextView) v.findViewById(R.id.favorited);
             txtReTweeted = (TextView) v.findViewById(R.id.retweeted);
-
             txtUserName = (TextView) v.findViewById(R.id.timelineName);
             txtUserScreenName = (TextView) v.findViewById(R.id.timelineDisplayScreenName);
             imgStar = (ImageButton) v.findViewById(R.id.favorite);
@@ -111,8 +111,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
                 /* Check for, and save */
                 Tweet currentTweet = mDataset.get(holder.getAdapterPosition());
-                InternalDB helper = InternalDB.getInstance(mContext);
-
+                TweetListOperationsInterface helperTweetOps = InternalDB.getTweetInterfaceInstance(mContext);
                 //Toggle favorite list association for this tweet
                 if(FavoritesColors.onFavoriteStarToggleTweet(mContext,mActiveTweetFavoriteStars,mUserInfo.getUserId(),mDataset.get(holder.getAdapterPosition()))) {
                     holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars));
@@ -127,11 +126,11 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                 try {
 
                         //If tweet doesn't already exist in db, insert it
-                        if(helper.tweetExistsInDB(currentTweet) == 0){
+                        if(helperTweetOps.tweetExistsInDB(currentTweet) == 0){
                             Log.d(TAG,"TWEET Doesn't exist");
                             //Otherwise enter the tweet into the database and then toggle
 
-                            int addTweetResultCode = helper.saveTweetToDB(mUserInfo,currentTweet);
+                            int addTweetResultCode = helperTweetOps.saveTweetToDB(mUserInfo,currentTweet);
                             Log.d(TAG,"addTweetResultCode: " + addTweetResultCode);
                             if(addTweetResultCode < 0) {
                                 //TODO handle error -- can't insert tweet
@@ -177,10 +176,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                 }
             };
 
-
-
             text.setSpan(normalClick, 0, text.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
-//            normalClick.updateDrawState(new TextPaint());
             List<TweetUrl> tweetUrls =  getTweet(position).getEntities().getUrls();
 
             for(TweetUrl url : tweetUrls) {
@@ -199,7 +195,6 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
 
             }
-//            holder.txtTweet.setHighlightColor(ContextCompat.getColor(mContext, android.R.color.transparent));
             holder.txtTweet.setText(text, TextView.BufferType.SPANNABLE);
             holder.txtTweet.setMovementMethod(LinkMovementMethod.getInstance());
         } catch (NullPointerException e) {

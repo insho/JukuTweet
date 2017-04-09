@@ -20,6 +20,7 @@ import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
+import com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.ItemFavorites;
 import com.jukuproject.jukutweet.Models.SharedPrefManager;
@@ -106,7 +107,7 @@ public class UserTimeLineFragment extends Fragment {
 
         //Get active favorite stars for tweets, to pass on to adapter for star-clicking tweet-saving
         mActiveTweetFavoriteStars = SharedPrefManager.getInstance(getContext()).getActiveTweetFavoriteStars();
-        tweetIdStringsInFavorites = InternalDB.getInstance(getContext()).getStarFavoriteDataForAUsersTweets(mUserInfo.getUserId());
+        tweetIdStringsInFavorites = InternalDB.getTweetInterfaceInstance(getContext()).getStarFavoriteDataForAUsersTweets(mUserInfo.getUserId());
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(layoutManager);
 
@@ -184,11 +185,11 @@ public class UserTimeLineFragment extends Fragment {
                                         final Tweet tweet = (Tweet) event;
 
                                         //Try to insert urls
-                                        final InternalDB helper = InternalDB.getInstance(getContext());
-                                        helper.saveTweetUrls(tweet);
+                                        final TweetListOperationsInterface helperTweetOps = InternalDB.getTweetInterfaceInstance(getContext());
+                                        helperTweetOps.saveTweetUrls(tweet);
 
                                         //Try to insert Kanji
-                                        if(helper.tweetParsedKanjiExistsInDB(tweet) == 0) {
+                                        if(helperTweetOps.tweetParsedKanjiExistsInDB(tweet) == 0) {
                                             Log.d(TAG,"SAVING TWEET KANJI");
 
 //                                        final WordLoader wordLoader = helper.getWordLists(db);
@@ -220,21 +221,21 @@ public class UserTimeLineFragment extends Fragment {
                                                         @Override
                                                         public void onSuccess(ArrayList<WordEntry> disectedTweet) {
                                                             //load the parsed kanji ids into the database
-                                                            InternalDB.getInstance(getContext()).saveParsedTweetKanji(disectedTweet,tweet.getIdString());
+                                                            InternalDB.getTweetInterfaceInstance(getContext()).saveParsedTweetKanji(disectedTweet,tweet.getIdString());
 
 //                                                            for(WordEntry item : disectedTweet) {
 //                                                                Log.d("XXXX",item.getKanjiConjugated());
 //                                                            }
                                                             //TODO handle errors on insert?
                                                             mCallback.notifyFragmentsChanged();
-                                                            helper.close();
+//                                                            helper.close();
 //                                                        db.close();
                                                         }
 
                                                         @Override
                                                         public void onError(Throwable error) {
                                                             Log.e(TAG,"ERROR IN PARSE KANJI (for saved tweet) OBSERVABLE: " + error);
-                                                            helper.close();
+//                                                            helper.close();
 //                                                        db.close();
                                                         }
                                                     });
@@ -269,7 +270,7 @@ public class UserTimeLineFragment extends Fragment {
                             if(mTimeLine != null && mTimeLine.size() > 0) {
                                 try {
                                     UserInfo recentUserInfo = mTimeLine.get(0).getUser();
-                                    InternalDB.getInstance(getContext()).compareUserInfoAndUpdate(userInfo,recentUserInfo);
+                                    InternalDB.getUserInterfaceInstance(getContext()).compareUserInfoAndUpdate(userInfo,recentUserInfo);
 
                                 } catch (NullPointerException e) {
                                     Log.e(TAG,"Timeline userinfo match problem: " + e);
@@ -294,14 +295,7 @@ public class UserTimeLineFragment extends Fragment {
                                 Log.d(TAG, "In onNext()");
                                 Log.d(TAG,"TIMELINE SIZE: " + timeline.size());
                             }
-
                             showRecyclerView(true);
-
-
-//                        Log.d(TAG,"Tweeet id strings in favs: " + tweetIdStringsInFavorites.size());
-//                        for(String idstring : tweetIdStringsInFavorites.keySet()) {
-//                            Log.d(TAG,"INITIAL TWEET KEYSET: " + idstring);
-//                        }
 
                             if(mTimeLine.size() == 0) {
 
@@ -311,7 +305,6 @@ public class UserTimeLineFragment extends Fragment {
                                     //Attach colorfavorites to tweet, if they exists in db
                                     if(tweet.getIdString()!=null && tweetIdStringsInFavorites.keySet().contains(tweet.getIdString())) {
                                         tweet.setItemFavorites(tweetIdStringsInFavorites.get(tweet.getIdString()));
-//                                        Log.d(TAG,"Tweet favs adding: " + tweetIdStringsInFavorites.get(tweet.getIdString()).getSystemGreenCount());
                                     } else {
                                         tweet.setItemFavorites(new ItemFavorites());
                                     }

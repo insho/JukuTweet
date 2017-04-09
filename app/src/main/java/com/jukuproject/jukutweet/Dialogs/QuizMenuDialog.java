@@ -34,8 +34,6 @@ import java.util.Arrays;
 
 import rx.functions.Action1;
 
-
-
 /**
  * Created by JukuProject on 11/21/2016
  *

@@ -886,7 +886,7 @@ public class TweetParser {
         for(int index = 0; index < cleanKanjiIDs.size(); index ++) {
             if(debug){Log.d(TAG, "clean_int: " + cleanKanjiIDs.get(index));}
 
-            Cursor c = InternalDB.getInstance(mContext).getWordEntryForWordId(cleanKanjiIDs.get(index),mColorThresholds);
+            Cursor c = InternalDB.getWordInterfaceInstance(mContext).getWordEntryForWordId(cleanKanjiIDs.get(index),mColorThresholds);
 
             if (c.getCount() > 0) {
                 c.moveToFirst();

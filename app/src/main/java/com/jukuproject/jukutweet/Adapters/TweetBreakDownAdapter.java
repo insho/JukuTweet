@@ -284,7 +284,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                             });
                     if(chooseFavoritesPopup == null) {
 
-                        ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getInstance(mContext).getWordListsForAWord(mActiveFavoriteStars,String.valueOf(mWords.get(holder.getAdapterPosition()).getId()),null);
+                        ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getWordInterfaceInstance(mContext).getWordListsForAWord(mActiveFavoriteStars,String.valueOf(mWords.get(holder.getAdapterPosition()).getId()),null);
                         chooseFavoritesPopup= new TestPopupWindow(mContext,mMetrics,rxBus,availableFavoriteLists,mWords.get(holder.getAdapterPosition()).getId()).onCreateView();
 
 

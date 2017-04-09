@@ -17,6 +17,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.jukuproject.jukutweet.Adapters.CopyMyListItemsAdapter;
+import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
@@ -127,19 +128,13 @@ public class CopyMyListItemsDialog extends DialogFragment {
         final ArrayList<Integer> selectedEntries = getArguments().getIntegerArrayList("selectedEntries");
         mCurrentList = getArguments().getParcelable("currentList");
         final String kanjiString = getSelectedIntsAsString(selectedEntries);
-        mFavoritesLists = InternalDB.getInstance(getContext()).getWordListsForAWord(mActiveFavoriteStars,"",mCurrentList);
+        mFavoritesLists = InternalDB.getWordInterfaceInstance(getContext()).getWordListsForAWord(mActiveFavoriteStars,"",mCurrentList);
 
-        //Iterate back through and remove the current list from the lists... bad design
-//        for(MyListEntry entry : mFavoritesLists) {
-//            if(entry.getListsSys() == mCurrentList.getListsSys() && entry.getListName().equals(mCurrentList.getListName())) {
-//                mFavoritesLists.remove(entry);
-//            }
-//        }
         if(mFavoritesLists.contains(mCurrentList)) {
             mFavoritesLists.remove(mCurrentList);
         }
 
-        Log.d(TAG,"FAVORITE LISTS SIZE: " + mFavoritesLists.size());
+        if(BuildConfig.DEBUG){Log.d(TAG,"FAVORITE LISTS SIZE: " + mFavoritesLists.size());}
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         RecyclerView mRecyclerView = (RecyclerView) dialogView.findViewById(R.id.listView);
         mRecyclerView.setLayoutManager(mLayoutManager);

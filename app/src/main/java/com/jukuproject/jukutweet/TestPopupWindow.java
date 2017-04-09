@@ -5,24 +5,17 @@ import android.os.Build;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.BoringLayout;
 import android.util.DisplayMetrics;
-import android.util.Log;
-import android.util.TypedValue;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.PopupWindow;
+
 import com.jukuproject.jukutweet.Adapters.ChooseFavoritesAdapter;
-import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.MyListEntry;
-import com.jukuproject.jukutweet.Models.WordEntry;
 
 import java.util.ArrayList;
-import rx.functions.Action1;
 
 /**
  * Created by JClassic on 3/24/2017.
@@ -34,7 +27,6 @@ public class TestPopupWindow  {
     private final DisplayMetrics mMetrics;
     private int mKanjiId;
     private RxBus mRxBusTweetBreak;
-//    private ArrayList<String> mActiveFavoriteStars;
     private PopupWindow popupWindow;
     private ArrayList<MyListEntry> mFavoritesLists;
     private RecyclerView mRecyclerView;

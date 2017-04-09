@@ -22,27 +22,6 @@ import com.jukuproject.jukutweet.Models.WordEntry;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import static com.jukuproject.jukutweet.Database.InternalDB.COL_ID;
-import static com.jukuproject.jukutweet.Database.InternalDB.TABLE_FAVORITES_LISTS_TWEETS;
-import static com.jukuproject.jukutweet.Database.InternalDB.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES;
-import static com.jukuproject.jukutweet.Database.InternalDB.TABLE_FAVORITES_LIST_ENTRIES;
-import static com.jukuproject.jukutweet.Database.InternalDB.TABLE_SAVED_TWEETS;
-import static com.jukuproject.jukutweet.Database.InternalDB.TABLE_SAVED_TWEET_KANJI;
-import static com.jukuproject.jukutweet.Database.InternalDB.TABLE_SAVED_TWEET_URLS;
-import static com.jukuproject.jukutweet.Database.InternalDB.TABLE_USERS;
-import static com.jukuproject.jukutweet.Database.InternalDB.TFAVORITES_COL0;
-import static com.jukuproject.jukutweet.Database.InternalDB.TFAVORITES_COL1;
-import static com.jukuproject.jukutweet.Database.InternalDB.TSAVEDTWEETITEMS_COL2;
-import static com.jukuproject.jukutweet.Database.InternalDB.TSAVEDTWEETITEMS_COL3;
-import static com.jukuproject.jukutweet.Database.InternalDB.TSAVEDTWEETITEMS_COL4;
-import static com.jukuproject.jukutweet.Database.InternalDB.TSAVEDTWEETURLS_COL1;
-import static com.jukuproject.jukutweet.Database.InternalDB.TSAVEDTWEETURLS_COL2;
-import static com.jukuproject.jukutweet.Database.InternalDB.TSAVEDTWEETURLS_COL3;
-import static com.jukuproject.jukutweet.Database.InternalDB.TSAVEDTWEET_COL0;
-import static com.jukuproject.jukutweet.Database.InternalDB.TSAVEDTWEET_COL1;
-import static com.jukuproject.jukutweet.Database.InternalDB.TSAVEDTWEET_COL2;
-import static com.jukuproject.jukutweet.Database.InternalDB.TSAVEDTWEET_COL3;
-import static com.jukuproject.jukutweet.Database.InternalDB.TSAVEDTWEET_COL4;
 
 /**
  * Created by JClassic on 4/3/2017.
@@ -64,7 +43,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 
         /** Before inserting record, check to see if feed already exists */
         SQLiteDatabase db = sqlOpener.getWritableDatabase();
-        String queryRecordExists = "Select Name From " + TABLE_FAVORITES_LISTS_TWEETS + " where " + TFAVORITES_COL0 + " = ?" ;
+        String queryRecordExists = "Select Name From " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS + " where " + InternalDB.Columns.TFAVORITES_COL0 + " = ?" ;
         Cursor c = db.rawQuery(queryRecordExists, new String[]{listName});
         try {
             if (c.moveToFirst()) {
@@ -89,8 +68,8 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
         try {
             SQLiteDatabase db = sqlOpener.getWritableDatabase();
             ContentValues values = new ContentValues();
-            values.put(TFAVORITES_COL0, listName.trim());
-            db.insert(TABLE_FAVORITES_LISTS_TWEETS, null, values);
+            values.put(InternalDB.Columns.TFAVORITES_COL0, listName.trim());
+            db.insert(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS, null, values);
             db.close();
             return true;
         } catch(SQLiteException exception) {
@@ -115,9 +94,9 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
         try{
             SQLiteDatabase db = sqlOpener.getWritableDatabase();
             if(isStarFavorite) {
-                db.delete(TABLE_FAVORITES_LISTS_TWEETS_ENTRIES, TFAVORITES_COL0 + "= ? and " + TFAVORITES_COL1 + "= 1", new String[]{listName});
+                db.delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES, InternalDB.Columns.TFAVORITES_COL0 + "= ? and " + InternalDB.Columns.TFAVORITES_COL1 + "= 1", new String[]{listName});
             } else {
-                db.delete(TABLE_FAVORITES_LISTS_TWEETS_ENTRIES, TFAVORITES_COL0 + "= ? and " + TFAVORITES_COL1 + "= 0", new String[]{listName});
+                db.delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES, InternalDB.Columns.TFAVORITES_COL0 + "= ? and " + InternalDB.Columns.TFAVORITES_COL1 + "= 0", new String[]{listName});
             }
             db.close();
             return true;
@@ -140,8 +119,8 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
     public boolean deleteTweetList(String listName) {
         try{
             SQLiteDatabase db = sqlOpener.getWritableDatabase();
-            db.delete(TABLE_FAVORITES_LISTS_TWEETS, TFAVORITES_COL0 + "= ?", new String[]{listName});
-            db.delete(TABLE_FAVORITES_LISTS_TWEETS_ENTRIES, TFAVORITES_COL0 + "= ? and " + TFAVORITES_COL1 + "= 0", new String[]{listName});
+            db.delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS, InternalDB.Columns.TFAVORITES_COL0 + "= ?", new String[]{listName});
+            db.delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES, InternalDB.Columns.TFAVORITES_COL0 + "= ? and " + InternalDB.Columns.TFAVORITES_COL1 + "= 0", new String[]{listName});
             db.close();
             return true;
         } catch(SQLiteException exception) {
@@ -163,13 +142,13 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
         try{
             SQLiteDatabase db = sqlOpener.getWritableDatabase();
 
-            String sql = "Update " + TABLE_FAVORITES_LISTS_TWEETS + "  SET [Name]=? WHERE [Name]=? ";
+            String sql = "Update " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS + "  SET [Name]=? WHERE [Name]=? ";
             SQLiteStatement statement = db.compileStatement(sql);
             statement.bindString(1, newListName);
             statement.bindString(2, oldListName);
             statement.executeUpdateDelete();
 
-            String sql2 = "Update " + TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " SET [Name]=? WHERE [Name]=? and [Sys] = 0";
+            String sql2 = "Update " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " SET [Name]=? WHERE [Name]=? and [Sys] = 0";
             SQLiteStatement statement2 = db.compileStatement(sql2);
             statement2.bindString(1, newListName);
             statement2.bindString(2, oldListName);
@@ -205,7 +184,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                 //Delete statement only
                 return removeTweetFromTweetList(tweetId,originalColor,1);
             } else {
-                String sql = "Update "  + TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " SET "+ TFAVORITES_COL0 +" = ? WHERE "+ TFAVORITES_COL0 +"= ? and " + TFAVORITES_COL1+" = 1 and " + COL_ID + " = ?";
+                String sql = "Update " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " SET "+ InternalDB.Columns.TFAVORITES_COL0 +" = ? WHERE "+ InternalDB.Columns.TFAVORITES_COL0 +"= ? and " + InternalDB.Columns.TFAVORITES_COL1+" = 1 and " + InternalDB.Columns.COL_ID + " = ?";
                 SQLiteStatement statement = db.compileStatement(sql);
                 statement.bindString(1, updatedColor);
                 statement.bindString(2, originalColor);
@@ -240,11 +219,11 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 
         try {
             ContentValues values = new ContentValues();
-            values.put(COL_ID, tweetId);
-            values.put(TSAVEDTWEET_COL0, userId);
-            values.put(TFAVORITES_COL0, listName);
-            values.put(TFAVORITES_COL1, listSys);
-            db.insert(TABLE_FAVORITES_LISTS_TWEETS_ENTRIES, null, values);
+            values.put(InternalDB.Columns.COL_ID, tweetId);
+            values.put(InternalDB.Columns.TSAVEDTWEET_COL0, userId);
+            values.put(InternalDB.Columns.TFAVORITES_COL0, listName);
+            values.put(InternalDB.Columns.TFAVORITES_COL1, listSys);
+            db.insert(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES, null, values);
             return true;
 
         } catch (SQLiteException e) {
@@ -271,8 +250,8 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
     public boolean removeTweetFromTweetList(String tweetId, String listName, int listSys) {
         SQLiteDatabase db = sqlOpener.getWritableDatabase();
         try {
-            db.delete(TABLE_FAVORITES_LISTS_TWEETS_ENTRIES,
-                    TFAVORITES_COL0 + " = ? and "  + TFAVORITES_COL1 + " = ? and " + COL_ID + " = ? ", new String[]{listName,String.valueOf(listSys),tweetId});
+            db.delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES,
+                    InternalDB.Columns.TFAVORITES_COL0 + " = ? and "  + InternalDB.Columns.TFAVORITES_COL1 + " = ? and " + InternalDB.Columns.COL_ID + " = ? ", new String[]{listName,String.valueOf(listSys),tweetId});
             return true;
         } catch (SQLiteException e) {
             Log.e(TAG, "removeTweetFromTweetList sqlite exception: " + e);
@@ -296,7 +275,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
     public boolean removeMultipleTweetsFromTweetList(String concatenatedTweetIds, MyListEntry myListEntry) {
         SQLiteDatabase db = sqlOpener.getWritableDatabase();
         try {
-            db.execSQL("DELETE FROM " + TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " WHERE " + TFAVORITES_COL0 + " = ? and "  + TFAVORITES_COL1 + " = ? and " + COL_ID + " in (" + concatenatedTweetIds + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+            db.execSQL("DELETE FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " WHERE " + InternalDB.Columns.TFAVORITES_COL0 + " = ? and "  + InternalDB.Columns.TFAVORITES_COL1 + " = ? and " + InternalDB.Columns.COL_ID + " in (" + concatenatedTweetIds + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
             return true;
         } catch (SQLiteException e) {
             Log.e(TAG, "removeMultipleWordsFromWordList sqlite exception: " + e);
@@ -339,7 +318,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                     "( "    +
                     "Select distinct Name "    +
                     ", 0 as Sys "    +
-                    "From " + TABLE_FAVORITES_LISTS_TWEETS + " "    +
+                    "From " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS + " "    +
                     "UNION "    +
                     "Select 'Blue' as Name, 1 as Sys "    +
                     "UNION "    +
@@ -358,7 +337,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                     "Select Distinct Name "    +
                     ",Sys "    +
                     ", Count(_id) as UserCount " +
-                    "FROM " + TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " "    +
+                    "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " "    +
                     " Where _id in (?) " +
                     " Group by Name, Sys " +
                     ") as UserEntries "    +
@@ -391,8 +370,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
         }
         return myListEntries;
     }
-
-
 
 
     /**
@@ -461,17 +438,16 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             "SELECT DISTINCT Edict_id as [_id] " +
                             "FROM "+
                             "( " +
-                            "SELECT DISTINCT Tweet_id " +
-                            "FROM " + TABLE_FAVORITES_LIST_ENTRIES + " " +
+                            "SELECT DISTINCT _id as  Tweet_id " +
+                            "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
                             " WHERE [Name] = ? and [Sys] = ? and [_id] <> ? " +
                             ") as x " +
                             "LEFT JOIN "  +
                             "( " +
                             "SELECT DISTINCT Tweet_id,Edict_id " +
-                            "FROM " + TABLE_SAVED_TWEET_KANJI + " " +
+                            "FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI + " " +
                             ")  as y " +
                             " ON x.Tweet_id = y.Tweet_id " +
-
 
                             ") " +
                             "ORDER BY [_id]" +
@@ -487,14 +463,14 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             "SELECT DISTINCT Edict_id as [_id] " +
                             "FROM "+
                             "( " +
-                            "SELECT DISTINCT Tweet_id " +
-                            "FROM " + TABLE_FAVORITES_LIST_ENTRIES + " " +
+                            "SELECT DISTINCT _id as Tweet_id " +
+                            "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
                             " WHERE [Name] = ? and [Sys] = ? and [_id] <> ? " +
                             ") as x " +
                             "LEFT JOIN "  +
                             "( " +
                             "SELECT DISTINCT Tweet_id,Edict_id " +
-                            "FROM " + TABLE_SAVED_TWEET_KANJI + " " +
+                            "FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI + " " +
                             ")  as y " +
                             " ON x.Tweet_id = y.Tweet_id " +
 
@@ -547,7 +523,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
     public boolean addMultipleTweetsToTweetList(MyListEntry myListEntry, String concatenatedTweetIds) {
         SQLiteDatabase db = sqlOpener.getReadableDatabase();
         try {
-            db.execSQL("INSERT OR REPLACE INTO " + TABLE_FAVORITES_LISTS_TWEETS_ENTRIES +" SELECT DISTINCT Tweet_id as [_id], [UserId], ? as [Name], ? as [Sys] FROM " + TABLE_SAVED_TWEETS  + " WHERE Tweet_id in (" + concatenatedTweetIds + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+            db.execSQL("INSERT OR REPLACE INTO " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES +" SELECT DISTINCT Tweet_id as [_id], [UserId], ? as [Name], ? as [Sys] FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS  + " WHERE Tweet_id in (" + concatenatedTweetIds + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
             return true;
         } catch (SQLiteException e){
             Log.e(TAG,"copyBulkTweetsToList Sqlite exception: " + e);
@@ -572,7 +548,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
     public int tweetParsedKanjiExistsInDB(Tweet tweet) {
         int resultCode = -1;
         try {
-            String Query = "Select * from " + TABLE_SAVED_TWEET_KANJI + " where " + TSAVEDTWEET_COL2 + " = " + tweet.getIdString();
+            String Query = "Select * from " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI + " where " + InternalDB.Columns.TSAVEDTWEET_COL2 + " = " + tweet.getIdString();
             Cursor cursor = sqlOpener.getWritableDatabase().rawQuery(Query, null);
             resultCode = cursor.getCount();
             cursor.close();
@@ -594,7 +570,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 
         int resultCode = -1;
         try {
-            String Query = "Select * from " + TABLE_SAVED_TWEETS + " where " + TSAVEDTWEET_COL2 + " = " + tweet.getIdString();
+            String Query = "Select * from " + InternalDB.Tables.TABLE_SAVED_TWEETS + " where " + InternalDB.Columns.TSAVEDTWEET_COL2 + " = " + tweet.getIdString();
             Cursor cursor = sqlOpener.getWritableDatabase().rawQuery(Query, null);
             resultCode = cursor.getCount();
             cursor.close();
@@ -631,22 +607,22 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                 ContentValues values = new ContentValues();
 
                 if(userInfo.getUserId() != null) {
-                    values.put(TSAVEDTWEET_COL0, userInfo.getUserId());
+                    values.put(InternalDB.Columns.TSAVEDTWEET_COL0, userInfo.getUserId());
                 }
                 if(userInfo.getScreenName() != null) {
-                    values.put(TSAVEDTWEET_COL1, userInfo.getScreenName().trim());
+                    values.put(InternalDB.Columns.TSAVEDTWEET_COL1, userInfo.getScreenName().trim());
                 }
                 if(tweet.getIdString() != null) {
-                    values.put(TSAVEDTWEET_COL2, tweet.getIdString());
+                    values.put(InternalDB.Columns.TSAVEDTWEET_COL2, tweet.getIdString());
                 }
 
                 if(tweet.getCreatedAt() != null) {
-                    values.put(TSAVEDTWEET_COL3, tweet.getCreatedAt().trim());
+                    values.put(InternalDB.Columns.TSAVEDTWEET_COL3, tweet.getCreatedAt().trim());
                 }
 
-                values.put(TSAVEDTWEET_COL4, tweet.getText().trim());
+                values.put(InternalDB.Columns.TSAVEDTWEET_COL4, tweet.getText().trim());
 
-                resultCode = (int)sqlOpener.getWritableDatabase().insertWithOnConflict(TABLE_SAVED_TWEETS, null, values,SQLiteDatabase.CONFLICT_REPLACE);
+                resultCode = (int)sqlOpener.getWritableDatabase().insertWithOnConflict(InternalDB.Tables.TABLE_SAVED_TWEETS, null, values,SQLiteDatabase.CONFLICT_REPLACE);
 
                 return resultCode;
             } else {
@@ -679,11 +655,11 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 
             for(TweetUrl tweetUrl : tweet.getEntities().getUrls()) {
                 ContentValues values = new ContentValues();
-                values.put(TSAVEDTWEET_COL2, tweet.getIdString());
-                values.put(TSAVEDTWEETURLS_COL1, tweetUrl.getExpanded_url());
-                values.put(TSAVEDTWEETURLS_COL2, tweetUrl.getIndices()[0]);
-                values.put(TSAVEDTWEETURLS_COL3, tweetUrl.getIndices()[1]);
-                resultCode =  (int)db.insert(TABLE_SAVED_TWEET_URLS, null, values);
+                values.put(InternalDB.Columns.TSAVEDTWEET_COL2, tweet.getIdString());
+                values.put(InternalDB.Columns.TSAVEDTWEETURLS_COL1, tweetUrl.getExpanded_url());
+                values.put(InternalDB.Columns.TSAVEDTWEETURLS_COL2, tweetUrl.getIndices()[0]);
+                values.put(InternalDB.Columns.TSAVEDTWEETURLS_COL3, tweetUrl.getIndices()[1]);
+                resultCode = (int)db.insert(InternalDB.Tables.TABLE_SAVED_TWEET_URLS, null, values);
             }
 
             return resultCode;
@@ -714,11 +690,11 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
             if(wordEntries.size()>0) {
                 for(int i=0;i<wordEntries.size();i++) {
                     ContentValues values = new ContentValues();
-                    values.put(TSAVEDTWEET_COL2, tweet_id);
-                    values.put(TSAVEDTWEETITEMS_COL2, wordEntries.get(i).getId());
-                    values.put(TSAVEDTWEETITEMS_COL3, wordEntries.get(i).getStartIndex());
-                    values.put(TSAVEDTWEETITEMS_COL4, wordEntries.get(i).getEndIndex());
-                    resultCode = (int)db.insert(TABLE_SAVED_TWEET_KANJI, null, values);
+                    values.put(InternalDB.Columns.TSAVEDTWEET_COL2, tweet_id);
+                    values.put(InternalDB.Columns.TSAVEDTWEETITEMS_COL2, wordEntries.get(i).getId());
+                    values.put(InternalDB.Columns.TSAVEDTWEETITEMS_COL3, wordEntries.get(i).getStartIndex());
+                    values.put(InternalDB.Columns.TSAVEDTWEETITEMS_COL4, wordEntries.get(i).getEndIndex());
+                    resultCode = (int)db.insert(InternalDB.Tables.TABLE_SAVED_TWEET_KANJI, null, values);
                 }
             }
             return resultCode;
@@ -761,7 +737,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             ",(CASE WHEN ([Sys] = 1  AND Name = 'Purple') then 1 else 0 end) as [Purple]" +
                             ",(CASE WHEN ([Sys] = 1  AND Name = 'Orange') then 1 else 0 end) as [Orange]" +
                             ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
-                            "FROM " + TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+                            "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
                             " WHERE UserId = ? " +
                             ") as [All]" +
                             "Group by [_id] " , new String[]{userId});
@@ -839,7 +815,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             ",[Sys]" +
                             ",[UserId] " +
                             ",[_id] as [Tweet_id]" +
-                            "FROM "+ TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+                            "FROM "+ InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
                             "WHERE [Name] = ? and cast([Sys] as INTEGER) = ? " +
                             ") as TweetLists " +
                             " LEFT JOIN " +
@@ -848,7 +824,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             ",[Tweet_id]" +
                             ",[Text]" +
                             ",[CreatedAt]  as [Date] " +
-                            " FROM "+ TABLE_SAVED_TWEETS + " " +
+                            " FROM "+ InternalDB.Tables.TABLE_SAVED_TWEETS + " " +
                             ") as ALLTweets " +
                             "ON TweetLists.[Tweet_id] = ALLTweets.[Tweet_id] " +
                             " LEFT JOIN " +
@@ -877,7 +853,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             ",Edict_id " +
                             ",[StartIndex]" +
                             ",[EndIndex]" +
-                            "From " + TABLE_SAVED_TWEET_KANJI  + " " +
+                            "From " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + " " +
                             " WHERE [Edict_id] is not NULL and StartIndex is not NULL and EndIndex is not NULL and EndIndex > StartIndex " +
                             ") as a " +
                             "LEFT JOIN " +
@@ -886,7 +862,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             ",sum([Correct]) as [Correct]" +
 
                             ",sum([Total]) as [Total] FROM [JScoreboard] " +
-                            "where [_id] in (SELECT DISTINCT [Edict_id] FROM " + TABLE_SAVED_TWEET_KANJI  + ")" +
+                            "where [_id] in (SELECT DISTINCT [Edict_id] FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + ")" +
                             " GROUP BY [_id]" +
                             ") as b " +
                             "ON a.[Edict_id] = b.[Edict_id] " +
@@ -897,7 +873,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             ",[Furigana]" +
                             ",[Definition]" +
                             "FROM [Edict] " +
-                            "where [_id] in (SELECT DISTINCT [Edict_id] FROM " + TABLE_SAVED_TWEET_KANJI  + ")" +
+                            "where [_id] in (SELECT DISTINCT [Edict_id] FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + ")" +
                             ") as c " +
                             "ON a.[Edict_id] = c.[Edict_id] " +
 
@@ -910,7 +886,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             "SELECT DISTINCT [UserId] " +
                             ", [ScreenName] " +
                             ", [UserName] " +
-                            " FROM " + TABLE_USERS +" " +
+                            " FROM " + InternalDB.Tables.TABLE_USERS +" " +
                             ") as [UserName] " +
                             "On TweetLists.UserId = UserName.UserId " +
 
@@ -957,9 +933,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                     *   2. there is a limit for the number of words that can be spinners in the tweet,
                     *       from 1 - 3, with a 50% chance of 1, 35% chance of 2 and a 15 % chance of 3*/
 
-
                     tweet.addWordEntry(wordEntry);
-
 
                     //FLush old tweet
                     if(!currentTweetId.equals(c.getString(5))){
@@ -1027,7 +1001,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                         "FROM (" +
                         "SELECT [Name]" +
                         ",0 as [Sys] " +
-                        "From " + TABLE_FAVORITES_LISTS_TWEETS +  " " +
+                        "From " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS +  " " +
                         "UNION " +
                         "SELECT 'Blue' as [Name]" +
                         ", 1 as [Sys] " +
@@ -1088,8 +1062,8 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                         ",SUM([Green]) as [Green] " +
                         "FROM (" +
 
-                                    /* Now we have a big collection of list metadata (tweetlists), and all the kanji scores and colors for
-                                     each kanji (kanjilists) */
+                        /* Now we have a big collection of list metadata (tweetlists), and all the kanji scores and colors for
+                            each kanji (kanjilists) */
                         " Select TweetLists.[Name] " +
                         " ,TweetLists.[Sys] " +
                         ", TweetLists.[Tweet_id] " +
@@ -1107,7 +1081,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                         ",[Sys]" +
                         ",[UserID] " +
                         ",[_id] as [Tweet_id]" +
-                        "FROM " + TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+                        "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
                         "WHERE ([Name] = ? OR " + ALL_LISTS_FLAG + " = 1) AND ([Sys] = ? OR " + ALL_LISTS_FLAG + " = 1) " +
                         ") as TweetLists " +
                         " LEFT JOIN " +
@@ -1123,14 +1097,14 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                         "( " +
                         " SELECT Tweet_id" +
                         ",Edict_id " +
-                        "From " + TABLE_SAVED_TWEET_KANJI  + " " +
+                        "From " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + " " +
                         ") as a " +
                         "LEFT JOIN " +
                         " (" +
                         "SELECT [_id] as [Edict_id]" +
                         ",sum([Correct]) as [Correct]" +
                         ",sum([Total]) as [Total] FROM [JScoreboard] " +
-                        "where [_id] in (SELECT DISTINCT [Edict_id] FROM " + TABLE_SAVED_TWEET_KANJI  + ")" +
+                        "where [_id] in (SELECT DISTINCT [Edict_id] FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + ")" +
                         " GROUP BY [_id]" +
                         ") as b " +
                         "ON a.[Edict_id] = b.[Edict_id] " +
@@ -1152,8 +1126,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                         "Order by xx.[Sys] Desc,xx.[Name]"
                 ,new String[]{name,String.valueOf(sys),name,String.valueOf(sys)});
     }
-
-
 
 }
 

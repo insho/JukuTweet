@@ -31,7 +31,6 @@ import com.jukuproject.jukutweet.R;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.zip.Inflater;
 
 import static android.R.attr.padding;
 
@@ -64,6 +63,8 @@ public class FlashCardsFragment extends Fragment {
     Animator animator_leftout;
     Animator animator_upin;
 
+    MyPagesAdapter_Array mAdapter;
+
 
     public FlashCardsFragment() {}
 
@@ -80,7 +81,7 @@ public class FlashCardsFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
+                             final ViewGroup container, Bundle savedInstanceState) {
         View view  = LayoutInflater.from(getActivity()).inflate(R.layout.flashcard, null);
 
         mDataset = getArguments().getParcelableArrayList("wordEntries");
@@ -88,8 +89,11 @@ public class FlashCardsFragment extends Fragment {
         mBackValue = getArguments().getString("backValue");
         totalcount = mDataset.size();
         page = LayoutInflater.from(getActivity()).inflate(R.layout.flashcard_item, null);
+
+        page.setTag(mDataset.get(0).getId());
         vp=(ViewPager) view.findViewById(R.id.viewPager);
         currentPosition = 0;
+//        mAdapter =
         vp.setAdapter(new MyPagesAdapter_Array());
 
         FloatingActionButton fab_shuffle = (FloatingActionButton) view.findViewById(R.id.fab);
@@ -125,13 +129,16 @@ public class FlashCardsFragment extends Fragment {
                 freshdeck =true;
                 String stringcount = currentcount + "/" + totalcount;
                 ((TextView) page.findViewById(R.id.scorecount)).setText(stringcount);
-                setCard(page,mDataset.get(0),true);
+                page.setTag(mDataset.get(0).getId());
+                setCard(mDataset.get(0),true);
 
             }
         });
 
 
         final GestureDetector.SimpleOnGestureListener listener = new GestureDetector.SimpleOnGestureListener() {
+
+
             @Override
             public boolean onDoubleTap(MotionEvent e) {
 
@@ -143,12 +150,14 @@ public class FlashCardsFragment extends Fragment {
                 WordEntry wordEntry = mDataset.get(currentPosition);
                 if(BuildConfig.DEBUG){Log.d(TAG, "find view with tag: " + wordEntry.getId());}
 
-                setCard(page,wordEntry,!mFrontShowing);
+
+                setCard(wordEntry,!mFrontShowing);
                 if(BuildConfig.DEBUG) {
                     Log.d(TAG, "doubletap flipped: " + mFrontShowing);
                     Log.d(TAG, "doubletap frontValue: " + mFrontValue);
                     Log.d(TAG, "doubletap backValue: " + mBackValue);
                 }
+
 
                 return true;
             }
@@ -159,7 +168,6 @@ public class FlashCardsFragment extends Fragment {
                 if(BuildConfig.DEBUG){Log.d(TAG,"Singletap flipped: "+ mFrontShowing);}
 
                 if(mFrontShowing) {
-
                     final WordEntry wordEntry = mDataset.get(currentPosition);
                     int currentTag = wordEntry.getId();
                     if((vp.findViewWithTag(currentTag)).findViewById(R.id.furigana).getVisibility() == View.VISIBLE) {
@@ -169,7 +177,6 @@ public class FlashCardsFragment extends Fragment {
                         if(BuildConfig.DEBUG){Log.d(TAG,"Singletap furigana VISIBLE");}
                         (vp.findViewWithTag(currentTag)).findViewById(R.id.furigana).setVisibility(View.VISIBLE);
                     }
-
                 }
                 return true;
             }
@@ -187,7 +194,7 @@ public class FlashCardsFragment extends Fragment {
 
 
                     //toggle the boolean to reflect current flipped state
-                    setCard(page,mDataset.get(currentPosition),!mFrontShowing);
+                    setCard(mDataset.get(currentPosition),!mFrontShowing);
 
                     if(BuildConfig.DEBUG) {
                         Log.d(TAG, "fling flipped: " + mFrontShowing);
@@ -211,7 +218,7 @@ public class FlashCardsFragment extends Fragment {
                         Log.d(TAG, "zdoubletap backValue: " + mBackValue);
                     }
 
-                    setCard(page,mDataset.get(currentPosition),!mFrontShowing);
+                    setCard(mDataset.get(currentPosition),!mFrontShowing);
 
                 }
 
@@ -221,17 +228,17 @@ public class FlashCardsFragment extends Fragment {
 
 
 
-        final GestureDetector detector = new GestureDetector(listener);
+//        final GestureDetector detector = new GestureDetector(listener);
+//
+//        detector.setOnDoubleTapListener(listener);
+//        detector.setIsLongpressEnabled(true);
 
-        detector.setOnDoubleTapListener(listener);
-        detector.setIsLongpressEnabled(true);
-
-        getActivity().getWindow().getDecorView().setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent event) {
-                return detector.onTouchEvent(event);
-            }
-        });
+//        getActivity().getWindow().getDecorView().setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View view, MotionEvent event) {
+//                return detector.onTouchEvent(event);
+//            }
+//        });
 
         mGestureDetector = new GestureDetector(getContext(), listener);
         mGestureDetector.setOnDoubleTapListener(listener);
@@ -250,19 +257,22 @@ public class FlashCardsFragment extends Fragment {
    // Implement PagerAdapter Class to handle individual page creation
     class MyPagesAdapter_Array extends PagerAdapter {
 
-       private Inflater inflater;
-
-
-
         @Override
         public int getCount() {
             //Return total pages, here one for each data item
             return mDataset.size();
         }
-        //Create the given page (indicated by position)
+
+       @Override
+       public int getItemPosition(Object object) {
+           return super.getItemPosition(object);
+       }
+
+       //Create the given page (indicated by position)
         @Override
         public Object instantiateItem(ViewGroup container, final int position) {
             page = LayoutInflater.from(getActivity()).inflate(R.layout.flashcard_item, null);
+            container.addView(page, 0);
             final WordEntry wordEntry = mDataset.get(position);
             page.setTag(wordEntry.getId());
 
@@ -284,7 +294,7 @@ public class FlashCardsFragment extends Fragment {
                 ((TextView) page.findViewById(R.id.scorecount)).setText(currentcount + "/" + totalcount);
                 freshdeck = false;
             }
-            setCard(page,wordEntry,true);
+            setCard(wordEntry,true);
 
 
             vp.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -297,7 +307,7 @@ public class FlashCardsFragment extends Fragment {
                         currentcount = pos+1;
                     }
 
-                    setCard(page,wordEntry,true);
+                    setCard(wordEntry,true);
 
                 }
 
@@ -309,9 +319,11 @@ public class FlashCardsFragment extends Fragment {
                 @Override
                 public void onPageScrollStateChanged(int arg0) {
                 }
+
+
             });
 
-            container.addView(page, 0);
+
             return page;
         }
 
@@ -329,7 +341,8 @@ public class FlashCardsFragment extends Fragment {
 
     }
 
-    public void setCard(View page, WordEntry wordEntry, boolean frontShowing) {
+    public void setCard(WordEntry wordEntry, boolean frontShowing) {
+        Log.d(TAG,"SETTING CARD: flipped to front? - " + frontShowing);
         mFrontShowing = frontShowing;
         String cardValue;
         if(frontShowing) {
@@ -337,10 +350,21 @@ public class FlashCardsFragment extends Fragment {
         } else {
             cardValue = mBackValue;
         }
-        ((TextView) page.findViewById(R.id.scorecount)).setText(currentcount + "/" + totalcount);
-        TextView textMain = (TextView) page.findViewById(R.id.textMessage);
-        TextView textFurigana = (TextView) page.findViewById(R.id.furigana);
-        TextView defarraylistview = (TextView) page.findViewById(R.id.flashcard_listview);
+
+        int currentTag = wordEntry.getId();
+
+        if(vp == null) {
+            Log.d(TAG,"VP IS NULL ");
+        } else {
+            Log.d(TAG,"vp view with tag (" + currentTag + ") null: " + ((vp.findViewWithTag(currentTag)) == null));
+        }
+
+
+//        ((TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.scorecount)).setText(currentcount + "/" + totalcount);
+        TextView textMain = (TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.textMessage);
+        TextView textFurigana = (TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.furigana);
+        TextView defarraylistview = (TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.flashcard_listview);
+
 
         /* SET THE Kanji/Furigana boxes */
         switch (cardValue) {
@@ -377,9 +401,7 @@ public class FlashCardsFragment extends Fragment {
 
 
                 String definition = wordEntry.getDefinitionMultiLineString(6);
-
                 defarraylistview.setText(definition);
-//                definition.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
 
                 Rect bounds = new Rect();
                 Paint textPaint = defarraylistview.getPaint();
@@ -387,37 +409,24 @@ public class FlashCardsFragment extends Fragment {
                 int width = bounds.width();
                 int height = bounds.height();
 
-//                width = ;
                 int  px = (int) (TypedValue.applyDimension(
                         TypedValue.COMPLEX_UNIT_DIP, 22, getResources().getDisplayMetrics()));
-//                int px2 = myTextPaint.setTextSize(16 * getResources().getDisplayMetrics().density);
 
-                //Height = 400
-                //width = 300
-
-                Log.d(TAG,"BOUNDS WIDTH: " + width);
-                Log.d(TAG,"BOUNDS HEIGHT: " + height);
-                Log.d(TAG,"MEASURE TEXT WIDTH: " + Math.round(textPaint.measureText(definition)));
-                Log.d(TAG,"SPECIAL MEASURED TEXT HEIGHT: " + method1UsingTextPaintAndStaticLayout(definition,px,300,4));
-
-
-//                int textSize = getContext().getResources().getDimensionPixelSize(R.dimen.text_size);
-//                int padding = getContext().getResources().getDimensionPixelSize(R.dimen.text_padding);
                 int measuredTextHeight = getHeight(getContext(), definition, 22, 300, padding);
-                Log.d(TAG,"SPECIAL 2 MEASURED TEXT HEIGHT: " + measuredTextHeight);
-//                while (defarraylistview.getText() != TextUtils.ellipsize(defarraylistview.getText()
-//                        , defarraylistview.getPaint()
-//                        ,(float)defarraylistview.getWidth()
-//                        ,TextUtils.TruncateAt.END)) {
-//                    defarraylistview.setTextSize(defarraylistview.getTextSize() - 1);
-//                }
 
-                Log.d(TAG,"SETTING DEFINITION");
+                if(BuildConfig.DEBUG) {
+                    Log.d(TAG,"BOUNDS WIDTH: " + width);
+                    Log.d(TAG,"BOUNDS HEIGHT: " + height);
+                    Log.d(TAG,"MEASURE TEXT WIDTH: " + Math.round(textPaint.measureText(definition)));
+                    Log.d(TAG,"SPECIAL MEASURED TEXT HEIGHT: " + method1UsingTextPaintAndStaticLayout(definition,px,300,4));
+                    Log.d(TAG,"SPECIAL 2 MEASURED TEXT HEIGHT: " + measuredTextHeight);
+                    Log.d(TAG,"SETTING DEFINITION");
+                }
                 break;
-
             default:
                 break;
         }
+
 
     }
 
@@ -431,8 +440,6 @@ public class FlashCardsFragment extends Fragment {
 
         TextPaint myTextPaint = new TextPaint();
         myTextPaint.setAntiAlias(true);
-        // this is how you would convert sp to pixels based on screen density
-//        myTextPaint.setTextSize(16 * getResources().getDisplayMetrics().density);
         myTextPaint.setTextSize(textSize);
         Layout.Alignment alignment = Layout.Alignment.ALIGN_NORMAL;
         float spacingMultiplier = 1;
@@ -445,7 +452,6 @@ public class FlashCardsFragment extends Fragment {
     public static int getHeight(Context context, CharSequence text, int textSize, int deviceWidth,  int padding) {
         TextView textView = new TextView(context);
         textView.setPadding(padding,0,padding,padding);
-//        textView.setTypeface(typeface);
         textView.setText(text, TextView.BufferType.SPANNABLE);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
         int widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(deviceWidth, View.MeasureSpec.AT_MOST);

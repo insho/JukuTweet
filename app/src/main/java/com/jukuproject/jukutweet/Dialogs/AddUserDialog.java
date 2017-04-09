@@ -76,7 +76,7 @@ public class AddUserDialog extends DialogFragment {
         List<String> testFeeds = Arrays.asList(feeds);
         for(int i =0; i<testFeeds.size(); i++) {
             Log.d("TEST","TESTFEEDS: " + testFeeds.get(i));
-            if(!InternalDB.getInstance(getActivity()).duplicateUser(testFeeds.get(i)) && editText.getText().toString().isEmpty()) {
+            if(!InternalDB.getUserInterfaceInstance(getActivity()).duplicateUser(testFeeds.get(i)) && editText.getText().toString().isEmpty()) {
                 editText.setText(testFeeds.get(i));
             }
         }

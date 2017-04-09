@@ -44,8 +44,9 @@ public class CopySavedTweetsDialog extends DialogFragment {
     private ArrayList<String> mActiveFavoriteTweetStars;
     private MyListEntry mCurrentList;
     private ArrayList<MyListEntry> mFavoritesLists;
+
     /*Tracks elapsed time since last click of a recyclerview row. Used to
-* keep from constantly recieving button clicks through the RxBus */
+     * keep from constantly recieving button clicks through the RxBus */
     private long mLastClickTime = 0;
     private boolean moveSelected =false;
     private ArrayList<MyListEntry> mListsToCopyTo = new ArrayList<>();
@@ -122,7 +123,7 @@ public class CopySavedTweetsDialog extends DialogFragment {
         final ArrayList<String> selectedEntries = getArguments().getStringArrayList("selectedEntries");
         mCurrentList = getArguments().getParcelable("currentList");
         final String tweetids = joinSelectedStrings(selectedEntries);
-        mFavoritesLists = InternalDB.getInstance(getContext()).getTweetListsForTweet(mActiveFavoriteTweetStars,"",mCurrentList);
+        mFavoritesLists = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListsForTweet(mActiveFavoriteTweetStars,"",mCurrentList);
 
         if(mFavoritesLists.contains(mCurrentList)) {
             mFavoritesLists.remove(mCurrentList);
