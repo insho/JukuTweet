@@ -19,7 +19,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.GridLayout;
 import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -37,6 +36,7 @@ import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.TweetParser;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Created by JClassic on 3/31/2017.
@@ -63,8 +63,8 @@ public class MultipleChoiceFragment extends Fragment {
     int currentTotal = 0; //CURRENT number of questions asked
     int currentCorrect = 0; //CURRENT number of correct answers
     int currentPlusMinus = 0; // CURRENT plusminus of correct answers
-    int metricsTotal = 0; //Total times user has seen this question (from DB)
-    int metricsCorrect = 0; //Total correct guesses for this question (from DB)
+//    int metricsTotal = 0; //Total times user has seen this question (from DB)
+//    int metricsCorrect = 0; //Total correct guesses for this question (from DB)
 
     public View mainView;
 
@@ -129,8 +129,9 @@ public class MultipleChoiceFragment extends Fragment {
         mTotalWeight = getArguments().getDouble("totalWeight");
         mMyListType = getArguments().getString("myListType");
         mColorString = getArguments().getString("colorString");
-        mMyListEntry = getArguments().getParcelable("mylistentry");
+        mMyListEntry = getArguments().getParcelable("myListEntry");
 
+        questionResults = new ArrayList<>();
         //Set layout depending on screen orientation
         TypedValue tv = new TypedValue();
         int displayheight = getResources().getDisplayMetrics().heightPixels;
@@ -191,20 +192,31 @@ public class MultipleChoiceFragment extends Fragment {
         //Reset the question set
         questionSet = new ArrayList<>();
         isCorrectFirstTry = true;
-
+        if(wronganswerpositions == null) {
+            wronganswerpositions = new ArrayList<>();
+        }
         /* Get next question from wordEntry pool, and add it as the
          first question of the set */
+
+
+
         final WordEntry currentCorrectAnswer = getRandomWordEntry(mDataset,mTotalWeight,previousId);
+
         previousId = currentCorrectAnswer.getId();
 
+        questionSet.add(currentCorrectAnswer);
+
+
         /* Get a set of word entries to fill out the rest of the options in the multiple choice grid */
-        getIncorrectAnswerSet(getContext()
+        long startTime = System.currentTimeMillis();
+         questionSet.addAll(getIncorrectAnswerSet(getContext()
                 ,mMyListType
                 ,mMyListEntry
                 ,SharedPrefManager.getInstance(getContext()).getColorThresholds()
                 ,mColorString
                 ,currentCorrectAnswer
-                ,mQuizType);
+                ,mQuizType));
+        Log.i("TEST","ELLAPSED TIME TOTAL questionSet.addall: " + (System.currentTimeMillis() - startTime)/1000.0f);
 
 
             String stringPlusMinus;
@@ -215,6 +227,7 @@ public class MultipleChoiceFragment extends Fragment {
             }
 
             Publicgrid = (GridView) mainView.findViewById(R.id.gridView);
+
             TextView txtQuestion = (TextView) mainView.findViewById(R.id.question);
             TextView txtFurigana = (TextView) mainView.findViewById(R.id.furigana);
             txtFurigana.setVisibility(View.INVISIBLE);
@@ -224,7 +237,7 @@ public class MultipleChoiceFragment extends Fragment {
             TextView txtScore = (TextView) mainView.findViewById(R.id.textViewScore);
             TextView txtPlusMinus = (TextView) mainView.findViewById(R.id.textViewPlusMinus);
 
-            GridLayout gridTop = (GridLayout) mainView.findViewById(R.id.gridTop);
+//            GridLayout gridTop = (GridLayout) mainView.findViewById(R.id.gridTop);
 
 //            if (timer > 0 && millstogo >0) {
 //                setUpTimer((int) millstogo / 1000);
@@ -242,6 +255,7 @@ public class MultipleChoiceFragment extends Fragment {
             if(BuildConfig.DEBUG) {Log.d(TAG,"stringPlusMinus: " + stringPlusMinus);}
             txtPlusMinus.setText(stringPlusMinus);
 
+            Collections.shuffle(questionSet);
             MultipleChoiceAdapter adapter;
             int rowheight = (int)((float)totalheightofanswergrid/(float)6);
             adapter = new MultipleChoiceAdapter(getContext(), questionSet, R.layout.quizmultchoice_listitem,rowheight, getResources().getDisplayMetrics().widthPixels,mQuizType,wronganswerpositions);
@@ -249,13 +263,14 @@ public class MultipleChoiceFragment extends Fragment {
 
             txtQuestion.setText(currentCorrectAnswer.getQuizQuestion(mQuizType));
 
+            //TODO Replace this with flashcard size level
             int defsizelevel = 44;
             txtQuestion.setTextSize(TypedValue.COMPLEX_UNIT_SP, defsizelevel);
             txtQuestion.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     TextView txtFurigana = (TextView) mainView.findViewById(R.id.furigana);
-                    if (mQuizType.equals("Kanji to English")) {
+                    if (mQuizType.equals("Kanji to Definition")) {
                         if (txtFurigana.getVisibility() == View.VISIBLE) {
                             txtFurigana.setVisibility(View.INVISIBLE);
                         } else {
@@ -353,7 +368,7 @@ public class MultipleChoiceFragment extends Fragment {
 
 //            }
 
-            if(mQuizType.equals("Kanji to English") && !currentCorrectAnswer.getFurigana().equals(currentCorrectAnswer.getKanji())) { // Don't show the furigana if the question itself is a furigna-->kanji quiz
+            if(mQuizType.equals("Kanji to Definition") && !currentCorrectAnswer.getFurigana().equals(currentCorrectAnswer.getKanji())) { // Don't show the furigana if the question itself is a furigna-->kanji quiz
                 txtFurigana.setText(currentCorrectAnswer.getFurigana());
             }
 
@@ -413,7 +428,7 @@ public class MultipleChoiceFragment extends Fragment {
                                 //It changes depending on quiz type
                                 String hashmapResult;
                                 switch (mQuizType) {
-                                    case "Kanji to English":
+                                    case "Kanji to Definition":
 
                                         if(currentCorrectAnswer.getFurigana().length()>0 && !currentCorrectAnswer.getFurigana().equals(currentCorrectAnswer.getKanji())) {
                                             hashmapResult = currentCorrectAnswer.getKanji() + " (" + currentCorrectAnswer.getFurigana() +" )" ;
@@ -421,7 +436,7 @@ public class MultipleChoiceFragment extends Fragment {
                                             hashmapResult = currentCorrectAnswer.getKanji() ;
                                         }
                                         break;
-                                    case "Kanji to Furigana":
+                                    case "Kanji to Kana":
                                         if(currentCorrectAnswer.getFurigana().length()>0 && !currentCorrectAnswer.getFurigana().equals(currentCorrectAnswer.getKanji())) {
                                             hashmapResult = currentCorrectAnswer.getKanji() + " (" + currentCorrectAnswer.getFurigana() +" )" ;
                                         } else {
@@ -429,10 +444,10 @@ public class MultipleChoiceFragment extends Fragment {
                                         }
 
                                         break;
-                                    case "Furigana to Kanji":
+                                    case "Kana to Kanji":
                                         hashmapResult = currentCorrectAnswer.getKanji() + " (" + currentCorrectAnswer.getFurigana() +" )" ;
                                         break;
-                                    case "English to Kanji":
+                                    case "Definition to Kanji":
                                         hashmapResult = currentCorrectAnswer.getKanji() + "--" + currentCorrectAnswer.getDefinitionMultiLineString(10);
 
                                         StringBuilder stringBuilder = new StringBuilder();
@@ -488,10 +503,16 @@ public class MultipleChoiceFragment extends Fragment {
 
                                         break;
                                     default:
-                                        System.out.println("Invalid Quiz Type");
+                                        System.out.println("Invalid Quiz Type - " + mQuizType);
                                         hashmapResult = "????";
                                         break;
                                 }
+
+                                Log.d(TAG,"currentCorrectAnswer.getId() " + currentCorrectAnswer.getId());
+                                Log.d(TAG,"correct " + correct);
+                                Log.d(TAG,"hashmapResult " + hashmapResult);
+                                Log.d(TAG,"currentTotal " + currentTotal);
+
 
                                 questionResults.add(new MultChoiceResult(currentCorrectAnswer.getId(),correct,hashmapResult,currentTotal));
                                 wronganswerpositions.clear();
@@ -523,7 +544,7 @@ public class MultipleChoiceFragment extends Fragment {
                                 //Incorrect answer turns textview (and text) invisible
                                 txtviewhighlight.setOnClickListener(null);
                                 txtviewhighlight.setText("");
-                                txtviewhighlight.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.multiplechoiceIncorrectColor));
+                                txtviewhighlight.setBackgroundColor(ContextCompat.getColor(getContext(), android.R.color.transparent));
 
 
                             }
@@ -545,26 +566,30 @@ public class MultipleChoiceFragment extends Fragment {
 
 
     public static WordEntry getRandomWordEntry(ArrayList<WordEntry> wordEntries, double totalWeight, @Nullable Integer previousId) {
-
-        if(BuildConfig.DEBUG) {Log.d("MultipleChoice","(wordweight) weightedrand total weight: " + totalWeight);}
+        final String TAG = "TEST-Multchoice";
+        if(previousId == null) {
+            previousId = -1;
+        }
+        if(BuildConfig.DEBUG) {Log.d(TAG,"(wordweight) weightedrand total weight: " + totalWeight);}
         int randomIndex = -1;
         double random = Math.random() * totalWeight;
-        if(BuildConfig.DEBUG) {Log.d("MultipleChoice","(wordweight) FIRST random (random # * totalweight): " + random);}
+        if(BuildConfig.DEBUG) {Log.d(TAG,"(wordweight) FIRST random (random # * totalweight): " + random);}
 
         boolean foundFreshIndex = false;
         int spinnerCounter = 0;
         while(!foundFreshIndex && spinnerCounter<6) {
             for (int i = 0; i < wordEntries.size(); ++i)
             {
-                if(BuildConfig.DEBUG) {Log.d("MultipleChoice","(wordweight) Hashmap index and double: " + i + " - " + wordEntries.get(i).getQuizWeight());}
+                if(BuildConfig.DEBUG) {Log.d(TAG,"(wordweight) Hashmap index and double: " + i + " - " + wordEntries.get(i).getQuizWeight());}
                 random -= wordEntries.get(i).getQuizWeight();
-                if(BuildConfig.DEBUG) {Log.d("MultipleChoice", "(wordweight) New Random: " + random);}
+                if(BuildConfig.DEBUG) {Log.d(TAG, "(wordweight) New Random: " + random);}
                 if (random <= 0.0d)
                 {
+
+                    randomIndex = i;
                     /*If its the last spin on the counter, just take whatever word is found,
                      even if it is a repeat */
-                    if(randomIndex <0 ||(wordEntries.get(randomIndex).getId()!=previousId || spinnerCounter==5)) {
-                        randomIndex = i;
+                    if((randomIndex >=0 && wordEntries.size()>randomIndex && wordEntries.get(randomIndex).getId()!= previousId)) {
                         foundFreshIndex = true;
                     } else {
                         spinnerCounter += 1;
@@ -593,7 +618,7 @@ public class MultipleChoiceFragment extends Fragment {
          into pieces, search for words that contain those pieces, and user these as the incorrect answers. This will
          result in incorrect answers that are more difficult to solve. */
 
-        if(SharedPrefManager.getInstance(mContext).getmDifficultAnswers() && (!quizType.equals("Kanji to English"))) { //If we are choosing comparable answers and the answers are either 1: kanji to furigana, or 2: furigana to kanji
+        if(SharedPrefManager.getInstance(mContext).getmDifficultAnswers() && (!quizType.equals("Kanji to Definition"))) { //If we are choosing comparable answers and the answers are either 1: kanji to furigana, or 2: furigana to kanji
 
             //Determine whether to create incorrect answer set for the WordEntry's kanji, or furigana
             String kanjiToBreak;
@@ -640,16 +665,22 @@ public class MultipleChoiceFragment extends Fragment {
                     c.close();
                 }
             }
-        } else {
+        } else if(myListType.equals("Tweet")) {
         incorrectAnswerSet = InternalDB.getTweetInterfaceInstance(mContext).getWordsFromATweetList(myListEntry,colorThresholds,colorString,correctWordEntry.getId(),6);
+        } else {
+
+            incorrectAnswerSet = InternalDB.getWordInterfaceInstance(mContext).getWordsFromAWordList(myListEntry,colorThresholds,colorString,correctWordEntry.getId(),6);
+
         }
+
+
 
         /* Fill in remaining entries if necessary */
         final int remainingIncorrectAnswerSlots = 5-incorrectAnswerSet.size();
         if(remainingIncorrectAnswerSlots>0) { //We're filling the rest of the array with random records (in the case that we didn't have 6 initial records to begin with)
-
+            long startTime = System.currentTimeMillis();
             Cursor c = InternalDB.getQuizInterfaceInstance(mContext).getRandomKanji(String.valueOf(correctWordEntry.getId()),remainingIncorrectAnswerSlots);
-
+            Log.i("TEST","ELLAPSED TIME TOTAL other block: " + (System.currentTimeMillis() - startTime)/1000.0f);
             if(c.getCount()>0) {
                 c.moveToFirst();
                 while (!c.isAfterLast()) {
@@ -667,6 +698,7 @@ public class MultipleChoiceFragment extends Fragment {
             }
             c.close();
         }
+
 
         return incorrectAnswerSet;
     }
@@ -686,5 +718,23 @@ public class MultipleChoiceFragment extends Fragment {
         }
         return sb.toString();
     }
+
+//    @Override
+//    public void onActivityCreated(Bundle savedInstanceState) {
+//        super.onActivityCreated(savedInstanceState);
+//        ...
+//        if (savedInstanceState != null) {
+//            //Restore the fragment's state here
+//        }
+//    }
+//
+//    @Override
+//    public void onSaveInstanceState(Bundle outState) {
+//        super.onSaveInstanceState(outState);
+//
+//        //Save the fragment's state here
+//
+//    }
+
 
 }

@@ -1026,6 +1026,9 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
         if (tabNumber == 1) {
             //Its a mylist fragment
+
+
+
             ArrayList<WordEntry> dataset = InternalDB.getTweetInterfaceInstance(getBaseContext())
                     .getWordsFromATweetList(listEntry
                             , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
@@ -1033,46 +1036,56 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                             , null
                             , Integer.parseInt(quizSize));
 
-            double totalweight = assignWordWeightsAndGetTotalWeight(dataset);
+            if(dataset.size()>0) {
 
-            if (findFragmentByPosition(tabNumber) != null
-                    && findFragmentByPosition(tabNumber) instanceof Tab2Container) {
+                double totalweight = assignWordWeightsAndGetTotalWeight(dataset);
+                if (findFragmentByPosition(tabNumber) != null
+                        && findFragmentByPosition(tabNumber) instanceof Tab2Container) {
 
-                MultipleChoiceFragment multipleChoiceFragment = MultipleChoiceFragment.newInstance(dataset
-                        , quizType
-                        , timer
-                        , Integer.parseInt(quizSize)
-                        , totalweight
-                        , "Tweet"
-                        , selectedColorString
-                        , listEntry);
-                ((BaseContainerFragment) findFragmentByPosition(tabNumber)).replaceFragment(multipleChoiceFragment, true, "multiplechoice");
+                    MultipleChoiceFragment multipleChoiceFragment = MultipleChoiceFragment.newInstance(dataset
+                            , quizType
+                            , timer
+                            , Integer.parseInt(quizSize)
+                            , totalweight
+                            , "Tweet"
+                            , selectedColorString
+                            , listEntry);
+                    ((BaseContainerFragment) findFragmentByPosition(tabNumber)).replaceFragment(multipleChoiceFragment, true, "multiplechoice");
+                }
+
+            } else {
+                Toast.makeText(this, "No words found to quiz on", Toast.LENGTH_SHORT).show();
             }
+
         } else if (tabNumber == 2) {
             //Its a mylist fragment
-            ArrayList<WordEntry> dataset = InternalDB.getTweetInterfaceInstance(getBaseContext())
-                    .getWordsFromATweetList(listEntry
+            ArrayList<WordEntry> dataset = InternalDB.getWordInterfaceInstance(getBaseContext())
+                    .getWordsFromAWordList(listEntry
                             , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
                             , selectedColorString
                             , null
                             , Integer.parseInt(quizSize));
 
-            double totalweight = assignWordWeightsAndGetTotalWeight(dataset);
+            if(dataset.size()>0) {
+                double totalweight = assignWordWeightsAndGetTotalWeight(dataset);
+                if (findFragmentByPosition(tabNumber) != null
+                        && findFragmentByPosition(tabNumber) instanceof Tab3Container) {
 
-            if (findFragmentByPosition(tabNumber) != null
-                    && findFragmentByPosition(tabNumber) instanceof Tab3Container) {
+                    MultipleChoiceFragment multipleChoiceFragment = MultipleChoiceFragment.newInstance(dataset
+                            , quizType
+                            , timer
+                            , Integer.parseInt(quizSize)
+                            , totalweight
+                            , "Word"
+                            , selectedColorString
+                            , listEntry);
+                    ((BaseContainerFragment) findFragmentByPosition(tabNumber)).replaceFragment(multipleChoiceFragment, true, "multiplechoice");
 
-                MultipleChoiceFragment multipleChoiceFragment = MultipleChoiceFragment.newInstance(dataset
-                        , quizType
-                        , timer
-                        , Integer.parseInt(quizSize)
-                        , totalweight
-                        , "Word"
-                        , selectedColorString
-                        , listEntry);
-                ((BaseContainerFragment) findFragmentByPosition(tabNumber)).replaceFragment(multipleChoiceFragment, true, "multiplechoice");
-
+                }
+            } else {
+                Toast.makeText(this, "No words found to quiz on", Toast.LENGTH_SHORT).show();
             }
+
         }
 
     }
@@ -1168,6 +1181,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
             wordEntry.setQuizWeight(b);
             totalWeight += b;
+            Log.d(TAG,"Setting quiz weight: " + b  + ", new total weight: " + totalWeight);
         }
 
         return totalWeight;

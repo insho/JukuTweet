@@ -141,10 +141,10 @@
 
 
     <string-array name="menuoptions_multiplechoicetype">
-        <item>Kanji to English</item>
+        <item>Kanji to Definition</item>
         <item>Kanji to Kana</item>
         <item>Kana to Kanji</item>
-        <item>English to Kanji</item>
+        <item>Definition to Kanji</item>
     </string-array>
 
 

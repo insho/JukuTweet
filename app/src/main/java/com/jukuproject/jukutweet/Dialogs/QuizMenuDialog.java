@@ -210,6 +210,17 @@ public class QuizMenuDialog extends DialogFragment {
         textViewColorBlock_yellow = (TextView) view.findViewById(R.id.listitem_colors_3);
         textViewColorBlock_green = (TextView) view.findViewById(R.id.listitem_colors_4);
 
+
+//        try {
+//            textViewColorBlock_grey.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+//            textViewColorBlock_red.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+//            textViewColorBlock_yellow.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+//            textViewColorBlock_green.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+//        } catch (Exception e) {
+//            Log.e(TAG,"exception, too old to set gravitiy");
+//        }
+
+
         if(mColorBlockMeasurables.getTotalCount()>0) {
             setColorBlocks(mColorBlockMeasurables
                     ,mAvailablePopupWidth
@@ -392,6 +403,8 @@ public class QuizMenuDialog extends DialogFragment {
             drawablecolorblock4.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuGreen), PorterDuff.Mode.MULTIPLY);
             txtGreen.setBackground(drawablecolorblock4);
 
+
+
         } else {
             drawablecolorblock1.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuGrey), PorterDuff.Mode.MULTIPLY);
             txtGrey.setBackgroundDrawable(drawablecolorblock1);
@@ -407,6 +420,9 @@ public class QuizMenuDialog extends DialogFragment {
         txtRed.setVisibility(View.GONE);
         txtYellow.setVisibility(View.GONE);
         txtGreen.setVisibility(View.GONE);
+
+
+
 
         txtRed.setText(String.valueOf(colorBlockMeasurables.getRedCount()));
         txtYellow.setText(String.valueOf(colorBlockMeasurables.getYellowCount()));

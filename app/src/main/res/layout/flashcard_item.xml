@@ -5,6 +5,7 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginBottom="25dp"
     >
 
     <!-- A CardView that contains a TextView -->
@@ -14,8 +15,10 @@
         android:layout_gravity="center"
         android:layout_width="300dp"
         android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
         android:layout_height="400dp"
+
+        android:layout_marginTop="50dp"
+        android:layout_marginBottom="50dp"
         card_view:cardCornerRadius="6dp">
 
 
@@ -44,6 +47,7 @@
             <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:orientation="vertical"
                 android:layout_width="match_parent"
+                android:paddingBottom="30dp"
                 android:layout_height="match_parent"
                 android:clickable="false"
                 android:focusable="false"
@@ -52,7 +56,7 @@
 
                 <TextView
                     android:id="@+id/textMessage"
-                    android:textSize="22pt"
+                    android:textSize="46sp"
 
                     android:layout_row="1"
                     android:gravity="center|center_vertical"
@@ -67,7 +71,7 @@
                     android:text=""
                     android:layout_row="1"
                     android:id="@+id/furigana"
-                    android:textSize="8pt"
+                    android:textSize="18sp"
                     android:gravity="center|center_vertical"
                     android:textColor="@android:color/black"
                     android:clickable="false"
@@ -76,7 +80,7 @@
 
                 <TextView
                     android:id="@+id/flashcard_listview"
-                    android:textSize="22pt"
+                    android:textSize="46sp"
 
                     android:layout_row="1"
                     android:gravity="start|center_vertical"

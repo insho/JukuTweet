@@ -89,11 +89,10 @@ public class FlashCardsFragment extends Fragment {
         mBackValue = getArguments().getString("backValue");
         totalcount = mDataset.size();
         page = LayoutInflater.from(getActivity()).inflate(R.layout.flashcard_item, null);
-
         page.setTag(mDataset.get(0).getId());
         vp=(ViewPager) view.findViewById(R.id.viewPager);
         currentPosition = 0;
-//        mAdapter =
+
         vp.setAdapter(new MyPagesAdapter_Array());
 
         FloatingActionButton fab_shuffle = (FloatingActionButton) view.findViewById(R.id.fab);
@@ -102,6 +101,10 @@ public class FlashCardsFragment extends Fragment {
             public void onClick(View v) {
 
                 Collections.shuffle(mDataset);
+                currentcount = 1;
+                currentPosition = 0;
+                freshdeck =true;
+                page.setTag(mDataset.get(0).getId());
                 vp.setAdapter(new MyPagesAdapter_Array());
                 freshdeck = true;
                 mFrontShowing = true; //toggle the boolean to reflect current flipped state
@@ -123,14 +126,13 @@ public class FlashCardsFragment extends Fragment {
                 animator_rightin.setStartDelay(100);
                 animator_rightin.start();
 
-                /**  THIS IS THE ACTION BUTTON SHUFFLE BLOCK*/
-                //Reset the currentcount to 1 (since it's a new deck now)
-                currentcount = 1;
-                freshdeck =true;
+
+
                 String stringcount = currentcount + "/" + totalcount;
                 ((TextView) page.findViewById(R.id.scorecount)).setText(stringcount);
-                page.setTag(mDataset.get(0).getId());
-                setCard(mDataset.get(0),true);
+
+
+//                setCard(mDataset.get(0),true);
 
             }
         });
@@ -227,19 +229,6 @@ public class FlashCardsFragment extends Fragment {
         };
 
 
-
-//        final GestureDetector detector = new GestureDetector(listener);
-//
-//        detector.setOnDoubleTapListener(listener);
-//        detector.setIsLongpressEnabled(true);
-
-//        getActivity().getWindow().getDecorView().setOnTouchListener(new View.OnTouchListener() {
-//            @Override
-//            public boolean onTouch(View view, MotionEvent event) {
-//                return detector.onTouchEvent(event);
-//            }
-//        });
-
         mGestureDetector = new GestureDetector(getContext(), listener);
         mGestureDetector.setOnDoubleTapListener(listener);
 
@@ -276,7 +265,6 @@ public class FlashCardsFragment extends Fragment {
             final WordEntry wordEntry = mDataset.get(position);
             page.setTag(wordEntry.getId());
 
-            /* THIS ONE RUNS IF YOU HIT THE SHUFFLE FAB*/
             currentcount=1;
             ((TextView) page.findViewById(R.id.scorecount)).setText(currentcount + "/" + totalcount);
 
@@ -383,7 +371,6 @@ public class FlashCardsFragment extends Fragment {
                 textFurigana.setVisibility(View.INVISIBLE);
                 defarraylistview.setVisibility(View.GONE);
 
-                textFurigana.setVisibility(TextView.INVISIBLE);
                 if(wordEntry.getFurigana() == null || wordEntry.getFurigana().length() == 0) { //If the furigana entry is null, use the kanji one homie
                     if(BuildConfig.DEBUG){ Log.d(TAG,"we're doing this (2)");}
                     textMain.setText(wordEntry.getKanji());
@@ -395,41 +382,72 @@ public class FlashCardsFragment extends Fragment {
 
                 break;
             case "Definition":
-                textMain.setVisibility(View.GONE);
+
+                String definition = wordEntry.getFlashCardDefinitionMultiLineString(6);
                 textFurigana.setVisibility(View.GONE);
-                defarraylistview.setVisibility(View.VISIBLE);
 
+                if(wordEntry.getDefinition().contains("(2)")) {
+                    textMain.setVisibility(View.GONE);
+                    defarraylistview.setVisibility(View.VISIBLE);
+                    defarraylistview.setText(definition);
 
-                String definition = wordEntry.getDefinitionMultiLineString(6);
-                defarraylistview.setText(definition);
-
-                Rect bounds = new Rect();
-                Paint textPaint = defarraylistview.getPaint();
-                textPaint.getTextBounds(definition, 0, definition.length(), bounds);
-                int width = bounds.width();
-                int height = bounds.height();
-
-                int  px = (int) (TypedValue.applyDimension(
-                        TypedValue.COMPLEX_UNIT_DIP, 22, getResources().getDisplayMetrics()));
-
-                int measuredTextHeight = getHeight(getContext(), definition, 22, 300, padding);
-
-                if(BuildConfig.DEBUG) {
-                    Log.d(TAG,"BOUNDS WIDTH: " + width);
-                    Log.d(TAG,"BOUNDS HEIGHT: " + height);
-                    Log.d(TAG,"MEASURE TEXT WIDTH: " + Math.round(textPaint.measureText(definition)));
-                    Log.d(TAG,"SPECIAL MEASURED TEXT HEIGHT: " + method1UsingTextPaintAndStaticLayout(definition,px,300,4));
-                    Log.d(TAG,"SPECIAL 2 MEASURED TEXT HEIGHT: " + measuredTextHeight);
-                    Log.d(TAG,"SETTING DEFINITION");
+                    setTextHeightLoop(defarraylistview,definition);
+                } else {
+                    textMain.setVisibility(View.VISIBLE);
+                    defarraylistview.setVisibility(View.GONE);
+                    textMain.setText(definition);
+                    setTextHeightLoop(textMain,definition);
                 }
+
+
                 break;
             default:
                 break;
         }
 
-
     }
 
+
+    public void setTextHeightLoop(TextView textView, String text) {
+        Rect bounds = new Rect();
+        Paint textPaint = textView.getPaint();
+        textPaint.getTextBounds(text, 0, text.length(), bounds);
+        int width = bounds.width();
+        int height = bounds.height();
+
+        int pxTextDP = 46;
+        int  pxText = (int) (TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_SP, pxTextDP, getResources().getDisplayMetrics()));
+        int  pxCardSize = (int) (TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, 400, getResources().getDisplayMetrics()));
+
+
+        int measuredTextHeight = getHeight(getContext(), text, pxText, 300, padding);
+        if(BuildConfig.DEBUG) {
+            Log.d(TAG,"BOUNDS WIDTH: " + width);
+            Log.d(TAG,"BOUNDS HEIGHT: " + height);
+            Log.d(TAG,"MEASURE TEXT WIDTH: " + Math.round(textPaint.measureText(text)));
+            Log.d(TAG,"SPECIAL MEASURED TEXT HEIGHT: " + method1UsingTextPaintAndStaticLayout(text,pxText,300,4));
+//                    Log.d(TAG,"SPECIAL 2 MEASURED TEXT HEIGHT: " + measuredTextHeight);
+            Log.d(TAG,"pxCardSize: " + pxCardSize);
+            Log.d(TAG,"SETTING DEFINITION");
+
+        }
+        int specialMethodTextHeight = method1UsingTextPaintAndStaticLayout(text,pxText,300,4);
+
+        while (specialMethodTextHeight > pxCardSize && pxTextDP>22) {
+
+            pxTextDP -= 2;
+            Log.d(TAG,"specialMethodTextHeight OVERRUN. " + specialMethodTextHeight + " > " + pxCardSize + ", lowering to: " + pxTextDP );
+
+            textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, pxTextDP);
+            pxText = (int) (TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP
+                    , pxTextDP
+                    , getResources().getDisplayMetrics()));
+            specialMethodTextHeight = method1UsingTextPaintAndStaticLayout(text,pxText,300,4);
+
+        }
+    }
 
     public static int method1UsingTextPaintAndStaticLayout(
             final CharSequence text,

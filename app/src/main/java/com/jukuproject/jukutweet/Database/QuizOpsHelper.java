@@ -120,7 +120,8 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                 ",[Furigana]" +
                 ",[Definition]  " +
                 "FROM [Edict] " +
-                "where [_id]  not in (" +  keysToExclude + ") " +
+                "where [Common] = 1 " +
+                " and [_id]  not in (" +  keysToExclude + ") " +
                 " and [Furigana] is not null " +
                 " ORDER BY RANDOM() LIMIT "+ limit +" " +
                 ") " +
