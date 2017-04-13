@@ -771,6 +771,7 @@ public class TweetParser {
                 possibleKanji.setKanji(kanji);
                 possibleKanji.replaceBetterKanjiMatch(kanji);
                 foundVerbInfinitive = true;
+
             }
             x--;
             f.close();
@@ -869,8 +870,8 @@ public class TweetParser {
      * (including plain text portions as well as the correctly identified kanji).
      * Note: Updated (3/25/17) to take "SpecialS spans" -- links, spinner kanji, anything else that
      * enters the parses but that we KNOW does not need to be changed or parsed, and mix them back into the
-//     * final map in this method and its sub-method {@link #assignEntrytoResults(int, int, int, ParseSentenceItem, ArrayList, ArrayList, int)} and {@link #assignLastEntrytoResults(int, ArrayList, ArrayList, int)}
-     //     * @param db Sqlite database connection
+     * final map in this method and its sub-method {@link #assignEntrytoResults(int, int, int, ParseSentenceItem, ArrayList, ArrayList, int)} and {@link #assignLastEntrytoResults(int, ArrayList, ArrayList, int)}
+          * @param db Sqlite database connection
      * @param cleanKanjiIDs list of finalized ids for the kanji contained in the sentence
      * @return List of ParseSentenceItems, some of which are kanji (to be used for lists of kanji in a sentence), others of which are the
      *          text between those kanji (to be used in laying out the FillInTheBlanks questions)
@@ -896,7 +897,7 @@ public class TweetParser {
                 final String newSentenceFragment = entireSentence.substring(foundKanjiPosition, entireSentence.length());
                 final String edictKanji = c.getString(0);
                 final String coreKanji = assignCoreKanji(c.getString(0));
-
+//TODO SOLVE THIS CORE KANJI THING...
 
 
 
@@ -928,7 +929,7 @@ public class TweetParser {
                             ,c.getInt(4)
                             ,c.getString(12)
                             ,(foundKanjiPosition + startposition)
-                            ,(foundKanjiPosition + startposition + coreKanji.length()));
+                            ,(foundKanjiPosition + endposition));
 
                     wordEntry.setItemFavorites(new ItemFavorites(c.getInt(5)
                                 ,c.getInt(6)
@@ -938,6 +939,7 @@ public class TweetParser {
                                 ,c.getInt(10)
                                 ,c.getInt(11)));
 
+                    wordEntry.setCoreKanjiBlock(coreKanji);
                     resultMap.add(wordEntry);
 //                        ParseSentenceItem parseSentenceItem = new ParseSentenceItem(true,cleanKanjiIDs.get(index),coreKanji,coreFurigana,(foundKanjiPosition + startposition),(foundKanjiPosition + startposition + coreKanji.length()));
 //                        parseSentenceItem.setWordEntry(new WordEntry(cleanKanjiIDs.get(index)

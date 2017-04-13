@@ -19,6 +19,7 @@ public class ParseSentencePossibleKanji {
 
     private Integer listIndex;
     private String kanji;
+//    private String coreKanjiBlock; //keeps reference to original core kanji block,
     private ArrayList<String> prefixes;
     private ArrayList<String> suffixes;
     private ArrayList<String> verbCombos;

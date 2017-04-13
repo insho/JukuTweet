@@ -96,10 +96,7 @@ public class SavedTweetsAllFragment  extends Fragment {
                         expListView.collapseGroup(lastExpandedPosition);
                     }
 
-                    expListView.expandGroup(groupPosition);
-                    expListView.setSelectedGroup(groupPosition);
-                    mMenuHeader.get(groupPosition).setExpanded(true);
-                    lastExpandedPosition = groupPosition;
+                    expandTheListViewAtPosition(groupPosition);
                 }  else {
                     expListView.collapseGroup(groupPosition);
                     mMenuHeader.get(groupPosition).setExpanded(false);
@@ -209,6 +206,11 @@ public class SavedTweetsAllFragment  extends Fragment {
         /* deciding which mylist to open on activity start */
         expListView.setGroupIndicator(null);
 
+        //Expand the last expanded position (or expand first availalbe non-empty list)
+        if(lastExpandedPosition >=0) {
+            expandTheListViewAtPosition(lastExpandedPosition);
+        }
+
         setRetainInstance(true);
         return v;
     }
@@ -256,6 +258,13 @@ Log.d(TAG,"CCOUNT: " +c.getCount());
                     colorBlockMeasurables.setGreenCount(c.getInt(6));
                     colorBlockMeasurables.setEmptyCount(c.getInt(7));
 
+                    /* Set the first available non-empty list to be automatically expanded when
+                      fragment is created. This is achieved by making it the "lastexpandedposition" from the get-go */
+                    if(lastExpandedPosition<0 && c.getInt(2)>0) {
+                        lastExpandedPosition = mMenuHeader.size();
+                    }
+
+
                     colorBlockMeasurables.setGreyMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreyCount())));
                     colorBlockMeasurables.setRedMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getRedCount())));
                     colorBlockMeasurables.setYellowMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getYellowCount())));
@@ -292,6 +301,13 @@ Log.d(TAG,"CCOUNT: " +c.getCount());
         return Math.round((float)metrics.widthPixels*(float).5);
 
     }
+
+    public void expandTheListViewAtPosition(int position) {
+        expListView.expandGroup(position);
+        expListView.setSelectedGroup(position);
+        mMenuHeader.get(position).setExpanded(true);
+        lastExpandedPosition = position;
+    };
 
 
     public int getExpandableAdapterColorBlockBasicWidths(Activity activity, String text){

@@ -24,6 +24,14 @@ public class FillinSentencesSpinner implements Parcelable {
 
     }
 
+    public void setSelectedOption(String selectedOption) {
+        this.selectedOption = selectedOption;
+    }
+
+    public String getSelectedOption() {
+        return selectedOption;
+    }
+
     public boolean isCorrectFirstTry() {
         return correctFirstTry;
     }

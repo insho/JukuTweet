@@ -469,7 +469,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
                 }
                 c.close();
             } else {
-                if(BuildConfig.DEBUG) {Log.d(TAG,"c.getcount was 0!!");}
+                if(BuildConfig.DEBUG) {Log.d(TAG,"getmylistwords c.getcount was 0!!");}
             }
         } catch (SQLiteException e){
             Log.e(TAG,"getmylistwords Sqlite exception: " + e);
@@ -603,7 +603,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
                 "FROM (" +
                 "SELECT [Name]" +
                 ",0 as [Sys] " +
-                "From " +  InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS + " " +
+                "From " +  InternalDB.Tables.TABLE_FAVORITES_LISTS + " " +
                 "UNION " +
                 "SELECT 'Blue' as [Name]" +
                 ", 1 as [Sys] " +
@@ -672,5 +672,109 @@ public class WordOpsHelper implements WordListOperationsInterface {
     }
 
 
+
+    public ArrayList<WordEntry> getTopFiveWordEntries(String topOrBottom
+            ,@Nullable  ArrayList<Integer> idsToExclude
+            ,MyListEntry myListEntry
+            ,ColorThresholds colorThresholds
+            ,int totalCountLimit
+            ,double topbottomThreshold) {
+
+        SQLiteDatabase db = sqlOpener.getReadableDatabase();
+
+        String topBottomSort;
+        if(topOrBottom.equals("Top")) {
+            topBottomSort = "and [ColorSort]>0 ORDER BY [ColorSort] desc, [Percent] desc,[Total] desc ";
+        } else {
+            topBottomSort = "ORDER BY [ColorSort] asc, [Percent] asc,[Total] desc ";
+        }
+
+        ArrayList<WordEntry> wordEntries = new ArrayList<>();
+        try {
+
+            Cursor c = db.rawQuery("SELECT [_id]" +
+                    ",[Kanji]" +
+                    ",[Correct]" +
+                    ",[Total] " +
+                    ",[Percent] " +
+                    "FROM " +
+                    "(" +
+                    "SELECT " +
+                    "[_id]," +
+                    "[Kanji]," +
+                    "[Furigana]," +
+                    "[Definition]," +
+                    "ifnull([Total],0) as [Total] " +
+
+                    ",(CASE WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 1 " +
+                    "WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 0  " +
+                    "WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and (CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getRedThreshold() + "  and CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + ") THEN 2  " +
+                    "WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getYellowThreshold() + " THEN 3 " +
+                    "ELSE 0 END) as [ColorSort] " +
+
+                    ",ifnull([Correct],0)  as [Correct]" +
+                    ",CAST(ifnull([Correct],0)  as float)/[Total] as [Percent] " +
+                    "FROM " +
+                    "(" +
+                    "SELECT [_id]" +
+                    ",[Kanji]" +
+                    ",[Furigana]" +
+                    ",[Definition]  " +
+                    "FROM [Edict] " +
+                    "where [_id] in (" +
+                    "SELECT [_id] " +
+                    "FROM [JFavorites] " +
+                    "WHERE ([Name] = ? and [Sys] = ?)" +
+                    ")" +
+                    ") " +
+                    "NATURAL LEFT JOIN (" +
+                    "SELECT [_id]" +
+                    ",sum([Correct]) as [Correct]" +
+                    ",sum([Total]) as [Total] " +
+                    "from [JScoreboard]  " +
+                    "GROUP BY [_id]" +
+                    ") " +
+                    ") Where [Total] >= 1 " + topBottomSort + " LIMIT " + totalCountLimit,new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+
+
+            if(c.getCount() == 0) {
+                Log.e(TAG,"WordOpsHelper gettopfive c count is 0!");
+                return wordEntries;
+            }
+
+            c.moveToFirst();
+            while (!c.isAfterLast()) {
+
+                if(wordEntries.size()<totalCountLimit
+                        && ((topOrBottom.equals("Bottom") && c.getFloat(4)<=topbottomThreshold) || (topOrBottom.equals("Top") && c.getFloat(4)>0))) {
+
+                    if(idsToExclude != null && !idsToExclude.contains(c.getInt(0))) {
+                        WordEntry wordEntry = new WordEntry();
+                        wordEntry.setId(c.getInt(0));
+                        wordEntry.setKanji(c.getString(1));
+                        wordEntry.setCorrect(c.getInt(2));
+                        wordEntry.setTotal(c.getInt(3));
+                        wordEntries.add(wordEntry);
+                    }
+
+                }
+                c.moveToNext();
+            }
+            c.close();
+
+            //Add dummy word entries if necessary to round out the score
+            while(wordEntries.size()<totalCountLimit) {
+                wordEntries.add(new WordEntry());
+            }
+        } catch (SQLiteException e){
+            Log.e(TAG,"getTopFiveWordEntries Sqlite exception: " + e);
+        } catch (Exception e) {
+            Log.e(TAG,"getTopFiveWordEntries generic exception: " + e);
+        } finally {
+            db.close();
+        }
+
+        return  wordEntries;
+    }
 
 }

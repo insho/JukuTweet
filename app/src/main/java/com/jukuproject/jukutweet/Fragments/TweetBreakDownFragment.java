@@ -522,9 +522,9 @@ public class TweetBreakDownFragment extends Fragment {
 //        }
 //
 //        /**Handle the last stragling remains of the thing*/
-//        if (linearLayout.getChildCount() > 0) {
+//        if (linearLayoutHorizontalLine.getChildCount() > 0) {
 //            if(BuildConfig.DEBUG) {Log.d(TAG, "inserting last line");}
-//            linearlayoutInsert(2, 1); // insert the last line on a new line
+//            insertLineIntoParagraph(2, 1); // insert the last line on a new line
 //        }
 //
 //        mAdapter = new TweetBreakDownAdapter(getContext(),metrics,mDataSet,colorThresholds,activeFavoriteStars);
@@ -566,10 +566,10 @@ public class TweetBreakDownFragment extends Fragment {
 //        if(parseSentenceItem.getKanjiConjugated().equals(System.getProperty("line.separator"))) {
 //            //Log 2 rows, once to input the remaining current layout items,
 //            //and another black row for the seperator
-//            if(lineWidth>0) {
-//                linearlayoutInsert(2, 1);
+//            if(currentLineWidth>0) {
+//                insertLineIntoParagraph(2, 1);
 //            }
-//            linearlayoutInsert(2, 1);
+//            insertLineIntoParagraph(2, 1);
 //
 //        } else if(parseSentenceItem.isKanji()) {
 //
@@ -600,8 +600,8 @@ public class TweetBreakDownFragment extends Fragment {
 //                Log.d(TAG, "FINAL WIDTH = " + width);
 //            }
 //
-//            int widthExtra = (lineWidth + width + displayMarginPadding) - displayWidth;
-//            int maxWidthAllowed = displayWidth - lineWidth - displayMarginPadding;
+//            int widthExtra = (currentLineWidth + width + displayMarginPadding) - displayWidth;
+//            int maxWidthAllowed = displayWidth - currentLineWidth - displayMarginPadding;
 //
 //            if (BuildConfig.DEBUG) {
 //                Log.d(TAG, "widthExtra = " + widthExtra);
@@ -609,7 +609,7 @@ public class TweetBreakDownFragment extends Fragment {
 //            }
 //
 //            if (widthExtra > 0) {
-//                linearlayoutInsert(2, 1);
+//                insertLineIntoParagraph(2, 1);
 //            }
 //
 //            LinearLayout innerLinearLayout3 = new LinearLayout(getContext());
@@ -636,9 +636,9 @@ public class TweetBreakDownFragment extends Fragment {
 //
 //            innerLinearLayout3.addView(textView);
 //            innerLinearLayout3.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-//            linearLayout.addView(innerLinearLayout3);
+//            linearLayoutHorizontalLine.addView(innerLinearLayout3);
 //
-//            lineWidth = lineWidth + width;
+//            currentLineWidth = currentLineWidth + width;
 //
 //
 //        } else {
@@ -669,12 +669,12 @@ public class TweetBreakDownFragment extends Fragment {
 //            if(BuildConfig.DEBUG) {
 //                Log.d(TAG, "FINAL WIDTH = " + width);
 //                Log.d(TAG, "onScreenText content = " + onScreenText);
-//                Log.d(TAG, "current lineWidth = " + lineWidth);
-//                Log.d(TAG, "onScreenText lineWidth = " + width);
+//                Log.d(TAG, "current currentLineWidth = " + currentLineWidth);
+//                Log.d(TAG, "onScreenText currentLineWidth = " + width);
 //            }
 //
-//            int widthExtra = (lineWidth + width + displayMarginPadding) - displayWidth;
-//            int maxWidthAllowed = displayWidth - lineWidth - displayMarginPadding;
+//            int widthExtra = (currentLineWidth + width + displayMarginPadding) - displayWidth;
+//            int maxWidthAllowed = displayWidth - currentLineWidth - displayMarginPadding;
 //
 //            if(BuildConfig.DEBUG) {
 //                Log.d(TAG, "widthExtra = " + widthExtra);
@@ -717,17 +717,17 @@ public class TweetBreakDownFragment extends Fragment {
 //                    textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
 //                    innerLinearLayout3.addView(textView);
 //                    innerLinearLayout3.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-//                    linearLayout.addView(innerLinearLayout3);
+//                    linearLayoutHorizontalLine.addView(innerLinearLayout3);
 //
 //
 //                    /** NEED TO FIX THIS SO IF substringend== substringstart (AND IT'S ALREADY VERY NEAR THE END OF A ROW (OR OVER IT), YOU
 //                     * 1. MAKE A NEW ROW
 //                     * 2. BUT DON'T TRY TO INPUT THE NONEXISTANT FRAGMENT, RESET THE METER AND THROW A NEW LARGER FRAGMENT IN THERE...*/
 //                    if (substringend < substringstart) {
-//                        linearlayoutInsert(2, 0); //DONT LOG A NEW ROW
+//                        insertLineIntoParagraph(2, 0); //DONT LOG A NEW ROW
 //                    } else {
 //
-//                        linearlayoutInsert((lineWidth + width + displayMarginPadding), displayWidth);
+//                        insertLineIntoParagraph((currentLineWidth + width + displayMarginPadding), displayWidth);
 //                    }
 //
 //
@@ -735,7 +735,7 @@ public class TweetBreakDownFragment extends Fragment {
 //                    if(BuildConfig.DEBUG) {Log.d(TAG, "NEW widthExtra: " + widthExtra);}
 //                    substringstart = substringend;
 //
-//                    if ((lineWidth + width + displayMarginPadding) < displayWidth || widthExtra < 0) {
+//                    if ((currentLineWidth + width + displayMarginPadding) < displayWidth || widthExtra < 0) {
 //                        substringend = onScreenText.length();
 //
 //                        if(BuildConfig.DEBUG) {
@@ -763,30 +763,30 @@ public class TweetBreakDownFragment extends Fragment {
 //                        int width_chopped = bounds2.width();
 //                        innerLinearLayout3Remainder.addView(textViewRemainder);
 //                        innerLinearLayout3Remainder.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-//                        linearLayout.addView(innerLinearLayout3Remainder);
+//                        linearLayoutHorizontalLine.addView(innerLinearLayout3Remainder);
 //
-//                        lineWidth = lineWidth + width_chopped;
+//                        currentLineWidth = currentLineWidth + width_chopped;
 //
 //                        if(BuildConfig.DEBUG) {
-//                            Log.d(TAG, "chopped lineWidth: " + lineWidth);
+//                            Log.d(TAG, "chopped currentLineWidth: " + currentLineWidth);
 //                            Log.d(TAG, "chopped width: " + width);
 //                        }
 //
-//                        widthExtra = (lineWidth + displayMarginPadding) - displayWidth;
-//                        maxWidthAllowed = displayWidth - lineWidth - displayMarginPadding;
+//                        widthExtra = (currentLineWidth + displayMarginPadding) - displayWidth;
+//                        maxWidthAllowed = displayWidth - currentLineWidth - displayMarginPadding;
 //
 //
-//                        if (lineWidth == 0 && widthExtra > 0) {  // like if it's the last fragment of a line, starting on a new line. Just print the damn thing (on the new line)
-//                            linearlayoutInsert((lineWidth + (displayWidth + widthExtra) + displayMarginPadding), displayWidth);
-//                        } else if (lineWidth == 0 && widthExtra < 0) {
-//                            linearlayoutInsert((lineWidth + (displayWidth + widthExtra) + displayMarginPadding), displayWidth);
+//                        if (currentLineWidth == 0 && widthExtra > 0) {  // like if it's the last fragment of a line, starting on a new line. Just print the damn thing (on the new line)
+//                            insertLineIntoParagraph((currentLineWidth + (displayWidth + widthExtra) + displayMarginPadding), displayWidth);
+//                        } else if (currentLineWidth == 0 && widthExtra < 0) {
+//                            insertLineIntoParagraph((currentLineWidth + (displayWidth + widthExtra) + displayMarginPadding), displayWidth);
 //                        } else {
-//                            linearlayoutInsert((lineWidth + displayMarginPadding), displayWidth);
+//                            insertLineIntoParagraph((currentLineWidth + displayMarginPadding), displayWidth);
 //                        }
 //
 //                    } else {
 //
-//                        maxWidthAllowed = displayWidth - lineWidth - displayMarginPadding;
+//                        maxWidthAllowed = displayWidth - currentLineWidth - displayMarginPadding;
 //
 //                        if(BuildConfig.DEBUG) {
 //                            Log.d(TAG, "substringend calculation--maxwidthallowed: " + maxWidthAllowed);
@@ -822,11 +822,11 @@ public class TweetBreakDownFragment extends Fragment {
 //                textView_Test.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
 //                innerLinearLayout3.addView(textView_Test);
 //                innerLinearLayout3.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-//                linearLayout.addView(innerLinearLayout3);
-//                lineWidth = lineWidth + width;
-//                linearlayoutInsert((lineWidth + displayMarginPadding), displayWidth);
+//                linearLayoutHorizontalLine.addView(innerLinearLayout3);
+//                currentLineWidth = currentLineWidth + width;
+//                insertLineIntoParagraph((currentLineWidth + displayMarginPadding), displayWidth);
 //
-//                if(BuildConfig.DEBUG) {Log.d(TAG, "new lineWidth = " + lineWidth);}
+//                if(BuildConfig.DEBUG) {Log.d(TAG, "new currentLineWidth = " + currentLineWidth);}
 //
 //            }
 //
@@ -848,7 +848,7 @@ public class TweetBreakDownFragment extends Fragment {
             linewidth = 0;
             if(BuildConfig.DEBUG) {
                 Log.d(TAG, "BIGLAYOUT childcount: " + linearLayoutVerticalMain.getChildCount());
-                Log.d(TAG, "linearlayoutInsert Completed");
+                Log.d(TAG, "insertLineIntoParagraph Completed");
             }
         } else {
             if(BuildConfig.DEBUG){Log.d(TAG, "linearlayoutInset Unnecessary");}

@@ -22,6 +22,7 @@ public class WordEntry implements Parcelable {
     private String color;
     private int startIndex;
     private int endIndex;
+    private String coreKanjiBlock;
     private double quizWeight;
     private boolean isSpinner;
     private FillinSentencesSpinner fillinSentencesSpinner;
@@ -79,12 +80,19 @@ public class WordEntry implements Parcelable {
         this.isSpinner = false;
     }
 
+    public String getCoreKanjiBlock() {
+        return coreKanjiBlock;
+    }
+
+    public void setCoreKanjiBlock(String coreKanjiBlock) {
+        this.coreKanjiBlock = coreKanjiBlock;
+    }
 
     public WordEntry(Integer id
             , String kanji
             , String furigana
             , String definition
-            ,Integer total
+            , Integer total
             , Integer correct
             , String color
             , Integer startIndex

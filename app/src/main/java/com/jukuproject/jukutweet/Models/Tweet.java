@@ -286,12 +286,27 @@ public class Tweet  implements Parcelable {
     // Parcelling part
     public Tweet(Parcel in){
 
-        this.favorited = in.readByte() != 0;
-        this.truncated = in.readByte() != 0;
+
+
+        if(favorited !=null) {
+            this.favorited = in.readByte() != 0;
+        }
+        if(truncated != null) {
+            this.truncated = in.readByte() != 0;
+        }
         this.created_at = in.readString();
         this.id_str = in.readString();
-        this.retweet_count = in.readInt();
-        this.favorite_count  = in.readInt();
+
+        if(retweet_count !=null) {
+            this.retweet_count = in.readInt();
+        }
+
+        if(favorite_count !=null) {
+            this.favorite_count  = in.readInt();
+        }
+
+
+
         this.text = in.readString();
         this.quizWeight = in.readDouble();
         this.itemFavorites = in.readParcelable(ItemFavorites.class.getClassLoader());
@@ -308,13 +323,23 @@ public class Tweet  implements Parcelable {
 
 
 
-
-        dest.writeByte((byte) (this.favorited ? 1 : 0));
-        dest.writeByte((byte) (this.truncated ? 1 : 0));
+        if(favorited !=null) {
+            dest.writeByte((byte) (this.favorited ? 1 : 0));
+        }
+        if(truncated != null) {
+            dest.writeByte((byte) (this.truncated ? 1 : 0));
+        }
         dest.writeString(this.created_at);
         dest.writeString(this.id_str);
-        dest.writeInt(this.retweet_count);
-        dest.writeInt(this.favorite_count);
+
+        if(retweet_count !=null) {
+            dest.writeInt(this.retweet_count);
+        }
+
+        if(favorite_count !=null) {
+            dest.writeInt(this.favorite_count);
+        }
+
         dest.writeString(this.text);
         dest.writeDouble(this.quizWeight);
         dest.writeParcelable(this.itemFavorites,flags);

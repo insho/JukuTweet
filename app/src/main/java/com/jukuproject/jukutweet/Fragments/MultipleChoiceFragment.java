@@ -22,11 +22,11 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Adapters.MultipleChoiceAdapter;
 import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
+import com.jukuproject.jukutweet.Interfaces.QuizFragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MultChoiceResult;
 import com.jukuproject.jukutweet.Models.MyListEntry;
@@ -45,7 +45,7 @@ import java.util.Collections;
 public class MultipleChoiceFragment extends Fragment {
 
     String TAG = "Test-quizmultchoice";
-
+    QuizFragmentInteractionListener mCallback;
     ArrayList<WordEntry> mDataset;
     String mQuizType;
     Integer mQuizSize;
@@ -63,21 +63,11 @@ public class MultipleChoiceFragment extends Fragment {
     int currentTotal = 0; //CURRENT number of questions asked
     int currentCorrect = 0; //CURRENT number of correct answers
     int currentPlusMinus = 0; // CURRENT plusminus of correct answers
-//    int metricsTotal = 0; //Total times user has seen this question (from DB)
-//    int metricsCorrect = 0; //Total correct guesses for this question (from DB)
 
     public View mainView;
 
     public ArrayList<Integer> wronganswerpositions ;
     public Integer previousId;
-
-//    public int PublicrandomKey; // the current question (be it a kanji, furigana or definition) (it was chosen at random from the pool)...
-//    public String PublicrandomQuestion; //
-//    public String PublicrandomFurigana;
-//    public String PublicrandomAnswer;
-//    public int PublicrandomAppearanceCount;
-//    public int PublicrandomCorrectCount;
-//    public int PublicCorrectAnswerInt;
 
     public TextView txtviewhighlight;
     public GridView Publicgrid;
@@ -88,9 +78,6 @@ public class MultipleChoiceFragment extends Fragment {
     Double sliderUpperBound = .50;
     Double sliderLowerBound = .025;
     int sliderCountMax = 30;
-//    int displayWidth = 0;
-//    int displayheight = 0;
-//    private Integer previousPKey = 0;
     int widthofquestionpane = 0;
 
     public MultipleChoiceFragment() {}
@@ -249,7 +236,7 @@ public class MultipleChoiceFragment extends Fragment {
             txtFurigana.setText("");
 
             String totalstring = (currentTotal +1)+ "/" + mQuizSize;
-            String totalscore = currentCorrect + "/" + currentTotal;
+            final String totalscore = currentCorrect + "/" + currentTotal;
             txtTotal.setText(totalstring);
             txtScore.setText(totalscore);
             if(BuildConfig.DEBUG) {Log.d(TAG,"stringPlusMinus: " + stringPlusMinus);}
@@ -518,7 +505,15 @@ public class MultipleChoiceFragment extends Fragment {
                                 wronganswerpositions.clear();
 
                                 if (mQuizSize <= currentTotal) {
-                                    Toast.makeText(getContext(), "QUIZ FINISHED, MOVE TO STATS", Toast.LENGTH_SHORT).show();
+                                    mCallback.showPostQuizStatsMultipleChoice(questionResults
+                                            ,mQuizType
+                                            ,mMyListEntry
+                                    ,false
+                                    ,false
+                                    ,0
+                                    ,currentCorrect
+                                    ,currentTotal);
+
                                 } else {
                                     setUpQuestion();
                                 }
@@ -736,5 +731,15 @@ public class MultipleChoiceFragment extends Fragment {
 //
 //    }
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        try {
+            mCallback = (QuizFragmentInteractionListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()
+                    + " must implement OnHeadlineSelectedListener");
+        }
+    }
 
 }

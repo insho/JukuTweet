@@ -35,6 +35,11 @@ public interface WordListOperationsInterface {
     boolean addMultipleWordsToWordList(MyListEntry myListEntry, String concatenatedWordIds);
     Cursor getWordListColorBlockCursor(ColorThresholds colorThresholds, MyListEntry myListEntry);
     Cursor getWordEntryForWordId(int kanjiId, ColorThresholds colorThresholds);
-
+    ArrayList<WordEntry> getTopFiveWordEntries(String topOrBottom
+            ,@Nullable  ArrayList<Integer> idsToExclude
+            ,MyListEntry myListEntry
+            ,ColorThresholds colorThresholds
+            ,int totalCountLimit
+            ,double topbottomThreshold);
 
 }

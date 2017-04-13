@@ -109,47 +109,47 @@ public class MultipleChoiceAdapter extends ArrayAdapter<WordEntry> {
             Rect bounds = new Rect();
             Paint textPaint = textView_Test.getPaint();
             textPaint.getTextBounds(wordEntry.getQuizAnswer(mQuizType), 0, wordEntry.getQuizAnswer(mQuizType).length(), bounds);
-            int width = bounds.width();
+//            int width = bounds.width();
 
-            if(width>mDisplayWidth) {
-                Log.d(TAG,"width: " + width + ", displaywidth: " + mDisplayWidth);
-                Log.d(TAG,"Q width overrun: " + questionOption);
-                Log.d(TAG,"answer: " + wordEntry.getQuizAnswer(mQuizType));
-
-                int excesslinewidth = width- mDisplayWidth;
-                double excesslinewidthpercentage = (double)excesslinewidth/(double)width;
-                double excesscharacters = (double)questionOption.length()*excesslinewidthpercentage;
-
-                Log.d(TAG,"excesslinewidth: " + excesslinewidth);
-                Log.d(TAG,"excesslinewidthpercentage: " + excesslinewidthpercentage);
-                Log.d(TAG,"excesscharacters: " + excesscharacters);
-
-
-                int buffer = 2;
-                if(questionOption.contains("(") || questionOption.contains(")") || questionOption.contains(",")) {
-                    buffer =4;
-                }
-
-                int maxallowablecharacters = questionOption.length()-(int)excesscharacters-buffer; //2 is the buffer here
-
-                Log.d(TAG,"quizoption length: " + questionOption.length());
-                Log.d(TAG,"excess chars: " + (int)excesscharacters);
-                Log.d(TAG,"wordentry length: " + wordEntry.getQuizAnswer(mQuizType).length());
-                Log.d(TAG,"charbuffer: " + buffer);
-                Log.d(TAG,"Max allowable chars: " + maxallowablecharacters);
-
-                String lastString = questionOption.substring(0,maxallowablecharacters);
-
-                if (lastString.contains(" ")) {
-                    lastString = lastString.substring(0,lastString.lastIndexOf(" "));
-                }
-
-                questionOption =  lastString + "...";
-                if (questionOption.contains(",...")) {
-                    questionOption = questionOption.substring(0,questionOption.lastIndexOf(",...") )+ "...";
-                }
-
-            }
+//            if(width>mDisplayWidth) {
+//                Log.d(TAG,"width: " + width + ", displaywidth: " + mDisplayWidth);
+//                Log.d(TAG,"Q width overrun: " + questionOption);
+//                Log.d(TAG,"answer: " + wordEntry.getQuizAnswer(mQuizType));
+//
+//                int excesslinewidth = width- mDisplayWidth;
+//                double excesslinewidthpercentage = (double)excesslinewidth/(double)width;
+//                double excesscharacters = (double)questionOption.length()*excesslinewidthpercentage;
+//
+//                Log.d(TAG,"excesslinewidth: " + excesslinewidth);
+//                Log.d(TAG,"excesslinewidthpercentage: " + excesslinewidthpercentage);
+//                Log.d(TAG,"excesscharacters: " + excesscharacters);
+//
+//
+//                int buffer = 2;
+//                if(questionOption.contains("(") || questionOption.contains(")") || questionOption.contains(",")) {
+//                    buffer =4;
+//                }
+//
+//                int maxallowablecharacters = questionOption.length()-(int)excesscharacters-buffer; //2 is the buffer here
+//
+//                Log.d(TAG,"questionOption length: " + questionOption.length());
+//                Log.d(TAG,"excess chars: " + (int)excesscharacters);
+//                Log.d(TAG,"wordentry length: " + wordEntry.getQuizAnswer(mQuizType).length());
+//                Log.d(TAG,"charbuffer: " + buffer);
+//                Log.d(TAG,"Max allowable chars: " + maxallowablecharacters);
+//
+//                String lastString = questionOption.substring(0,maxallowablecharacters);
+//
+//                if (lastString.contains(" ")) {
+//                    lastString = lastString.substring(0,lastString.lastIndexOf(" "));
+//                }
+//
+//                questionOption =  lastString + "...";
+//                if (questionOption.contains(",...")) {
+//                    questionOption = questionOption.substring(0,questionOption.lastIndexOf(",...") )+ "...";
+//                }
+//
+//            }
 
 //            Log.d(TAG,"Q OPTION FINAL: " + questionOption);
 
@@ -183,7 +183,7 @@ public class MultipleChoiceAdapter extends ArrayAdapter<WordEntry> {
         }
 //        String regex = "\\(([\\d]+)\\)";
 //        sentence = sentence.replace(regex,"; ");
-        Log.e(TAG,"SUPERSENTENCE: " + sentence);
+//        Log.e(TAG,"SUPERSENTENCE: " + sentence);
           /* Get the width on the screen of the prospective item. Then truncate it if it's over the limit. */
         TextView textView_Test = new TextView(getContext());
         textView_Test.setLayoutParams(new ViewGroup.LayoutParams(

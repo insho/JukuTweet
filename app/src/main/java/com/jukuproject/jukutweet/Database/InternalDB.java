@@ -76,8 +76,10 @@ public class InternalDB extends SQLiteOpenHelper
         public static final String TSAVEDTWEET_COL4 = "Text";
 
         public static final String TSAVEDTWEETITEMS_COL2 = "Edict_id"; //Edict Primary Key!
-        public static final String TSAVEDTWEETITEMS_COL3 = "StartIndex"; //Edict Primary Key!
-        public static final String TSAVEDTWEETITEMS_COL4 = "EndIndex"; //Edict Primary Key!
+        public static final String TSAVEDTWEETITEMS_COL3 = "StartIndex";
+        public static final String TSAVEDTWEETITEMS_COL4 = "EndIndex";
+        public static final String TSAVEDTWEETITEMS_COL5 = "CoreKanjiBlock";
+
 
         public static final String TSAVEDTWEETURLS_COL1 = "Url";
         public static final String TSAVEDTWEETURLS_COL2 = "StartIndex";
@@ -247,6 +249,7 @@ public class InternalDB extends SQLiteOpenHelper
                         Columns.COL_ID, //_id (unique)
                         Columns.TSAVEDTWEET_COL2, //STweet_id (JSavedTweet _id)
                         Columns.TSAVEDTWEETITEMS_COL2, // Edict_id
+                        Columns.TSAVEDTWEETITEMS_COL5, // CoreKanjiBlock
                         Columns.TSAVEDTWEETITEMS_COL3, //STart index
                         Columns.TSAVEDTWEETITEMS_COL4); //End INdex
 
@@ -360,6 +363,10 @@ public class InternalDB extends SQLiteOpenHelper
 
         return new WordLoader(hiragana,katakana,symbols,romajiMap,verbEndingMap,verbEndingsRoot,verbEndingsConjugation);
     }
+
+
+
+
 
 }
 

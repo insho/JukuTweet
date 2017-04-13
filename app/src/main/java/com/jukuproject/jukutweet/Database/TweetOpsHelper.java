@@ -692,6 +692,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                     ContentValues values = new ContentValues();
                     values.put(InternalDB.Columns.TSAVEDTWEET_COL2, tweet_id);
                     values.put(InternalDB.Columns.TSAVEDTWEETITEMS_COL2, wordEntries.get(i).getId());
+                    values.put(InternalDB.Columns.TSAVEDTWEETITEMS_COL5, wordEntries.get(i).getCoreKanjiBlock());
                     values.put(InternalDB.Columns.TSAVEDTWEETITEMS_COL3, wordEntries.get(i).getStartIndex());
                     values.put(InternalDB.Columns.TSAVEDTWEETITEMS_COL4, wordEntries.get(i).getEndIndex());
                     resultCode = (int)db.insert(InternalDB.Tables.TABLE_SAVED_TWEET_KANJI, null, values);

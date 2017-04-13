@@ -3,6 +3,7 @@ package com.jukuproject.jukutweet;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
@@ -141,6 +142,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                             break;
                         case 2:
                             showFab(true,"addMyList");
+                            break;
                         default:
                             showFab(false);
                             break;
@@ -868,7 +870,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 }
             case 2:
                 try {
-                    return ((Tab3Container)findFragmentByPosition(2)).isTopFragmentShowing();
+                    return  ((Tab3Container)findFragmentByPosition(2)).isTopFragmentShowing();
+
                 } catch(NullPointerException e) {
                     return false;
                 }
@@ -1058,6 +1061,11 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             }
 
         } else if (tabNumber == 2) {
+
+
+
+
+
             //Its a mylist fragment
             ArrayList<WordEntry> dataset = InternalDB.getWordInterfaceInstance(getBaseContext())
                     .getWordsFromAWordList(listEntry
@@ -1068,20 +1076,39 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
             if(dataset.size()>0) {
                 double totalweight = assignWordWeightsAndGetTotalWeight(dataset);
-                if (findFragmentByPosition(tabNumber) != null
-                        && findFragmentByPosition(tabNumber) instanceof Tab3Container) {
 
-                    MultipleChoiceFragment multipleChoiceFragment = MultipleChoiceFragment.newInstance(dataset
-                            , quizType
-                            , timer
-                            , Integer.parseInt(quizSize)
-                            , totalweight
-                            , "Word"
-                            , selectedColorString
-                            , listEntry);
-                    ((BaseContainerFragment) findFragmentByPosition(tabNumber)).replaceFragment(multipleChoiceFragment, true, "multiplechoice");
 
-                }
+                Intent intent = new Intent(getBaseContext(), QuizActivity.class);
+
+                intent.putExtra("menuOption","Multiple Choice"); //The type of quiz that was chosen inthe menu
+                intent.putExtra("quizType",quizType);
+                intent.putExtra("tabNumber", 2);
+                intent.putExtra("myListEntry",listEntry);
+                intent.putExtra("quizSize",quizSize);
+                intent.putExtra("colorString",selectedColorString);
+                intent.putExtra("timer",quizTimer); //Timer can be "none" so passing it on raw as string
+                intent.putExtra("totalweight",totalweight);
+                intent.putParcelableArrayListExtra("dataset",dataset);
+//                int mylistposition = mIntent.getIntExtra("mylistposition", 0);
+
+                Log.d(TAG,"a TIMER: " + quizTimer);
+                startActivity(intent);
+
+//
+//                if (findFragmentByPosition(tabNumber) != null
+//                        && findFragmentByPosition(tabNumber) instanceof Tab3Container) {
+//
+//                    MultipleChoiceFragment multipleChoiceFragment = MultipleChoiceFragment.newInstance(dataset
+//                            , quizType
+//                            , timer
+//                            , Integer.parseInt(quizSize)
+//                            , totalweight
+//                            , "Word"
+//                            , selectedColorString
+//                            , listEntry);
+//                    ((BaseContainerFragment) findFragmentByPosition(tabNumber)).replaceFragment(multipleChoiceFragment, true, "multiplechoice");
+//
+//                }
             } else {
                 Toast.makeText(this, "No words found to quiz on", Toast.LENGTH_SHORT).show();
             }
@@ -1095,7 +1122,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             , String quizSize
             ,String selectedColorString) {
 
-        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getApplicationContext()).getColorThresholds();
+//        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getApplicationContext()).getColorThresholds();
 
         if (tabNumber == 1) {
 
@@ -1108,44 +1135,58 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                             , selectedColorString
                             , Integer.parseInt(quizSize));
 
-            double totalweight = assignTweetWeightsAndGetTotalWeight(dataset);
+            if(dataset.size()>0) {
+                double totalweight = assignTweetWeightsAndGetTotalWeight(dataset);
 
-            if (findFragmentByPosition(tabNumber) != null
-                    && findFragmentByPosition(tabNumber) instanceof Tab2Container) {
+                if (findFragmentByPosition(tabNumber) != null
+                        && findFragmentByPosition(tabNumber) instanceof Tab2Container) {
+                    FillInTheBlankFragment fillInTheBlankFragment = FillInTheBlankFragment.newInstance(dataset
+                            , Integer.parseInt(quizSize)
+                            , totalweight
+                            , selectedColorString
+                            , myListEntry);
+                    ((BaseContainerFragment) findFragmentByPosition(tabNumber)).replaceFragment(fillInTheBlankFragment, true, "fillintheblanks");
 
+                }
 
-                FillInTheBlankFragment fillInTheBlankFragment = FillInTheBlankFragment.newInstance(dataset
-                        , Integer.parseInt(quizSize)
-                        , totalweight
-                        , selectedColorString
-                        , myListEntry);
-                ((BaseContainerFragment) findFragmentByPosition(tabNumber)).replaceFragment(fillInTheBlankFragment, true, "fillintheblanks");
-
+            } else {
+                Toast.makeText(this, "No words found to quiz on", Toast.LENGTH_SHORT).show();
             }
         } else if (tabNumber == 2) {
 
             //The request is coming from the saved words fragment
+//            ArrayList<Tweet> dataset  = new ArrayList<>();
            ArrayList<Tweet> dataset = InternalDB.getQuizInterfaceInstance(getBaseContext())
                     .getFillintheBlanksTweetsForAWordList(myListEntry
                             , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
                             , selectedColorString
                             , Integer.parseInt(quizSize));
+//            InternalDB.getQuizInterfaceInstance(getBaseContext())
+//                    .superTest(myListEntry
+//                            , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
+//                            , selectedColorString
+//                            , Integer.parseInt(quizSize));
+
+            if(dataset.size()>0) {
+                double totalweight = assignTweetWeightsAndGetTotalWeight(dataset);
+
+                if (findFragmentByPosition(tabNumber) != null
+                        && findFragmentByPosition(tabNumber) instanceof Tab3Container) {
 
 
-            double totalweight = assignTweetWeightsAndGetTotalWeight(dataset);
+                    FillInTheBlankFragment fillInTheBlankFragment = FillInTheBlankFragment.newInstance(dataset
+                            , Integer.parseInt(quizSize)
+                            , totalweight
+                            , selectedColorString
+                            , myListEntry);
+                    ((BaseContainerFragment) findFragmentByPosition(tabNumber)).replaceFragment(fillInTheBlankFragment, true, "fillintheblanks");
 
-            if (findFragmentByPosition(tabNumber) != null
-                    && findFragmentByPosition(tabNumber) instanceof Tab3Container) {
-
-
-                FillInTheBlankFragment fillInTheBlankFragment = FillInTheBlankFragment.newInstance(dataset
-                        , Integer.parseInt(quizSize)
-                        , totalweight
-                        , selectedColorString
-                        , myListEntry);
-                ((BaseContainerFragment) findFragmentByPosition(tabNumber)).replaceFragment(fillInTheBlankFragment, true, "fillintheblanks");
-
+                }
+            } else {
+                Toast.makeText(this, "No words found to quiz on", Toast.LENGTH_SHORT).show();
             }
+
+
         }
 
     }

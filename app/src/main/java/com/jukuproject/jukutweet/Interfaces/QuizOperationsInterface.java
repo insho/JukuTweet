@@ -46,4 +46,9 @@ public interface QuizOperationsInterface {
     ArrayList<Integer> getIdsForWordList(MyListEntry myListEntry);
     boolean addWordScoreToScoreBoard(int wordId, int total, int correct);
 
+
+//    void superTest(MyListEntry myListEntry
+//            , ColorThresholds colorThresholds
+//            , String colorString
+//            , @Nullable Integer resultLimit);
 }

@@ -53,8 +53,6 @@ public class MyListFragment  extends Fragment{
     private int lastExpandedPosition = -1;
     private SharedPrefManager sharedPrefManager;
 
-
-
     public static MyListFragment newInstance(Bundle bundle) {
         MyListFragment fragment = new MyListFragment();
         return fragment;
@@ -81,7 +79,6 @@ public class MyListFragment  extends Fragment{
             public boolean onGroupClick(ExpandableListView parent, View v,
                                         int groupPosition, long id) {
 
-
                 //If the list being clicked on is empty, show (or hide) the "(empty)" header label
                 if(mMenuHeader.get(groupPosition).getColorBlockMeasurables().getTotalCount() == 0) {
                     TextView lblListHeaderCount = (TextView) v.findViewById(R.id.lblListHeaderCount);
@@ -97,10 +94,8 @@ public class MyListFragment  extends Fragment{
                         expListView.collapseGroup(lastExpandedPosition);
                     }
 
-                    expListView.expandGroup(groupPosition);
-                    expListView.setSelectedGroup(groupPosition);
-                    mMenuHeader.get(groupPosition).setExpanded(true);
-                    lastExpandedPosition = groupPosition;
+                    expandTheListViewAtPosition(groupPosition);
+
                 }  else {
                     expListView.collapseGroup(groupPosition);
                     mMenuHeader.get(groupPosition).setExpanded(false);
@@ -108,21 +103,6 @@ public class MyListFragment  extends Fragment{
                 return true;   //"True" makes it impossible to collapse the list
             }
         });
-
-//        expListView.setOnGroupExpandListener(new ExpandableListView.OnGroupExpandListener() {
-//
-//            @Override
-//            public void onGroupExpand(int groupPosition) {
-//
-//                if (lastExpandedPosition != -1 && groupPosition != lastExpandedPosition) {
-//                    expListView.collapseGroup(lastExpandedPosition);
-//                    lastExpandedPosition = groupPosition;
-//                }
-//
-//                int idx = expListView.getFirstVisiblePosition() + expListView.getFirstVisiblePosition() * groupPosition;
-//                expListView.setSelectionFromTop(idx, idx);
-//            }
-//        });
 
         expListView.setOnGroupExpandListener(new ExpandableListView.OnGroupExpandListener() {
 
@@ -166,6 +146,8 @@ public class MyListFragment  extends Fragment{
                             QuizMenuDialog.newInstance("multiplechoice",2,mMenuHeader.get(groupPosition).getMyListEntry(),mMenuHeader.get(groupPosition).getColorBlockMeasurables(),getdimenscore()).show(getActivity().getSupportFragmentManager(),"dialogQuizMenu");
                         }
 
+
+
                         break;
 
                     case "Fill in the Blanks":
@@ -194,10 +176,23 @@ public class MyListFragment  extends Fragment{
 
         expListView.setGroupIndicator(null);
 
+
+        //Expand the last expanded position (or expand first availalbe non-empty list)
+        if(lastExpandedPosition >=0) {
+            expandTheListViewAtPosition(lastExpandedPosition);
+        }
+
+
         setRetainInstance(true);
         return v;
     }
 
+    public void expandTheListViewAtPosition(int position) {
+        expListView.expandGroup(position);
+        expListView.setSelectedGroup(position);
+        mMenuHeader.get(position).setExpanded(true);
+        lastExpandedPosition = position;
+    };
 
     public void prepareListData() {
         mMenuHeader = new ArrayList<>();
@@ -237,6 +232,12 @@ public class MyListFragment  extends Fragment{
                     colorBlockMeasurables.setGreenCount(c.getInt(6));
                     colorBlockMeasurables.setEmptyCount(0);
 
+                      /* Set the first available non-empty list to be automatically expanded when
+                      fragment is created. This is achieved by making it the "lastexpandedposition" from the get-go */
+                    if(lastExpandedPosition<0 && c.getInt(2)>0) {
+                        lastExpandedPosition = mMenuHeader.size();
+                    }
+
                     colorBlockMeasurables.setGreyMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreyCount())));
                     colorBlockMeasurables.setRedMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getRedCount())));
                     colorBlockMeasurables.setYellowMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getYellowCount())));
@@ -244,6 +245,7 @@ public class MyListFragment  extends Fragment{
                     colorBlockMeasurables.setEmptyMinWidth(0);
                     menuHeader.setColorBlockMeasurables(colorBlockMeasurables);
                     mMenuHeader.add(menuHeader);
+
                 }
 
 
