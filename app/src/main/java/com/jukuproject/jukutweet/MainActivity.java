@@ -36,9 +36,7 @@ import com.jukuproject.jukutweet.Dialogs.AddUserCheckDialog;
 import com.jukuproject.jukutweet.Dialogs.AddUserDialog;
 import com.jukuproject.jukutweet.Dialogs.EditMyListDialog;
 import com.jukuproject.jukutweet.Dialogs.RemoveUserDialog;
-import com.jukuproject.jukutweet.Fragments.FillInTheBlankFragment;
 import com.jukuproject.jukutweet.Fragments.FlashCardsFragment;
-import com.jukuproject.jukutweet.Fragments.MultipleChoiceFragment;
 import com.jukuproject.jukutweet.Fragments.MyListBrowseFragment;
 import com.jukuproject.jukutweet.Fragments.SavedTweetsBrowseFragment;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
@@ -107,6 +105,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         if (sharedPref != null) {
             PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         }
+
+        fragmentWasChanged = getIntent().getBooleanExtra("fragmentWasChanged",false);
 
         // Create the adapter that will return a fragment for each of the primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(),new String[]{"Users","Saved Tweets","My Lists"});
@@ -1013,12 +1013,12 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
     }
 
-    public void showMultipleChoiceFragment(int tabNumber
+    public void goToQuizActivityMultipleChoice(int tabNumber
             , MyListEntry listEntry
             , String quizType
             , String quizSize
             , String quizTimer
-            ,String selectedColorString) {
+            , String selectedColorString) {
 
         Integer timer = -1;
         if (!quizTimer.equals("None")) {
@@ -1027,52 +1027,31 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
         ColorThresholds colorThresholds = SharedPrefManager.getInstance(getApplicationContext()).getColorThresholds();
 
+        ArrayList<WordEntry> dataset = new ArrayList<>();
+        String dataType = "";
         if (tabNumber == 1) {
             //Its a mylist fragment
 
-
-
-            ArrayList<WordEntry> dataset = InternalDB.getTweetInterfaceInstance(getBaseContext())
+            dataset = InternalDB.getTweetInterfaceInstance(getBaseContext())
                     .getWordsFromATweetList(listEntry
                             , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
                             , selectedColorString
                             , null
                             , Integer.parseInt(quizSize));
-
-            if(dataset.size()>0) {
-
-                double totalweight = assignWordWeightsAndGetTotalWeight(dataset);
-                if (findFragmentByPosition(tabNumber) != null
-                        && findFragmentByPosition(tabNumber) instanceof Tab2Container) {
-
-                    MultipleChoiceFragment multipleChoiceFragment = MultipleChoiceFragment.newInstance(dataset
-                            , quizType
-                            , timer
-                            , Integer.parseInt(quizSize)
-                            , totalweight
-                            , "Tweet"
-                            , selectedColorString
-                            , listEntry);
-                    ((BaseContainerFragment) findFragmentByPosition(tabNumber)).replaceFragment(multipleChoiceFragment, true, "multiplechoice");
-                }
-
-            } else {
-                Toast.makeText(this, "No words found to quiz on", Toast.LENGTH_SHORT).show();
-            }
+            dataType = "Tweet";
 
         } else if (tabNumber == 2) {
 
 
-
-
-
             //Its a mylist fragment
-            ArrayList<WordEntry> dataset = InternalDB.getWordInterfaceInstance(getBaseContext())
+            dataset = InternalDB.getWordInterfaceInstance(getBaseContext())
                     .getWordsFromAWordList(listEntry
                             , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
                             , selectedColorString
                             , null
                             , Integer.parseInt(quizSize));
+            dataType = "Word";
+        }
 
             if(dataset.size()>0) {
                 double totalweight = assignWordWeightsAndGetTotalWeight(dataset);
@@ -1089,31 +1068,18 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 intent.putExtra("timer",quizTimer); //Timer can be "none" so passing it on raw as string
                 intent.putExtra("totalweight",totalweight);
                 intent.putParcelableArrayListExtra("dataset",dataset);
+                intent.putExtra("dataType",dataType);
 //                int mylistposition = mIntent.getIntExtra("mylistposition", 0);
+
+                showFab(false);
 
                 Log.d(TAG,"a TIMER: " + quizTimer);
                 startActivity(intent);
-
-//
-//                if (findFragmentByPosition(tabNumber) != null
-//                        && findFragmentByPosition(tabNumber) instanceof Tab3Container) {
-//
-//                    MultipleChoiceFragment multipleChoiceFragment = MultipleChoiceFragment.newInstance(dataset
-//                            , quizType
-//                            , timer
-//                            , Integer.parseInt(quizSize)
-//                            , totalweight
-//                            , "Word"
-//                            , selectedColorString
-//                            , listEntry);
-//                    ((BaseContainerFragment) findFragmentByPosition(tabNumber)).replaceFragment(multipleChoiceFragment, true, "multiplechoice");
-//
-//                }
-            } else {
+          } else {
                 Toast.makeText(this, "No words found to quiz on", Toast.LENGTH_SHORT).show();
             }
 
-        }
+
 
     }
 
@@ -1123,70 +1089,70 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             ,String selectedColorString) {
 
 //        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getApplicationContext()).getColorThresholds();
+        ArrayList<Tweet> dataset = new ArrayList<>();
+        String dataType = "";
 
         if (tabNumber == 1) {
 
-
             //The request is coming from the saved tweets fragment
-            //The request is coming from the saved words fragment
-            ArrayList<Tweet> dataset = InternalDB.getQuizInterfaceInstance(getBaseContext())
+            dataset = InternalDB.getQuizInterfaceInstance(getBaseContext())
                     .getFillintheBlanksTweetsForATweetList(myListEntry
                             , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
                             , selectedColorString
                             , Integer.parseInt(quizSize));
 
-            if(dataset.size()>0) {
-                double totalweight = assignTweetWeightsAndGetTotalWeight(dataset);
-
-                if (findFragmentByPosition(tabNumber) != null
-                        && findFragmentByPosition(tabNumber) instanceof Tab2Container) {
-                    FillInTheBlankFragment fillInTheBlankFragment = FillInTheBlankFragment.newInstance(dataset
-                            , Integer.parseInt(quizSize)
-                            , totalweight
-                            , selectedColorString
-                            , myListEntry);
-                    ((BaseContainerFragment) findFragmentByPosition(tabNumber)).replaceFragment(fillInTheBlankFragment, true, "fillintheblanks");
-
-                }
-
-            } else {
-                Toast.makeText(this, "No words found to quiz on", Toast.LENGTH_SHORT).show();
-            }
+            dataType = "Tweet";
         } else if (tabNumber == 2) {
 
             //The request is coming from the saved words fragment
-//            ArrayList<Tweet> dataset  = new ArrayList<>();
-           ArrayList<Tweet> dataset = InternalDB.getQuizInterfaceInstance(getBaseContext())
+           dataset = InternalDB.getQuizInterfaceInstance(getBaseContext())
                     .getFillintheBlanksTweetsForAWordList(myListEntry
                             , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
                             , selectedColorString
                             , Integer.parseInt(quizSize));
-//            InternalDB.getQuizInterfaceInstance(getBaseContext())
-//                    .superTest(myListEntry
-//                            , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
-//                            , selectedColorString
-//                            , Integer.parseInt(quizSize));
-
-            if(dataset.size()>0) {
-                double totalweight = assignTweetWeightsAndGetTotalWeight(dataset);
-
-                if (findFragmentByPosition(tabNumber) != null
-                        && findFragmentByPosition(tabNumber) instanceof Tab3Container) {
 
 
-                    FillInTheBlankFragment fillInTheBlankFragment = FillInTheBlankFragment.newInstance(dataset
-                            , Integer.parseInt(quizSize)
-                            , totalweight
-                            , selectedColorString
-                            , myListEntry);
-                    ((BaseContainerFragment) findFragmentByPosition(tabNumber)).replaceFragment(fillInTheBlankFragment, true, "fillintheblanks");
+            dataType = "Word";
 
-                }
-            } else {
-                Toast.makeText(this, "No words found to quiz on", Toast.LENGTH_SHORT).show();
-            }
+        }
+
+        if(dataset.size()>0) {
+            double totalweight = assignTweetWeightsAndGetTotalWeight(dataset);
+
+//            if (findFragmentByPosition(tabNumber) != null
+//                    && findFragmentByPosition(tabNumber) instanceof Tab3Container) {
+//
+//
+//                FillInTheBlankFragment fillInTheBlankFragment = FillInTheBlankFragment.newInstance(dataset
+//                        , Integer.parseInt(quizSize)
+//                        , totalweight
+//                        , selectedColorString
+//                        , myListEntry);
+//                ((BaseContainerFragment) findFragmentByPosition(tabNumber)).replaceFragment(fillInTheBlankFragment, true, "fillintheblanks");
+//
+//            }
 
 
+            Intent intent = new Intent(getBaseContext(), QuizActivity.class);
+
+            intent.putExtra("menuOption","Fill in the Blanks"); //The type of quiz that was chosen inthe menu
+            intent.putExtra("tabNumber", tabNumber);
+            intent.putExtra("myListEntry",myListEntry);
+            intent.putExtra("quizSize",quizSize);
+            intent.putExtra("colorString",selectedColorString);
+            intent.putExtra("totalweight",totalweight);
+            Log.d(TAG,"dataset isspinner: " + dataset.get(0).getWordEntries().get(1).getKanji() + ", spinner: "
+                    + dataset.get(0).getWordEntries().get(1).isSpinner());
+            intent.putParcelableArrayListExtra("dataset",dataset);
+            intent.putExtra("dataType",dataType);
+//                int mylistposition = mIntent.getIntExtra("mylistposition", 0);
+
+            showFab(false);
+
+            startActivity(intent);
+
+        } else {
+            Toast.makeText(this, "No words found to quiz on", Toast.LENGTH_SHORT).show();
         }
 
     }

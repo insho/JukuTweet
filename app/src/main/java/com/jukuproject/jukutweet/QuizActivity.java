@@ -1,17 +1,24 @@
 package com.jukuproject.jukutweet;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.PagerTitleStrip;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Database.ExternalDB;
@@ -20,6 +27,7 @@ import com.jukuproject.jukutweet.Fragments.StatsFragmentProgress;
 import com.jukuproject.jukutweet.Interfaces.QuizFragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.MultChoiceResult;
 import com.jukuproject.jukutweet.Models.MyListEntry;
+import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.TabContainers.QuizTab1Container;
 import com.jukuproject.jukutweet.TabContainers.QuizTab2Container;
 import com.jukuproject.jukutweet.TabContainers.Tab1Container;
@@ -84,6 +92,13 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
         mTitleStrip = (PagerTitleStrip) findViewById(R.id.pager_title_strip);
         mTitleStrip.setVisibility(View.GONE);
 
+        // Set the title
+       try {
+            MyListEntry myListEntry = mIntent.getParcelableExtra("myListEntry");
+            showActionBarBackButton(true,myListEntry.getListName());
+        } catch (Exception e) {
+            showActionBarBackButton(true,"");
+        }
 
         mViewPager.setAdapter(mQuizSectionsPagerAdapter);
         mViewPager.setOffscreenPageLimit(2);
@@ -146,7 +161,7 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
 //        switch (menuOption) {
 //            case "Multiple Choice":
 //                Log.d(TAG,"x TIMER: " + timer);
-////                showMultipleChoiceFragment(tabNumber,myListEntry,quizType,quizSize,timer,selectedColorString);
+////                goToQuizActivityMultipleChoice(tabNumber,myListEntry,quizType,quizSize,timer,selectedColorString);
 //                break;
 //            case "Fill in the Blanks":
 ////                showFillintheBlanksFragment(tabNumber,myListEntry,quizSize,selectedColorString);
@@ -158,13 +173,94 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
 
 
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+
+    }
+
     /**
      * If the top bucket is visible after popping the fragment in the backstack, use {@link #updateTabs(String[])} to
      * include the mylist bucket and show the main page title strip items. Basically reset everything
      */
     @Override
     public void onBackPressed() {
-        Toast.makeText(this, "Show go back to main dialog", Toast.LENGTH_SHORT).show();
+
+        /*Check to see if current 1st tab fragment is the stats fragment (and not  quiz). If it is
+         * just go straight back to main menu
+         * If it is not a stats fragment, it must be a quiz, so show the "Are you sure" dialog.
+         */
+        if(findFragmentByPosition(0) != null
+                && findFragmentByPosition(0) instanceof QuizTab1Container
+                && ((QuizTab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("statsFragmentProgress") != null
+                && ((QuizTab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("statsFragmentProgress").isVisible()) {
+
+            Intent intent = new Intent(getBaseContext(), MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            intent.putExtra("fragmentWasChanged", true);
+            startActivity(intent);
+            finish();
+        } else {
+
+            //TODO -- timers...
+//            if(timer>0 && coundDownTimer != null) {
+//                coundDownTimer.cancel();
+//            }
+
+            final  AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            final AlertDialog dialog;
+            LinearLayout layout = new LinearLayout(this);
+            layout.setOrientation(LinearLayout.VERTICAL);
+            TextView text = new TextView(this);
+            text.setText("Exit Quiz?");
+            text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+            text.setTextColor(ContextCompat.getColor(getBaseContext(), android.R.color.black));
+            layout.addView(text);
+
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+
+
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+
+                    Intent intent = new Intent(getBaseContext(), MainActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    intent.putExtra("fragmentWasChanged", true);
+                    startActivity(intent);
+                    finish();
+                }
+            });
+
+
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+            builder.setView(layout);
+            dialog = builder.create();
+            dialog.show();
+            dialog.setCanceledOnTouchOutside(true);
+
+//            dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+//                @Override
+//                public void onDismiss(DialogInterface dialog) {
+//                    if (timer > 0 && coundDownTimer != null) {
+//                        setUpTimer((int) millstogo / 1000);
+//                    }
+//                }
+//            });
+
+        }
+        
     }
 
 
@@ -285,7 +381,7 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
     }
 
 //
-//    public void showMultipleChoiceFragment(int tabNumber
+//    public void goToQuizActivityMultipleChoice(int tabNumber
 //            , MyListEntry listEntry
 //            , String quizType
 //            , String quizSize
@@ -563,6 +659,12 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
                 //TODO kick user out to main activity
             }
 
+    }
+
+    public void showPostQuizStatsFillintheBlanks(ArrayList<Tweet> dataset
+            , MyListEntry myListEntry
+            , int total) {
+        Toast.makeText(this, "SHOW POST QUIZ STATS", Toast.LENGTH_SHORT).show();
     }
 
     @Override

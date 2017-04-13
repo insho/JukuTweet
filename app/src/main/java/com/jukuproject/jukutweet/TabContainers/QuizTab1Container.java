@@ -2,6 +2,7 @@ package com.jukuproject.jukutweet.TabContainers;
 
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,7 +40,7 @@ public class QuizTab1Container extends BaseContainerFragment {
     }
 
     public static QuizTab1Container newFillintheBlanksInstance(ArrayList<Tweet> tweets
-            , Integer quizSize
+            , String quizSize
             , double totalWeight
             , String colorString
             , MyListEntry myListEntry
@@ -49,7 +50,7 @@ public class QuizTab1Container extends BaseContainerFragment {
         Bundle args = new Bundle();
         args.putString("mQuiz","FillintheBlanks");
         args.putParcelableArrayList("tweets", tweets);
-        args.putInt("quizSize",quizSize);
+        args.putString("quizSize",quizSize);
         args.putDouble("totalWeight",totalWeight);
         args.putString("colorString",colorString);
         args.putParcelable("myListEntry",myListEntry);
@@ -116,10 +117,14 @@ public class QuizTab1Container extends BaseContainerFragment {
                 break;
             case "FillintheBlanks":
 
+
                 ArrayList<Tweet> tweets = getArguments().getParcelableArrayList("tweets");
 
+                Log.d("TEST","dataset tab1container isspinner: " + tweets.get(0).getWordEntries().get(1).getKanji() + ", spinner: "
+                        + tweets.get(0).getWordEntries().get(1).isSpinner());
+
                 FillInTheBlankFragment fillInTheBlankFragment = FillInTheBlankFragment.newInstance(tweets
-                        , getArguments().getInt("quizSize")
+                        , getArguments().getString("quizSize")
                         , getArguments().getDouble("totalWeight")
                         , getArguments().getString("colorString")
                         ,  (MyListEntry)getArguments().getParcelable("myListEntry"));

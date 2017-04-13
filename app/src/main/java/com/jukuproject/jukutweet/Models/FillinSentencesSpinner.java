@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Created by JClassic on 4/4/2017.
@@ -64,6 +65,14 @@ public class FillinSentencesSpinner implements Parcelable {
         this.hasBeenAnswered = hasBeenAnswered;
     }
 
+    public void resetSpinnerInformation() {
+        this.isCorrect = false;
+        this.hasBeenAnswered = false;
+        this.correctFirstTry = true;
+        if(this.options != null) {
+            Collections.shuffle(options);
+        }
+    }
 
     //Parcel stuff
 

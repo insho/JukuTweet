@@ -29,12 +29,12 @@ public interface DialogInteractionListener {
             , String frontValue
             , String backValue
             , String selectedColorString);
-    void showMultipleChoiceFragment(int tabNumber
+    void goToQuizActivityMultipleChoice(int tabNumber
             , MyListEntry listEntry
             , String quizType
             , String quizSize
             , String quizTimer
-            ,String selectedColorString);
+            , String selectedColorString);
 
     void showFillintheBlanksFragment(int tabNumber
             , MyListEntry listEntry

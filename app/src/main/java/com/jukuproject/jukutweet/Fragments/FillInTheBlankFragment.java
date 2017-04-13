@@ -1,5 +1,6 @@
 package com.jukuproject.jukutweet.Fragments;
 
+import android.content.Context;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Bundle;
@@ -25,8 +26,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jukuproject.jukutweet.BuildConfig;
+import com.jukuproject.jukutweet.Database.InternalDB;
+import com.jukuproject.jukutweet.Interfaces.QuizFragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.FillinSentencesSpinner;
 import com.jukuproject.jukutweet.Models.MyListEntry;
+import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
@@ -44,9 +48,9 @@ public class FillInTheBlankFragment extends Fragment  {
     String TAG = "TEST-fillinblank";
 
     int currentTotal = 0; //CURRENT number of questions asked
-    int currentCorrect = 0; //CURRENT number of correct answers
     int currentDataSetindex = 0; //Current position within dataset (reset to 0 when shuffling)
 
+    QuizFragmentInteractionListener mCallback;
     ArrayList<Tweet> mDataset;
     Integer mQuizSize;
     double mTotalWeight;
@@ -62,10 +66,12 @@ public class FillInTheBlankFragment extends Fragment  {
     LinearLayout linearLayoutVerticalParagraph;  //This is the main linear layout, that we will fill row by row with horizontal linear layouts, which are     // in turn filled with vertical layouts (with furigana on top and japanese on bottom)
     LinearLayout linearLayoutHorizontalLine; //one of these layouts for each line in the vertical paragraph
 
+    TextView txtQuestionNumber;
+
     public FillInTheBlankFragment() {}
 
     public static FillInTheBlankFragment newInstance(ArrayList<Tweet> tweets
-            , Integer quizSize
+            , String quizSize
             , double totalWeight
             , String colorString
             , MyListEntry myListEntry
@@ -74,7 +80,7 @@ public class FillInTheBlankFragment extends Fragment  {
         FillInTheBlankFragment fragment = new FillInTheBlankFragment();
         Bundle args = new Bundle();
         args.putParcelableArrayList("tweets", tweets);
-        args.putInt("quizSize",quizSize);
+        args.putString("quizSize",quizSize);
         args.putDouble("totalWeight",totalWeight);
         args.putString("colorString",colorString);
         args.putParcelable("myListEntry",myListEntry);
@@ -93,10 +99,14 @@ public class FillInTheBlankFragment extends Fragment  {
 
         //Set input global data
         mDataset = getArguments().getParcelableArrayList("tweets");
-        mQuizSize = getArguments().getInt("quizSize");
+        mQuizSize = Integer.parseInt(getArguments().getString("quizSize"));
         mTotalWeight = getArguments().getDouble("totalWeight");
         mColorString = getArguments().getString("colorString");
         mMyListEntry = getArguments().getParcelable("mylistentry");
+
+
+        Log.d("TEST","dataset fragment isspinner: " + mDataset.get(0).getWordEntries().get(1).getKanji() + ", spinner: "
+                + mDataset.get(0).getWordEntries().get(1).isSpinner());
 
         View view = LayoutInflater.from(getActivity()).inflate(R.layout.fragment_fillintheblanks, null);
 
@@ -104,6 +114,7 @@ public class FillInTheBlankFragment extends Fragment  {
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
         displayWidth = metrics.widthPixels;
+        Log.d(TAG,"displayWidth: " + displayWidth);
         displayMarginPadding = (int) ((float) (displayWidth) * 0.055555556);
         spinnerWidth = (int) (160.0f * metrics.density + 0.5f);
         spinnerHeight = (int) (37.0f * metrics.density + 0.5f);
@@ -115,15 +126,20 @@ public class FillInTheBlankFragment extends Fragment  {
         /* Reset the lists and layouts */
         //TODO -- test set up the sentence!
 
+        txtQuestionNumber = (TextView) view.findViewById(R.id.textViewTotal);
+        txtQuestionNumber.setText((currentTotal +1) + "/" + mQuizSize);
+
         Log.d(TAG,"DatasetSize: " + mDataset.size());
         //Randomize the dataset
         Collections.shuffle(mDataset);
         currentDataSetindex = 0;
 
+
         TextView scoreButton = (TextView) view.findViewById(R.id.scoreButton);
         scoreButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                boolean allSpinnersAreCorrect = true;
                 for (WordEntry wordEntry : mDataset.get(currentDataSetindex).getWordEntries()) {
                     if(wordEntry.isSpinner()) {
                         //If correct
@@ -131,14 +147,61 @@ public class FillInTheBlankFragment extends Fragment  {
                         Log.d(TAG,"word kanji: " + wordEntry.getKanji());
                         Log.d(TAG,"selected: " + wordEntry.getFillinSentencesSpinner().getSelectedOption());
 
-                        if(wordEntry.getKanji().equals(wordEntry.getFillinSentencesSpinner().getSelectedOption())) {
+                        if(wordEntry.getCoreKanjiBlock() != null && wordEntry.getCoreKanjiBlock().equals(wordEntry.getFillinSentencesSpinner().getSelectedOption())) {
                             wordEntry.getFillinSentencesSpinner().setCorrect(true);
+                            if(!wordEntry.getFillinSentencesSpinner().hasBeenAnswered()) {
+                                wordEntry.getFillinSentencesSpinner().setCorrectFirstTry(true);
+                            }
                             ((Spinner)linearLayoutVerticalParagraph.findViewWithTag(wordEntry.getStartIndex())).setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorJukuGreen));
                         } else {
                             wordEntry.getFillinSentencesSpinner().setCorrect(false);
+                            wordEntry.getFillinSentencesSpinner().setHasBeenAnswered(true);
+                            wordEntry.getFillinSentencesSpinner().setCorrectFirstTry(false);
+
+                            Log.d(TAG,"Incorrect psinner found!");
                             ((Spinner)linearLayoutVerticalParagraph.findViewWithTag(wordEntry.getStartIndex())).setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorJukuRed));
+                            allSpinnersAreCorrect = false;
                         }
                     }
+                }
+
+
+                //IF everything is correct, score answers and move on
+                if(allSpinnersAreCorrect) {
+                   //Score the answers
+                    for (WordEntry wordEntry : mDataset.get(currentDataSetindex).getWordEntries()) {
+                        if(wordEntry.isSpinner()) {
+                            //If correct
+                            int correct = wordEntry.getCorrect();
+                            if(wordEntry.getFillinSentencesSpinner().isCorrectFirstTry()) {
+                                correct += 1;
+                            }
+                            if(SharedPrefManager.getInstance(getContext()).getIncludefillinsentencesscores()) {
+                                InternalDB.getQuizInterfaceInstance(getContext()).addWordScoreToScoreBoard(wordEntry.getId(),wordEntry.getTotal()+1,correct);
+                            }
+
+                        }
+
+                        //Also reset the word entry spinner information
+                        wordEntry.getFillinSentencesSpinner().resetSpinnerInformation();
+                    }
+
+                    //Move to the next question
+
+                    currentDataSetindex += 1;
+                    currentTotal += 1;
+                    txtQuestionNumber.setText(currentTotal + "/" + mQuizSize);
+
+                    //Move to stats if we have reached the end of the quiz
+                    if(currentTotal>= mQuizSize) {
+                        mCallback.showPostQuizStatsFillintheBlanks(mDataset
+                                ,mMyListEntry
+                                ,currentTotal);
+                    } else if(currentDataSetindex >= mDataset.size()) {
+                        Collections.shuffle(mDataset);
+                        currentDataSetindex = 0;
+                    }
+                    setUpQuestion(mDataset.get(currentDataSetindex));
                 }
             }
         });
@@ -154,12 +217,9 @@ public class FillInTheBlankFragment extends Fragment  {
         ArrayList<WordEntry> disectedSavedTweet = tweet.getWordEntries();
 
 
-        Log.d(TAG,"DisectedSavedTweet size: " + tweet.getWordEntries().size());
+        Log.d(TAG,"STTING UP QUESTIONL DisectedSavedTweet size: " + tweet.getWordEntries().size());
          /* Get metrics to pass density/width/height to adapters */
-        DisplayMetrics metrics = new DisplayMetrics();
-        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        displayWidth = metrics.widthPixels;
-        displayMarginPadding =  (int)((float)(displayWidth)*0.055555556);
+
 
 
         currentLineWidth = 0;
@@ -632,5 +692,16 @@ public class FillInTheBlankFragment extends Fragment  {
 //    public void onNothingSelected(AdapterView<?> parent) {
 //
 //    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        try {
+            mCallback = (QuizFragmentInteractionListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()
+                    + " must implement OnHeadlineSelectedListener");
+        }
+    }
 
 }

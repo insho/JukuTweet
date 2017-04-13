@@ -261,7 +261,7 @@ public class QuizMenuDialog extends DialogFragment {
                         dialog.dismiss();
                         break;
                     case "multiplechoice":
-                        mCallback.showMultipleChoiceFragment(mTabNumber
+                        mCallback.goToQuizActivityMultipleChoice(mTabNumber
                                 , mMyListEntry
                                 , txtView1.getText().toString()
                                 , txtView2.getText().toString()

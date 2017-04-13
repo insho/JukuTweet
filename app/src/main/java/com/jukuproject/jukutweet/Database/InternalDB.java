@@ -245,6 +245,7 @@ public class InternalDB extends SQLiteOpenHelper
                                 "%s TEXT, " +
                                 "%s INTEGER, " +
                                 "%s INTEGER, " +
+                                "%s INTEGER, " +
                                 "%s INTEGER)", Tables.TABLE_SAVED_TWEET_KANJI,
                         Columns.COL_ID, //_id (unique)
                         Columns.TSAVEDTWEET_COL2, //STweet_id (JSavedTweet _id)

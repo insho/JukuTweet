@@ -14,9 +14,10 @@
         android:layout_height="match_parent"
         android:scrollbars="vertical"
 
-        android:fillViewport="true"
+
         android:id="@+id/scrollView">
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        <!--android:fillViewport="true"-->
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:id="@+id/fillinsentences_layout"
     android:layout_height="wrap_content"
@@ -76,26 +77,28 @@
 
 </LinearLayout>
 </ScrollView>
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/scrollView"
-        android:layout_alignParentBottom="true"
-        android:background="@android:color/white"
-        android:gravity="center"
-        android:layout_gravity="center"
-        android:id="@+id/spacefiller" />
+    <!--<TextView-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_below="@id/scrollView"-->
+        <!--android:layout_alignParentBottom="true"-->
+        <!--android:background="@android:color/white"-->
+        <!--android:gravity="center"-->
+        <!--android:layout_gravity="center"-->
+        <!--android:id="@+id/spacefiller" />-->
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="80dp"
         android:minHeight="80dp"
+        android:layout_marginTop="20dp"
         android:layout_alignParentBottom="true"
         android:background="@color/colorPrimary"
         android:textColor="@android:color/white"
         android:gravity="center"
         android:layout_gravity="center"
         android:text="Score"
+        android:paddingBottom="40dp"
         android:id="@+id/scoreButton"
         android:textSize="26sp" />
 

@@ -2,6 +2,7 @@ package com.jukuproject.jukutweet.Interfaces;
 
 import com.jukuproject.jukutweet.Models.MultChoiceResult;
 import com.jukuproject.jukutweet.Models.MyListEntry;
+import com.jukuproject.jukutweet.Models.Tweet;
 
 import java.util.ArrayList;
 
@@ -21,4 +22,7 @@ public interface QuizFragmentInteractionListener {
             , int correct
             , int total);
 
+    void showPostQuizStatsFillintheBlanks(ArrayList<Tweet> dataset
+            , MyListEntry myListEntry
+            , int total);
 }

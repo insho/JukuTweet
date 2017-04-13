@@ -316,6 +316,7 @@ public class UserTimeLineFragment extends Fragment {
                         }
                     });
         } else {
+            Log.d(TAG,"MTIMELINE WAS NULL SO MAKING THE SHIT INVISIBLE");
             mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mUserInfo,mTimeLine,mActiveTweetFavoriteStars);
             mRecyclerView.setAdapter(mAdapter);
             mCallback.showProgressBar(false);

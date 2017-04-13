@@ -524,7 +524,7 @@ public class MultipleChoiceFragment extends Fragment {
 
                         // This handler sends the runnable after a slight delay (showing the new color in the textview)
                         Handler myHandler = new Handler();
-                        myHandler.postDelayed(mMyRunnable, 100); //Message will delivered after delay
+                        myHandler.postDelayed(mMyRunnable, 90); //Message will delivered after delay
 
                     } else {
 

@@ -348,7 +348,7 @@ public class FlashCardsFragment extends Fragment {
         }
 
 
-//        ((TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.scorecount)).setText(currentcount + "/" + totalcount);
+        ((TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.scorecount)).setText(currentcount + "/" + totalcount);
         TextView textMain = (TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.textMessage);
         TextView textFurigana = (TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.furigana);
         TextView defarraylistview = (TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.flashcard_listview);

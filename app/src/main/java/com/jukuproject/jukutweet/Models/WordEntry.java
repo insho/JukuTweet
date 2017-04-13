@@ -375,6 +375,8 @@ public class WordEntry implements Parcelable {
         quizWeight = in.readDouble();
         itemFavorites = (ItemFavorites) in.readParcelable(ItemFavorites.class.getClassLoader());
         fillinSentencesSpinner = (FillinSentencesSpinner) in.readParcelable(FillinSentencesSpinner.class.getClassLoader());
+        isSpinner = in.readByte() != 0;
+        coreKanjiBlock = in.readString();
     }
 
     public void writeToParcel(Parcel out, int flags) {
@@ -390,6 +392,8 @@ public class WordEntry implements Parcelable {
         out.writeDouble(quizWeight);
         out.writeParcelable(itemFavorites,flags);
         out.writeParcelable(fillinSentencesSpinner,flags);
+        out.writeByte((byte) (this.isSpinner ? 1 : 0));
+        out.writeString(coreKanjiBlock);
     }
 
     public int describeContents() {
