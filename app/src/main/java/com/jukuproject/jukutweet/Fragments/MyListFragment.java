@@ -3,7 +3,6 @@ package com.jukuproject.jukutweet.Fragments;
 import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -196,16 +195,17 @@ public class MyListFragment  extends Fragment{
 
     public void prepareListData() {
         mMenuHeader = new ArrayList<>();
-        InternalDB helper =  InternalDB.getInstance(getActivity());
-        SQLiteDatabase db = helper.getWritableDatabase();
+//        InternalDB helper =  InternalDB.getInstance(getActivity());
+//        SQLiteDatabase db = helper.getWritableDatabase();
 
         ArrayList<String> availableFavoritesStars = sharedPrefManager.getActiveFavoriteStars();
         ColorThresholds colorThresholds = sharedPrefManager.getColorThresholds();
        ArrayList<String> childOptions = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.menu_mylist)));
 
         Cursor c = InternalDB.getWordInterfaceInstance(getContext()).getWordListColorBlockCursor(colorThresholds,null);
-        c.moveToFirst();
+
         if(c.getCount()>0) {
+            c.moveToFirst();
             while (!c.isAfterLast()) {
 
                 if(BuildConfig.DEBUG){Log.d(TAG,"PULLING NAME: " + c.getString(0) + ", SYS: " + c.getString(1) + ", TOTAL: " + c.getString(2) + ", GREY: " + c.getString(3));}
@@ -253,8 +253,8 @@ public class MyListFragment  extends Fragment{
             }
         }
         c.close();
-        db.close();
-        helper.close();
+//        db.close();
+//        helper.close();
 
     }
 
@@ -280,7 +280,7 @@ public class MyListFragment  extends Fragment{
     }
 
 
-    public int getExpandableAdapterColorBlockBasicWidths(Activity activity, String text){
+    public static int getExpandableAdapterColorBlockBasicWidths(Activity activity, String text){
         int result = 0;
         if(!text.equals("0")) {
             View view = activity.getLayoutInflater().inflate(R.layout.expandablelistadapter_listitem, null);

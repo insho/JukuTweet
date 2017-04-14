@@ -41,6 +41,7 @@ import com.jukuproject.jukutweet.Fragments.MyListBrowseFragment;
 import com.jukuproject.jukutweet.Fragments.SavedTweetsBrowseFragment;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
+import com.jukuproject.jukutweet.Interfaces.QuizMenuDialogInteractionListener;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.SharedPrefManager;
@@ -66,7 +67,9 @@ import rx.schedulers.Schedulers;
 /**
  * Main activity fragment manager
  */
-public class MainActivity extends AppCompatActivity implements FragmentInteractionListener, DialogInteractionListener {
+public class MainActivity extends AppCompatActivity implements FragmentInteractionListener
+        , DialogInteractionListener
+        , QuizMenuDialogInteractionListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -1054,12 +1057,12 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
 
             if(dataset.size()>0) {
-                double totalweight = assignWordWeightsAndGetTotalWeight(dataset);
+                double totalweight = assignWordWeightsAndGetTotalWeight(getBaseContext(),dataset);
 
 
                 Intent intent = new Intent(getBaseContext(), QuizActivity.class);
 
-                intent.putExtra("menuOption","Multiple Choice"); //The type of quiz that was chosen inthe menu
+                intent.putExtra("typeOfQuizThatWasCompleted","Multiple Choice"); //The type of quiz that was chosen inthe menu
                 intent.putExtra("quizType",quizType);
                 intent.putExtra("tabNumber", 2);
                 intent.putExtra("myListEntry",listEntry);
@@ -1135,7 +1138,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
             Intent intent = new Intent(getBaseContext(), QuizActivity.class);
 
-            intent.putExtra("menuOption","Fill in the Blanks"); //The type of quiz that was chosen inthe menu
+            intent.putExtra("typeOfQuizThatWasCompleted","Fill in the Blanks"); //The type of quiz that was chosen inthe menu
             intent.putExtra("tabNumber", tabNumber);
             intent.putExtra("myListEntry",myListEntry);
             intent.putExtra("quizSize",quizSize);
@@ -1157,11 +1160,11 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
     }
 
-    public double assignWordWeightsAndGetTotalWeight(ArrayList<WordEntry> wordEntries) {
+    public static double assignWordWeightsAndGetTotalWeight(Context context, ArrayList<WordEntry> wordEntries) {
         final Double sliderUpperBound = .50;
         final Double sliderLowerBound = .025;
         final int sliderCountMax = 30;
-        final double sliderMultipler = SharedPrefManager.getInstance(getBaseContext()).getSliderMultiplier();
+        final double sliderMultipler = SharedPrefManager.getInstance(context).getSliderMultiplier();
 
         double totalWeight = 0.0d;
 

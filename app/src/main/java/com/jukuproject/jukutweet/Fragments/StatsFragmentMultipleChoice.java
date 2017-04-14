@@ -71,8 +71,8 @@ public class StatsFragmentMultipleChoice extends Fragment {
         mIsWordBuilder = getArguments().getBoolean("mIsWordBuilder");
         mIsHighScore = getArguments().getBoolean("mIsHighScore");
         mWordBuilderScore =getArguments().getInt("wordbuilderScore");
-        mCorrect =getArguments().getInt("correct");
-        mTotal =getArguments().getInt("total");
+        mCorrect = getArguments().getInt("correct");
+        mTotal = getArguments().getInt("total");
 
         View v = inflater.inflate(R.layout.fragment_stats_multiplechoice, container, false);
         resultslistView = (ListView) v.findViewById(R.id.listResults);
@@ -107,6 +107,9 @@ public class StatsFragmentMultipleChoice extends Fragment {
                 } else {
                     topscoreLayout.setBackgroundColor(ContextCompat.getColor(getActivity(), android.R.color.holo_green_light));
                 }
+
+                Log.d(TAG,"mCorrect: " + mCorrect);
+                Log.d(TAG,"mPercentage: " + percentage);
 
                 textScore.setText(mCorrect);
                 String txtpercentage =   String.valueOf(percentage) + "%";

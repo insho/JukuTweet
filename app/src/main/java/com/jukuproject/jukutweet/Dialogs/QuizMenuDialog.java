@@ -22,7 +22,7 @@ import android.widget.TextView;
 import com.jukuproject.jukutweet.Adapters.MenuDropDownColorsPopupAdapter;
 import com.jukuproject.jukutweet.Adapters.MenuDropDownPopupAdapter;
 import com.jukuproject.jukutweet.BuildConfig;
-import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
+import com.jukuproject.jukutweet.Interfaces.QuizMenuDialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
 import com.jukuproject.jukutweet.Models.DropDownMenuOption;
@@ -44,7 +44,7 @@ import rx.functions.Action1;
 public class QuizMenuDialog extends DialogFragment {
 
     private final String TAG = "Test-quizmendlog";
-    public DialogInteractionListener mCallback;
+    public QuizMenuDialogInteractionListener mCallback;
 
     private String quizType;
     private int mTabNumber;
@@ -550,7 +550,7 @@ public class QuizMenuDialog extends DialogFragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            mCallback = (DialogInteractionListener) activity;
+            mCallback = (QuizMenuDialogInteractionListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString() + " must implement mCallback");
         }

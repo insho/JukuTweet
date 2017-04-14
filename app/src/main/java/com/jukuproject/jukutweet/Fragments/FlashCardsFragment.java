@@ -8,7 +8,6 @@ import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.Layout;
@@ -51,7 +50,7 @@ public class FlashCardsFragment extends Fragment {
     String mFrontValue;
     String mBackValue;
 
-    private GestureDetectorCompat mDetector;
+//    private GestureDetectorCompat mDetector;
     View page;
     private GestureDetector mGestureDetector;
     int totalcount; //total count of cards in stack
@@ -131,9 +130,6 @@ public class FlashCardsFragment extends Fragment {
                 String stringcount = currentcount + "/" + totalcount;
                 ((TextView) page.findViewById(R.id.scorecount)).setText(stringcount);
 
-
-//                setCard(mDataset.get(0),true);
-
             }
         });
 
@@ -203,7 +199,6 @@ public class FlashCardsFragment extends Fragment {
                         Log.d(TAG, "fling frontValue: " + mFrontValue);
                         Log.d(TAG, "fling backValue: " + mBackValue);
                     }
-
                 }
 
                 if (e1.getY() > e2.getY()) {
@@ -232,16 +227,10 @@ public class FlashCardsFragment extends Fragment {
         mGestureDetector = new GestureDetector(getContext(), listener);
         mGestureDetector.setOnDoubleTapListener(listener);
 
-
         return view;
     }
 
 
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-    }
 
    // Implement PagerAdapter Class to handle individual page creation
     class MyPagesAdapter_Array extends PagerAdapter {
@@ -277,11 +266,13 @@ public class FlashCardsFragment extends Fragment {
                     return true;
                 }
             });
+//
+//            if (freshdeck) {
+//                ((TextView) page.findViewById(R.id.scorecount)).setText(currentcount + "/" + totalcount);
+//                freshdeck = false;
+//            }
 
-            if (freshdeck) {
-                ((TextView) page.findViewById(R.id.scorecount)).setText(currentcount + "/" + totalcount);
-                freshdeck = false;
-            }
+            Log.d(TAG,"Setting card on instatiate");
             setCard(wordEntry,true);
 
 
@@ -289,14 +280,12 @@ public class FlashCardsFragment extends Fragment {
 
                 @Override
                 public void onPageSelected(int pos) {
-                    if(freshdeck) {
+//                    if(freshdeck) {
                         currentcount = pos+1;
-                    } else {
-                        currentcount = pos+1;
-                    }
-
-                    setCard(wordEntry,true);
-
+//                    } else {
+//                        currentcount = pos+1;
+//                    }
+//                    setCard(wordEntry,true);
                 }
 
                 @Override
@@ -348,11 +337,11 @@ public class FlashCardsFragment extends Fragment {
         }
 
 
+
         ((TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.scorecount)).setText(currentcount + "/" + totalcount);
         TextView textMain = (TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.textMessage);
         TextView textFurigana = (TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.furigana);
         TextView defarraylistview = (TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.flashcard_listview);
-
 
         /* SET THE Kanji/Furigana boxes */
         switch (cardValue) {

@@ -106,7 +106,8 @@ public class MyListExpandableAdapter extends BaseExpandableListAdapter {
         * here by the string "Browse/Edit" which only appears in the "MyListFragment" fragment */
         if(mMenuHeader.get(groupPosition).getColorBlockMeasurables() != null && childText.equalsIgnoreCase(mContext.getString(R.string.menuchildbrowse))) {
 
-            setColorBlocks(mMenuHeader.get(groupPosition).getColorBlockMeasurables()
+            setColorBlocks(mContext
+                    ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
                     ,availableWidth
                     ,textViewColorBlock_grey
                     ,textViewColorBlock_red
@@ -270,37 +271,38 @@ public class MyListExpandableAdapter extends BaseExpandableListAdapter {
     }
 
 
-
-    public void setColorBlocks(ColorBlockMeasurables colorBlockMeasurables
+    //TODO consolidate with post quiz stats 2
+    public static void setColorBlocks(Context context
+            ,ColorBlockMeasurables colorBlockMeasurables
             ,int availableWidth
             , TextView txtGrey
             , TextView txtRed
             , TextView txtYellow
             , TextView txtGreen) {
 
-        Drawable drawablecolorblock1 = ContextCompat.getDrawable(mContext, R.drawable.colorblock);
-        Drawable drawablecolorblock2 = ContextCompat.getDrawable(mContext, R.drawable.colorblock);
-        Drawable drawablecolorblock3 = ContextCompat.getDrawable(mContext, R.drawable.colorblock);
-        Drawable drawablecolorblock4 = ContextCompat.getDrawable(mContext, R.drawable.colorblock);
+        Drawable drawablecolorblock1 = ContextCompat.getDrawable(context, R.drawable.colorblock);
+        Drawable drawablecolorblock2 = ContextCompat.getDrawable(context, R.drawable.colorblock);
+        Drawable drawablecolorblock3 = ContextCompat.getDrawable(context, R.drawable.colorblock);
+        Drawable drawablecolorblock4 = ContextCompat.getDrawable(context, R.drawable.colorblock);
 
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            drawablecolorblock1.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuGrey), PorterDuff.Mode.MULTIPLY);
+            drawablecolorblock1.setColorFilter(ContextCompat.getColor(context, R.color.colorJukuGrey), PorterDuff.Mode.MULTIPLY);
             txtGrey.setBackground(drawablecolorblock1);
-            drawablecolorblock2.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuRed), PorterDuff.Mode.MULTIPLY);
+            drawablecolorblock2.setColorFilter(ContextCompat.getColor(context, R.color.colorJukuRed), PorterDuff.Mode.MULTIPLY);
             txtRed.setBackground(drawablecolorblock2);
-            drawablecolorblock3.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuYellow), PorterDuff.Mode.MULTIPLY);
+            drawablecolorblock3.setColorFilter(ContextCompat.getColor(context, R.color.colorJukuYellow), PorterDuff.Mode.MULTIPLY);
             txtYellow.setBackground(drawablecolorblock3);
-            drawablecolorblock4.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuGreen), PorterDuff.Mode.MULTIPLY);
+            drawablecolorblock4.setColorFilter(ContextCompat.getColor(context, R.color.colorJukuGreen), PorterDuff.Mode.MULTIPLY);
             txtGreen.setBackground(drawablecolorblock4);
 
         } else {
-            drawablecolorblock1.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuGrey), PorterDuff.Mode.MULTIPLY);
+            drawablecolorblock1.setColorFilter(ContextCompat.getColor(context, R.color.colorJukuGrey), PorterDuff.Mode.MULTIPLY);
             txtGrey.setBackgroundDrawable(drawablecolorblock1);
-            drawablecolorblock2.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuRed), PorterDuff.Mode.MULTIPLY);
+            drawablecolorblock2.setColorFilter(ContextCompat.getColor(context, R.color.colorJukuRed), PorterDuff.Mode.MULTIPLY);
             txtRed.setBackgroundDrawable(drawablecolorblock2);
-            drawablecolorblock3.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuYellow), PorterDuff.Mode.MULTIPLY);
+            drawablecolorblock3.setColorFilter(ContextCompat.getColor(context, R.color.colorJukuYellow), PorterDuff.Mode.MULTIPLY);
             txtYellow.setBackgroundDrawable(drawablecolorblock3);
-            drawablecolorblock4.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuGreen), PorterDuff.Mode.MULTIPLY);
+            drawablecolorblock4.setColorFilter(ContextCompat.getColor(context, R.color.colorJukuGreen), PorterDuff.Mode.MULTIPLY);
             txtGreen.setBackgroundDrawable(drawablecolorblock4);
         }
 
@@ -327,10 +329,10 @@ public class MyListExpandableAdapter extends BaseExpandableListAdapter {
                 txtGrey.setText(String.valueOf(colorBlockMeasurables.getGreyCount()));
                 int dimenscore = colorBlockMeasurables.getGreyDimenscore(availableWidth);
                 if(BuildConfig.DEBUG) {
-                    Log.i(TAG,"dimenscoretotal: " + availableWidth);
-                    Log.i(TAG,"grey/count: " + colorBlockMeasurables.getGreyCount() + "/" + colorBlockMeasurables.getTotalCount());
-                    Log.i(TAG,"((float) grey / (float) count): " + ((float) colorBlockMeasurables.getGreyCount() / (float) colorBlockMeasurables.getTotalCount()));
-                    Log.i(TAG,"Rounded score: " + dimenscore);
+                    Log.i("Test-colorblock","dimenscoretotal: " + availableWidth);
+                    Log.i("Test-colorblock","grey/count: " + colorBlockMeasurables.getGreyCount() + "/" + colorBlockMeasurables.getTotalCount());
+                    Log.i("Test-colorblock","((float) grey / (float) count): " + ((float) colorBlockMeasurables.getGreyCount() / (float) colorBlockMeasurables.getTotalCount()));
+                    Log.i("Test-colorblock","Rounded score: " + dimenscore);
                 }
                 availableWidthRemaining = availableWidth-dimenscore;
                 txtGrey.setMinimumWidth(dimenscore);
@@ -360,10 +362,10 @@ public class MyListExpandableAdapter extends BaseExpandableListAdapter {
                 txtGreen.setText(String.valueOf(colorBlockMeasurables.getGreenCount()));
                 int dimenscore = colorBlockMeasurables.getGreenDimenscore(availableWidth,availableWidthRemaining);
                 if(BuildConfig.DEBUG) {
-                    Log.i(TAG,"dimenscoretotal: " + availableWidth);
-                    Log.i(TAG,"grey/count: " + colorBlockMeasurables.getGreenCount() + "/" + colorBlockMeasurables.getTotalCount());
-                    Log.i(TAG,"((float) grey / (float) count): " + ((float) colorBlockMeasurables.getGreenCount() / (float) colorBlockMeasurables.getTotalCount()));
-                    Log.i(TAG,"Rounded score: " + dimenscore);
+                    Log.i("Test-colorblock","dimenscoretotal: " + availableWidth);
+                    Log.i("Test-colorblock","grey/count: " + colorBlockMeasurables.getGreenCount() + "/" + colorBlockMeasurables.getTotalCount());
+                    Log.i("Test-colorblock","((float) grey / (float) count): " + ((float) colorBlockMeasurables.getGreenCount() / (float) colorBlockMeasurables.getTotalCount()));
+                    Log.i("Test-colorblock","Rounded score: " + dimenscore);
 
                 }
                 txtGreen.setMinimumWidth(dimenscore);
@@ -374,13 +376,13 @@ public class MyListExpandableAdapter extends BaseExpandableListAdapter {
         if (colorBlockMeasurables.getTotalCount() == 0) {
             txtGrey.setVisibility(View.VISIBLE);
             if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                drawablecolorblock1.setColorFilter(ContextCompat.getColor(mContext, android.R.color.white), PorterDuff.Mode.MULTIPLY);
+                drawablecolorblock1.setColorFilter(ContextCompat.getColor(context, android.R.color.white), PorterDuff.Mode.MULTIPLY);
                 txtGrey.setBackground(drawablecolorblock1);
             } else {
-                drawablecolorblock1.setColorFilter(ContextCompat.getColor(mContext, android.R.color.white), PorterDuff.Mode.MULTIPLY);
+                drawablecolorblock1.setColorFilter(ContextCompat.getColor(context, android.R.color.white), PorterDuff.Mode.MULTIPLY);
                 txtGrey.setBackgroundDrawable(drawablecolorblock1);
             }
-            txtGrey.setText(mContext.getString(R.string.empty));
+            txtGrey.setText(context.getString(R.string.empty));
             txtRed.setVisibility(View.GONE);
             txtYellow.setVisibility(View.GONE);
             txtGreen.setVisibility(View.GONE);

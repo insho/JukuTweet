@@ -23,21 +23,5 @@ public interface DialogInteractionListener {
     void saveAndUpdateMyLists(String kanjiIdString, ArrayList<MyListEntry> listsToCopyTo, boolean move, MyListEntry currentList);
     void saveAndUpdateTweetLists(String tweetIds, ArrayList<MyListEntry> listsToCopyTo, boolean move, MyListEntry currentList);
 
-    //From quizmenu popup to main activity (starting quizzes)
-    void showFlashCardFragment(int tabNumber
-            , MyListEntry listEntry
-            , String frontValue
-            , String backValue
-            , String selectedColorString);
-    void goToQuizActivityMultipleChoice(int tabNumber
-            , MyListEntry listEntry
-            , String quizType
-            , String quizSize
-            , String quizTimer
-            , String selectedColorString);
 
-    void showFillintheBlanksFragment(int tabNumber
-            , MyListEntry listEntry
-            , String quizSize
-            ,String selectedColorString);
 }

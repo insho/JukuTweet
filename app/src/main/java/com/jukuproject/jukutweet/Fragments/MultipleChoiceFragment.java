@@ -169,11 +169,6 @@ public class MultipleChoiceFragment extends Fragment {
     }
 
 
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-    }
 
     public void setUpQuestion() {
         //Reset the question set
@@ -740,6 +735,59 @@ public class MultipleChoiceFragment extends Fragment {
             throw new ClassCastException(context.toString()
                     + " must implement OnHeadlineSelectedListener");
         }
+    }
+
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        if (savedInstanceState != null) {
+            //Save the fragment's state here
+            mDataset = savedInstanceState.getParcelableArrayList("mDataset");
+            mQuizType = savedInstanceState.getString("mQuizType");
+            mQuizSize = savedInstanceState.getInt("mQuizSize");
+            mQuizTimer = savedInstanceState.getInt("mQuizTimer");
+            mTotalWeight =  savedInstanceState.getDouble("mTotalWeight");
+            mColorString = savedInstanceState.getString("mColorString");
+            mMyListType = savedInstanceState.getString("mMyListType");
+            mMyListEntry = savedInstanceState.getParcelable("mMyListEntry");
+            questionSet = savedInstanceState.getParcelableArrayList("questionSet");
+            currentTotal = savedInstanceState.getInt("currentTotal");
+            currentCorrect = savedInstanceState.getInt("currentCorrect");
+            currentPlusMinus = savedInstanceState.getInt("currentPlusMinus");
+            wronganswerpositions = savedInstanceState.getIntegerArrayList("wronganswerpositions");
+            previousId = savedInstanceState.getInt("previousId");
+            isCorrectFirstTry = savedInstanceState.getBoolean("isCorrectFirstTry");
+            questionResults = savedInstanceState.getParcelableArrayList("questionResults");
+
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putParcelableArrayList("mDataset", mDataset);
+        outState.putString("mQuizType", mQuizType);
+        outState.putInt("mQuizSize", mQuizSize);
+        outState.putInt("mQuizTimer", mQuizTimer);
+        outState.putDouble("mTotalWeight", mTotalWeight);
+        outState.putString("mColorString", mColorString);
+        outState.putString("mMyListType", mMyListType);
+        outState.putParcelable("mMyListEntry",mMyListEntry);
+        outState.putParcelableArrayList("questionSet", questionSet);
+
+        outState.putInt("currentTotal", currentTotal);
+        outState.putInt("currentCorrect", currentCorrect);
+        outState.putInt("currentPlusMinus", currentPlusMinus);
+        outState.putIntegerArrayList("wronganswerpositions",wronganswerpositions);
+        outState.putInt("previousId",previousId);
+        //TODO replace this with wrong answer positions being empty?
+        outState.putBoolean("isCorrectFirstTry",isCorrectFirstTry);
+
+        outState.putParcelableArrayList("questionResults", questionResults);
+
     }
 
 }

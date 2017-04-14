@@ -91,10 +91,18 @@ public class QuizTab1Container extends BaseContainerFragment {
         super.onActivityCreated(savedInstanceState);
         mQuiz = getArguments().getString("mQuiz");
 //        Log.e("test", "tab 1 container on activity created");
-        if (!mIsViewInited) {
-            mIsViewInited = true;
-            initView(mQuiz);
-        }
+
+            if (savedInstanceState != null) {
+                //Save the fragment's state here
+//                mDataset = savedInstanceState.getParcelableArrayList("mDataset");
+
+            } else
+            if (!mIsViewInited) {
+                mIsViewInited = true;
+                initView(mQuiz);
+            }
+
+
     }
 
     private void initView(String quiz) {
