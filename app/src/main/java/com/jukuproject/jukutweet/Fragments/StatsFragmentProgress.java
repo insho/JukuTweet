@@ -34,19 +34,31 @@ public class StatsFragmentProgress extends Fragment {
 
     String TAG = "Test-stats2";
 
-    private String mQuizType;
+//    private String mQuizType;
     private MyListEntry mMyListEntry;
     private ColorBlockMeasurables mColorBlockMeasurables;
     int mTopCountLimit;
+
+    ListView bottomFiveList;
+    TextView txtTopFive;
+
+    TextView textViewColorBlock_grey ;
+    TextView textViewColorBlock_red;
+    TextView textViewColorBlock_yellow;
+    TextView textViewColorBlock_green;
+    TextView txtTitle;
+    TextView txtCompletePercent;
+    ImageButton imageButton;
+    TextView txtBottomFive;
+    ListView topFiveList;
+
     public StatsFragmentProgress() {}
 
-    public static StatsFragmentProgress newInstance(String quizType
-            , MyListEntry myListEntry
+    public static StatsFragmentProgress newInstance(MyListEntry myListEntry
             , int topCountLimit
             , ColorBlockMeasurables colorBlockMeasurables) {
         StatsFragmentProgress fragment = new StatsFragmentProgress();
         Bundle args = new Bundle();
-        args.putString("quizType",quizType);
         args.putParcelable("myListEntry",myListEntry);
         args.putInt("topCountLimit",topCountLimit);
         args.putParcelable("colorBlockMeasurables",colorBlockMeasurables);
@@ -57,31 +69,50 @@ public class StatsFragmentProgress extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-
-        Log.d(TAG,"Creating stats view");
-        //Set input global data
-        mQuizType = getArguments().getString("quizType");
-        mMyListEntry = getArguments().getParcelable("myListEntry");
-        mTopCountLimit = getArguments().getInt("topCountLimit");
-
-        mColorBlockMeasurables = getArguments().getParcelable("colorBlockMeasurables");
-
         View v = inflater.inflate(R.layout.fragment_stats_progress, container, false);
+        bottomFiveList = (ListView) v.findViewById(R.id.ascending_listresults);
+        txtTopFive = (TextView) v.findViewById(R.id.textViewTopFive);
+
+        textViewColorBlock_grey = (TextView) v.findViewById(R.id.listitem_colors_1);
+        textViewColorBlock_red = (TextView) v.findViewById(R.id.listitem_colors_2);
+        textViewColorBlock_yellow = (TextView) v.findViewById(R.id.listitem_colors_3);
+        textViewColorBlock_green = (TextView) v.findViewById(R.id.listitem_colors_4);
+
+        txtTitle = (TextView) v.findViewById(R.id.textViewTitle);
+        txtCompletePercent = (TextView) v.findViewById(R.id.textViewBlockProgress);
+        imageButton = (ImageButton) v.findViewById(R.id.favorite_icon);
+        txtBottomFive = (TextView) v.findViewById(R.id.textViewBottomFive);
+        topFiveList = (ListView) v.findViewById(R.id.descending_listresults);
+        return v;
+    }
 
 
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
 
-        TextView txtCompletePercent = (TextView) v.findViewById(R.id.textViewBlockProgress);
+        if(savedInstanceState != null) {
+            mMyListEntry = savedInstanceState.getParcelable("mMyListEntry");
+            mTopCountLimit = savedInstanceState.getInt("mTopCountLimit");
+            mColorBlockMeasurables = savedInstanceState.getParcelable("mColorBlockMeasurables");
+
+        } else {
+            mMyListEntry = getArguments().getParcelable("myListEntry");
+            mTopCountLimit = getArguments().getInt("topCountLimit");
+            mColorBlockMeasurables = getArguments().getParcelable("colorBlockMeasurables");
+        }
+
+
         int greenPercent = Math.round(100*((float)mColorBlockMeasurables.getGreenCount()/(float)mColorBlockMeasurables.getTotalCount()));
         txtCompletePercent.setText(greenPercent + "% Complete ");
 
-        TextView txtTitle = (TextView) v.findViewById(R.id.textViewTitle);
         String titleString;
         try {
             //if the list is a system "star" list, show the star next to the title
             if(mMyListEntry.getListsSys()==1) {
                 titleString = mMyListEntry.getListName();
 
-                ImageButton imageButton = (ImageButton) v.findViewById(R.id.favorite_icon);
+
                 imageButton.setFocusable(false);
                 imageButton.setClickable(false);
                 imageButton.setImageResource(R.drawable.ic_star_black);
@@ -127,22 +158,17 @@ public class StatsFragmentProgress extends Fragment {
         txtTitle.setText(content);
 
         //Set top and bottom 5 titles
-        TextView txtTopFive = (TextView) v.findViewById(R.id.textViewTopFive);
+
         SpannableString content_TopFive = new SpannableString("Top " + mTopCountLimit);
         content_TopFive.setSpan(new UnderlineSpan(), 0, content_TopFive.length(), 0);
         txtTopFive.setText(content_TopFive);
 
-        TextView txtBottomFive = (TextView) v.findViewById(R.id.textViewBottomFive);
+
         SpannableString content_BottomFive = new SpannableString("Bottom " + mTopCountLimit);
         content_BottomFive.setSpan(new UnderlineSpan(), 0, content_BottomFive.length(), 0);
         txtBottomFive.setText(content_BottomFive);
 
 
-        //Set colorblocks
-        TextView textViewColorBlock_grey = (TextView) v.findViewById(R.id.listitem_colors_1);
-        TextView textViewColorBlock_red = (TextView) v.findViewById(R.id.listitem_colors_2);
-        TextView textViewColorBlock_yellow = (TextView) v.findViewById(R.id.listitem_colors_3);
-        TextView textViewColorBlock_green = (TextView) v.findViewById(R.id.listitem_colors_4);
 
 
         /* Get width of screen */
@@ -174,8 +200,8 @@ public class StatsFragmentProgress extends Fragment {
 
         //THIS ONE IS the BOTTOM 5 Adapter
         final StatsTop5Adapter adapter_bottom = new StatsTop5Adapter(getContext(),bottomFive,colorThresholds);
-        final ListView  listView_bottom = (ListView) v.findViewById(R.id.ascending_listresults);
-        listView_bottom.setAdapter(adapter_bottom);
+
+        bottomFiveList.setAdapter(adapter_bottom);
 
         ArrayList<Integer> idsToExclude = new ArrayList<>();
         for(WordEntry wordEntry : bottomFive) {
@@ -186,16 +212,19 @@ public class StatsFragmentProgress extends Fragment {
 
         ArrayList<WordEntry> topFive = InternalDB.getWordInterfaceInstance(getContext()).getTopFiveWordEntries("Top",idsToExclude,mMyListEntry,colorThresholds,mTopCountLimit,topbottomThreshold);
         final StatsTop5Adapter adapter_top_desc = new StatsTop5Adapter(getContext(),topFive,colorThresholds);
-        final ListView  listView_top_desc = (ListView) v.findViewById(R.id.descending_listresults);
-        listView_top_desc.setAdapter(adapter_top_desc);
 
-        return v;
+        topFiveList.setAdapter(adapter_top_desc);
+
     }
 
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putParcelable("mMyListEntry", mMyListEntry);
+        outState.putParcelable("mColorBlockMeasurables", mColorBlockMeasurables);
+        outState.putInt("mTopCountLimit", mTopCountLimit);
 
     }
 

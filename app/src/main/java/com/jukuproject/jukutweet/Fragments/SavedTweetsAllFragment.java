@@ -60,7 +60,7 @@ public class SavedTweetsAllFragment  extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-
+        Log.d(TAG,"CREATING savedtweets FRAG");
 //        errotest();
         //Call shared prefs to find out which star colors (i.e. favorites lists) to include
         sharedPrefManager = SharedPrefManager.getInstance(getContext());

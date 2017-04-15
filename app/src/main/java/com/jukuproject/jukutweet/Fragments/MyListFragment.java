@@ -59,7 +59,6 @@ public class MyListFragment  extends Fragment{
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-
         //Call shared prefs to find out which star colors (i.e. favorites lists) to include
         sharedPrefManager = SharedPrefManager.getInstance(getContext());
 
@@ -89,9 +88,9 @@ public class MyListFragment  extends Fragment{
                     }
                 } else if (!mMenuHeader.get(groupPosition).isExpanded()) {
 
-                    if(lastExpandedPosition != groupPosition) {
-                        expListView.collapseGroup(lastExpandedPosition);
-                    }
+//                    if(lastExpandedPosition != groupPosition) {
+//                        expListView.collapseGroup(lastExpandedPosition);
+//                    }
 
                     expandTheListViewAtPosition(groupPosition);
 
@@ -136,26 +135,52 @@ public class MyListFragment  extends Fragment{
                         break;
                     case "Flash Cards":
                         if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
-                            QuizMenuDialog.newInstance("flashcards",2,mMenuHeader.get(groupPosition).getMyListEntry(),mMenuHeader.get(groupPosition).getColorBlockMeasurables(),getdimenscore()).show(getActivity().getSupportFragmentManager(),"dialogQuizMenu");
+                            QuizMenuDialog.newInstance("flashcards"
+                                    ,2
+                                    ,lastExpandedPosition
+                                    ,mMenuHeader.get(groupPosition).getMyListEntry()
+                                    ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
+                                    ,getdimenscore()).show(getActivity().getSupportFragmentManager()
+                                    ,"dialogQuizMenu");
+                            mCallback.showFab(false,"");
                         }
 
                         break;
                     case "Multiple Choice":
                         if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
-                            QuizMenuDialog.newInstance("multiplechoice",2,mMenuHeader.get(groupPosition).getMyListEntry(),mMenuHeader.get(groupPosition).getColorBlockMeasurables(),getdimenscore()).show(getActivity().getSupportFragmentManager(),"dialogQuizMenu");
+                            QuizMenuDialog.newInstance("multiplechoice"
+                                    ,2
+                                    ,lastExpandedPosition
+                                    ,mMenuHeader.get(groupPosition).getMyListEntry()
+                                    ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
+                                    ,getdimenscore()).show(getActivity().getSupportFragmentManager(),"dialogQuizMenu");
+//                            mCallback.showFab(false,"");
                         }
-
 
 
                         break;
 
                     case "Fill in the Blanks":
                         if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
-                            QuizMenuDialog.newInstance("fillintheblanks",2,mMenuHeader.get(groupPosition).getMyListEntry(),mMenuHeader.get(groupPosition).getColorBlockMeasurables(),getdimenscore()).show(getActivity().getSupportFragmentManager(),"dialogQuizMenu");
+                            QuizMenuDialog.newInstance("fillintheblanks"
+                                    ,2
+                                    ,lastExpandedPosition
+                                    ,mMenuHeader.get(groupPosition).getMyListEntry()
+                                    ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
+                                    ,getdimenscore()).show(getActivity().getSupportFragmentManager(),"dialogQuizMenu");
+//                            mCallback.showFab(false,"");
                         }
+
                         break;
                     case "Stats":
-//                        InternalDB.getInstance(getContext()).TEST(mMenuHeader.get(groupPosition).getMyListEntry());
+                        MyListEntry myListEntry = new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).getSystemList());
+                        ColorBlockMeasurables colorBlockMeasurables = prepareColorBlockDataForList(myListEntry);
+
+                        StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newInstance(myListEntry
+                                , 10
+                                ,colorBlockMeasurables);
+                        ((BaseContainerFragment)getParentFragment()).replaceFragment(statsFragmentProgress, true,"mylistbrowse");
+                        mCallback.showFab(false,"");
                         break;
 
                     default:
@@ -187,6 +212,11 @@ public class MyListFragment  extends Fragment{
     }
 
     public void expandTheListViewAtPosition(int position) {
+
+        if(lastExpandedPosition >=0 && mMenuHeader.size()>lastExpandedPosition) {
+            expListView.collapseGroup(lastExpandedPosition);
+        }
+
         expListView.expandGroup(position);
         expListView.setSelectedGroup(position);
         mMenuHeader.get(position).setExpanded(true);
@@ -323,6 +353,38 @@ public class MyListFragment  extends Fragment{
             throw new ClassCastException(context.toString()
                     + " must implement OnHeadlineSelectedListener");
         }
+    }
+
+    public ColorBlockMeasurables prepareColorBlockDataForList(MyListEntry myListEntry) {
+        ColorBlockMeasurables colorBlockMeasurables = new ColorBlockMeasurables();
+
+        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
+        Cursor c = InternalDB.getWordInterfaceInstance(getContext()).getWordListColorBlockCursor(colorThresholds,myListEntry);
+
+        if(c.getCount()>0) {
+            c.moveToFirst();
+
+                /* We do not want to include favorites star lists that are not active in the user
+                * preferences. So if an inactivated list shows up in the sql query, ignore it (don't add to mMenuHeader)*/
+
+            colorBlockMeasurables.setGreyCount(c.getInt(3));
+            colorBlockMeasurables.setRedCount(c.getInt(4));
+            colorBlockMeasurables.setYellowCount(c.getInt(5));
+            colorBlockMeasurables.setGreenCount(c.getInt(6));
+            colorBlockMeasurables.setEmptyCount(0);
+
+            colorBlockMeasurables.setGreyMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreyCount())));
+            colorBlockMeasurables.setRedMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getRedCount())));
+            colorBlockMeasurables.setYellowMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getYellowCount())));
+            colorBlockMeasurables.setGreenMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreenCount())));
+            colorBlockMeasurables.setEmptyMinWidth(0);
+
+
+
+            c.moveToNext();
+        }
+        c.close();
+        return  colorBlockMeasurables;
     }
 }
 

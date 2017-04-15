@@ -3,6 +3,7 @@ package com.jukuproject.jukutweet.Adapters;
 import android.content.Context;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -34,7 +35,9 @@ public class MultipleChoiceAdapter extends ArrayAdapter<WordEntry> {
             , int rowheight
             , int displaywidth
             , String quizType
-    ,ArrayList<Integer> wrongAnswerIds) {
+    ,ArrayList<Integer> wrongAnswerIds
+//    ,@Nullable Integer gradeCorrectAnswerId
+    ) {
 
         super(context,textViewResourceId, dataset);
         mFieldId = textViewResourceId;
@@ -44,6 +47,7 @@ public class MultipleChoiceAdapter extends ArrayAdapter<WordEntry> {
         mDisplayWidth = displaywidth;
         mQuizType = quizType;
         mWrongAnswerIds =wrongAnswerIds;
+//        mGradeCorrectAnswerId = gradeCorrectAnswerId;
     }
 
     private Context mContext;
@@ -53,7 +57,7 @@ public class MultipleChoiceAdapter extends ArrayAdapter<WordEntry> {
     private int mDisplayWidth;
     private String mQuizType;
     private ArrayList<Integer> mWrongAnswerIds;
-
+    private Integer mGradeCorrectAnswerId;
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -69,6 +73,8 @@ public class MultipleChoiceAdapter extends ArrayAdapter<WordEntry> {
         if(mWrongAnswerIds.contains(wordEntry.getId())) {
             answer.setOnClickListener(null);
             answer.setVisibility(View.INVISIBLE);
+        } else if (mGradeCorrectAnswerId != null && mGradeCorrectAnswerId == wordEntry.getId()) {
+            answer.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorJukuGreen));
         } else {
 
             /* If the question or answer includes the words definition, we need to parse
@@ -109,52 +115,11 @@ public class MultipleChoiceAdapter extends ArrayAdapter<WordEntry> {
             Rect bounds = new Rect();
             Paint textPaint = textView_Test.getPaint();
             textPaint.getTextBounds(wordEntry.getQuizAnswer(mQuizType), 0, wordEntry.getQuizAnswer(mQuizType).length(), bounds);
-//            int width = bounds.width();
-
-//            if(width>mDisplayWidth) {
-//                Log.d(TAG,"width: " + width + ", displaywidth: " + mDisplayWidth);
-//                Log.d(TAG,"Q width overrun: " + questionOption);
-//                Log.d(TAG,"answer: " + wordEntry.getQuizAnswer(mQuizType));
-//
-//                int excesslinewidth = width- mDisplayWidth;
-//                double excesslinewidthpercentage = (double)excesslinewidth/(double)width;
-//                double excesscharacters = (double)questionOption.length()*excesslinewidthpercentage;
-//
-//                Log.d(TAG,"excesslinewidth: " + excesslinewidth);
-//                Log.d(TAG,"excesslinewidthpercentage: " + excesslinewidthpercentage);
-//                Log.d(TAG,"excesscharacters: " + excesscharacters);
-//
-//
-//                int buffer = 2;
-//                if(questionOption.contains("(") || questionOption.contains(")") || questionOption.contains(",")) {
-//                    buffer =4;
-//                }
-//
-//                int maxallowablecharacters = questionOption.length()-(int)excesscharacters-buffer; //2 is the buffer here
-//
-//                Log.d(TAG,"questionOption length: " + questionOption.length());
-//                Log.d(TAG,"excess chars: " + (int)excesscharacters);
-//                Log.d(TAG,"wordentry length: " + wordEntry.getQuizAnswer(mQuizType).length());
-//                Log.d(TAG,"charbuffer: " + buffer);
-//                Log.d(TAG,"Max allowable chars: " + maxallowablecharacters);
-//
-//                String lastString = questionOption.substring(0,maxallowablecharacters);
-//
-//                if (lastString.contains(" ")) {
-//                    lastString = lastString.substring(0,lastString.lastIndexOf(" "));
-//                }
-//
-//                questionOption =  lastString + "...";
-//                if (questionOption.contains(",...")) {
-//                    questionOption = questionOption.substring(0,questionOption.lastIndexOf(",...") )+ "...";
-//                }
-//
-//            }
-
-//            Log.d(TAG,"Q OPTION FINAL: " + questionOption);
 
             answer.setText(replacedDefinition(wordEntry.getQuizAnswer(mQuizType),mDisplayWidth));
             answer.setTag(wordEntry.getId());
+
+
 
         }
 
@@ -238,6 +203,14 @@ public class MultipleChoiceAdapter extends ArrayAdapter<WordEntry> {
         }
         Log.d(TAG,"Returning sentence: " + sentence);
         return sentence;
+    }
+
+
+
+    public void changeRowColorsAndVisibility(ArrayList<Integer> updatedWrongAnswerPositions, Integer updatedCorrectAnswerId) {
+        this.mWrongAnswerIds = updatedWrongAnswerPositions;
+        this.mGradeCorrectAnswerId = updatedCorrectAnswerId;
+        notifyDataSetChanged();
     }
 
 

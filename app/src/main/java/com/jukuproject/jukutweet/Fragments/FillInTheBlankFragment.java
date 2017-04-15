@@ -48,6 +48,7 @@ public class FillInTheBlankFragment extends Fragment  {
     String TAG = "TEST-fillinblank";
 
     int currentTotal = 0; //CURRENT number of questions asked
+    int currentCorrect = 0; //CURRENT numer of tweets where all answers were correct on the firt try
     int currentDataSetindex = 0; //Current position within dataset (reset to 0 when shuffling)
 
     QuizFragmentInteractionListener mCallback;
@@ -65,7 +66,7 @@ public class FillInTheBlankFragment extends Fragment  {
 
     LinearLayout linearLayoutVerticalParagraph;  //This is the main linear layout, that we will fill row by row with horizontal linear layouts, which are     // in turn filled with vertical layouts (with furigana on top and japanese on bottom)
     LinearLayout linearLayoutHorizontalLine; //one of these layouts for each line in the vertical paragraph
-
+    TextView scoreButton;
     TextView txtQuestionNumber;
 
     public FillInTheBlankFragment() {}
@@ -85,9 +86,6 @@ public class FillInTheBlankFragment extends Fragment  {
         args.putString("colorString",colorString);
         args.putParcelable("myListEntry",myListEntry);
         fragment.setArguments(args);
-//        long startTime = System.nanoTime();
-//        long endTime = System.nanoTime();
-//        Log.e("TEST","assign FRAGMENT ELLAPSED TIME: " + (endTime - startTime) / 1000000000.0);
         return  fragment;
     }
 
@@ -97,18 +95,45 @@ public class FillInTheBlankFragment extends Fragment  {
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
-        //Set input global data
-        mDataset = getArguments().getParcelableArrayList("tweets");
-        mQuizSize = Integer.parseInt(getArguments().getString("quizSize"));
-        mTotalWeight = getArguments().getDouble("totalWeight");
-        mColorString = getArguments().getString("colorString");
-        mMyListEntry = getArguments().getParcelable("mylistentry");
-
-
-        Log.d("TEST","dataset fragment isspinner: " + mDataset.get(0).getWordEntries().get(1).getKanji() + ", spinner: "
-                + mDataset.get(0).getWordEntries().get(1).isSpinner());
-
         View view = LayoutInflater.from(getActivity()).inflate(R.layout.fragment_fillintheblanks, null);
+        linearLayoutVerticalParagraph = (LinearLayout) view.findViewById(R.id.sentence_layout);
+        txtQuestionNumber = (TextView) view.findViewById(R.id.textViewTotal);
+        scoreButton = (TextView) view.findViewById(R.id.scoreButton);
+
+
+        return view;
+    }
+
+
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        if (savedInstanceState != null) {
+            //Save the fragment's state here
+            mDataset = savedInstanceState.getParcelableArrayList("mDataset");
+            mQuizSize = savedInstanceState.getInt("mQuizSize");
+            mTotalWeight = savedInstanceState.getDouble("mTotalWeight");
+            mColorString = savedInstanceState.getString("mColorString");
+            mMyListEntry = savedInstanceState.getParcelable("mMyListEntry");
+            currentTotal = savedInstanceState.getInt("currentTotal");
+            currentCorrect = savedInstanceState.getInt("currentCorrect");
+            currentLineWidth = savedInstanceState.getInt("currentLineWidth");
+            displayWidth = savedInstanceState.getInt("displayWidth");
+        } else {
+            mDataset = getArguments().getParcelableArrayList("tweets");
+            mQuizSize = Integer.parseInt(getArguments().getString("quizSize"));
+            mTotalWeight = getArguments().getDouble("totalWeight");
+            mColorString = getArguments().getString("colorString");
+            mMyListEntry = getArguments().getParcelable("mylistentry");
+
+        }
+
+
+//        Log.d("TEST","dataset fragment isspinner: " + mDataset.get(0).getWordEntries().get(1).getKanji() + ", spinner: "
+//                + mDataset.get(0).getWordEntries().get(1).isSpinner());
+
 
         /* Get width of screen */
         DisplayMetrics metrics = new DisplayMetrics();
@@ -119,27 +144,24 @@ public class FillInTheBlankFragment extends Fragment  {
         spinnerWidth = (int) (160.0f * metrics.density + 0.5f);
         spinnerHeight = (int) (37.0f * metrics.density + 0.5f);
 
-        linearLayoutVerticalParagraph = (LinearLayout) view.findViewById(R.id.sentence_layout);
+
         linearLayoutHorizontalLine = new LinearLayout(getContext());
         linearLayoutHorizontalLine.setOrientation(LinearLayout.HORIZONTAL);
 
         /* Reset the lists and layouts */
-        //TODO -- test set up the sentence!
-
-        txtQuestionNumber = (TextView) view.findViewById(R.id.textViewTotal);
         txtQuestionNumber.setText((currentTotal +1) + "/" + mQuizSize);
 
-        Log.d(TAG,"DatasetSize: " + mDataset.size());
         //Randomize the dataset
         Collections.shuffle(mDataset);
         currentDataSetindex = 0;
 
 
-        TextView scoreButton = (TextView) view.findViewById(R.id.scoreButton);
+
         scoreButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 boolean allSpinnersAreCorrect = true;
+                int tweetWasAnsweredCorrectlyFirstTry = 1;
                 for (WordEntry wordEntry : mDataset.get(currentDataSetindex).getWordEntries()) {
                     if(wordEntry.isSpinner()) {
                         //If correct
@@ -162,13 +184,18 @@ public class FillInTheBlankFragment extends Fragment  {
                             ((Spinner)linearLayoutVerticalParagraph.findViewWithTag(wordEntry.getStartIndex())).setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorJukuRed));
                             allSpinnersAreCorrect = false;
                         }
+
+                        if(!wordEntry.getFillinSentencesSpinner().isCorrectFirstTry()) {
+                            tweetWasAnsweredCorrectlyFirstTry = 0;
+                        }
+
                     }
                 }
 
 
                 //IF everything is correct, score answers and move on
                 if(allSpinnersAreCorrect) {
-                   //Score the answers
+                    //Score the answers
                     for (WordEntry wordEntry : mDataset.get(currentDataSetindex).getWordEntries()) {
                         if(wordEntry.isSpinner()) {
                             //If correct
@@ -190,12 +217,14 @@ public class FillInTheBlankFragment extends Fragment  {
 
                     currentDataSetindex += 1;
                     currentTotal += 1;
+                    currentCorrect += tweetWasAnsweredCorrectlyFirstTry;
                     txtQuestionNumber.setText(currentTotal + "/" + mQuizSize);
 
                     //Move to stats if we have reached the end of the quiz
                     if(currentTotal>= mQuizSize) {
                         mCallback.showPostQuizStatsFillintheBlanks(mDataset
                                 ,mMyListEntry
+                                ,currentCorrect
                                 ,currentTotal);
                     } else if(currentDataSetindex >= mDataset.size()) {
                         Collections.shuffle(mDataset);
@@ -206,10 +235,11 @@ public class FillInTheBlankFragment extends Fragment  {
             }
         });
         //Set up tweet and spinners
-//        supertest();
         setUpQuestion(mDataset.get(currentDataSetindex));
-        return view;
     }
+
+
+
 
     public void setUpQuestion(Tweet tweet) {
 
@@ -217,10 +247,7 @@ public class FillInTheBlankFragment extends Fragment  {
         ArrayList<WordEntry> disectedSavedTweet = tweet.getWordEntries();
 
 
-        Log.d(TAG,"STTING UP QUESTIONL DisectedSavedTweet size: " + tweet.getWordEntries().size());
-         /* Get metrics to pass density/width/height to adapters */
-
-
+//        Log.d(TAG,"STTING UP QUESTIONL DisectedSavedTweet size: " + tweet.getWordEntries().size());
 
         currentLineWidth = 0;
         linearLayoutVerticalParagraph.removeAllViews();
@@ -401,74 +428,6 @@ public class FillInTheBlankFragment extends Fragment  {
 
                     }
 
-//                    if ((currentLineWidth + estimatedTextViewWidth + displayMarginPadding) < displayWidth || widthExtra < 0) {
-//                        substringend = text.length();
-//
-//                        if(BuildConfig.DEBUG) {
-//                            Log.d(TAG, "choppedfragment substringstart: " + substringstart);
-//                            Log.d(TAG, "choppedfragment substringend: " + substringend);
-//                        }
-//
-//                        CharSequence choppedTextFragmentRemainder = text.subSequence(substringstart, substringend);
-//                        if(BuildConfig.DEBUG) {Log.d(TAG, "choppedTextFragmentRemainder: " + choppedTextFragmentRemainder);}
-//                        TextView textViewRemainder = new TextView(getContext());
-//
-//
-//                        textViewRemainder.setLayoutParams(new ViewGroup.LayoutParams(
-//                                ViewGroup.LayoutParams.WRAP_CONTENT,
-//                                ViewGroup.LayoutParams.WRAP_CONTENT));
-//
-//                        textViewRemainder.setText(choppedTextFragmentRemainder);
-//                        textViewRemainder.setMovementMethod(LinkMovementMethod.getInstance());
-//                        textViewRemainder.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
-//
-//                        textViewRemainder.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-//                        linearLayoutHorizontalLine.addView(textViewRemainder);
-//
-//
-//                        int widthOfRemainder = getEstimatedTextViewWidth(choppedTextFragmentRemainder.toString());
-//                        currentLineWidth = currentLineWidth + widthOfRemainder;
-//
-//                        if(BuildConfig.DEBUG) {
-//                            Log.d(TAG, "chopped currentLineWidth: " + currentLineWidth);
-//                            Log.d(TAG, "chopped width: " + widthOfRemainder);
-//                        }
-//
-//                        widthExtra = (currentLineWidth + displayMarginPadding) - displayWidth;
-//                        maxWidthAllowed = displayWidth - currentLineWidth - displayMarginPadding;
-//
-//
-//                        if (currentLineWidth == 0 && widthExtra > 0) {  // like if it's the last fragment of a line, starting on a new line. Just print the damn thing (on the new line)
-//                            insertLineIntoParagraph((currentLineWidth + (displayWidth + widthExtra) + displayMarginPadding), displayWidth);
-//                        } else if (currentLineWidth == 0 && widthExtra < 0) {
-//                            insertLineIntoParagraph((currentLineWidth + (displayWidth + widthExtra) + displayMarginPadding), displayWidth);
-//                        } else {
-//                            insertLineIntoParagraph((currentLineWidth + displayMarginPadding), displayWidth);
-//                        }
-//
-//                    } else {
-//
-//                        maxWidthAllowed = displayWidth - currentLineWidth - displayMarginPadding;
-//
-//                        if(BuildConfig.DEBUG) {
-//                            Log.d(TAG, "substringend calculation--maxwidthallowed: " + maxWidthAllowed);
-//                            Log.d(TAG, "substringend calculation--width: " + estimatedTextViewWidth);
-//                            Log.d(TAG, "substringend calculation--onScreenText.length: " + text.length());
-//                        }
-//
-//                        substringend = Math.round(((float) maxWidthAllowed / (float) estimatedTextViewWidth) * text.length()) + substringstart;
-//                        if(BuildConfig.DEBUG) {Log.d(TAG, "substring rounding: " + ((float) maxWidthAllowed / (float) estimatedTextViewWidth) * text.length());}
-//                    }
-
-//                    if(BuildConfig.DEBUG) {
-//                        Log.d(TAG, "NEW substringstart: " + substringstart);
-//                        Log.d(TAG, "NEW substringend: " + substringend);
-//                    }
-//                    if (substringend > text.length()) {
-//                        if(BuildConfig.DEBUG) {Log.d(TAG, "SHIT WORKAROUND substringend Revised to: " + substringend);}
-//                        substringend = text.length();
-//                    }
-
                 }
 
             } else {
@@ -573,67 +532,34 @@ public class FillInTheBlankFragment extends Fragment  {
             spinner.setLayoutParams(params);
         }
 
-
-
-//        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-//            @Override
-//            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-//                // Updating an array containing correct answer vs. selected answer.
-//
-////                int treemapIndex = Integer.parseInt(spinner.getTag().toString());
-////                ArrayList<String> tmpStringArray = spinnerDataTreeMap.get(treemapIndex);
-////                tmpStringArray.remove(2);
-////                tmpStringArray.add(spinner.getSelectedItem().toString());
-////                spinnerDataTreeMap.put(treemapIndex, tmpStringArray);
-//
-//                /** if the user has gotten an incorrect answer, make it so now when they go back and correct that answer
-//                 *  they don't have to hit the score button. it automatically checks it and moves on */
-////                if (isIncorrectBoolean) {
-////                    scoreTheAnswers();
-////TODO THIS PART
-////                }
-//
-//            }
-//
-//            @Override
-//            public void onNothingSelected(AdapterView<?> parentView) {
-//                // your code here
-//            }
-//
-//        });
-
-//        innerLinearLayout4.addView(spinner);
-//        innerLinearLayout4.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         linearLayoutHorizontalLine.addView(spinner);
         currentLineWidth = currentLineWidth + spinnerWidth;
         insertLineIntoParagraph((currentLineWidth + displayMarginPadding), displayWidth);
 
-
-
     }
 
 
-
-
-    public void supertest() {
-        linearLayoutHorizontalLine = new LinearLayout(getContext());
-        TextView textView = new TextView(getContext());
-        textView.setLayoutParams(new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT));
-
-        textView.setText("supertest");
-        textView.setMovementMethod(LinkMovementMethod.getInstance());
-        textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
-        linearLayoutHorizontalLine.addView(textView);
-
-        final LinearLayout tmplinearLayout = linearLayoutHorizontalLine;
-        linearLayoutVerticalParagraph.addView(tmplinearLayout);
-//        linearLayoutVerticalParagraph.setBackgroundColor(ContextCompat.getColor(getContext(),android.R.color.holo_purple));
-        //now reset the linear layout... (hope that works)
-        linearLayoutHorizontalLine = new LinearLayout(getContext());
-        linearLayoutHorizontalLine.setOrientation(LinearLayout.HORIZONTAL);
-    }
+//
+//
+//    public void supertest() {
+//        linearLayoutHorizontalLine = new LinearLayout(getContext());
+//        TextView textView = new TextView(getContext());
+//        textView.setLayoutParams(new ViewGroup.LayoutParams(
+//                ViewGroup.LayoutParams.WRAP_CONTENT,
+//                ViewGroup.LayoutParams.WRAP_CONTENT));
+//
+//        textView.setText("supertest");
+//        textView.setMovementMethod(LinkMovementMethod.getInstance());
+//        textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
+//        linearLayoutHorizontalLine.addView(textView);
+//
+//        final LinearLayout tmplinearLayout = linearLayoutHorizontalLine;
+//        linearLayoutVerticalParagraph.addView(tmplinearLayout);
+////        linearLayoutVerticalParagraph.setBackgroundColor(ContextCompat.getColor(getContext(),android.R.color.holo_purple));
+//        //now reset the linear layout... (hope that works)
+//        linearLayoutHorizontalLine = new LinearLayout(getContext());
+//        linearLayoutHorizontalLine.setOrientation(LinearLayout.HORIZONTAL);
+//    }
     public void insertLineIntoParagraph(int totallinewidth, int displaywidth) {
 
         if (displaywidth == 0) {
@@ -680,19 +606,6 @@ public class FillInTheBlankFragment extends Fragment  {
     }
 
 
-//
-//    public void onItemSelected(AdapterView<?> parent, View view, int pos,long id) {
-//        Toast.makeText(parent.getContext(),
-//                "OnItemSelectedListener : " + parent.getItemAtPosition(pos).toString(),
-//                Toast.LENGTH_SHORT).show();
-//        Log.d(TAG,"ITEM SELECTED");
-//    }
-//
-//    @Override
-//    public void onNothingSelected(AdapterView<?> parent) {
-//
-//    }
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -703,5 +616,23 @@ public class FillInTheBlankFragment extends Fragment  {
                     + " must implement OnHeadlineSelectedListener");
         }
     }
+
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putParcelableArrayList("mDataset", mDataset);
+        outState.putInt("mQuizSize", mQuizSize);
+        outState.putDouble("mTotalWeight", mTotalWeight);
+        outState.putString("mColorString", mColorString);
+        outState.putParcelable("mMyListEntry", mMyListEntry);
+        outState.putInt("currentTotal", currentTotal);
+        outState.putInt("currentCorrect",currentCorrect);
+        outState.putInt("currentLineWidth",currentLineWidth);
+        outState.putInt("displayWidth",displayWidth);
+    }
+
+
 
 }

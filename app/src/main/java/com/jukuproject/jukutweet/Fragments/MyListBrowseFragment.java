@@ -88,24 +88,29 @@ public class MyListBrowseFragment extends Fragment  {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        mMyListEntry = getArguments().getParcelable("mylistentry");
-        SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(getContext());
-        mColorThresholds = sharedPrefManager.getColorThresholds();
-//        mActiveFavoriteStars = sharedPrefManager.getActiveFavoriteStars();
-        updateAdapter();
+        if(savedInstanceState == null) {
+            mMyListEntry = getArguments().getParcelable("mylistentry");
+        } else {
+            mMyListEntry = savedInstanceState.getParcelable("mylistentry");
+            mWords = savedInstanceState.getParcelableArrayList("mWords");
+            mSelectedEntries = savedInstanceState.getIntegerArrayList("mSelectedEntries");
+        }
+        mColorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
+        updateAdapter((savedInstanceState == null));
     }
 
 
 
-    public void updateAdapter() {
+    public void updateAdapter(boolean freshQuestion) {
 
-
-        //Pull list of word entries in the database for a given list
-        mWords = InternalDB.getWordInterfaceInstance(getContext()).getWordsFromAWordList(mMyListEntry
-                ,mColorThresholds
-                ,"'Grey','Red','Yellow','Green'"
-                ,null
-                ,null);
+        if(freshQuestion || mWords == null) {
+            //Pull list of word entries in the database for a given list
+            mWords = InternalDB.getWordInterfaceInstance(getContext()).getWordsFromAWordList(mMyListEntry
+                    ,mColorThresholds
+                    ,"'Grey','Red','Yellow','Green'"
+                    ,null
+                    ,null);
+        }
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
 
@@ -127,7 +132,7 @@ public class MyListBrowseFragment extends Fragment  {
 
                                 if(!mSelectedEntries.contains(id)) {
                                         if(mSelectedEntries.size()==0) {
-                                            mCallback.showMenuMyListBrowse(true);
+                                            mCallback.showMenuMyListBrowse(true,2);
                                             Log.d(TAG,"showing menu");
                                         }
                                     Log.d(TAG,"selected adding: " + id);
@@ -141,7 +146,7 @@ public class MyListBrowseFragment extends Fragment  {
                                 }
 
                                 if(mSelectedEntries.size()==0) {
-                                    mCallback.showMenuMyListBrowse(false);
+                                    mCallback.showMenuMyListBrowse(false,2);
                                     Log.d(TAG,"hiding menu");
                                 }
 
@@ -229,7 +234,7 @@ public class MyListBrowseFragment extends Fragment  {
                 removeKanjiFromList(kanjiIdString,currentList);
             }
             deselectAll();
-            mCallback.showMenuMyListBrowse(false);
+            mCallback.showMenuMyListBrowse(false,2);
         } catch (NullPointerException e) {
             Log.e(TAG,"Nullpointer in MyListBrowseFragment saveAndUpdateMyLists : " + e);
             Toast.makeText(getContext(), "Unable to update lists", Toast.LENGTH_SHORT).show();
@@ -378,5 +383,15 @@ public class MyListBrowseFragment extends Fragment  {
         } catch (Exception e) {
 
         }
+    }
+
+
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable("myListEntry", mMyListEntry);
+        outState.putParcelableArrayList("mWords",mWords);
+        outState.putIntegerArrayList("mSelectedEntries",mSelectedEntries);
     }
 }

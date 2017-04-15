@@ -7,10 +7,6 @@ package com.jukuproject.jukutweet;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-
-import com.jukuproject.jukutweet.TabContainers.Tab1Container;
-import com.jukuproject.jukutweet.TabContainers.Tab2Container;
-import com.jukuproject.jukutweet.TabContainers.Tab3Container;
 //import com.jukuproject.jukutweet.TabContainers.Tab4Container;
 
 /**
@@ -20,28 +16,29 @@ import com.jukuproject.jukutweet.TabContainers.Tab3Container;
 public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
     String[] mCurrentTabs;
+    Fragment[] mSavedFragments;
 
-    public SectionsPagerAdapter(FragmentManager fm,String[] currentTabs) {
+    public SectionsPagerAdapter(FragmentManager fm, String[] currentTabs, Fragment[] savedFragments) {
         super(fm);
         this.mCurrentTabs = currentTabs;
+        this.mSavedFragments = savedFragments;
     }
 
     @Override
     public Fragment getItem(int position) {
 
-        //TODO -- REPLACE WITH CUSTOM FRAGMENT
-        // getItem is called to instantiate the fragment for the given page.
-        // Return a PlaceholderFragment (defined as a static inner class below).
-        switch (position) {
-            case 0:
-                return Tab1Container.newInstance();
-            case 1:
-                return Tab2Container.newInstance();
-            case 2:
-                return Tab3Container.newInstance();
-            default:
-                return Tab1Container.newInstance();
-        }
+
+        return mSavedFragments[position];
+//        switch (position) {
+//            case 0:
+//                return Tab1Container.newInstance();
+//            case 1:
+//                return Tab2Container.newInstance();
+//            case 2:
+//                return Tab3Container.newInstance();
+//            default:
+//                return Tab1Container.newInstance();
+//        }
     }
 
 

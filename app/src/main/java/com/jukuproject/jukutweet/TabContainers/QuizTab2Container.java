@@ -29,6 +29,9 @@ public class QuizTab2Container extends BaseContainerFragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        if(savedInstanceState != null) {
+            mIsViewInited = savedInstanceState.getBoolean("mIsViewInited");
+        }
 //        Log.e("test", "tab 1 container on activity created");
         if (!mIsViewInited) {
             mIsViewInited = true;
@@ -60,5 +63,12 @@ public class QuizTab2Container extends BaseContainerFragment {
 //            return false;
 //        }
 //    }
+@Override
+public void onSaveInstanceState(Bundle outState) {
+    super.onSaveInstanceState(outState);
 
+    outState.putBoolean("mIsViewInited", mIsViewInited);
+
+
+}
 }

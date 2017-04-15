@@ -15,13 +15,15 @@ public interface QuizMenuDialogInteractionListener {
             , String selectedColorString);
     void goToQuizActivityMultipleChoice(int tabNumber
             , MyListEntry listEntry
+            , Integer currentExpandedPosition
             , String quizType
             , String quizSize
             , String quizTimer
             , String selectedColorString);
 
-    void showFillintheBlanksFragment(int tabNumber
+    void goToQuizActivityFillintheBlanks(int tabNumber
             , MyListEntry listEntry
+            , Integer currentExpandedPosition
             , String quizSize
-            ,String selectedColorString);
+            , String selectedColorString);
 }

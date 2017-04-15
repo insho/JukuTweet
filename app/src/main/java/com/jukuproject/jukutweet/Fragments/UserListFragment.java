@@ -88,6 +88,8 @@ public class UserListFragment extends Fragment {
      */
     public void updateAdapter() {
 
+
+
         //Pull list of followed twitter users from the database
         List<UserInfo> savedUserInfo = InternalDB.getUserInterfaceInstance(getContext()).getSavedUserInfo();
 
@@ -105,7 +107,9 @@ public class UserListFragment extends Fragment {
                             //TODO MOVE THIS METHOD TO THE FRAGMENT, AND ONLY CALL BACK TO MAIN ACTIVITY???
                             //TODO OR only if there is no userinfo, fill that shit in. otherwise dont
                             if(isUniqueClick(1000) && event instanceof UserInfo) {
+
                                 if(mCallback.isOnline()) {
+                                    mCallback.showProgressBar(true);
                                     UserInfo userInfo = (UserInfo) event;
                                     UserTimeLineFragment fragment = new UserTimeLineFragment();
                                     Bundle bundle = new Bundle();
@@ -120,7 +124,6 @@ public class UserListFragment extends Fragment {
                                 } else {
                                     Toast.makeText(getActivity(), "No internet connection", Toast.LENGTH_SHORT).show();
                                 }
-
 
                             }
 

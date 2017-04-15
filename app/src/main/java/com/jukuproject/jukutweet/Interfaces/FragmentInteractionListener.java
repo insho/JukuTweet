@@ -15,6 +15,6 @@ public interface FragmentInteractionListener {
     void showFab(boolean show);
     boolean isOnline();
     void updateTabs(String[] updatedTabs);
-    void showMenuMyListBrowse(boolean show);
+    void showMenuMyListBrowse(boolean show, int tabNumber);
     void notifyFragmentsChanged();
 }

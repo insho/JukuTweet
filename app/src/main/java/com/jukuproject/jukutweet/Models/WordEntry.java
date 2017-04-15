@@ -323,13 +323,13 @@ public class WordEntry implements Parcelable {
     public String getQuizQuestion(String quizType) {
         switch(quizType) {
 
-            case "Kanji to English":
+            case "Kanji to Definition":
                 return kanji;
-            case "Kanji to Furigana":
+            case "Kanji to Kana":
                 return kanji;
-            case "Furigana to Kanji":
+            case "Kana to Kanji":
                 return furigana;
-            case "English to Kanji":
+            case "Definition to Kanji":
                 return getDefinitionMultiLineString(10);
             default:
                 return kanji;
@@ -340,13 +340,13 @@ public class WordEntry implements Parcelable {
     public String getQuizAnswer(String quizType) {
         switch(quizType) {
 
-            case "Kanji to English":
+            case "Kanji to Definition":
                 return definition;
-            case "Kanji to Furigana":
+            case "Kanji to Kana":
                 return furigana;
-            case "Furigana to Kanji":
+            case "Kana to Kanji":
                 return kanji;
-            case "English to Kanji":
+            case "Definition to Kanji":
                 return kanji;
             default:
                 return definition;

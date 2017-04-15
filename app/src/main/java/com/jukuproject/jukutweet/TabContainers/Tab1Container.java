@@ -31,7 +31,9 @@ public class Tab1Container extends BaseContainerFragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-//        Log.e("test", "tab 1 container on activity created");
+        if(savedInstanceState != null) {
+            mIsViewInited = savedInstanceState.getBoolean("mIsViewInited");
+        }
         if (!mIsViewInited) {
             mIsViewInited = true;
             initView();
@@ -63,5 +65,12 @@ public class Tab1Container extends BaseContainerFragment {
             return false;
         }
     }
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
 
+        outState.putBoolean("mIsViewInited", mIsViewInited);
+
+
+    }
 }

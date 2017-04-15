@@ -27,6 +27,8 @@ import com.jukuproject.jukutweet.Adapters.MyListExpandableAdapter;
 import com.jukuproject.jukutweet.Database.ExternalDB;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.QuizMenuDialog;
+import com.jukuproject.jukutweet.Fragments.MultipleChoiceFragment;
+import com.jukuproject.jukutweet.Fragments.StatsFragmentFillintheBlanks;
 import com.jukuproject.jukutweet.Fragments.StatsFragmentMultipleChoice;
 import com.jukuproject.jukutweet.Fragments.StatsFragmentProgress;
 import com.jukuproject.jukutweet.Interfaces.QuizFragmentInteractionListener;
@@ -81,7 +83,7 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
     private MyListEntry mMyListEntry;
     private ColorBlockMeasurables mColorBlockMeasurables;
     private Integer mTabNumber;
-
+    private Integer mLastExpandedPosition;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -92,7 +94,7 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
         setSupportActionBar(toolbar);
         mViewPager = (ViewPager) findViewById(R.id.container);
         mTitleStrip = (PagerTitleStrip) findViewById(R.id.pager_title_strip);
-
+        fab = (FloatingActionButton) findViewById(R.id.fab);
 
         if (savedInstanceState != null) {
             //Restore the fragment's instance
@@ -107,6 +109,8 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
             mTabNumber = savedInstanceState.getInt("tabNumber");
             //TODO HANDLE STRIP VISIBILITY
             mQuizSectionsPagerAdapter = new QuizSectionsPagerAdapter(getSupportFragmentManager(),mAdapterTitles,fragments);
+
+
 
 
         } else {
@@ -130,6 +134,9 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
             double totalweight = mIntent.getDoubleExtra("totalweight",0);
             String dataType = mIntent.getStringExtra("dataType");
             mTabNumber = mIntent.getIntExtra("tabNumber",2);
+            mLastExpandedPosition = mIntent.getIntExtra("lastExpandedPosition",0);
+            typeOfQuizThatWasCompleted = mIntent.getStringExtra("typeOfQuizThatWasCompleted");
+            
             Fragment[] fragments = new Fragment[2];
             switch (typeOfQuizThatWasCompleted) {
                 case "Multiple Choice":
@@ -151,7 +158,7 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
             mTitleStrip.setVisibility(View.GONE);
 
             // Create the adapter that will return a fragment for each of the primary sections of the activity.
-            mAdapterTitles = new String[2];
+            mAdapterTitles = new String[1];
             mAdapterTitles[0] = typeOfQuizThatWasCompleted;
             mQuizSectionsPagerAdapter = new QuizSectionsPagerAdapter(getSupportFragmentManager(),mAdapterTitles,fragments);
 
@@ -165,18 +172,22 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
                 showActionBarBackButton(true,"");
             }
         }
+
+        Log.d(TAG,"Madapter title: " + mAdapterTitles[0]);
         if(mAdapterTitles != null
                 && mAdapterTitles.length > 0
                 && mAdapterTitles[0].equals("Score")) {
             showFab(true,"quizRedo");
+            mTitleStrip.setVisibility(View.VISIBLE);
         } else {
             showFab(false);
+            mTitleStrip.setVisibility(View.GONE);
         }
 
         mViewPager.setAdapter(mQuizSectionsPagerAdapter);
         mViewPager.setOffscreenPageLimit(2);
 
-        fab = (FloatingActionButton) findViewById(R.id.fab);
+//        mViewPager.invalidate();
         progressbar = (SmoothProgressBar) findViewById(R.id.progressbar);
 
 
@@ -196,7 +207,6 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
             default:
                 return super.onOptionsItemSelected(item);
         }
-
     }
 
     /**
@@ -210,14 +220,16 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
          * just go straight back to main menu
          * If it is not a stats fragment, it must be a quiz, so show the "Are you sure" dialog.
          */
-        if(findFragmentByPosition(0) != null
-                && findFragmentByPosition(0) instanceof QuizTab1Container
-                && ((QuizTab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("statsFragmentProgress") != null
-                && ((QuizTab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("statsFragmentProgress").isVisible()) {
+
+        if(mAdapterTitles != null
+                && mAdapterTitles.length>0
+                && mAdapterTitles[0].equals("Score")) {
 
             Intent intent = new Intent(getBaseContext(), MainActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             intent.putExtra("fragmentWasChanged", true);
+            intent.putExtra("tabNumber",mTabNumber);
+            intent.putExtra("lastExpandedPosition",mLastExpandedPosition);
             startActivity(intent);
             finish();
         } else {
@@ -226,6 +238,20 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
 //            if(timer>0 && coundDownTimer != null) {
 //                coundDownTimer.cancel();
 //            }
+
+            if(findFragmentByPosition(0) != null
+                    && findFragmentByPosition(0) instanceof QuizTab1Container
+                    && ((QuizTab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("multipleChoiceFragment") != null
+                    && ((QuizTab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("multipleChoiceFragment").isVisible()) {
+                try {
+                    ((MultipleChoiceFragment)((QuizTab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("multipleChoiceFragment")).pauseTimer();
+                } catch (NullPointerException e) {
+                    Log.e(TAG,"Pause timer from quizactivity nullpointer: " + e);
+                } catch (Exception e) {
+                    Log.e(TAG,"pause timer other exception" + e);;
+                }
+            }
+
 
             final  AlertDialog.Builder builder = new AlertDialog.Builder(this);
             final AlertDialog dialog;
@@ -256,6 +282,8 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     dialog.dismiss();
+
+
                 }
             });
             builder.setView(layout);
@@ -263,14 +291,30 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
             dialog.show();
             dialog.setCanceledOnTouchOutside(true);
 
-//            dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-//                @Override
-//                public void onDismiss(DialogInterface dialog) {
-//                    if (timer > 0 && coundDownTimer != null) {
-//                        setUpTimer((int) millstogo / 1000);
-//                    }
-//                }
-//            });
+            if(findFragmentByPosition(0) != null
+                    && findFragmentByPosition(0) instanceof QuizTab1Container
+                    && ((QuizTab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("multipleChoiceFragment") != null
+                    && ((QuizTab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("multipleChoiceFragment").isVisible()) {
+
+                dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+
+                        if(findFragmentByPosition(0) != null
+                                && findFragmentByPosition(0) instanceof QuizTab1Container
+                                && ((QuizTab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("multipleChoiceFragment") != null
+                                && ((QuizTab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("multipleChoiceFragment").isVisible()) {
+                            try {
+                                ((MultipleChoiceFragment)((QuizTab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("multipleChoiceFragment")).resumeTimer();
+                            } catch (NullPointerException e) {
+                                Log.e(TAG,"Pause timer from quizactivity nullpointer: " + e);
+                            }
+                        }
+                    }
+                });
+
+
+            }
 
         }
         
@@ -405,13 +449,15 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
 
         //Update the viewpager to show 2 stats tabs
         mAdapterTitles = new String[]{"Score","Stats"};
-        updateTabs(mAdapterTitles );
+
 
         mColorBlockMeasurables = prepareColorBlockDataForList(mMyListEntry);
 
         if(dataset != null && dataset.size()>0) {
 
-                if (findFragmentByPosition(0) != null
+            Log.d(TAG,"Creating statsfragment -- correct: " + correct + ", total: " + total);
+
+            if (findFragmentByPosition(0) != null
                         && findFragmentByPosition(0) instanceof QuizTab1Container) {
 
                     StatsFragmentMultipleChoice statsFragmentMultipleChoice = StatsFragmentMultipleChoice.newInstance(dataset
@@ -427,8 +473,7 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
             if (findFragmentByPosition(1) != null
                     && findFragmentByPosition(1) instanceof QuizTab2Container) {
 
-                StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newInstance(quizType
-                         ,myListEntry
+                StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newInstance(myListEntry
                         , 10
                         ,mColorBlockMeasurables);
                 ((BaseContainerFragment) findFragmentByPosition(1)).replaceFragment(statsFragmentProgress, true, "statsFragmentProgress");
@@ -437,7 +482,9 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
             } else {
                 //TODO kick user out to main activity
             }
-
+        updateTabs(mAdapterTitles );
+        showFab(true,"quizRedo");
+        mTitleStrip.setVisibility(View.VISIBLE);
 
         //SET THE FAB TO REDO THE MULT CHOICE QUIZ
         fab.setOnClickListener(new View.OnClickListener() {
@@ -446,55 +493,78 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
             @Override
             public void onClick(View view) {
 
-                switch (typeOfQuizThatWasCompleted) {
-                    case "Muliple Choice":
                         QuizMenuDialog.newInstance("multiplechoice"
                                 ,mTabNumber
+                                ,mLastExpandedPosition
                                 ,mMyListEntry
                                 ,mColorBlockMeasurables
                                 ,getdimenscore()).show(getSupportFragmentManager(),"dialogQuizMenu");
-                        break;
-                    case "Fill in the Blanks":
-                        break;
-                    default:
-                        break;
-                }
             }
         });
     }
 
     public void showPostQuizStatsFillintheBlanks(ArrayList<Tweet> dataset
             , MyListEntry myListEntry
+            , int correct
             , int total) {
-        Toast.makeText(this, "SHOW POST QUIZ STATS", Toast.LENGTH_SHORT).show();
-    }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+        //Update the viewpager to show 2 stats tabs
+        mAdapterTitles = new String[]{"Score","Stats"};
+        updateTabs(mAdapterTitles );
 
+        mColorBlockMeasurables = prepareColorBlockDataForList(mMyListEntry);
 
-        if(findFragmentByPosition(0) != null
-                && findFragmentByPosition(0) instanceof QuizTab1Container) {
-            getSupportFragmentManager().putFragment(outState, "tab1Container", (QuizTab1Container)findFragmentByPosition(0));
+        if(dataset != null && dataset.size()>0) {
+
+            Log.d(TAG,"Creating statsfragment -- correct: " + correct + ", total: " + total);
+
+            if (findFragmentByPosition(0) != null
+                    && findFragmentByPosition(0) instanceof QuizTab1Container) {
+
+                StatsFragmentFillintheBlanks statsFragmentFillintheBlanks = StatsFragmentFillintheBlanks.newInstance(dataset
+                        , correct
+                        , total);
+                ((BaseContainerFragment) findFragmentByPosition(0)).replaceFragment(statsFragmentFillintheBlanks, true, "statsFragmentFillintheBlanks");
+            }
+
+            if (findFragmentByPosition(1) != null
+                    && findFragmentByPosition(1) instanceof QuizTab2Container) {
+
+                StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newInstance(myListEntry
+                        , 10
+                        ,mColorBlockMeasurables);
+                ((BaseContainerFragment) findFragmentByPosition(1)).replaceFragment(statsFragmentProgress, true, "statsFragmentProgress");
+            }
+
+        } else {
+            //TODO kick user out to main activity
         }
 
-        if(findFragmentByPosition(1) != null
-                && findFragmentByPosition(1) instanceof QuizTab2Container) {
-            getSupportFragmentManager().putFragment(outState, "tab2Container", (QuizTab2Container)findFragmentByPosition(1));
-        }
 
-        outState.putStringArray("adapterTitles", mAdapterTitles);
-        outState.putString("typeOfQuizThatWasCompleted", typeOfQuizThatWasCompleted);
-        outState.putParcelable("myListEntry",mMyListEntry);
-        outState.putParcelable("colorBlockMeasurables",mColorBlockMeasurables);
-        outState.putInt("tabNumber",mTabNumber);
+        showFab(true,"quizRedo");
+        //SET THE FAB TO REDO THE MULT CHOICE QUIZ
+        fab.setOnClickListener(new View.OnClickListener() {
+
+
+            @Override
+            public void onClick(View view) {
+
+
+                        QuizMenuDialog.newInstance("fillintheblanks"
+                                ,mTabNumber
+                                ,mLastExpandedPosition
+                                ,mMyListEntry
+                                ,mColorBlockMeasurables
+                                ,getdimenscore()).show(getSupportFragmentManager(),"dialogQuizMenu");
+            }
+        });
+
     }
 
 
 
-
-    public ColorBlockMeasurables prepareColorBlockDataForList(MyListEntry myListEntry) {
+    //TODO combine with same thing in mylistfragment
+    public  ColorBlockMeasurables prepareColorBlockDataForList(MyListEntry myListEntry) {
         ColorBlockMeasurables colorBlockMeasurables = new ColorBlockMeasurables();
 
         ColorThresholds colorThresholds = SharedPrefManager.getInstance(getBaseContext()).getColorThresholds();
@@ -502,7 +572,6 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
 
         if(c.getCount()>0) {
             c.moveToFirst();
-
 
                 /* We do not want to include favorites star lists that are not active in the user
                 * preferences. So if an inactivated list shows up in the sql query, ignore it (don't add to mMenuHeader)*/
@@ -543,10 +612,10 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
 
     }
 
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-    }
+//    @Override
+//    public void onWindowFocusChanged(boolean hasFocus) {
+//        super.onWindowFocusChanged(hasFocus);
+//    }
 
 
     /**
@@ -558,20 +627,22 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
             , String frontValue
             , String backValue
             , String selectedColorString) {};
+
     public void goToQuizActivityMultipleChoice(int tabNumber
             , MyListEntry listEntry
+            ,Integer currentExpandedPosition
             , String quizType
             , String quizSize
             , String quizTimer
             , String selectedColorString) {
 
 
-        Integer timer = -1;
-        if (!quizTimer.equals("None")) {
-            timer = Integer.parseInt(quizTimer);
-        }
+//        Integer timer = -1;
+//        if (!quizTimer.equals("None")) {
+//            timer = Integer.parseInt(quizTimer);
+//        }
 
-        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getApplicationContext()).getColorThresholds();
+//        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getApplicationContext()).getColorThresholds();
 
         ArrayList<WordEntry> dataset = new ArrayList<>();
         String dataType = "";
@@ -626,64 +697,40 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
             Toast.makeText(this, "No words found to quiz on", Toast.LENGTH_SHORT).show();
         }
 
-//
-//
-//
-//        //Create instances of the QuizTabContainer fragments
-//            /*1. get the menu option (Multiple Choice, Fill in the Blanks, etc.) from the quiz activity.
-//                     This should always exist. */
-//            typeOfQuizThatWasCompleted = mIntent.getStringExtra("typeOfQuizThatWasCompleted"); //The type of quiz that was chosen inthe menu
-//
-//                /* Depending on the menuOption, pull the appropriate set of data from the intent and run the
-//                * appropriate fragment */
-//            String quizType = mIntent.getStringExtra("quizType");
-//            mMyListEntry = mIntent.getParcelableExtra("myListEntry");
-//            String quizSize = mIntent.getStringExtra("quizSize");
-//            String colorString = mIntent.getStringExtra("colorString");
-//            String timer = mIntent.getStringExtra("timer"); //Timer can be "none" so passing it on raw as string
-//            double totalweight = mIntent.getDoubleExtra("totalweight",0);
-//            String dataType = mIntent.getStringExtra("dataType");
-//            mTabNumber = mIntent.getIntExtra("tabNumber",2);
-
-
-
-//            mTitleStrip.setVisibility(View.GONE);
-//
-//            // Create the adapter that will return a fragment for each of the primary sections of the activity.
-//            mAdapterTitles = new String[2];
-//            mAdapterTitles[0] = typeOfQuizThatWasCompleted;
-//            mQuizSectionsPagerAdapter = new QuizSectionsPagerAdapter(getSupportFragmentManager(),mAdapterTitles,fragments);
-
-
-
-            // Set the title
-//            try {
-////                MyListEntry myListEntry = mIntent.getParcelableExtra("myListEntry");
-//                showActionBarBackButton(true,mMyListEntry.getListName());
-//            } catch (Exception e) {
-//                showActionBarBackButton(true,"");
-//            }
-//
-//        if(mAdapterTitles != null
-//                && mAdapterTitles.length > 0
-//                && mAdapterTitles[0].equals("Score")) {
-//            showFab(true,"quizRedo");
-//        } else {
-//            showFab(false);
-//        }
-
-//        mViewPager.setAdapter(mQuizSectionsPagerAdapter);
-//        mViewPager.setOffscreenPageLimit(2);
-//
-//        fab = (FloatingActionButton) findViewById(R.id.fab);
-//        progressbar = (SmoothProgressBar) findViewById(R.id.progressbar);
-
     }
 
-    public void showFillintheBlanksFragment(int tabNumber
+    public void goToQuizActivityFillintheBlanks(int tabNumber
             , MyListEntry listEntry
+            , Integer currentExpandedPosition
             , String quizSize
-            ,String selectedColorString) {
+            , String selectedColorString) {
+
 
     }
+
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+
+        if(findFragmentByPosition(0) != null
+                && findFragmentByPosition(0) instanceof QuizTab1Container) {
+            getSupportFragmentManager().putFragment(outState, "tab1Container", (QuizTab1Container)findFragmentByPosition(0));
+        }
+
+        if(findFragmentByPosition(1) != null
+                && findFragmentByPosition(1) instanceof QuizTab2Container) {
+            getSupportFragmentManager().putFragment(outState, "tab2Container", (QuizTab2Container)findFragmentByPosition(1));
+        }
+
+        outState.putStringArray("adapterTitles", mAdapterTitles);
+        outState.putString("typeOfQuizThatWasCompleted", typeOfQuizThatWasCompleted);
+        outState.putParcelable("myListEntry",mMyListEntry);
+        outState.putParcelable("colorBlockMeasurables",mColorBlockMeasurables);
+        outState.putInt("tabNumber",mTabNumber);
+    }
+
+
+
 }

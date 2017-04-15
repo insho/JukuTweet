@@ -24,5 +24,6 @@ public interface QuizFragmentInteractionListener {
 
     void showPostQuizStatsFillintheBlanks(ArrayList<Tweet> dataset
             , MyListEntry myListEntry
+            , int correct
             , int total);
 }

@@ -89,7 +89,14 @@ public class QuizTab1Container extends BaseContainerFragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mQuiz = getArguments().getString("mQuiz");
+
+
+        if(savedInstanceState != null) {
+            mIsViewInited = savedInstanceState.getBoolean("mIsViewInited");
+            mQuiz = savedInstanceState.getString("mQuiz");
+        } else {
+            mQuiz = getArguments().getString("mQuiz");
+        }
 //        Log.e("test", "tab 1 container on activity created");
 
             if (savedInstanceState != null) {
@@ -167,5 +174,12 @@ public class QuizTab1Container extends BaseContainerFragment {
 //            return false;
 //        }
 //    }
+@Override
+public void onSaveInstanceState(Bundle outState) {
+    super.onSaveInstanceState(outState);
 
+    outState.putBoolean("mIsViewInited", mIsViewInited);
+    outState.putString("mQuiz",mQuiz);
+
+}
 }

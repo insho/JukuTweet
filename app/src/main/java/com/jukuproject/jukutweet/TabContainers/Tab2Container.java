@@ -26,18 +26,20 @@ public class Tab2Container extends BaseContainerFragment {
     }
 
     public static Tab2Container newInstance() {
-        Tab2Container fragment = new Tab2Container();
+//        Tab2Container fragment = new Tab2Container();
 //        Bundle args = new Bundle();
 //        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
 //        fragment.setArguments(args);
-        return fragment;
+        return new Tab2Container();
     }
 
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-//        Log.e("test", "tab 3 container on activity created");
+        if(savedInstanceState != null) {
+            mIsViewInited = savedInstanceState.getBoolean("mIsViewInited");
+        }
         if (!mIsViewInited) {
             mIsViewInited = true;
             initView();
@@ -48,25 +50,50 @@ public class Tab2Container extends BaseContainerFragment {
 //        Log.e("test", "tab 3 init view");
         replaceFragment(new SavedTweetsAllFragment(), false,"savedtweetsallfragment");
     }
+//    public boolean isTopFragmentShowing() {
+//        try {
+//            (getChildFragmentManager().findFragmentByTag("savedtweetsallfragment")).isVisible();
+//            return true;
+//        } catch (Exception e) {
+//            Log.e("Tab2Container","Could not find userListFragment");
+//            return false;
+//        }
+//    }
+
+
     public boolean isTopFragmentShowing() {
         try {
-            (getChildFragmentManager().findFragmentByTag("savedtweetsallfragment")).isVisible();
+            if(getChildFragmentManager().getBackStackEntryCount() == 0) {
+                return true;
+            } else {
+                return false;
+            }
+//            (getChildFragmentManager().findFragmentByTag("savedtweetsallfragment")).isVisible();
+//            Log.d("TEST","BACKSTACK ENTRY COUNT: " + getChildFragmentManager().getBackStackEntryCount());
+//            Log.d("TEST","Apparently mylistfragment is on top...");
+//            return true;
+        } catch (Exception e) {
+            Log.e("Tab2Container","Could not find userListFragment");
+            return false;
+        }
+    }
+    public boolean updateTweetListFragment() {
+        try {
+            ((SavedTweetsAllFragment) getChildFragmentManager().findFragmentByTag("savedtweetsallfragment")).updateMyListAdapter();
             return true;
         } catch (Exception e) {
             Log.e("Tab2Container","Could not find userListFragment");
             return false;
         }
     }
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putBoolean("mIsViewInited", mIsViewInited);
 
 
-    public boolean updateTweetListFragment() {
-        try {
-            ((SavedTweetsAllFragment) getChildFragmentManager().findFragmentByTag("savedtweetsallfragment")).updateMyListAdapter();
-            return true;
-        } catch (Exception e) {
-            Log.e("Tab1Container","Could not find userListFragment");
-            return false;
-        }
     }
+
 
 }

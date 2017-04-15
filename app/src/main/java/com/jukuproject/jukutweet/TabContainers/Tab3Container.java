@@ -37,6 +37,9 @@ public class Tab3Container extends BaseContainerFragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        if(savedInstanceState != null) {
+            mIsViewInited = savedInstanceState.getBoolean("mIsViewInited");
+        }
 //        Log.e("test", "tab 1 container on activity created");
         if (!mIsViewInited) {
             mIsViewInited = true;
@@ -64,14 +67,26 @@ public class Tab3Container extends BaseContainerFragment {
 
     public boolean isTopFragmentShowing() {
         try {
-            (getChildFragmentManager().findFragmentByTag("mylistfragment")).isVisible();
-            Log.d("TEST","Apparently mylistfragment is on top...");
-            return true;
+            if(getChildFragmentManager().getBackStackEntryCount() == 0) {
+                return true;
+            } else {
+                return false;
+            }
+//            (getChildFragmentManager().findFragmentByTag("mylistfragment")).isVisible();
+//            Log.d("TEST","BACKSTACK ENTRY COUNT: " + getChildFragmentManager().getBackStackEntryCount());
+//            Log.d("TEST","Apparently mylistfragment is on top...");
+//            return true;
         } catch (Exception e) {
             Log.e("Tab3Container","Could not find userListFragment");
             return false;
         }
     }
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putBoolean("mIsViewInited", mIsViewInited);
 
 
+    }
 }

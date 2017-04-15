@@ -13,6 +13,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -48,6 +49,7 @@ public class QuizMenuDialog extends DialogFragment {
 
     private String quizType;
     private int mTabNumber;
+    private int mCurrentExpandedPosition;
     private MyListEntry mMyListEntry;
     private ColorBlockMeasurables mColorBlockMeasurables;
     private int mAvailablePopupWidth;
@@ -64,6 +66,7 @@ public class QuizMenuDialog extends DialogFragment {
 
     public static QuizMenuDialog newInstance(String quizType
             , int tabNumber
+            ,int currentExpandedPosition
             , MyListEntry myListEntry
             , ColorBlockMeasurables colorBlockMeasurables
             , int availablePopupWidth) {
@@ -72,6 +75,7 @@ public class QuizMenuDialog extends DialogFragment {
         Bundle args = new Bundle();
         args.putString("quizType", quizType);
         args.putInt("tabNumber",tabNumber);
+        args.putInt("currentExpandedPosition",currentExpandedPosition);
         args.putParcelable("myListEntry",myListEntry);
         args.putParcelable("colorBlockMeasurables",colorBlockMeasurables);
         args.putInt("availablePopupWidth",availablePopupWidth);
@@ -87,6 +91,7 @@ public class QuizMenuDialog extends DialogFragment {
         mColorBlockMeasurables = getArguments().getParcelable("colorBlockMeasurables");
         mAvailablePopupWidth = getArguments().getInt("availablePopupWidth");
         mTabNumber = getArguments().getInt("tabNumber");
+        mCurrentExpandedPosition = getArguments().getInt("currentExpandedPosition");
 
         //TODO make this a typed value or resource
         final int yadjustment = 5;
@@ -213,6 +218,11 @@ public class QuizMenuDialog extends DialogFragment {
         textViewColorBlock_yellow = (TextView) view.findViewById(R.id.listitem_colors_3);
         textViewColorBlock_green = (TextView) view.findViewById(R.id.listitem_colors_4);
 
+        textViewColorBlock_grey.setGravity(Gravity.CENTER);
+        textViewColorBlock_red.setGravity(Gravity.CENTER);
+        textViewColorBlock_yellow.setGravity(Gravity.CENTER);
+        textViewColorBlock_green.setGravity(Gravity.CENTER);
+
 
 //        try {
 //            textViewColorBlock_grey.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
@@ -263,6 +273,7 @@ public class QuizMenuDialog extends DialogFragment {
                     case "multiplechoice":
                         mCallback.goToQuizActivityMultipleChoice(mTabNumber
                                 , mMyListEntry
+                                , mCurrentExpandedPosition
                                 , txtView1.getText().toString()
                                 , txtView2.getText().toString()
                                 , txtView3.getText().toString()
@@ -271,8 +282,9 @@ public class QuizMenuDialog extends DialogFragment {
                         dialog.dismiss();
                         break;
                     case "fillintheblanks":
-                        mCallback.showFillintheBlanksFragment(mTabNumber
+                        mCallback.goToQuizActivityFillintheBlanks(mTabNumber
                                 , mMyListEntry
+                                , mCurrentExpandedPosition
                                 , txtView2.getText().toString()
                                 , mColorBlockMeasurables.getSelectedColorString());
 

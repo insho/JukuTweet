@@ -38,11 +38,12 @@ import com.jukuproject.jukutweet.Dialogs.EditMyListDialog;
 import com.jukuproject.jukutweet.Dialogs.RemoveUserDialog;
 import com.jukuproject.jukutweet.Fragments.FlashCardsFragment;
 import com.jukuproject.jukutweet.Fragments.MyListBrowseFragment;
+import com.jukuproject.jukutweet.Fragments.MyListFragment;
+import com.jukuproject.jukutweet.Fragments.SavedTweetsAllFragment;
 import com.jukuproject.jukutweet.Fragments.SavedTweetsBrowseFragment;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.QuizMenuDialogInteractionListener;
-import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.Models.Tweet;
@@ -88,8 +89,12 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     private SmoothProgressBar progressbar;
     private FloatingActionButton fab;
     private Menu mMenu;
+    //array keeping track of which tabs (either tab2,tab3, both, or neither) have the browsemenu icons showing. defaults to false
+    private boolean[] tabsShowingBrowseMenu = new boolean[3];
+    private String[] mAdapterTitles;
     private static final String TAG = "TEST-Main";
     private static final boolean debug = true;
+
 
     private boolean fragmentWasChanged = false;
 
@@ -109,15 +114,44 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         }
 
-        fragmentWasChanged = getIntent().getBooleanExtra("fragmentWasChanged",false);
+        Fragment[] fragments = new Fragment[3];
+        if (savedInstanceState != null) {
+            //Restore the fragment's instance
+            fragments[0] = (Tab1Container)getSupportFragmentManager().getFragment(savedInstanceState, "tab1Container");
+            fragments[1] = (Tab2Container)getSupportFragmentManager().getFragment(savedInstanceState, "tab2Container");
+            fragments[2] = (Tab3Container)getSupportFragmentManager().getFragment(savedInstanceState, "tab3Container");
+
+            mAdapterTitles = savedInstanceState.getStringArray("adapterTitles");
+            tabsShowingBrowseMenu = savedInstanceState.getBooleanArray("tabsShowingBrowseMenu");
+            fragmentWasChanged = savedInstanceState.getBoolean("fragmentWasChanged");
+
+        } else {
+            fragments[0] = Tab1Container.newInstance();
+            fragments[1] = Tab2Container.newInstance();
+            fragments[2] = Tab3Container.newInstance();
+            mAdapterTitles = new String[]{"Users","Saved Tweets","My Lists"};
+            fragmentWasChanged = getIntent().getBooleanExtra("fragmentWasChanged",false);
+        }
+
 
         // Create the adapter that will return a fragment for each of the primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(),new String[]{"Users","Saved Tweets","My Lists"});
+        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(),mAdapterTitles,fragments);
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
         mViewPager.setOffscreenPageLimit(3);
+
+        /*choose a tab to focus on initially. Default to 0. tabNumber is passed
+        to quiz activity when a quiz is chosen, and passed back via intent to mainactivity onBackPressed, and
+        this tabNumber is used to focus on the last open tab.
+         */
+
+        if(getIntent()!= null) {
+            mViewPager.setCurrentItem(getIntent().getIntExtra("tabNumber",0));
+            setPreviousMyListExpanded(getIntent().getIntExtra("tabNumber",0),getIntent().getIntExtra("lastExpandedPosition",0));
+        }
+
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -135,24 +169,36 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     fragmentWasChanged = false;
                 }
 
+                Log.d(TAG,"ISTOP SHOWING FOR - " + position + ", " + isTopShowing(position));
+
+                /* The fab has different functions and appearance depending on which tab is visible */
                 if(isTopShowing(position)) {
                     switch (position) {
                         case 0:
                             showFab(true,"addUser");
+                            showMenuMyListBrowse(false,position);
                             break;
                         case 1:
                             showFab(true,"addTweetList");
+                            showMenuMyListBrowse(false,position);
                             break;
                         case 2:
                             showFab(true,"addMyList");
+                            showMenuMyListBrowse(false,position);
                             break;
                         default:
+                            showMenuMyListBrowse(false,position);
                             showFab(false);
                             break;
                     }
 
                 } else {
                     showFab(false);
+                    if(tabsShowingBrowseMenu!=null && tabsShowingBrowseMenu[position]) {
+                        showMenuMyListBrowse(true,position);
+                    } else {
+                        showMenuMyListBrowse(false,position);
+                    }
                 }
 
 
@@ -182,11 +228,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                        showAddMyListDialog("MyList");
                    }
             }
-
-
             }
         });
-
     }
 
 
@@ -195,7 +238,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         // Inflate the menu; this adds items to the action bar if it is present.
         this.mMenu = menu;
         getMenuInflater().inflate(R.menu.menu_main, menu);
-
         return true;
     }
 
@@ -204,12 +246,14 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * Displays the actionbar icon set for selecting/copying/deleting items from a word or tweet list
      * @param show true to show, false to hide
      */
-    public void showMenuMyListBrowse(boolean show){
+    public void showMenuMyListBrowse(boolean show, int tabNumber){
         if(mMenu == null) {
             return;
         }
         mMenu.setGroupVisible(R.id.menu_main_group, !show);
+        tabsShowingBrowseMenu[tabNumber] = show;
         mMenu.setGroupVisible(R.id.menu_browsemylist_group, show);
+
     }
 
     @Override
@@ -227,16 +271,21 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         switch(id) {
             case R.id.action_cancel:
                 try {
-                    if(findFragmentByPosition(2) != null
+                    if(tabsShowingBrowseMenu[2] && findFragmentByPosition(2) != null
                             && findFragmentByPosition(2) instanceof Tab3Container
                             && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse") != null
                             && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse").isVisible()) {
                         ((MyListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).deselectAll();
-                    } else if(findFragmentByPosition(1) != null
+
+                        //Hide the action icons
+                        showMenuMyListBrowse(false, 2);
+                    } else if(tabsShowingBrowseMenu[1] && findFragmentByPosition(1) != null
                             && findFragmentByPosition(1) instanceof Tab2Container
                             && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse") != null
                             && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse").isVisible()) {
                         ((SavedTweetsBrowseFragment)((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse")).deselectAll();
+                        //Hide the action icons
+                        showMenuMyListBrowse(false, 1);
                     }
 
                 } catch (NullPointerException e) {
@@ -245,19 +294,17 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     Log.e(TAG,"TabContainer->BrowseFragment  deselectALL error: " + e.toString());
                 }
 
-                //Hide the action icons
-                showMenuMyListBrowse(false);
 
                 break;
             case R.id.action_copy:
 
                 try {
-                    if(findFragmentByPosition(2) != null
+                    if(tabsShowingBrowseMenu[2] && findFragmentByPosition(2) != null
                             && findFragmentByPosition(2) instanceof Tab3Container
                             && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse") != null
                             && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse").isVisible()) {
                         ((MyListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).showCopyMyListDialog();
-                    } else if(findFragmentByPosition(1) != null
+                    } else if(tabsShowingBrowseMenu[1] && findFragmentByPosition(1) != null
                             && findFragmentByPosition(1) instanceof Tab2Container
                             && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse") != null
                             && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse").isVisible()) {
@@ -273,16 +320,23 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 break;
             case R.id.action_delete:
                 try {
-                    if(findFragmentByPosition(2) != null
+                    if(tabsShowingBrowseMenu[2] && findFragmentByPosition(2) != null
                             && findFragmentByPosition(2) instanceof Tab3Container
                             && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse") != null
                             && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse").isVisible()) {
                         ((MyListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).removeKanjiFromList();
-                    } else if(findFragmentByPosition(1) != null
+
+                        //Hide the action icons
+                        showMenuMyListBrowse(false, 2);
+
+                    } else if(tabsShowingBrowseMenu[1] && findFragmentByPosition(1) != null
                             && findFragmentByPosition(1) instanceof Tab2Container
                             && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse") != null
                             && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse").isVisible()) {
                         ((SavedTweetsBrowseFragment)((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse")).removeTweetFromList();
+
+                        //Hide the action icons
+                        showMenuMyListBrowse(false, 1);
                     }
 
                 } catch (NullPointerException e) {
@@ -291,20 +345,18 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     Log.e(TAG,"TabContainer->BrowseFragment  delete error: " + e.toString());
                 }
 
-            //Hide the action icons
-            showMenuMyListBrowse(false);
 
                 break;
             case R.id.action_selectall:
 
 
                 try {
-                    if(findFragmentByPosition(2) != null
+                    if(tabsShowingBrowseMenu[2] && findFragmentByPosition(2) != null
                             && findFragmentByPosition(2) instanceof Tab3Container
                             && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse") != null
                             && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse").isVisible()) {
                         ((MyListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).selectAll();
-                    } else if(findFragmentByPosition(1) != null
+                    } else if(tabsShowingBrowseMenu[1] && findFragmentByPosition(1) != null
                             && findFragmentByPosition(1) instanceof Tab2Container
                             && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse") != null
                             && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse").isVisible()) {
@@ -315,30 +367,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     Log.e(TAG,"TabContainer->BrowseFragment selectALL Nullpointer: " + e.toString());
                 } catch (Exception e) {
                     Log.e(TAG,"TabContainer->BrowseFragment  selectALL error: " + e.toString());
-                }
-
-
-
-                if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
-                    //If the open fragment is MyListBrowse
-                    try {
-                        ((MyListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).selectAll();
-                    } catch (NullPointerException e) {
-                        Log.e(TAG,"Tab3Container->MyListBrowseFragment selectALL Nullpointer: " + e.toString());
-                    } catch (Exception e) {
-                        Log.e(TAG,"Tab3Container->MyListBrowseFragment selectALL error: " + e.toString());
-                    }
-
-                } else if(findFragmentByPosition(1) != null && findFragmentByPosition(1) instanceof Tab2Container) {
-                    //If the open fragment is SavedTweetsBrowse
-                    try {
-                        ((SavedTweetsBrowseFragment)((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsallfragment")).selectAll();
-                    } catch (NullPointerException e) {
-                        Log.e(TAG,"Tab2Container->SavedTweetsBrowseFragment selectALL Nullpointer: " + e.toString());
-                    } catch (Exception e) {
-                        Log.e(TAG,"Tab2Container->SavedTweetsBrowseFragment selectALL error: " + e.toString());
-                    }
-
                 }
 
                 break;
@@ -937,7 +965,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     public void updateTabs(String[] updatedTabs) {
 
         if(mSectionsPagerAdapter != null) {
-            mSectionsPagerAdapter.updateTabs(updatedTabs);
+            mAdapterTitles = updatedTabs;
+            mSectionsPagerAdapter.updateTabs(mAdapterTitles);
         }
     }
 
@@ -1018,6 +1047,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
     public void goToQuizActivityMultipleChoice(int tabNumber
             , MyListEntry listEntry
+            ,Integer currentExpandedPosition
             , String quizType
             , String quizSize
             , String quizTimer
@@ -1028,7 +1058,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             timer = Integer.parseInt(quizTimer);
         }
 
-        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getApplicationContext()).getColorThresholds();
+//        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getApplicationContext()).getColorThresholds();
 
         ArrayList<WordEntry> dataset = new ArrayList<>();
         String dataType = "";
@@ -1072,9 +1102,9 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 intent.putExtra("totalweight",totalweight);
                 intent.putParcelableArrayListExtra("dataset",dataset);
                 intent.putExtra("dataType",dataType);
-//                int mylistposition = mIntent.getIntExtra("mylistposition", 0);
+                intent.putExtra("lastExpandedPosition",currentExpandedPosition);
 
-                showFab(false);
+
 
                 Log.d(TAG,"a TIMER: " + quizTimer);
                 startActivity(intent);
@@ -1086,10 +1116,11 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
     }
 
-    public void showFillintheBlanksFragment(int tabNumber
+    public void goToQuizActivityFillintheBlanks(int tabNumber
             , MyListEntry myListEntry
+            , Integer currentExpandedPosition
             , String quizSize
-            ,String selectedColorString) {
+            , String selectedColorString) {
 
 //        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getApplicationContext()).getColorThresholds();
         ArrayList<Tweet> dataset = new ArrayList<>();
@@ -1122,20 +1153,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         if(dataset.size()>0) {
             double totalweight = assignTweetWeightsAndGetTotalWeight(dataset);
 
-//            if (findFragmentByPosition(tabNumber) != null
-//                    && findFragmentByPosition(tabNumber) instanceof Tab3Container) {
-//
-//
-//                FillInTheBlankFragment fillInTheBlankFragment = FillInTheBlankFragment.newInstance(dataset
-//                        , Integer.parseInt(quizSize)
-//                        , totalweight
-//                        , selectedColorString
-//                        , myListEntry);
-//                ((BaseContainerFragment) findFragmentByPosition(tabNumber)).replaceFragment(fillInTheBlankFragment, true, "fillintheblanks");
-//
-//            }
-
-
             Intent intent = new Intent(getBaseContext(), QuizActivity.class);
 
             intent.putExtra("typeOfQuizThatWasCompleted","Fill in the Blanks"); //The type of quiz that was chosen inthe menu
@@ -1148,7 +1165,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     + dataset.get(0).getWordEntries().get(1).isSpinner());
             intent.putParcelableArrayListExtra("dataset",dataset);
             intent.putExtra("dataType",dataType);
-//                int mylistposition = mIntent.getIntExtra("mylistposition", 0);
+            intent.putExtra("lastExpandedPosition",currentExpandedPosition);
 
             showFab(false);
 
@@ -1244,8 +1261,58 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     }
 
 
+    public void setPreviousMyListExpanded(int tabNumber,int positionToExpand) {
+        if(findFragmentByPosition(tabNumber) != null && findFragmentByPosition(tabNumber) instanceof Tab2Container) {
+
+            try {
+                Tab2Container container = ((Tab2Container) findFragmentByPosition(tabNumber));
+                ((SavedTweetsAllFragment) container.getChildFragmentManager().findFragmentByTag("savedtweetsallfragment")).expandTheListViewAtPosition(positionToExpand);
+            } catch (Exception e) {
+                Log.e("TEST","setPreviousMyListExpanded savedtweetsallfragment could not set prev expanded");
+            }
+
+        } else if(findFragmentByPosition(tabNumber) != null && findFragmentByPosition(tabNumber) instanceof Tab3Container) {
+            try {
+                Tab3Container container = ((Tab3Container) findFragmentByPosition(tabNumber));
+                ((MyListFragment) container.getChildFragmentManager().findFragmentByTag("mylistfragment")).expandTheListViewAtPosition(positionToExpand);
+            } catch (Exception e) {
+                Log.e("TEST","setPreviousMyListExpanded mylistfragment could not set prev expanded");
+            }
+        }
+
+
+    }
+
+//    @Override
+//    public void onWindowFocusChanged(boolean hasFocus) {
+//        super.onWindowFocusChanged(hasFocus);
+//    }
+
+
+
     @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+
+        if(findFragmentByPosition(0) != null
+                && findFragmentByPosition(0) instanceof Tab1Container) {
+            getSupportFragmentManager().putFragment(outState, "tab1Container", (Tab1Container)findFragmentByPosition(0));
+        }
+
+        if(findFragmentByPosition(1) != null
+                && findFragmentByPosition(1) instanceof Tab2Container) {
+            getSupportFragmentManager().putFragment(outState, "tab2Container", (Tab2Container)findFragmentByPosition(1));
+        }
+        if(findFragmentByPosition(2) != null
+                && findFragmentByPosition(2) instanceof Tab3Container) {
+            getSupportFragmentManager().putFragment(outState, "tab3Container", (Tab3Container)findFragmentByPosition(2));
+        }
+
+
+        outState.putStringArray("adapterTitles", mAdapterTitles);
+//        outState.putInt("tabNumber",mSectionsPagerAdapter.);
+        outState.putBooleanArray("tabsShowingBrowseMenu",tabsShowingBrowseMenu);
+        outState.putBoolean("fragmentWasChanged",fragmentWasChanged);
     }
 }

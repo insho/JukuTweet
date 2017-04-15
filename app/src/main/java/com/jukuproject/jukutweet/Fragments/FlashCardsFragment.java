@@ -6,6 +6,7 @@ import android.content.Context;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.PagerAdapter;
@@ -13,6 +14,7 @@ import android.support.v4.view.ViewPager;
 import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.GestureDetector;
@@ -31,8 +33,6 @@ import com.jukuproject.jukutweet.R;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import static android.R.attr.padding;
-
 /**
  * Created by JClassic on 3/31/2017.
  */
@@ -43,27 +43,23 @@ public class FlashCardsFragment extends Fragment {
 
     ViewPager vp;	//Reference to class to swipe views
     ArrayList<WordEntry> mDataset;
+    FloatingActionButton fab_shuffle;
 
-    int currentPosition = 0;
+
     boolean mFrontShowing;
-    boolean freshdeck;
     String mFrontValue;
     String mBackValue;
-
-//    private GestureDetectorCompat mDetector;
     View page;
     private GestureDetector mGestureDetector;
-    int totalcount; //total count of cards in stack
-    int currentcount = 1; //current position count in stack
+    int totalCardCount; //total count of cards in stack
+    int currentPosition = 0; //current position count in stack
+    int cardNumber = 1; //visible card number
 
     Animator animator_rightin;
     Animator animator_rightout;
     Animator animator_leftin;
     Animator animator_leftout;
     Animator animator_upin;
-
-    MyPagesAdapter_Array mAdapter;
-
 
     public FlashCardsFragment() {}
 
@@ -82,30 +78,47 @@ public class FlashCardsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater,
                              final ViewGroup container, Bundle savedInstanceState) {
         View view  = LayoutInflater.from(getActivity()).inflate(R.layout.flashcard, null);
-
-        mDataset = getArguments().getParcelableArrayList("wordEntries");
-        mFrontValue = getArguments().getString("frontValue");
-        mBackValue = getArguments().getString("backValue");
-        totalcount = mDataset.size();
-        page = LayoutInflater.from(getActivity()).inflate(R.layout.flashcard_item, null);
-        page.setTag(mDataset.get(0).getId());
         vp=(ViewPager) view.findViewById(R.id.viewPager);
-        currentPosition = 0;
+        fab_shuffle = (FloatingActionButton) view.findViewById(R.id.fab);
+        page = LayoutInflater.from(getActivity()).inflate(R.layout.flashcard_item, null);
+//        page.setTag(mDataset.get(0).getId());
+        return view;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        if(savedInstanceState == null) {
+            mDataset = getArguments().getParcelableArrayList("wordEntries");
+            mFrontValue = getArguments().getString("frontValue");
+            mBackValue = getArguments().getString("backValue");
+            currentPosition = 0;
+
+        } else {
+            mDataset = savedInstanceState.getParcelableArrayList("mDataset");
+            currentPosition = savedInstanceState.getInt("currentPosition");
+            mFrontValue = savedInstanceState.getString("mFrontValue");
+            mBackValue = savedInstanceState.getString("mBackValue");
+            mFrontShowing = savedInstanceState.getBoolean("mFrontShowing");
+        }
+
+        totalCardCount = mDataset.size();
+
+
 
         vp.setAdapter(new MyPagesAdapter_Array());
 
-        FloatingActionButton fab_shuffle = (FloatingActionButton) view.findViewById(R.id.fab);
+
         fab_shuffle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
                 Collections.shuffle(mDataset);
-                currentcount = 1;
+                cardNumber = 1;
                 currentPosition = 0;
-                freshdeck =true;
                 page.setTag(mDataset.get(0).getId());
                 vp.setAdapter(new MyPagesAdapter_Array());
-                freshdeck = true;
                 mFrontShowing = true; //toggle the boolean to reflect current flipped state
 
                 animator_rightin = AnimatorInflater.loadAnimator(getContext(),
@@ -127,7 +140,7 @@ public class FlashCardsFragment extends Fragment {
 
 
 
-                String stringcount = currentcount + "/" + totalcount;
+                String stringcount = cardNumber + "/" + totalCardCount;
                 ((TextView) page.findViewById(R.id.scorecount)).setText(stringcount);
 
             }
@@ -227,12 +240,11 @@ public class FlashCardsFragment extends Fragment {
         mGestureDetector = new GestureDetector(getContext(), listener);
         mGestureDetector.setOnDoubleTapListener(listener);
 
-        return view;
+
+
     }
 
-
-
-   // Implement PagerAdapter Class to handle individual page creation
+    // Implement PagerAdapter Class to handle individual page creation
     class MyPagesAdapter_Array extends PagerAdapter {
 
         @Override
@@ -254,8 +266,8 @@ public class FlashCardsFragment extends Fragment {
             final WordEntry wordEntry = mDataset.get(position);
             page.setTag(wordEntry.getId());
 
-            currentcount=1;
-            ((TextView) page.findViewById(R.id.scorecount)).setText(currentcount + "/" + totalcount);
+            cardNumber=1;
+            ((TextView) page.findViewById(R.id.scorecount)).setText(cardNumber + "/" + totalCardCount);
 
             //Set the flipped tag false to start with
             page.setOnTouchListener(new View.OnTouchListener() {
@@ -268,7 +280,7 @@ public class FlashCardsFragment extends Fragment {
             });
 //
 //            if (freshdeck) {
-//                ((TextView) page.findViewById(R.id.scorecount)).setText(currentcount + "/" + totalcount);
+//                ((TextView) page.findViewById(R.id.scorecount)).setText(cardNumber + "/" + totalCardCount);
 //                freshdeck = false;
 //            }
 
@@ -281,11 +293,14 @@ public class FlashCardsFragment extends Fragment {
                 @Override
                 public void onPageSelected(int pos) {
 //                    if(freshdeck) {
-                        currentcount = pos+1;
+//                        cardNumber = pos+1;
 //                    } else {
-//                        currentcount = pos+1;
+                        cardNumber = pos+1;
 //                    }
-//                    setCard(wordEntry,true);
+                    ((TextView) page.findViewById(R.id.scorecount)).setText(cardNumber + "/" + totalCardCount);
+                    if(vp.findViewWithTag(wordEntry.getId()) != null) {
+                    setCard(wordEntry,true);
+                    }
                 }
 
                 @Override
@@ -330,74 +345,81 @@ public class FlashCardsFragment extends Fragment {
 
         int currentTag = wordEntry.getId();
 
-        if(vp == null) {
-            Log.d(TAG,"VP IS NULL ");
-        } else {
-            Log.d(TAG,"vp view with tag (" + currentTag + ") null: " + ((vp.findViewWithTag(currentTag)) == null));
-        }
+//        if(vp == null) {
+//            Log.d(TAG,"VP IS NULL ");
+//        } else {
+//            Log.d(TAG,"vp view with tag (" + currentTag + ") null: " + ((vp.findViewWithTag(currentTag)) == null));
+//        }
 
+        try {
+            ((TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.scorecount)).setText(cardNumber + "/" + totalCardCount);
+            TextView textMain = (TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.textMessage);
+            TextView textFurigana = (TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.furigana);
+            TextView defarraylistview = (TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.flashcard_listview);
 
-
-        ((TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.scorecount)).setText(currentcount + "/" + totalcount);
-        TextView textMain = (TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.textMessage);
-        TextView textFurigana = (TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.furigana);
-        TextView defarraylistview = (TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.flashcard_listview);
-
-        /* SET THE Kanji/Furigana boxes */
-        switch (cardValue) {
-            case "Kanji":
-                //Show kanji textview, hide definition listview
-                textMain.setVisibility(View.VISIBLE);
-                textFurigana.setVisibility(View.INVISIBLE);
-                defarraylistview.setVisibility(View.GONE);
-
-                textMain.setText(wordEntry.getKanji());
-                textFurigana.setText(wordEntry.getFurigana());
-                Log.d(TAG,"KANJI VISIBLE");
-                break;
-            case "Kana":
-                textMain.setVisibility(View.VISIBLE);
-                textFurigana.setVisibility(View.INVISIBLE);
-                defarraylistview.setVisibility(View.GONE);
-
-                if(wordEntry.getFurigana() == null || wordEntry.getFurigana().length() == 0) { //If the furigana entry is null, use the kanji one homie
-                    if(BuildConfig.DEBUG){ Log.d(TAG,"we're doing this (2)");}
-                    textMain.setText(wordEntry.getKanji());
-                } else {
-                    Log.d(TAG,"SETTING FURIGANA");
-                    textMain.setText(wordEntry.getFurigana());
-                }
-                Log.d(TAG,"KANA VISIBLE");
-
-                break;
-            case "Definition":
-
-                String definition = wordEntry.getFlashCardDefinitionMultiLineString(6);
-                textFurigana.setVisibility(View.GONE);
-
-                if(wordEntry.getDefinition().contains("(2)")) {
-                    textMain.setVisibility(View.GONE);
-                    defarraylistview.setVisibility(View.VISIBLE);
-                    defarraylistview.setText(definition);
-
-                    setTextHeightLoop(defarraylistview,definition);
-                } else {
+            switch (cardValue) {
+                case "Kanji":
+                    //Show kanji textview, hide definition listview
                     textMain.setVisibility(View.VISIBLE);
+                    textFurigana.setVisibility(View.INVISIBLE);
                     defarraylistview.setVisibility(View.GONE);
-                    textMain.setText(definition);
-                    setTextHeightLoop(textMain,definition);
-                }
+
+                    textMain.setText(wordEntry.getKanji());
+                    textFurigana.setText(wordEntry.getFurigana());
+                    Log.d(TAG,"KANJI VISIBLE");
+                    break;
+                case "Kana":
+                    textMain.setVisibility(View.VISIBLE);
+                    textFurigana.setVisibility(View.INVISIBLE);
+                    defarraylistview.setVisibility(View.GONE);
+
+                    if(wordEntry.getFurigana() == null || wordEntry.getFurigana().length() == 0) { //If the furigana entry is null, use the kanji one homie
+                        if(BuildConfig.DEBUG){ Log.d(TAG,"we're doing this (2)");}
+                        textMain.setText(wordEntry.getKanji());
+                    } else {
+                        Log.d(TAG,"SETTING FURIGANA");
+                        textMain.setText(wordEntry.getFurigana());
+                    }
+                    Log.d(TAG,"KANA VISIBLE");
+
+                    break;
+                case "Definition":
+
+                    String definition = wordEntry.getFlashCardDefinitionMultiLineString(6);
+                    textFurigana.setVisibility(View.GONE);
+
+                    if(wordEntry.getDefinition().contains("(2)")) {
+                        textMain.setVisibility(View.GONE);
+                        defarraylistview.setVisibility(View.VISIBLE);
+                        defarraylistview.setText(definition);
 
 
-                break;
-            default:
-                break;
+                        setTextHeightLoop(getContext(),defarraylistview,definition,getResources().getDisplayMetrics());
+                    } else {
+                        textMain.setVisibility(View.VISIBLE);
+                        defarraylistview.setVisibility(View.GONE);
+                        textMain.setText(definition);
+                        setTextHeightLoop(getContext(),textMain,definition,getResources().getDisplayMetrics());
+                    }
+
+
+                    break;
+                default:
+                    break;
+            }
+        } catch (NullPointerException e) {
+            Log.e(TAG,"Setting flashcard nullpointer: " + e);
         }
+
+
 
     }
 
 
-    public void setTextHeightLoop(TextView textView, String text) {
+    public static void setTextHeightLoop(Context context
+            , TextView textView
+            , String text
+            , DisplayMetrics metrics) {
         Rect bounds = new Rect();
         Paint textPaint = textView.getPaint();
         textPaint.getTextBounds(text, 0, text.length(), bounds);
@@ -406,20 +428,20 @@ public class FlashCardsFragment extends Fragment {
 
         int pxTextDP = 46;
         int  pxText = (int) (TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_SP, pxTextDP, getResources().getDisplayMetrics()));
+                TypedValue.COMPLEX_UNIT_SP, pxTextDP, metrics));
         int  pxCardSize = (int) (TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP, 400, getResources().getDisplayMetrics()));
+                TypedValue.COMPLEX_UNIT_DIP, 400, metrics));
 
 
-        int measuredTextHeight = getHeight(getContext(), text, pxText, 300, padding);
+//        int measuredTextHeight = getHeight(context, text, pxText, 300, padding);
         if(BuildConfig.DEBUG) {
-            Log.d(TAG,"BOUNDS WIDTH: " + width);
-            Log.d(TAG,"BOUNDS HEIGHT: " + height);
-            Log.d(TAG,"MEASURE TEXT WIDTH: " + Math.round(textPaint.measureText(text)));
-            Log.d(TAG,"SPECIAL MEASURED TEXT HEIGHT: " + method1UsingTextPaintAndStaticLayout(text,pxText,300,4));
+            Log.d("TEST","BOUNDS WIDTH: " + width);
+            Log.d("TEST","BOUNDS HEIGHT: " + height);
+            Log.d("TEST","MEASURE TEXT WIDTH: " + Math.round(textPaint.measureText(text)));
+            Log.d("TEST","SPECIAL MEASURED TEXT HEIGHT: " + method1UsingTextPaintAndStaticLayout(text,pxText,300,4));
 //                    Log.d(TAG,"SPECIAL 2 MEASURED TEXT HEIGHT: " + measuredTextHeight);
-            Log.d(TAG,"pxCardSize: " + pxCardSize);
-            Log.d(TAG,"SETTING DEFINITION");
+            Log.d("TEST","pxCardSize: " + pxCardSize);
+            Log.d("TEST","SETTING DEFINITION");
 
         }
         int specialMethodTextHeight = method1UsingTextPaintAndStaticLayout(text,pxText,300,4);
@@ -427,12 +449,12 @@ public class FlashCardsFragment extends Fragment {
         while (specialMethodTextHeight > pxCardSize && pxTextDP>22) {
 
             pxTextDP -= 2;
-            Log.d(TAG,"specialMethodTextHeight OVERRUN. " + specialMethodTextHeight + " > " + pxCardSize + ", lowering to: " + pxTextDP );
+            Log.d("TEST","specialMethodTextHeight OVERRUN. " + specialMethodTextHeight + " > " + pxCardSize + ", lowering to: " + pxTextDP );
 
             textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, pxTextDP);
             pxText = (int) (TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP
                     , pxTextDP
-                    , getResources().getDisplayMetrics()));
+                    , metrics));
             specialMethodTextHeight = method1UsingTextPaintAndStaticLayout(text,pxText,300,4);
 
         }
@@ -465,5 +487,20 @@ public class FlashCardsFragment extends Fragment {
         int heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
         textView.measure(widthMeasureSpec, heightMeasureSpec);
         return textView.getMeasuredHeight();
+    }
+
+
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putParcelableArrayList("mDataset", mDataset);
+        outState.putInt("currentPosition", currentPosition);
+        outState.putString("mFrontValue", mFrontValue);
+        outState.putString("mBackValue", mBackValue);
+        outState.putBoolean("mFrontShowing",mFrontShowing);
+        outState.putInt("cardNumber", cardNumber);
+
     }
 }

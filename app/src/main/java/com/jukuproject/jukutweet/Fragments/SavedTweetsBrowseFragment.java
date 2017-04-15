@@ -124,7 +124,7 @@ public class SavedTweetsBrowseFragment extends Fragment {
 
                                 if (!mSelectedEntries.contains(tweet_id)) {
                                     if (mSelectedEntries.size() == 0) {
-                                        mCallback.showMenuMyListBrowse(true);
+                                        mCallback.showMenuMyListBrowse(true,1);
                                         Log.d(TAG, "showing menu");
                                     }
                                     Log.d(TAG, "selected adding: " + tweet_id);
@@ -140,7 +140,7 @@ public class SavedTweetsBrowseFragment extends Fragment {
                                 }
 
                                 if (mSelectedEntries.size() == 0) {
-                                    mCallback.showMenuMyListBrowse(false);
+                                    mCallback.showMenuMyListBrowse(false,1);
                                     Log.d(TAG, "hiding menu");
                                 }
 
@@ -248,7 +248,7 @@ public class SavedTweetsBrowseFragment extends Fragment {
                 removeTweetFromList(tweetIds,currentList);
             }
             deselectAll();
-            mCallback.showMenuMyListBrowse(false);
+            mCallback.showMenuMyListBrowse(false,1);
         } catch (NullPointerException e) {
             Log.e(TAG,"Nullpointer in MyListBrowseFragment saveAndUpdateMyLists : " + e);
             Toast.makeText(getContext(), "Unable to update lists", Toast.LENGTH_SHORT).show();

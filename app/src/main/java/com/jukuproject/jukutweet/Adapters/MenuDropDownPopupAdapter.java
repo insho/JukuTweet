@@ -8,6 +8,7 @@ import android.widget.TextView;
 
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.DropDownMenuOption;
+import com.jukuproject.jukutweet.R;
 
 import java.util.ArrayList;
 
@@ -23,7 +24,7 @@ public class MenuDropDownPopupAdapter extends RecyclerView.Adapter<MenuDropDownP
 
         public ViewHolder(View v) {
             super(v);
-            txtOption = (TextView) v.findViewById(android.R.id.text1);
+            txtOption = (TextView) v.findViewById(R.id.text1);
         }
     }
 
@@ -38,7 +39,7 @@ public class MenuDropDownPopupAdapter extends RecyclerView.Adapter<MenuDropDownP
 
     @Override
     public MenuDropDownPopupAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(android.R.layout.simple_dropdown_item_1line, parent, false);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.spinner_listitem, parent, false);
         return new ViewHolder(v);
     }
 
