@@ -13,9 +13,12 @@ public class BaseContainerFragment extends Fragment {
         if (addToBackStack) {
             transaction.addToBackStack(null);
         }
+
         transaction.replace(R.id.container_framelayout, fragment, tag);
         transaction.commit();
         getChildFragmentManager().executePendingTransactions();
+
+
     }
 
     public void addFragment(Fragment fragment, boolean addToBackStack, String tag) {

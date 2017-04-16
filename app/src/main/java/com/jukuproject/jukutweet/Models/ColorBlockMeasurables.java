@@ -282,7 +282,7 @@ public class ColorBlockMeasurables implements Parcelable {
     }
 
     public int getGreenDimenscore(int dimenscore_total, int dimenscoreremaining) {
-        int dimenscore = Math.round((dimenscore_total * ((float) this.greyCount/ (float) this.getTotalCount())));
+        int dimenscore = Math.round((dimenscore_total * ((float) this.greenCount/ (float) this.getTotalCount())));
 
         if((dimenscoreremaining-dimenscore)<emptyMinWidth){
             dimenscore =dimenscoreremaining-emptyMinWidth;

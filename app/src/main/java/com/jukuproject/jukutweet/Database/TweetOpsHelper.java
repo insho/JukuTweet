@@ -977,7 +977,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 
         int ALL_LISTS_FLAG = 0;
         int sys = -1;
-        String name = "";
+        String name = "x";
         if(myListEntry == null) {
             ALL_LISTS_FLAG = 1;
         } else {
@@ -1065,8 +1065,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 
                         /* Now we have a big collection of list metadata (tweetlists), and all the kanji scores and colors for
                             each kanji (kanjilists) */
-                        " Select TweetLists.[Name] " +
-                        " ,TweetLists.[Sys] " +
+                        " Select UserInfo.DisplayName " +
                         ", TweetLists.[Tweet_id] " +
 
                         ",(CASE WHEN [Total] is not NULL AND [Total] < " + colorThresholds.getGreyThreshold() + " THEN 1 ELSE 0 END) as [Grey] " +
@@ -1115,6 +1114,18 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                         " ) as TweetKanji " +
                         "On TweetLists.Tweet_id = TweetKanji.Tweet_id " +
 
+                        "(" +
+
+                        /* Get A list of each saved tweet and the number of kanji in those tweets */
+                        "SELECT  DISTINCT [Name]" +
+                        ",[Sys]" +
+                        ",[UserID] " +
+                        ",[_id] as [Tweet_id]" +
+                        "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+                        "WHERE ([Name] = ? AND [Sys] = ? ) OR " + ALL_LISTS_FLAG + " = 1 " +
+                        ") as TweetLists " +
+                        "On TweetLists.Tweet_id = TweetKanji.Tweet_id " +
+
                         ") as [ListsTweetsAndAllKanjis] " +
                         "GROUP BY [Name],[Sys],[Tweet_id]" +
                         ") as [ListandTweets]  " +
@@ -1128,6 +1139,272 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                 ,new String[]{name,String.valueOf(sys),name,String.valueOf(sys)});
     }
 
+//
+//    public Cursor getTweetListColorBlocksCursor(ColorThresholds colorThresholds, @Nullable MyListEntry myListEntry) {
+//
+//        int ALL_LISTS_FLAG = 0;
+//        int sys = -1;
+//        String name = "";
+//        if(myListEntry == null) {
+//            ALL_LISTS_FLAG = 1;
+//        } else {
+//            sys = myListEntry.getListsSys();
+//            name = myListEntry.getListName();
+//        }
+//
+//        return  sqlOpener.getWritableDatabase().rawQuery(
+//
+//                "SELECT xx.[Name]" +
+//                        ",xx.[Sys]" +
+//                        ",ifnull(yy.[Total],0) as [Total]" +
+//                        ",ifnull(yy.[Grey],0) as [Grey]" +
+//                        ",ifnull(yy.[Red],0) as [Red]" +
+//                        ",ifnull(yy.[Yellow],0) as [Yellow]" +
+//                        ",ifnull(yy.[Green],0) as [Green] " +
+//                        ",ifnull(yy.[Empty],0) as [Empty] " +
+//
+//                        "" +
+//                        "FROM (" +
+//                        "Select DISTINCT [Name],[Sys] " +
+//                        "FROM (" +
+//                        "SELECT [Name]" +
+//                        ",0 as [Sys] " +
+//                        "From " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS +  " " +
+//                        "UNION " +
+//                        "SELECT 'Blue' as [Name]" +
+//                        ", 1 as [Sys] " +
+//                        "Union " +
+//                        "SELECT 'Red' as [Name]" +
+//                        ",1 as [Sys] " +
+//                        "Union " +
+//                        "SELECT 'Green' as [Name]" +
+//                        ",1 as [Sys] " +
+//                        "Union " +
+//                        "SELECT 'Yellow' as [Name]" +
+//                        ",1 as [Sys]" +
+//                        "Union " +
+//                        "SELECT 'Purple' as [Name]" +
+//                        ",1 as [Sys]" +
+//                        "Union " +
+//                        "SELECT 'Orange' as [Name]" +
+//                        ",1 as [Sys]" +
+//                        ") as [x] " +
+//                        "WHERE ([Name] = ? OR " + ALL_LISTS_FLAG + " = 1) AND ([Sys] = ? OR " + ALL_LISTS_FLAG + " = 1) " +
+//                        ") as [xx] " +
+//                        "LEFT JOIN " +
+//                        " (" +
+//                        "Select [Name] " +
+//                        ",[Sys] " +
+//                        ",COUNT([Category]) as [Total] " +
+//                        ",SUM((CASE WHEN [Category] = 'Empty' THEN 1 else 0 END)) as [Empty] " +
+//                        ",SUM((CASE WHEN [Category] = 'Grey' THEN 1 else 0 END)) as [Grey] " +
+//                        ",SUM((CASE WHEN [Category] = 'Red' THEN 1 else 0 END)) as [Red] " +
+//                        ",SUM((CASE WHEN [Category] = 'Yellow' THEN 1 else 0 END)) as [Yellow] " +
+//                        ",SUM((CASE WHEN [Category] = 'Green' THEN 1 else 0 END)) as [Green] " +
+//                        " FROM (" +
+//
+////                /* Assign each tweet a color based on the percentages of word color scores for kanjis in the tweet */
+//                        "Select [Name] " +
+//                        ",[Sys] " +
+//                        ",(CASE WHEN [Total] = 0 THEN 'Empty' " +
+//                        " WHEN CAST(ifnull([Grey],0)  as float)/[Total] > " + colorThresholds.getTweetGreyThreshold() + " THEN 'Grey' " +
+//                        " WHEN CAST(ifnull([Green],0)  as float)/[Total] >= " + colorThresholds.getTweetGreenthreshold() + " THEN 'Green' " +
+//                        " WHEN  CAST(ifnull([Red],0)  as float)/[Total] >= " + colorThresholds.getTweetRedthreshold() + " THEN 'Red' " +
+//                        " WHEN CAST(ifnull([Yellow],0)  as float)/[Total] >= " + colorThresholds.getTweetYellowthreshold() +" THEN 'Yellow' " +
+//                        " WHEN [Grey] > [Green] and [Grey] > [Red] and [Grey] > [Yellow] THEN 'Grey' " +
+//                        " WHEN [Green] > [Grey] and [Green] > [Red] and [Green] > [Yellow] THEN 'Green' " +
+//                        " WHEN [Red] > [Green] and [Red] > [Grey] and [Red] > [Yellow] THEN 'Red' " +
+//                        " WHEN [Yellow] > [Green] and [Yellow] > [Red] and [Yellow] > [Grey] THEN 'Yellow' " +
+//                        " ELSE 'Grey' END) as [Category] " +
+//                        " FROM ( " +
+//
+//                /* Now to pull together ListName, Tweet and the totals (by color) of the kanji in those tweets */
+//                        "SELECT  ListsTweetsAndAllKanjis.[Name]" +
+//                        ",ListsTweetsAndAllKanjis.[Sys]" +
+//                        ",ListsTweetsAndAllKanjis.[Tweet_id] "+
+//
+//                        ",SUM([Grey]) + SUM([Red]) + SUM([Yellow]) + SUM([Green]) as [Total] " +
+//                        ",SUM([Grey]) as [Grey]" +
+//                        ",SUM([Red]) as [Red]" +
+//                        ",SUM([Yellow]) as [Yellow]" +
+//                        ",SUM([Green]) as [Green] " +
+//                        "FROM (" +
+//
+//                        /* Now we have a big collection of list metadata (tweetlists), and all the kanji scores and colors for
+//                            each kanji (kanjilists) */
+//                        " Select TweetLists.[Name] " +
+//                        " ,TweetLists.[Sys] " +
+//                        ", TweetLists.[Tweet_id] " +
+//
+//                        ",(CASE WHEN [Total] is not NULL AND [Total] < " + colorThresholds.getGreyThreshold() + " THEN 1 ELSE 0 END) as [Grey] " +
+//                        ",(CASE WHEN [Total] is not NULL and [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] < " + colorThresholds.getRedThreshold() + "  THEN 1  ELSE 0 END) as [Red] " +
+//                        ",(CASE WHEN [Total] is not NULL and [Total] >= " + colorThresholds.getGreyThreshold() + " and ([Percent] >= " + colorThresholds.getRedThreshold() + "  and [Percent] <  " + colorThresholds.getYellowThreshold() + ") THEN 1  ELSE 0 END) as [Yellow] " +
+//                        ",(CASE WHEN [Total] is not NULL and [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] >= " + colorThresholds.getYellowThreshold() + " THEN 1 ELSE 0 END) as [Green] " +
+//
+//                        "FROM " +
+//                        "(" +
+//
+//                        /* Get A list of each saved tweet and the number of kanji in those tweets */
+//                        "SELECT  DISTINCT [Name]" +
+//                        ",[Sys]" +
+//                        ",[UserID] " +
+//                        ",[_id] as [Tweet_id]" +
+//                        "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+//                        "WHERE ([Name] = ? OR " + ALL_LISTS_FLAG + " = 1) AND ([Sys] = ? OR " + ALL_LISTS_FLAG + " = 1) " +
+//                        ") as TweetLists " +
+//                        " LEFT JOIN " +
+//                        " ( " +
+//
+//                        /* Get a list of  kanji ids and their word scores for each tweet */
+//                        "SELECT a.[Tweet_id]" +
+//                        ",a.[Edict_id]" +
+//                        ",ifnull(b.[Total],0) as [Total] " +
+//                        ",ifnull(b.[Correct],0)  as [Correct]" +
+//                        ",CAST(ifnull(b.[Correct],0)  as float)/b.[Total] as [Percent] " +
+//                        "FROM " +
+//                        "( " +
+//                        " SELECT Tweet_id" +
+//                        ",Edict_id " +
+//                        "From " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + " " +
+//                        ") as a " +
+//                        "LEFT JOIN " +
+//                        " (" +
+//                        "SELECT [_id] as [Edict_id]" +
+//                        ",sum([Correct]) as [Correct]" +
+//                        ",sum([Total]) as [Total] FROM [JScoreboard] " +
+//                        "where [_id] in (SELECT DISTINCT [Edict_id] FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + ")" +
+//                        " GROUP BY [_id]" +
+//                        ") as b " +
+//                        "ON a.[Edict_id] = b.[Edict_id] " +
+//
+//
+//
+//                        " ) as TweetKanji " +
+//                        "On TweetLists.Tweet_id = TweetKanji.Tweet_id " +
+//
+//                        ") as [ListsTweetsAndAllKanjis] " +
+//                        "GROUP BY [Name],[Sys],[Tweet_id]" +
+//                        ") as [ListandTweets]  " +
+//                        ") as [Lists] " +
+//                        "GROUP BY [Name],[Sys]" +
+//
+//                        ") as yy "  +
+//                        "ON xx.[Name] = yy.[Name] and cast(xx.[Sys] as INTEGER)  = cast(yy.[Sys] as INTEGER)  " +
+//
+//                        "Order by xx.[Sys] Desc,xx.[Name]"
+//                ,new String[]{name,String.valueOf(sys),name,String.valueOf(sys)});
+//    }
+
+    public Cursor getTweetListColorBlocksCursorForSingleUser(ColorThresholds colorThresholds, String userId) {
+
+        return  sqlOpener.getWritableDatabase().rawQuery(
+
+                "SELECT xx.[UserId]" +
+                        "0 as [Sys]" +
+                        ",ifnull(yy.[Total],0) as [Total]" +
+                        ",ifnull(yy.[Grey],0) as [Grey]" +
+                        ",ifnull(yy.[Red],0) as [Red]" +
+                        ",ifnull(yy.[Yellow],0) as [Yellow]" +
+                        ",ifnull(yy.[Green],0) as [Green] " +
+                        ",ifnull(yy.[Empty],0) as [Empty] " +
+
+                        "" +
+
+                        " (" +
+                        "Select [UserId] " +
+                        ",COUNT([Category]) as [Total] " +
+                        ",SUM((CASE WHEN [Category] = 'Empty' THEN 1 else 0 END)) as [Empty] " +
+                        ",SUM((CASE WHEN [Category] = 'Grey' THEN 1 else 0 END)) as [Grey] " +
+                        ",SUM((CASE WHEN [Category] = 'Red' THEN 1 else 0 END)) as [Red] " +
+                        ",SUM((CASE WHEN [Category] = 'Yellow' THEN 1 else 0 END)) as [Yellow] " +
+                        ",SUM((CASE WHEN [Category] = 'Green' THEN 1 else 0 END)) as [Green] " +
+                        " FROM (" +
+
+//                /* Assign each tweet a color based on the percentages of word color scores for kanjis in the tweet */
+                        "Select [UserId] " +
+                        ",(CASE WHEN [Total] = 0 THEN 'Empty' " +
+                        " WHEN CAST(ifnull([Grey],0)  as float)/[Total] > " + colorThresholds.getTweetGreyThreshold() + " THEN 'Grey' " +
+                        " WHEN CAST(ifnull([Green],0)  as float)/[Total] >= " + colorThresholds.getTweetGreenthreshold() + " THEN 'Green' " +
+                        " WHEN  CAST(ifnull([Red],0)  as float)/[Total] >= " + colorThresholds.getTweetRedthreshold() + " THEN 'Red' " +
+                        " WHEN CAST(ifnull([Yellow],0)  as float)/[Total] >= " + colorThresholds.getTweetYellowthreshold() +" THEN 'Yellow' " +
+                        " WHEN [Grey] > [Green] and [Grey] > [Red] and [Grey] > [Yellow] THEN 'Grey' " +
+                        " WHEN [Green] > [Grey] and [Green] > [Red] and [Green] > [Yellow] THEN 'Green' " +
+                        " WHEN [Red] > [Green] and [Red] > [Grey] and [Red] > [Yellow] THEN 'Red' " +
+                        " WHEN [Yellow] > [Green] and [Yellow] > [Red] and [Yellow] > [Grey] THEN 'Yellow' " +
+                        " ELSE 'Grey' END) as [Category] " +
+                        " FROM ( " +
+
+                /* Now to pull together ListName, Tweet and the totals (by color) of the kanji in those tweets */
+                        "SELECT  ListsTweetsAndAllKanjis.[UserId]" +
+                        ",ListsTweetsAndAllKanjis.[Tweet_id] "+
+
+                        ",SUM([Grey]) + SUM([Red]) + SUM([Yellow]) + SUM([Green]) as [Total] " +
+                        ",SUM([Grey]) as [Grey]" +
+                        ",SUM([Red]) as [Red]" +
+                        ",SUM([Yellow]) as [Yellow]" +
+                        ",SUM([Green]) as [Green] " +
+                        "FROM (" +
+
+                        /* Now we have a big collection of list metadata (tweetlists), and all the kanji scores and colors for
+                            each kanji (kanjilists) */
+                        " Select TweetLists.[Tweet_id] " +
+                        " ,[UserId] " +
+
+                        ",(CASE WHEN [Total] is not NULL AND [Total] < " + colorThresholds.getGreyThreshold() + " THEN 1 ELSE 0 END) as [Grey] " +
+                        ",(CASE WHEN [Total] is not NULL and [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] < " + colorThresholds.getRedThreshold() + "  THEN 1  ELSE 0 END) as [Red] " +
+                        ",(CASE WHEN [Total] is not NULL and [Total] >= " + colorThresholds.getGreyThreshold() + " and ([Percent] >= " + colorThresholds.getRedThreshold() + "  and [Percent] <  " + colorThresholds.getYellowThreshold() + ") THEN 1  ELSE 0 END) as [Yellow] " +
+                        ",(CASE WHEN [Total] is not NULL and [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] >= " + colorThresholds.getYellowThreshold() + " THEN 1 ELSE 0 END) as [Green] " +
+
+                        "FROM " +
+                        "(" +
+
+                        /* Get A list of each saved tweet and the number of kanji in those tweets */
+                        "SELECT  DISTINCT [UserId]" +
+                        ", [Tweet_id]" +
+                        "FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS + " " +
+                        "WHERE [UserId] = ? " +
+                        ") as TweetLists " +
+                        " LEFT JOIN " +
+                        " ( " +
+
+                        /* Get a list of  kanji ids and their word scores for each tweet */
+                        "SELECT a.[Tweet_id]" +
+                        ",a.[Edict_id]" +
+                        ",ifnull(b.[Total],0) as [Total] " +
+                        ",ifnull(b.[Correct],0)  as [Correct]" +
+                        ",CAST(ifnull(b.[Correct],0)  as float)/b.[Total] as [Percent] " +
+                        "FROM " +
+                        "( " +
+                        " SELECT Tweet_id" +
+                        ",Edict_id " +
+                        "From " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + " " +
+                        ") as a " +
+                        "LEFT JOIN " +
+                        " (" +
+                        "SELECT [_id] as [Edict_id]" +
+                        ",sum([Correct]) as [Correct]" +
+                        ",sum([Total]) as [Total] FROM [JScoreboard] " +
+                        "where [_id] in (SELECT DISTINCT [Edict_id] FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + ")" +
+                        " GROUP BY [_id]" +
+                        ") as b " +
+                        "ON a.[Edict_id] = b.[Edict_id] " +
+
+
+
+                        " ) as TweetKanji " +
+                        "On TweetLists.Tweet_id = TweetKanji.Tweet_id " +
+
+                        ") as [ListsTweetsAndAllKanjis] " +
+                        "GROUP BY [Tweet_id]" +
+                        ") as [ListandTweets]  " +
+                        ") as [Lists] " +
+                        "GROUP BY [Name],[Sys]" +
+
+                        ") as yy "
+
+//                        "Order by xx.[Sys] Desc,xx.[Name]"
+                ,new String[]{userId});
+    }
 }
 
 

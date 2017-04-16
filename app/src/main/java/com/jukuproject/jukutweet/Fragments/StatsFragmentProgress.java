@@ -109,7 +109,7 @@ public class StatsFragmentProgress extends Fragment {
             mTopCountLimit = getArguments().getInt("topCountLimit");
             mColorBlockMeasurables = getArguments().getParcelable("colorBlockMeasurables");
         }
-
+        Log.d(TAG,"HEREEEEE 1");
 
         int greenPercent = Math.round(100*((float)mColorBlockMeasurables.getGreenCount()/(float)mColorBlockMeasurables.getTotalCount()));
         txtCompletePercent.setText(greenPercent + "% Complete ");
@@ -166,11 +166,9 @@ public class StatsFragmentProgress extends Fragment {
         txtTitle.setText(content);
 
         //Set top and bottom 5 titles
-
         SpannableString content_TopFive = new SpannableString("Top " + mTopCountLimit);
         content_TopFive.setSpan(new UnderlineSpan(), 0, content_TopFive.length(), 0);
         txtTopFive.setText(content_TopFive);
-
 
         SpannableString content_BottomFive = new SpannableString("Bottom " + mTopCountLimit);
         content_BottomFive.setSpan(new UnderlineSpan(), 0, content_BottomFive.length(), 0);
@@ -191,6 +189,7 @@ public class StatsFragmentProgress extends Fragment {
                 ,textViewColorBlock_yellow
                 ,textViewColorBlock_green);
 
+        Log.d(TAG,"HEREEEEE 2");
 
 
         double topbottomThreshold = .5;
@@ -205,9 +204,11 @@ public class StatsFragmentProgress extends Fragment {
 
         //THIS IS THE BOTTOM COUNT (ascending by percent)
         ArrayList<WordEntry> bottomFive = InternalDB.getWordInterfaceInstance(getContext()).getTopFiveWordEntries("Bottom",null,mMyListEntry,colorThresholds,mTopCountLimit,topbottomThreshold);
+        Log.d(TAG,"HEREEEEE 3");
 
         //THIS ONE IS the BOTTOM 5 Adapter
         final StatsTop5Adapter adapter_bottom = new StatsTop5Adapter(getContext(),bottomFive,colorThresholds);
+        Log.d(TAG,"HEREEEEE 4");
 
         bottomFiveList.setAdapter(adapter_bottom);
         Log.d(TAG,"bottomFiveList: " + adapter_bottom.getCount());

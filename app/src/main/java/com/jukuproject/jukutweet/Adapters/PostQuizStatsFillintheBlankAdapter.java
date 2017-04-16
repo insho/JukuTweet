@@ -107,7 +107,7 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
             } else {
                 holder.txtSentence.setText(tweet.getText());
             }
-
+            holder.txtRowNumber.setText(String.valueOf(holder.getAdapterPosition()));
         } catch (NullPointerException e) {
             holder.txtSentence.setText(tweet.getText());
             Log.e(TAG,"fillblank Postquizstats setting tweet right/wrong word colors nullpointer failure : " + e);
@@ -137,6 +137,7 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
             }
             if(BuildConfig.DEBUG){Log.d(TAG,"layoutparams.height = " + layoutParams.height );}
 
+        if(spinnerWords.size()>0) {
             DefinitionAdapter_FillInSentences defadapter = new DefinitionAdapter_FillInSentences(mContext,spinnerWords);
             holder.lstSentenceWords.setAdapter(defadapter);
             if(BuildConfig.DEBUG){Log.d(TAG, "layoutparams.height(2) = " + layoutParams.height);}
@@ -146,6 +147,8 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
             holder.lstSentenceWords.setItemsCanFocus(false);
             holder.lstSentenceWords.setDivider(null);
             holder.lstSentenceWords.setLayoutParams(layoutParams);
+        }
+
 
 
 
@@ -179,13 +182,14 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
         public View getView(int position, View v, ViewGroup parent) {
 
             if (v == null) {
-                v = LayoutInflater.from(getContext()).inflate(android.R.layout.simple_list_item_1, parent, false);
+                v = LayoutInflater.from(getContext()).inflate(R.layout.spinner_listitem, parent, false);
             }
 
             WordEntry wordEntry = mWordEntries.get(position);
 
             TextView textWord = (TextView) v.findViewById(R.id.text1);
             String wordstring = "\u2022 " + wordEntry.getKanji();
+//            Log.d(TAG,"WORD: " + wordstring);
             textWord.setText(wordstring);
 //            if(debug){Log.d(TAG, "added word: (" + position + ") " + word);}
 

@@ -37,10 +37,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_gravity="center_horizontal"
-                android:text="Levelx-Blockx"
                 android:id="@+id/textViewTitle"
                 android:textColor="@android:color/black"
-                android:textSize="22sp" />
+                android:textSize="26sp" />
 
 
         </LinearLayout>
@@ -55,7 +54,7 @@
             android:id="@+id/textViewBlockProgress"
             android:layout_below="@id/titlelayout"
             android:textColor="@color/colorJukuGreen"
-            android:layout_marginBottom="10dp"
+            android:layout_marginBottom="6dp"
             android:textSize="18sp" />
 
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"

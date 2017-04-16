@@ -163,9 +163,9 @@ public class UserInfo implements Parcelable  {
         this.description = in.readString();
         this.url = in.readString();
 
-        this.followers_count = in.readInt();
-        this.friends_count = in.readInt();
-        this.listed_count = in.readInt();
+        this.followers_count = (Integer)in.readSerializable();
+        this.friends_count = (Integer)in.readSerializable();
+        this.listed_count = (Integer)in.readSerializable();
 
         this.profile_background_image_url = in.readString();
         this.profile_image_url = in.readString();
@@ -188,9 +188,11 @@ public class UserInfo implements Parcelable  {
         out.writeString(this.location);
         out.writeString(this.description);
         out.writeString(this.url);
-        out.writeInt(this.followers_count);
-        out.writeInt(this.friends_count);
-        out.writeInt(this.listed_count);
+        //asdf
+        out.writeSerializable(this.followers_count);
+        out.writeSerializable(this.friends_count);
+        out.writeSerializable(this.listed_count);
+
         out.writeString(this.profile_background_image_url);
         out.writeString(this.profile_image_url);
         out.writeString(this.profile_banner_url);

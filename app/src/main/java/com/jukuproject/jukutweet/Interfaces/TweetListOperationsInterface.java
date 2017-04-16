@@ -45,4 +45,5 @@ public interface TweetListOperationsInterface {
     ArrayList<Tweet> getTweetsForSavedTweetsList(MyListEntry myListEntry , ColorThresholds colorThresholds);
 //    Cursor getWordEntryForWordId(int kanjiId, ColorThresholds colorThresholds);
     Cursor getTweetListColorBlocksCursor(ColorThresholds colorThresholds, @Nullable MyListEntry myListEntry);
+    Cursor getTweetListColorBlocksCursorForSingleUser(ColorThresholds colorThresholds, String userId);
 }

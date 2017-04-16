@@ -100,12 +100,7 @@ public class StatsFragmentMultipleChoice extends Fragment {
             mTotal = getArguments().getInt("total");
         }
 
-
-
-
         resultslistView.setAdapter(new PostQuizStatsAdapter(getContext(), mDataset,mIsWordBuilder));
-
-
 
         //TODO replace with string vars
         if(mQuizType != null && mQuizType.equals("WordBuilder")) {
@@ -125,7 +120,7 @@ public class StatsFragmentMultipleChoice extends Fragment {
             try {
                 ColorThresholds colorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
                 double percentage = 100*((double)mCorrect/(double)mTotal);
-                if(percentage< (colorThresholds.getRedThreshold()*100)) {
+                if(percentage < (colorThresholds.getRedThreshold()*100)) {
                     topscoreLayout.setBackgroundColor(ContextCompat.getColor(getActivity(), R.color.colorJukuRed));
                 } else if (percentage< (colorThresholds.getYellowThreshold()*100)) {
                     topscoreLayout.setBackgroundColor(ContextCompat.getColor(getActivity(), android.R.color.holo_orange_light));

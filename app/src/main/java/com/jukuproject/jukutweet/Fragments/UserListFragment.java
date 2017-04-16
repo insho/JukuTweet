@@ -119,7 +119,9 @@ public class UserListFragment extends Fragment {
                                     mCallback.showActionBarBackButton(true,userInfo.getDisplayScreenName());
                                     mCallback.showFab(false,"");
 //                                    mCallback.changePagerTitle(0,"Timeline");
+                                    mCallback.showSavedTweetsTabForIndividualUser(userInfo);
                                     mCallback.updateTabs(new String[]{"Timeline","Saved Tweets"});
+
 
                                 } else {
                                     Toast.makeText(getActivity(), "No internet connection", Toast.LENGTH_SHORT).show();

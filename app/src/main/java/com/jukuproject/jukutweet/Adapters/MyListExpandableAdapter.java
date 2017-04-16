@@ -321,7 +321,7 @@ public class MyListExpandableAdapter extends BaseExpandableListAdapter {
             txtGrey.setText(String.valueOf(colorBlockMeasurables.getTotalCount()));
             txtGrey.setVisibility(View.VISIBLE);
             txtGrey.setMinimumWidth(availableWidth);
-
+            Log.d("Test-colorblock","Setting minimum available width to be max...");
         } else {
 
             int availableWidthRemaining = availableWidth;
@@ -342,7 +342,12 @@ public class MyListExpandableAdapter extends BaseExpandableListAdapter {
             if(colorBlockMeasurables.getRedCount()>0){
                 txtRed.setText(String.valueOf(colorBlockMeasurables.getRedCount()));
                 int dimenscore = colorBlockMeasurables.getRedDimenscore(availableWidth,availableWidthRemaining);
-
+                if(BuildConfig.DEBUG) {
+                    Log.i("Test-colorblock","dimenscoretotal: " + availableWidth);
+                    Log.i("Test-colorblock","red/count: " + colorBlockMeasurables.getRedCount() + "/" + colorBlockMeasurables.getTotalCount());
+                    Log.i("Test-colorblock","((float) red / (float) count): " + ((float) colorBlockMeasurables.getRedCount() / (float) colorBlockMeasurables.getTotalCount()));
+                    Log.i("Test-colorblock","Rounded score: " + dimenscore);
+                }
                 availableWidthRemaining = availableWidthRemaining -dimenscore;
                 txtRed.setMinimumWidth(dimenscore);
                 txtRed.setVisibility(View.VISIBLE);

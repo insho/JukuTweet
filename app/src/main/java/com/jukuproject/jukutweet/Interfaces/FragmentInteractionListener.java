@@ -1,5 +1,7 @@
 package com.jukuproject.jukutweet.Interfaces;
 
+import com.jukuproject.jukutweet.Models.UserInfo;
+
 /**
  * Created by JukuProject on 3/19/2017.
  */
@@ -17,4 +19,6 @@ public interface FragmentInteractionListener {
     void updateTabs(String[] updatedTabs);
     void showMenuMyListBrowse(boolean show, int tabNumber);
     void notifyFragmentsChanged();
+
+    void showSavedTweetsTabForIndividualUser(UserInfo userInfo);
 }

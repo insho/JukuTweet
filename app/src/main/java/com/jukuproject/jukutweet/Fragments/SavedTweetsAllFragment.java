@@ -30,6 +30,7 @@ import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MenuHeader;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.SharedPrefManager;
+import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.R;
 
 import java.util.ArrayList;
@@ -50,27 +51,59 @@ public class SavedTweetsAllFragment  extends Fragment {
     ArrayList<MenuHeader> mMenuHeader;
     private int lastExpandedPosition = -1;
     private SharedPrefManager sharedPrefManager;
+    private UserInfo mUserInfo;
 
-
-
-    public static SavedTweetsAllFragment newInstance(Bundle bundle) {
+    public static SavedTweetsAllFragment newInstance() {
         SavedTweetsAllFragment fragment = new SavedTweetsAllFragment();
+//        Bundle args = new Bundle();
+//        args.putParcelable("userInfo", null);
+//        fragment.setArguments(args);
+        return fragment;
+    }
+
+    public static SavedTweetsAllFragment newInstance(UserInfo userInfo) {
+        SavedTweetsAllFragment fragment = new SavedTweetsAllFragment();
+        Bundle args = new Bundle();
+        args.putParcelable("userInfo", userInfo);
+        fragment.setArguments(args);
         return fragment;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        Log.d(TAG,"CREATING savedtweets FRAG");
-//        errotest();
-        //Call shared prefs to find out which star colors (i.e. favorites lists) to include
-        sharedPrefManager = SharedPrefManager.getInstance(getContext());
 
         View v = inflater.inflate(R.layout.fragment_mylists, container, false);
-
-
         expListView = (ExpandableListView) v.findViewById(R.id.lvMyListCategory);
+
+
+        return v;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        sharedPrefManager = SharedPrefManager.getInstance(getContext());
         expListView.setClickable(true);
-        prepareListData();
+
+        if(savedInstanceState == null) {
+            try {
+                mUserInfo = getArguments().getParcelable("userInfo");
+            } catch (NullPointerException e) {
+                mUserInfo = null;
+            }
+        } else {
+//            mDataset = savedInstanceState.getParcelableArrayList("mDataset");
+
+        }
+
+        if(mUserInfo != null) {
+            prepareListData(mUserInfo);
+        } else {
+            prepareListData(null);
+        }
+
+
 
         SavedTweetsFragmentAdapter = new SavedTweetsExpandableAdapter(getContext(),mMenuHeader,getdimenscore(),0);
 
@@ -142,8 +175,14 @@ public class SavedTweetsAllFragment  extends Fragment {
 //                        a.CreateDialog();
 //                        break;
                     case "Browse/Edit":
-                        SavedTweetsBrowseFragment fragment = SavedTweetsBrowseFragment.newInstance(new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).getSystemList()));
-                        ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"savedtweetsbrowse");
+                        if(mUserInfo != null) {
+
+//                            fragment = SavedTweetsBrowseFragment.newInstance(new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).getSystemList()));
+                        } else {
+                            SavedTweetsBrowseFragment fragment = SavedTweetsBrowseFragment.newInstance(new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).getSystemList()));
+                            ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"savedtweetsbrowse");
+                        }
+
                         //Hide the fab
                         mCallback.showFab(false,"");
                         break;
@@ -212,10 +251,9 @@ public class SavedTweetsAllFragment  extends Fragment {
         }
 
         setRetainInstance(true);
-        return v;
     }
 
-    public void prepareListData() {
+    public void prepareListData(@Nullable UserInfo userInfo) {
         mMenuHeader = new ArrayList<>();
 
         ArrayList<String> availableFavoritesStars = sharedPrefManager.getActiveTweetFavoriteStars();
@@ -223,8 +261,13 @@ public class SavedTweetsAllFragment  extends Fragment {
         ArrayList<String> childOptions = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.menu_mylist)));
 
         Log.d(TAG,"Colorgrey thresh: " + colorThresholds.getTweetGreyThreshold() + ", red: " + colorThresholds.getTweetRedthreshold());
-
-        Cursor c = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListColorBlocksCursor(colorThresholds,null);
+        Cursor c;
+        if(userInfo != null) {
+            c = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListColorBlocksCursorForSingleUser(colorThresholds,userInfo.getUserId());
+        } else {
+            Log.d(TAG,"SHIT");
+            c = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListColorBlocksCursor(colorThresholds,null);
+        }
 Log.d(TAG,"CCOUNT: " +c.getCount());
         if(c.getCount()>0) {
             c.moveToFirst();
@@ -241,7 +284,13 @@ Log.d(TAG,"CCOUNT: " +c.getCount());
 
                 Log.d(TAG,"availableFavoritesStars: " + availableFavoritesStars);
                 if(c.getInt(1) != 1 || (availableFavoritesStars.contains(c.getString(0)))) {
-                    MenuHeader menuHeader = new MenuHeader(c.getString(0));
+                    MenuHeader menuHeader = new MenuHeader();
+                    if(userInfo!=null) {
+                        menuHeader.setHeaderTitle(userInfo.getDisplayScreenName());
+                    } else {
+                        menuHeader.setHeaderTitle(c.getString(0));
+                    }
+//                    MenuHeader menuHeader = new MenuHeader(c.getString(0));
                     menuHeader.setChildOptions(childOptions);
                     menuHeader.setMyList(true);
 
@@ -280,6 +329,7 @@ Log.d(TAG,"CCOUNT: " +c.getCount());
         }
         c.close();
     }
+
 
 
     @Override
@@ -338,7 +388,11 @@ Log.d(TAG,"CCOUNT: " +c.getCount());
     }
 
     public void updateMyListAdapter() {
-        prepareListData();
+        if(mUserInfo!= null && mUserInfo.getScreenName() != null) {
+            prepareListData(mUserInfo);
+        } else {
+            prepareListData(null);
+        }
         SavedTweetsFragmentAdapter = new SavedTweetsExpandableAdapter(getContext(),mMenuHeader,getdimenscore(),0);
         expListView.setAdapter(SavedTweetsFragmentAdapter);
 //        expListView.invalidateViews();

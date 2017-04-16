@@ -974,6 +974,20 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
     }
 
+    public void showSavedTweetsTabForIndividualUser(UserInfo userInfo){
+
+        try {
+//            Tab2Container container = ((Tab2Container) findFragmentByPosition(1));
+            SavedTweetsAllFragment savedTweetsAllFragment = SavedTweetsAllFragment.newInstance(userInfo);
+            ((BaseContainerFragment)findFragmentByPosition(1)).replaceFragment(savedTweetsAllFragment,true,"savedTweetsAllFragmentIndividual");
+
+//            ((SavedTweetsAllFragment) container.getChildFragmentManager().findFragmentByTag("savedtweetsallfragment")).expandTheListViewAtPosition(positionToExpand);
+        } catch (Exception e) {
+            Log.e("TEST","showSavedTweetsTabForIndividualUser failed");
+        }
+
+    }
+
     //Traffic control from CopyDialog to BrowseItemsFragment
     public void saveAndUpdateMyLists(String kanjiIdString, ArrayList<MyListEntry> listsToCopyTo, boolean move, MyListEntry currentList) {
         if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
@@ -1176,7 +1190,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             startActivity(intent);
 
         } else {
-            Toast.makeText(this, "No words found to quiz on", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "No tweets found to quiz on", Toast.LENGTH_SHORT).show();
         }
 
     }

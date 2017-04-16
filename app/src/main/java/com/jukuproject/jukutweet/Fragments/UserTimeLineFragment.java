@@ -134,6 +134,7 @@ public class UserTimeLineFragment extends Fragment {
      */
     public void pullTimeLineData(final UserInfo userInfo){
 
+        Log.d(TAG,"SHOW PROG TRUE: ");
         mCallback.showProgressBar(true);
 //        mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mUserInfo,new ArrayList<Tweet>());
 //        mRecyclerView.setAdapter(mAdapter);
@@ -153,8 +154,7 @@ public class UserTimeLineFragment extends Fragment {
 
                         @Override public void onCompleted() {
                             if(BuildConfig.DEBUG){Log.d(TAG, "In onCompleted()");}
-
-                            mCallback.showProgressBar(false);
+//                            mCallback.showProgressBar(false);
 
                             mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mUserInfo,mTimeLine,mActiveTweetFavoriteStars);
 
@@ -284,9 +284,7 @@ public class UserTimeLineFragment extends Fragment {
                         @Override public void onError(Throwable e) {
                             e.printStackTrace();
                             if(BuildConfig.DEBUG){Log.d(TAG, "In onError()");}
-                            mCallback.showProgressBar(false);
-
-                            //TODO -- GET PROPER ERROR CODE!
+//                            mCallback.showProgressBar(false);
                             Toast.makeText(getContext(), "Unable to get timeline for @" + userInfo.getScreenName(), Toast.LENGTH_SHORT).show();
                         }
 
@@ -319,7 +317,7 @@ public class UserTimeLineFragment extends Fragment {
             Log.d(TAG,"MTIMELINE WAS NULL SO MAKING THE SHIT INVISIBLE");
             mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mUserInfo,mTimeLine,mActiveTweetFavoriteStars);
             mRecyclerView.setAdapter(mAdapter);
-            mCallback.showProgressBar(false);
+//            mCallback.showProgressBar(false);
         }
 
 

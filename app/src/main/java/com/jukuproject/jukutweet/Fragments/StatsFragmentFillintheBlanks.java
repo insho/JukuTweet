@@ -3,6 +3,7 @@ package com.jukuproject.jukutweet.Fragments;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -81,6 +82,9 @@ public class StatsFragmentFillintheBlanks extends Fragment {
         }
 
 
+
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
+        resultsRecycler.setLayoutManager(layoutManager);
 
         int adapterRowHeightMultiplier = Math.round((float) 10 * getResources().getDisplayMetrics().density);
         resultsRecycler.setAdapter(new PostQuizStatsFillintheBlankAdapter(getContext(), mDataset,adapterRowHeightMultiplier));

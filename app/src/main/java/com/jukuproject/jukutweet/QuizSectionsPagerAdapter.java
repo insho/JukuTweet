@@ -7,6 +7,7 @@ package com.jukuproject.jukutweet;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.util.Log;
 //import com.jukuproject.jukutweet.TabContainers.Tab4Container;
 
 /**
@@ -22,7 +23,6 @@ public class QuizSectionsPagerAdapter extends FragmentPagerAdapter {
     public QuizSectionsPagerAdapter(FragmentManager fm, String[] currentTabs, Fragment[] savedFragments) {
         super(fm);
         this.mCurrentTabs = currentTabs;
-//        this.mIntent = mIntent;
         this.mSavedFragments = savedFragments;
     }
 
@@ -48,6 +48,8 @@ public class QuizSectionsPagerAdapter extends FragmentPagerAdapter {
         return POSITION_NONE;
     }
 
+
+
     @Override
     public CharSequence getPageTitle(int position) {
 
@@ -56,6 +58,7 @@ public class QuizSectionsPagerAdapter extends FragmentPagerAdapter {
 
     public void updateTabs(String[] updatedTabs) {
         this.mCurrentTabs = updatedTabs;
+        Log.d("TEST","Updating tabs: " +mCurrentTabs  + " NEW: " + updatedTabs + ", fragment size: " + mSavedFragments.length);
         notifyDataSetChanged();
     }
 

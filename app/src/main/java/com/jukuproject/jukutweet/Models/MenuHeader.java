@@ -37,7 +37,16 @@ public class MenuHeader {
         isExpanded = expanded;
     }
 
-    public MenuHeader(){}
+    public MenuHeader(){
+        this.childOptions =  new ArrayList<>();
+        this.colorBlockMeasurables = new ColorBlockMeasurables();
+
+        this.showLblHeaderCount = false;
+        this.myList = false;
+        this.systemList = false;
+        this.colorList = false;
+        this.isExpanded = false;
+    }
     public MenuHeader(String headerTitle) {
         this.headerTitle = headerTitle;
         this.childOptions =  new ArrayList<>();
@@ -69,6 +78,10 @@ public class MenuHeader {
 
     public String getHeaderTitle() {
         return headerTitle;
+    }
+
+    public void setHeaderTitle(String headerTitle) {
+        this.headerTitle = headerTitle;
     }
 
     public int getSystemList() {
