@@ -117,11 +117,11 @@ public class UserListFragment extends Fragment {
                                     fragment.setArguments(bundle);
                                     ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"timeline");
                                     mCallback.showActionBarBackButton(true,userInfo.getDisplayScreenName());
-                                    mCallback.showFab(false,"");
+
 //                                    mCallback.changePagerTitle(0,"Timeline");
                                     mCallback.showSavedTweetsTabForIndividualUser(userInfo);
                                     mCallback.updateTabs(new String[]{"Timeline","Saved Tweets"});
-
+                                    mCallback.showFab(false);
 
                                 } else {
                                     Toast.makeText(getActivity(), "No internet connection", Toast.LENGTH_SHORT).show();
