@@ -42,9 +42,6 @@ import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.TabContainers.QuizTab1Container;
 import com.jukuproject.jukutweet.TabContainers.QuizTab2Container;
-import com.jukuproject.jukutweet.TabContainers.Tab1Container;
-import com.jukuproject.jukutweet.TabContainers.Tab2Container;
-import com.jukuproject.jukutweet.TabContainers.Tab3Container;
 
 import java.util.ArrayList;
 
@@ -189,12 +186,7 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
 
 //        mViewPager.invalidate();
         progressbar = (SmoothProgressBar) findViewById(R.id.progressbar);
-
-
-
     }
-
-
 
 
     @Override
@@ -350,39 +342,39 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
 
 
 
-    /**
-     * Checks whether the current visible fragment for a given position of the fragmentpager adapter
-     * is the top fragment in the stack for that bucket
-     * @param position position of the viewpager adapter
-     * @return bool true if the top fragment is showing, false if not
-     */
-    public boolean isTopShowing(int position) {
-
-        switch(position) {
-            case 0:
-                try {
-                    return ((Tab1Container)findFragmentByPosition(0)).isTopFragmentShowing();
-                } catch(NullPointerException e) {
-                    return false;
-                }
-            case 1:
-                try {
-                    return ((Tab2Container)findFragmentByPosition(1)).isTopFragmentShowing();
-                } catch(NullPointerException e) {
-                    return false;
-                }
-            case 2:
-                try {
-                    return  ((Tab3Container)findFragmentByPosition(2)).isTopFragmentShowing();
-
-                } catch(NullPointerException e) {
-                    return false;
-                }
-            default:
-                break;
-        }
-        return true;
-    }
+//    /**
+//     * Checks whether the current visible fragment for a given position of the fragmentpager adapter
+//     * is the top fragment in the stack for that bucket
+//     * @param position position of the viewpager adapter
+//     * @return bool true if the top fragment is showing, false if not
+//     */
+//    public boolean isTopShowing(int position) {
+//
+//        switch(position) {
+//            case 0:
+//                try {
+//                    return ((Tab1Container)findFragmentByPosition(0)).isTopFragmentShowing();
+//                } catch(NullPointerException e) {
+//                    return false;
+//                }
+//            case 1:
+//                try {
+//                    return ((Tab2Container)findFragmentByPosition(1)).isTopFragmentShowing();
+//                } catch(NullPointerException e) {
+//                    return false;
+//                }
+//            case 2:
+//                try {
+//                    return  ((Tab3Container)findFragmentByPosition(2)).isTopFragmentShowing();
+//
+//                } catch(NullPointerException e) {
+//                    return false;
+//                }
+//            default:
+//                break;
+//        }
+//        return true;
+//    }
 
     /**
      * Shows or hides the floating action button, and changes the image resource based on the current
@@ -477,11 +469,22 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
                         , 10
                         ,mColorBlockMeasurables);
                 ((BaseContainerFragment) findFragmentByPosition(1)).replaceFragment(statsFragmentProgress, true, "statsFragmentProgress");
+            } else {
+                Log.d(TAG,"CANT FIND...");
             }
 
             } else {
                 //TODO kick user out to main activity
+            Log.e(TAG,"quiz result dataset was 0, kicking user back to main activity...");
+            Intent intent = new Intent(getBaseContext(), MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            intent.putExtra("fragmentWasChanged", true);
+            intent.putExtra("tabNumber",mTabNumber);
+            intent.putExtra("lastExpandedPosition",mLastExpandedPosition);
+            startActivity(intent);
+            finish();
             }
+
         updateTabs(mAdapterTitles );
         showFab(true,"quizRedo");
         mTitleStrip.setVisibility(View.VISIBLE);

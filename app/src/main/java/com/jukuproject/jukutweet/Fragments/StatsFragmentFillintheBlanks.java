@@ -87,7 +87,7 @@ public class StatsFragmentFillintheBlanks extends Fragment {
 
             try {
                 ColorThresholds colorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
-                double percentage = (double)mCorrect/(double)mTotal;
+                double percentage = 100*((double)mCorrect/(double)mTotal);
                 if(percentage< (colorThresholds.getRedThreshold()*100)) {
                     topscoreLayout.setBackgroundColor(ContextCompat.getColor(getActivity(), R.color.colorJukuRed));
                 } else if (percentage< (colorThresholds.getYellowThreshold()*100)) {
@@ -96,13 +96,16 @@ public class StatsFragmentFillintheBlanks extends Fragment {
                     topscoreLayout.setBackgroundColor(ContextCompat.getColor(getActivity(), android.R.color.holo_green_light));
                 }
 
-                Log.d(TAG,"mCorrect: " + mCorrect);
-                Log.d(TAG,"mPercentage: " + percentage);
-
-                textScore.setText(mCorrect);
-                String txtpercentage =   String.valueOf(percentage) + "%";
+//                Log.d(TAG,"mCorrect: " + mCorrect);
+//                Log.d(TAG,"mPercentage: " + percentage);
+//
+//                textScore.setText(mCorrect);
+//                String txtpercentage =   String.valueOf(percentage) + "%";
+//                textPercentage.setText(txtpercentage);
+                //TODO replace with string vars
+                textScore.setText(String.valueOf(mCorrect) + "/" + String.valueOf(mTotal));
+                String txtpercentage =   String.valueOf((int)percentage) + "%";
                 textPercentage.setText(txtpercentage);
-
 
             } catch (Exception e) {
                 Log.e(TAG,"stats fragment multiple choice couldn't set top score bar " + e);

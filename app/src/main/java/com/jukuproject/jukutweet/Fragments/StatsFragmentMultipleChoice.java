@@ -133,12 +133,12 @@ public class StatsFragmentMultipleChoice extends Fragment {
                     topscoreLayout.setBackgroundColor(ContextCompat.getColor(getActivity(), android.R.color.holo_green_light));
                 }
 
-                Log.d(TAG,"mCorrect: " + mCorrect);
-                Log.d(TAG,"mPercentage: " + percentage);
+//                Log.d(TAG,"mCorrect: " + mCorrect);
+//                Log.d(TAG,"mPercentage: " + percentage);
 
                 //TODO replace with string vars
                 textScore.setText(String.valueOf(mCorrect) + "/" + String.valueOf(mTotal));
-                String txtpercentage =   String.valueOf(percentage) + "%";
+                String txtpercentage =   String.valueOf((int)percentage) + "%";
                 textPercentage.setText(txtpercentage);
 
 

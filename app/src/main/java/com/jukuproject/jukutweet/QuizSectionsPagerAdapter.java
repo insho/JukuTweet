@@ -24,13 +24,15 @@ public class QuizSectionsPagerAdapter extends FragmentPagerAdapter {
         this.mCurrentTabs = currentTabs;
 //        this.mIntent = mIntent;
         this.mSavedFragments = savedFragments;
-
     }
 
     @Override
     public Fragment getItem(int position) {
-
-        return mSavedFragments[position];
+//            if(position == 1) {
+//                return  QuizTab2Container.newInstance();
+//            } else {
+                return mSavedFragments[position];
+//            }
     }
 
 

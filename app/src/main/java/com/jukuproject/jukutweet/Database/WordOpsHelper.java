@@ -588,8 +588,11 @@ public class WordOpsHelper implements WordListOperationsInterface {
         } else {
             sys = myListEntry.getListsSys();
             name = myListEntry.getListName();
-        }
 
+
+        }
+        Log.d(TAG,"name: " + name);
+        Log.d(TAG,"sys: " + sys);
         return  sqlOpener.getWritableDatabase().rawQuery("SELECT xx.[Name]" +
                 ",xx.[Sys]" +
                 ",ifnull(yy.[Total],0) as [Total]" +
@@ -605,28 +608,23 @@ public class WordOpsHelper implements WordListOperationsInterface {
                 ",0 as [Sys] " +
                 "From " +  InternalDB.Tables.TABLE_FAVORITES_LISTS + " " +
                 "UNION " +
-                "SELECT 'Blue' as [Name]" +
-                ", 1 as [Sys] " +
+                "SELECT 'Blue' as [Name] , 1 as [Sys] " +
                 "Union " +
-                "SELECT 'Red' as [Name]" +
-                ",1 as [Sys] " +
+                "SELECT 'Red' as [Name],1 as [Sys] " +
                 "Union " +
-                "SELECT 'Green' as [Name]" +
-                ",1 as [Sys] " +
+                "SELECT 'Green' as [Name],1 as [Sys] " +
                 "Union " +
-                "SELECT 'Yellow' as [Name]" +
-                ",1 as [Sys]" +
+                "SELECT 'Yellow' as [Name] ,1 as [Sys]" +
                 "Union " +
-                "SELECT 'Purple' as [Name]" +
-                ",1 as [Sys]" +
+                "SELECT 'Purple' as [Name] ,1 as [Sys]" +
                 "Union " +
-                "SELECT 'Orange' as [Name]" +
-                ",1 as [Sys]" +
+                "SELECT 'Orange' as [Name] ,1 as [Sys]" +
                 ") as [x] " +
-                "WHERE ([Name] = ? OR " + ALL_LISTS_FLAG + " = 1) AND ([Sys] = ? OR " + ALL_LISTS_FLAG + " = 1) " +
+//                "WHERE ([Name] = ?) AND ([Sys] = ? ) " +
+                "WHERE ([Name] = ? and [Sys] = "+sys+ ") OR " + ALL_LISTS_FLAG + " = 1 " +
                 ") as [xx] " +
                 "LEFT JOIN (" +
-                "SELECT  [Name]" +
+                "SELECT  [Name] " +
                 ",[Sys]" +
                 ",SUM([Grey]) + SUM([Red]) + SUM([Yellow]) + SUM([Green]) as [Total]" +
                 ",SUM([Grey]) as [Grey]" +
@@ -653,7 +651,9 @@ public class WordOpsHelper implements WordListOperationsInterface {
                 ",[Sys]" +
                 ",[_id] " +
                 "FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
-                "WHERE ([Name] = ? OR " + ALL_LISTS_FLAG + " = 1) AND ([Sys] = ? OR " + ALL_LISTS_FLAG + " = 1) " +
+//                "WHERE ([Name] = ?) AND ([Sys] = ? ) " +
+                "WHERE ([Name] = ? and [Sys] = "+sys+ ") OR " + ALL_LISTS_FLAG + " = 1 " +
+//                "WHERE ([Name] = ? OR " + ALL_LISTS_FLAG + " = 1) AND ([Sys] = ? OR " + ALL_LISTS_FLAG + " = 1) " +
                 ") as a " +
                 "LEFT JOIN  (" +
                 "SELECT [_id]" +
@@ -667,11 +667,55 @@ public class WordOpsHelper implements WordListOperationsInterface {
                 "GROUP BY [Name],[Sys]" +
                 ") as yy  " +
                 "ON xx.[Name] = yy.[Name] and xx.[sys] = yy.[sys]  " +
-                "Order by xx.[Sys] Desc,xx.[Name]",new String[]{name,String.valueOf(sys),name,String.valueOf(sys)});
+                "Order by xx.[Sys] Desc,xx.[Name]",new String[]{name,name});
 
     }
 
-
+//
+//    public void supertest(ColorThresholds colorThresholds, MyListEntry myListEntry) {
+//        int ALL_LISTS_FLAG = 0;
+//        int sys = -1;
+//        String name = "";
+//
+//            sys = myListEntry.getListsSys();
+//            name = myListEntry.getListName();
+//        Log.d(TAG,"name: " + name);
+//        Log.d(TAG,"sys: " + sys);
+//
+//        Cursor c =  sqlOpener.getWritableDatabase().rawQuery(
+//                "Select DISTINCT [Name],[Sys] " +
+//                "FROM (" +
+//                "SELECT [Name]" +
+//                ",0 as [Sys] " +
+//                "From " +  InternalDB.Tables.TABLE_FAVORITES_LISTS + " " +
+//                "UNION " +
+//                "SELECT 'Blue' as [Name] , 1 as [Sys] " +
+//                "Union " +
+//                "SELECT 'Red' as [Name],1 as [Sys] " +
+//                "Union " +
+//                "SELECT 'Green' as [Name],1 as [Sys] " +
+//                "Union " +
+//                "SELECT 'Yellow' as [Name] ,1 as [Sys]" +
+//                "Union " +
+//                "SELECT 'Purple' as [Name] ,1 as [Sys]" +
+//                "Union " +
+//                "SELECT 'Orange' as [Name] ,1 as [Sys]" +
+//                ") as [x] " +
+////                "WHERE ([Name] = ?) AND ([Sys] = ? ) " +
+//                "WHERE ([Name] = ? and [Sys] = ?)",new String[]{name,String.valueOf(sys)});
+//
+//        if(c.getCount()>0) {
+//            c.moveToFirst();
+//            while (!c.isAfterLast()) {
+//                Log.d(TAG,"name: " + c.getString(0) + ", sys: " + c.getString(1));
+//            }
+//        } else {
+//            Log.d(TAG,"FUCKING NULL");
+//        }
+//
+//        c.close();
+//
+//    }
 
     public ArrayList<WordEntry> getTopFiveWordEntries(String topOrBottom
             ,@Nullable  ArrayList<Integer> idsToExclude
@@ -755,6 +799,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
                         wordEntry.setCorrect(c.getInt(2));
                         wordEntry.setTotal(c.getInt(3));
                         wordEntries.add(wordEntry);
+                        Log.d(TAG,"ADDING KANJI: " + wordEntry.getKanji());
                     }
 
                 }
@@ -764,7 +809,8 @@ public class WordOpsHelper implements WordListOperationsInterface {
 
             //Add dummy word entries if necessary to round out the score
             while(wordEntries.size()<totalCountLimit) {
-                wordEntries.add(new WordEntry());
+//                wordEntries.add(new WordEntry());
+//                Log.d(TAG,"ADDING EMPTY ENTRY");
             }
         } catch (SQLiteException e){
             Log.e(TAG,"getTopFiveWordEntries Sqlite exception: " + e);

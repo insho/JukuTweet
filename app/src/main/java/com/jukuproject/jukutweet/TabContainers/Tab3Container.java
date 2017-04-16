@@ -66,6 +66,7 @@ public class Tab3Container extends BaseContainerFragment {
 
 
     public boolean isTopFragmentShowing() {
+        Log.d("TEST-Tab3Container","BACKSTACK COUNT : " + getChildFragmentManager().getBackStackEntryCount() );
         try {
             if(getChildFragmentManager().getBackStackEntryCount() == 0) {
                 return true;
@@ -77,7 +78,7 @@ public class Tab3Container extends BaseContainerFragment {
 //            Log.d("TEST","Apparently mylistfragment is on top...");
 //            return true;
         } catch (Exception e) {
-            Log.e("Tab3Container","Could not find userListFragment");
+            Log.e("TEST-Tab3Container","Could not find userListFragment");
             return false;
         }
     }

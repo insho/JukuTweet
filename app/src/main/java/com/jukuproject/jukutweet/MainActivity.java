@@ -626,7 +626,9 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     if(isTopShowing(1)) {
                         showActionBarBackButton(false,getString(R.string.app_name));
                         updateTabs(new String[]{"Users","Saved Tweets","My Lists"});
+
                     }
+                    showMenuMyListBrowse(false,1);
                 } catch (NullPointerException e) {
                     Log.e(TAG,"OnBackPressed child entrycount null : " + e);
                 }
@@ -636,8 +638,10 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 try {
                     if(isTopShowing(2)) {
                         showActionBarBackButton(false,getString(R.string.app_name));
+
                         updateTabs(new String[]{"Users","Saved Tweets","My Lists"});
                     }
+                    showMenuMyListBrowse(false,2);
                 } catch (NullPointerException e) {
                     Log.e(TAG,"OnBackPressed child entrycount null : " + e);
                 }

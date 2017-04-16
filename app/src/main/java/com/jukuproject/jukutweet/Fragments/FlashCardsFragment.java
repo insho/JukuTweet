@@ -101,6 +101,7 @@ public class FlashCardsFragment extends Fragment {
             mFrontValue = savedInstanceState.getString("mFrontValue");
             mBackValue = savedInstanceState.getString("mBackValue");
             mFrontShowing = savedInstanceState.getBoolean("mFrontShowing");
+            cardNumber = savedInstanceState.getInt("cardNumber");
         }
 
         totalCardCount = mDataset.size();
@@ -266,7 +267,6 @@ public class FlashCardsFragment extends Fragment {
             final WordEntry wordEntry = mDataset.get(position);
             page.setTag(wordEntry.getId());
 
-            cardNumber=1;
             ((TextView) page.findViewById(R.id.scorecount)).setText(cardNumber + "/" + totalCardCount);
 
             //Set the flipped tag false to start with

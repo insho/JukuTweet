@@ -7,6 +7,7 @@ import android.text.SpannableString;
 import android.text.style.UnderlineSpan;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -70,6 +71,7 @@ public class StatsFragmentProgress extends Fragment {
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_stats_progress, container, false);
+        topFiveList = (ListView) v.findViewById(R.id.descending_listresults);
         bottomFiveList = (ListView) v.findViewById(R.id.ascending_listresults);
         txtTopFive = (TextView) v.findViewById(R.id.textViewTopFive);
 
@@ -82,7 +84,6 @@ public class StatsFragmentProgress extends Fragment {
         txtCompletePercent = (TextView) v.findViewById(R.id.textViewBlockProgress);
         imageButton = (ImageButton) v.findViewById(R.id.favorite_icon);
         txtBottomFive = (TextView) v.findViewById(R.id.textViewBottomFive);
-        topFiveList = (ListView) v.findViewById(R.id.descending_listresults);
         return v;
     }
 
@@ -90,6 +91,13 @@ public class StatsFragmentProgress extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
+        textViewColorBlock_grey.setGravity(Gravity.CENTER);
+        textViewColorBlock_red.setGravity(Gravity.CENTER);
+        textViewColorBlock_yellow.setGravity(Gravity.CENTER);
+        textViewColorBlock_green.setGravity(Gravity.CENTER);
+
+
 
         if(savedInstanceState != null) {
             mMyListEntry = savedInstanceState.getParcelable("mMyListEntry");
@@ -202,6 +210,7 @@ public class StatsFragmentProgress extends Fragment {
         final StatsTop5Adapter adapter_bottom = new StatsTop5Adapter(getContext(),bottomFive,colorThresholds);
 
         bottomFiveList.setAdapter(adapter_bottom);
+        Log.d(TAG,"bottomFiveList: " + adapter_bottom.getCount());
 
         ArrayList<Integer> idsToExclude = new ArrayList<>();
         for(WordEntry wordEntry : bottomFive) {

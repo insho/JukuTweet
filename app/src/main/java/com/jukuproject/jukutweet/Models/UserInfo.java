@@ -155,23 +155,21 @@ public class UserInfo implements Parcelable  {
 
     // Parcelling part
     public UserInfo(Parcel in){
-        String[] data = new String[8];
 
-        in.readStringArray(data);
-        this.name = data[0];
-        this.screen_name = data[1];
-        this.id_str = data[2];
-        this.location = data[3];
-        this.description = data[4];
-        this.url = data[5];
+        this.name = in.readString();
+        this.screen_name = in.readString();
+        this.id_str = in.readString();
+        this.location = in.readString();
+        this.description = in.readString();
+        this.url = in.readString();
 
-        this.followers_count = Integer.parseInt(data[6]);
-        this.friends_count = Integer.parseInt(data[7]);
-        this.listed_count = Integer.parseInt(data[8]);
+        this.followers_count = in.readInt();
+        this.friends_count = in.readInt();
+        this.listed_count = in.readInt();
 
-        this.profile_background_image_url = data[9];
-        this.profile_image_url = data[10];
-        this.profile_banner_url = data[11];
+        this.profile_background_image_url = in.readString();
+        this.profile_image_url = in.readString();
+        this.profile_banner_url = in.readString();
 
 
     }
@@ -183,22 +181,20 @@ public class UserInfo implements Parcelable  {
 
 
     @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeStringArray(new String[] {
-                this.name,
-                this.screen_name,
-                this.id_str,
-                this.location,
-                this.description,
-                this.url,
-                String.valueOf(this.followers_count),
-                String.valueOf(this.friends_count),
-                String.valueOf(this.listed_count),
-                this.profile_background_image_url,
-                this.profile_image_url,
-                this.profile_banner_url
+    public void writeToParcel(Parcel out, int flags) {
+        out.writeString(this.name);
+        out.writeString(this.screen_name);
+        out.writeString(this.id_str);
+        out.writeString(this.location);
+        out.writeString(this.description);
+        out.writeString(this.url);
+        out.writeInt(this.followers_count);
+        out.writeInt(this.friends_count);
+        out.writeInt(this.listed_count);
+        out.writeString(this.profile_background_image_url);
+        out.writeString(this.profile_image_url);
+        out.writeString(this.profile_banner_url);
 
-        });
     }
 
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {

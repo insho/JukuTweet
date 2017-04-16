@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.text.Spannable;
@@ -141,7 +142,7 @@ public class FillInTheBlankFragment extends Fragment  {
         displayWidth = metrics.widthPixels;
         Log.d(TAG,"displayWidth: " + displayWidth);
         displayMarginPadding = (int) ((float) (displayWidth) * 0.055555556);
-        spinnerWidth = (int) (160.0f * metrics.density + 0.5f);
+        spinnerWidth = (int) (200.0f * metrics.density + 0.5f);
         spinnerHeight = (int) (37.0f * metrics.density + 0.5f);
 
 
@@ -174,6 +175,7 @@ public class FillInTheBlankFragment extends Fragment  {
                             if(!wordEntry.getFillinSentencesSpinner().hasBeenAnswered()) {
                                 wordEntry.getFillinSentencesSpinner().setCorrectFirstTry(true);
                             }
+
                             ((Spinner)linearLayoutVerticalParagraph.findViewWithTag(wordEntry.getStartIndex())).setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorJukuGreen));
                         } else {
                             wordEntry.getFillinSentencesSpinner().setCorrect(false);
@@ -193,44 +195,58 @@ public class FillInTheBlankFragment extends Fragment  {
                 }
 
 
+                final int additiontoCorrectTotal = tweetWasAnsweredCorrectlyFirstTry;
+
+
                 //IF everything is correct, score answers and move on
                 if(allSpinnersAreCorrect) {
-                    //Score the answers
-                    for (WordEntry wordEntry : mDataset.get(currentDataSetindex).getWordEntries()) {
-                        if(wordEntry.isSpinner()) {
-                            //If correct
-                            int correct = wordEntry.getCorrect();
-                            if(wordEntry.getFillinSentencesSpinner().isCorrectFirstTry()) {
-                                correct += 1;
-                            }
-                            if(SharedPrefManager.getInstance(getContext()).getIncludefillinsentencesscores()) {
-                                InternalDB.getQuizInterfaceInstance(getContext()).addWordScoreToScoreBoard(wordEntry.getId(),wordEntry.getTotal()+1,correct);
+
+                    Runnable questionFinishedRunnable = new Runnable() {
+                        @Override
+                        public void run() {
+
+//Score the answers
+                            for (WordEntry wordEntry : mDataset.get(currentDataSetindex).getWordEntries()) {
+                                if(wordEntry.isSpinner()) {
+                                    //If correct
+                                    int correct = wordEntry.getCorrect();
+                                    if(wordEntry.getFillinSentencesSpinner().isCorrectFirstTry()) {
+                                        correct += 1;
+                                    }
+                                    if(SharedPrefManager.getInstance(getContext()).getIncludefillinsentencesscores()) {
+                                        InternalDB.getQuizInterfaceInstance(getContext()).addWordScoreToScoreBoard(wordEntry.getId(),wordEntry.getTotal()+1,correct);
+                                    }
+
+                                }
+
+                                //Also reset the word entry spinner information
+                                wordEntry.getFillinSentencesSpinner().resetSpinnerInformation();
                             }
 
+                            //Move to the next question
+
+                            currentDataSetindex += 1;
+                            currentTotal += 1;
+                            currentCorrect += additiontoCorrectTotal;
+                            txtQuestionNumber.setText(currentTotal + "/" + mQuizSize);
+
+                            //Move to stats if we have reached the end of the quiz
+                            if(currentTotal>= mQuizSize) {
+                                mCallback.showPostQuizStatsFillintheBlanks(mDataset
+                                        ,mMyListEntry
+                                        ,currentCorrect
+                                        ,currentTotal);
+                            } else if(currentDataSetindex >= mDataset.size()) {
+                                Collections.shuffle(mDataset);
+                                currentDataSetindex = 0;
+                            }
+                            setUpQuestion(mDataset.get(currentDataSetindex));
                         }
+                    };
+                    Handler myHandler = new Handler();
+                    myHandler.postDelayed(questionFinishedRunnable, 100); //Message will delivered after delay
 
-                        //Also reset the word entry spinner information
-                        wordEntry.getFillinSentencesSpinner().resetSpinnerInformation();
-                    }
 
-                    //Move to the next question
-
-                    currentDataSetindex += 1;
-                    currentTotal += 1;
-                    currentCorrect += tweetWasAnsweredCorrectlyFirstTry;
-                    txtQuestionNumber.setText(currentTotal + "/" + mQuizSize);
-
-                    //Move to stats if we have reached the end of the quiz
-                    if(currentTotal>= mQuizSize) {
-                        mCallback.showPostQuizStatsFillintheBlanks(mDataset
-                                ,mMyListEntry
-                                ,currentCorrect
-                                ,currentTotal);
-                    } else if(currentDataSetindex >= mDataset.size()) {
-                        Collections.shuffle(mDataset);
-                        currentDataSetindex = 0;
-                    }
-                    setUpQuestion(mDataset.get(currentDataSetindex));
                 }
             }
         });

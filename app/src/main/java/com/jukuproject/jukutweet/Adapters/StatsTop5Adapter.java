@@ -1,8 +1,8 @@
 package com.jukuproject.jukutweet.Adapters;
 
-import android.app.Activity;
 import android.content.Context;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,7 +35,7 @@ public class StatsTop5Adapter extends ArrayAdapter<WordEntry> {
     private ColorThresholds mColorThresholds;
 
     Context mContext;
-    private Activity mActivity;
+//    private Activity mActivity;
 
 
     public int getSize() {
@@ -59,7 +59,7 @@ public class StatsTop5Adapter extends ArrayAdapter<WordEntry> {
             if(wordEntry.getId() != null) {
                 answerText.setText(wordEntry.getKanji());
                 answerText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
-
+                Log.d("TEST","ENTERING WORD: " + wordEntry.getKanji());
                 //Choose color of text (green--right, red--wrong)
                 if(wordEntry.getTotal()<mColorThresholds.getGreyThreshold()) {
                     answerText.setTextColor(ContextCompat.getColor(getContext(), R.color.colorJukuGrey));

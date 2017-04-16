@@ -176,6 +176,7 @@ public class MyListFragment  extends Fragment{
                         MyListEntry myListEntry = new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).getSystemList());
                         ColorBlockMeasurables colorBlockMeasurables = prepareColorBlockDataForList(myListEntry);
 
+
                         StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newInstance(myListEntry
                                 , 10
                                 ,colorBlockMeasurables);
@@ -360,7 +361,7 @@ public class MyListFragment  extends Fragment{
 
         ColorThresholds colorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
         Cursor c = InternalDB.getWordInterfaceInstance(getContext()).getWordListColorBlockCursor(colorThresholds,myListEntry);
-
+//        InternalDB.getWordInterfaceInstance(getContext()).supertest(colorThresholds,myListEntry);
         if(c.getCount()>0) {
             c.moveToFirst();
 
@@ -382,6 +383,8 @@ public class MyListFragment  extends Fragment{
 
 
             c.moveToNext();
+        } else {
+            Log.e(TAG,"no results for query listname: " + myListEntry.getListName() + ", sys: " + myListEntry.getListsSys());
         }
         c.close();
         return  colorBlockMeasurables;

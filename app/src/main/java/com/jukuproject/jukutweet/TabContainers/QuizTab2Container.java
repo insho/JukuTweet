@@ -7,6 +7,9 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.jukuproject.jukutweet.BaseContainerFragment;
+import com.jukuproject.jukutweet.Fragments.StatsFragmentProgress;
+import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
+import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.R;
 
 //TODO -- possibly consolidate these into one?
@@ -42,6 +45,10 @@ public class QuizTab2Container extends BaseContainerFragment {
     private void initView() {
 //        Log.e("test", "tab 1 init view")
 
+        StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newInstance(new MyListEntry("dummy",0)
+                , 10
+                ,new ColorBlockMeasurables());
+        replaceFragment(statsFragmentProgress, true,"statsFragmentProgress");
     }
 
 //    public boolean updateUserListFragment() {
