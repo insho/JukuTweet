@@ -92,8 +92,10 @@ public class SavedTweetsListFragment extends Fragment {
             if (getArguments() != null && ((mUserInfo = getArguments().getParcelable("userInfo")) != null)) {
                 // do something with task
                 prepareListData(mUserInfo);
+
             } else {
                 prepareListData(null);
+                mCallback.showProgressBar(false);
             }
 //            try {
 //                if(getArguments() != null && getArguments().hasp)
@@ -189,8 +191,7 @@ public class SavedTweetsListFragment extends Fragment {
                         } else {
 
                             SavedTweetsBrowseFragment fragment = SavedTweetsBrowseFragment.newInstance(new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle()
-                                                                                                                        ,mMenuHeader.get(groupPosition).getSystemList()
-                                                                                                                        ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()));
+                                                                                                                        ,mMenuHeader.get(groupPosition).getSystemList()));
                             ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"savedtweetsbrowse");
                         }
                         break;
@@ -364,7 +365,8 @@ public class SavedTweetsListFragment extends Fragment {
                     colorBlockMeasurables.setRedCount(c.getInt(4));
                     colorBlockMeasurables.setYellowCount(c.getInt(5));
                     colorBlockMeasurables.setGreenCount(c.getInt(6));
-                    colorBlockMeasurables.setEmptyCount(c.getInt(7));
+                    colorBlockMeasurables.setEmptyCount(0);
+                    colorBlockMeasurables.setTweetCount(c.getInt(7));
 
                     /* Set the first available non-empty list to be automatically expanded when
                       fragment is created. This is achieved by making it the "lastexpandedposition" from the get-go */
@@ -409,9 +411,9 @@ public class SavedTweetsListFragment extends Fragment {
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
 //        return Math.round((float)metrics.widthPixels*(float).5);
         if(metrics.heightPixels>metrics.widthPixels) {
-            return Math.round((float)metrics.widthPixels*(float).5);
+            return Math.round((float)metrics.widthPixels*(float).4);
         } else {
-            return Math.round((float)metrics.heightPixels*(float).5);
+            return Math.round((float)metrics.heightPixels*(float).4);
         }
     }
 

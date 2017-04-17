@@ -90,8 +90,6 @@ public class TweetBreakDownFragment extends Fragment {
     private ArrayList<String> activeFavoriteStars;
     private SmoothProgressBar progressBar;
     private View divider;
-
-    private ArrayList<WordEntry> mDataSet;
     private RecyclerView.Adapter mAdapter;
 
     private TextView txtSentence;
@@ -131,15 +129,12 @@ public class TweetBreakDownFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View v  = LayoutInflater.from(getActivity()).inflate(R.layout.fragment_tweetbreakdown, null);
-        mTweet = getArguments().getParcelable("tweet");
-        mSavedTweet = getArguments().getBoolean("isSavedTweet");
+
         mRecyclerView = (RecyclerView) v.findViewById(R.id.parseSentenceRecyclerView);
         txtSentence =  (TextView) v.findViewById(R.id.sentence);
-        SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(getContext());
-        colorThresholds = sharedPrefManager.getColorThresholds();
-        mActiveTweetFavoriteStars = SharedPrefManager.getInstance(getContext()).getActiveTweetFavoriteStars();
 
-        activeFavoriteStars = sharedPrefManager.getActiveFavoriteStars();
+
+
         progressBar = (SmoothProgressBar) v.findViewById(R.id.progressbar);
         divider = (View) v.findViewById(R.id.dividerview);
 
@@ -158,6 +153,25 @@ public class TweetBreakDownFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
+        SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(getContext());
+        colorThresholds = sharedPrefManager.getColorThresholds();
+        mActiveTweetFavoriteStars = SharedPrefManager.getInstance(getContext()).getActiveTweetFavoriteStars();
+        activeFavoriteStars = sharedPrefManager.getActiveFavoriteStars();
+
+        if(savedInstanceState == null) {
+            mTweet = getArguments().getParcelable("tweet");
+            mSavedTweet = getArguments().getBoolean("isSavedTweet");
+        } else {
+
+            mTweet = savedInstanceState.getParcelable("mTweet");
+            mSavedTweet = savedInstanceState.getBoolean("mSavedTweet");
+            mDisectedTweet = savedInstanceState.getParcelableArrayList("mDisectedTweet");
+
+        }
+
+
+
 
         final String sentence = mTweet.getText();
 
@@ -181,8 +195,6 @@ public class TweetBreakDownFragment extends Fragment {
             //Set up the favorites star
             imgStar.setVisibility(View.GONE);
             imgStarLayout.setVisibility(View.GONE);
-
-
         } else {
 
             //Set up the favorites star
@@ -237,12 +249,7 @@ public class TweetBreakDownFragment extends Fragment {
                 Log.e(TAG,"TweetBreakDownFragment setting up imgStar error: " + e);
                 imgStar.setVisibility(View.GONE);
             }
-
-
-
-
         }
-
 
         txtSentence.setVisibility(View.VISIBLE);
         txtSentence.setText(mTweet.getText());
@@ -269,15 +276,12 @@ public class TweetBreakDownFragment extends Fragment {
                 txtSentence.setMovementMethod(LinkMovementMethod.getInstance());
                 txtSentence.setText(text, TextView.BufferType.SPANNABLE);
 
-
             }
         } catch (NullPointerException e) {
             Log.e(TAG,"mTweet urls are null : " + e);
         } catch (Exception e) {
             Log.e(TAG,"Error adding url info: " + e);
         }
-
-
 
 
     if(mSavedTweet && mTweet.getWordEntries() != null) {
@@ -353,6 +357,8 @@ public class TweetBreakDownFragment extends Fragment {
                         mDisectedTweet = disectedTweet;
                         if(disectedTweet.size()>0) {
 
+
+//                            Log.d(TAG,"YYY - " + disectedTweet.get(1).getKanji() + " - " + disectedTweet.get(1).getColor());
                             /*Hide the filler sentence txtSentenceView, and instead user the items
 //                            in disectedTweet to dynamically fill in the sentence with clickable, highlighted kanji, links etc. */
 //                            loadArray(disectedTweet);
@@ -862,5 +868,18 @@ public class TweetBreakDownFragment extends Fragment {
             parseSentenceSubscription.unsubscribe();
         }
     }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putStringArrayList("mActiveTweetFavoriteStars", mActiveTweetFavoriteStars);
+        outState.putBoolean("mSavedTweet", mSavedTweet);
+        outState.putParcelableArrayList("mDisectedTweet", mDisectedTweet);
+        outState.putParcelable("mTweet", mTweet);
+
+
+    }
+
 }
 

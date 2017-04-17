@@ -26,7 +26,6 @@ import com.jukuproject.jukutweet.Dialogs.CopySavedTweetsDialog;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface;
-import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.Tweet;
@@ -59,7 +58,7 @@ public class SavedTweetsBrowseFragment extends Fragment {
     private BrowseTweetsAdapter mAdapter;
     private ArrayList<Tweet> mDataset;
     private MyListEntry mMyListEntry;
-    private ColorBlockMeasurables mColorBlockMeasurables;
+//    private ColorBlockMeasurables mColorBlockMeasurables;
     private ColorThresholds mColorThresholds;
     private ArrayList<String> mSelectedEntries = new ArrayList<>(); //Tracks which entries in the adapter are currently selected (tweet_id)
     private Subscription undoSubscription;
@@ -67,12 +66,12 @@ public class SavedTweetsBrowseFragment extends Fragment {
 
     public SavedTweetsBrowseFragment() {}
 
-    public static SavedTweetsBrowseFragment newInstance(MyListEntry myListEntry, ColorBlockMeasurables colorBlockMeasurables) {
+    public static SavedTweetsBrowseFragment newInstance(MyListEntry myListEntry) {
         SavedTweetsBrowseFragment fragment = new SavedTweetsBrowseFragment();
 
         Bundle args = new Bundle();
         args.putParcelable("mylistentry", myListEntry);
-        args.putParcelable("colorBlockMeasurables",colorBlockMeasurables);
+//        args.putParcelable("colorBlockMeasurables",colorBlockMeasurables);
         fragment.setArguments(args);
         return fragment;
     }
@@ -110,8 +109,7 @@ public class SavedTweetsBrowseFragment extends Fragment {
 
         } else {
             if (getArguments() != null
-                    && ((mMyListEntry = getArguments().getParcelable("mylistentry")) != null)
-                    && ((mColorBlockMeasurables = getArguments().getParcelable("colorBlockMeasurables")) != null)) {
+                    && ((mMyListEntry = getArguments().getParcelable("mylistentry")) != null)) {
                 mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mMyListEntry,mColorThresholds);
             } else if(getArguments() != null && ((mUserInfo = getArguments().getParcelable("userInfo")) != null))  {
                 mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mUserInfo,mColorThresholds);

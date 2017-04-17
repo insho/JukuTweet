@@ -945,6 +945,7 @@ public class TweetParser {
                                 ,c.getInt(11)));
 
                     wordEntry.setCoreKanjiBlock(coreKanji);
+                    Log.d(TAG,"XXX Word: " + wordEntry.getKanji() +  " - " + wordEntry.getCorrect() + "/" + wordEntry.getTotal() + " - " + wordEntry.getColor());
                     resultMap.add(wordEntry);
 //                        ParseSentenceItem parseSentenceItem = new ParseSentenceItem(true,cleanKanjiIDs.get(index),coreKanji,coreFurigana,(foundKanjiPosition + startposition),(foundKanjiPosition + startposition + coreKanji.length()));
 //                        parseSentenceItem.setWordEntry(new WordEntry(cleanKanjiIDs.get(index)

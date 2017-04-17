@@ -104,13 +104,15 @@ public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapte
 
 
         /* Parse the definition into an array of multiple lines, if there are multiple sub-definitions in the string */
-        if(tweet.get.getTotal()< mColorThresholds.getGreyThreshold()) {
+        if(tweet.getTweetColor() == null || tweet.getTweetColor().equals("Empty")) {
+            holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, android.R.color.white));
+        } else if(tweet.getTweetColor().equals("Grey")) {
             holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuGrey));
-        } else if(wordEntry.getPercentage()< mColorThresholds.getRedThreshold()){
+        } else if(tweet.getTweetColor().equals("Red")){
             holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuRed));
-        } else if (wordEntry.getPercentage()< mColorThresholds.getYellowThreshold()){
+        } else if (tweet.getTweetColor().equals("Yellow")){
             holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuYellow));
-        } else {
+        } else if(tweet.getTweetColor().equals("Green")){
             holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuGreen));
         }
 

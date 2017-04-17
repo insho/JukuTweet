@@ -79,16 +79,25 @@ public class SavedTweetsExpandableAdapter extends BaseExpandableListAdapter {
         int availableWidth = mMaxWidthForColorBlocks;
         final String childText = (String) getChild(groupPosition, childPosition);
         if (convertView == null) {
-            convertView = LayoutInflater.from(mContext).inflate(R.layout.expandablelistadapter_listitem, parent, false);
+            convertView = LayoutInflater.from(mContext).inflate(R.layout.expandablelistadapter_listitem_tweet, parent, false);
         }
         LinearLayout layout = (LinearLayout) convertView.findViewById(R.id.layoutcontainer);
 
         TextView txtListChild = (TextView) convertView.findViewById(R.id.lblListItem);
         txtListChild.setText(childText);
 
-        ImageButton imageButton = (ImageButton) convertView.findViewById(R.id.favorite_icon);
-        imageButton.setFocusable(false);
-        imageButton.setClickable(false);
+        ImageButton tweetIcon = (ImageButton) convertView.findViewById(R.id.tweet_icon);
+        TextView tweetIconText = (TextView) convertView.findViewById(R.id.tweet_title);
+        tweetIcon.setFocusable(false);
+        tweetIcon.setClickable(false);
+
+        tweetIconText.setFocusable(false);
+        tweetIconText.setClickable(false);
+
+
+//        ImageButton imageButton = (ImageButton) convertView.findViewById(R.id.favorite_icon);
+//        imageButton.setFocusable(false);
+//        imageButton.setClickable(false);
 
         TextView textViewColorBlock_empty = (TextView) convertView.findViewById(R.id.listitem_colors_0);
         TextView textViewColorBlock_grey = (TextView) convertView.findViewById(R.id.listitem_colors_1);
@@ -96,8 +105,8 @@ public class SavedTweetsExpandableAdapter extends BaseExpandableListAdapter {
         TextView textViewColorBlock_yellow = (TextView) convertView.findViewById(R.id.listitem_colors_3);
         TextView textViewColorBlock_green = (TextView) convertView.findViewById(R.id.listitem_colors_4);
 
-        TextView lblColorBar = (TextView) convertView.findViewById(R.id.lblcolorbar);
-        lblColorBar.setVisibility(TextView.GONE);
+//        TextView lblColorBar = (TextView) convertView.findViewById(R.id.lblcolorbar);
+//        lblColorBar.setVisibility(TextView.GONE);
 
         if(BuildConfig.DEBUG) {
             Log.d(TAG, "childText: " + childText);
@@ -107,6 +116,18 @@ public class SavedTweetsExpandableAdapter extends BaseExpandableListAdapter {
         * here by the string "Browse/Edit" which only appears in the "WordListFragment" fragment */
         if(mMenuHeader.get(groupPosition).getColorBlockMeasurables() != null && childText.equalsIgnoreCase(mContext.getString(R.string.menuchildbrowse))) {
 
+            tweetIcon.setVisibility(View.VISIBLE);
+            tweetIconText.setVisibility(View.VISIBLE);
+
+//            Log.d(TAG,"XXX: " + mMenuHeader.get(groupPosition).getColorBlockMeasurables().getTweetCount());
+
+            try {
+                tweetIconText.setText(String.valueOf(mMenuHeader.get(groupPosition).getColorBlockMeasurables().getTweetCount()));
+            } catch (Exception e) {
+                tweetIcon.setVisibility(View.GONE);
+                tweetIconText.setVisibility(View.GONE);
+            }
+
             setColorBlocks(mMenuHeader.get(groupPosition).getColorBlockMeasurables()
                     ,availableWidth
                     ,textViewColorBlock_grey
@@ -115,7 +136,10 @@ public class SavedTweetsExpandableAdapter extends BaseExpandableListAdapter {
                     ,textViewColorBlock_green
                     ,textViewColorBlock_empty);
 
+
         } else {
+            tweetIcon.setVisibility(View.GONE);
+            tweetIconText.setVisibility(View.GONE);
             textViewColorBlock_grey.setVisibility(View.GONE);
             textViewColorBlock_red.setVisibility(View.GONE);
             textViewColorBlock_yellow.setVisibility(View.GONE);

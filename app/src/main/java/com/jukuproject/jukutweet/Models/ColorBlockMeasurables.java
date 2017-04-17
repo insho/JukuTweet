@@ -22,7 +22,7 @@ public class ColorBlockMeasurables implements Parcelable {
     private Integer greenMinWidth;
     private Integer emptyMinWidth;
     private ArrayList<String> selectedColorOptions;
-
+    private Integer tweetCount;
 
 
     public void setInitialSelectedColors() {
@@ -99,7 +99,13 @@ public class ColorBlockMeasurables implements Parcelable {
     }
 
 
+    public Integer getTweetCount() {
+        return tweetCount;
+    }
 
+    public void setTweetCount(Integer tweetCount) {
+        this.tweetCount = tweetCount;
+    }
 
     public String getSelectedColorString() {
         if(selectedColorOptions== null || selectedColorOptions.size() == 0) {
@@ -372,6 +378,7 @@ public class ColorBlockMeasurables implements Parcelable {
         this.emptyMinWidth = in.readInt();
         this.selectedColorOptions = in.createStringArrayList();
 //        this.selectedColors = in.readArrayList(Class.String);
+        this.tweetCount = (Integer)in.readSerializable();
 
 
     }
@@ -394,6 +401,7 @@ public class ColorBlockMeasurables implements Parcelable {
         dest.writeInt(greenMinWidth);
         dest.writeInt(emptyMinWidth);
         dest.writeStringList(selectedColorOptions);
+        dest.writeSerializable(tweetCount);
 //        dest.writeStringArray();
 
     }

@@ -311,9 +311,9 @@ public class WordEntry implements Parcelable {
         }  else if(color.equals("Red")){
             return R.color.colorJukuRed;
         }  else if(color.equals("Yellow")){
-            return R.color.colorJukuGrey;
-        }  else if(color.equals("Green")){
             return R.color.colorJukuYellow;
+        }  else if(color.equals("Green")){
+            return R.color.colorJukuGreen;
         } else {
             return android.R.color.black;
         }

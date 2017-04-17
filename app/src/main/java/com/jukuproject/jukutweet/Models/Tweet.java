@@ -29,7 +29,7 @@ public class Tweet  implements Parcelable {
     private TweetEntities entities;
     private ArrayList<WordEntry> wordEntries;
     private double quizWeight;
-
+    private String tweetColor;  // color assigned based on quiz score colors of kanji within tweet
 
     public Tweet(){};
 
@@ -94,10 +94,10 @@ public class Tweet  implements Parcelable {
         this.user = user;
     }
 
-
-    public double getQuizWeight() {
-        return quizWeight;
-    }
+//
+//    public double getQuizWeight() {
+//        return quizWeight;
+//    }
 
     public void setQuizWeight(double quizWeight) {
         this.quizWeight = quizWeight;
@@ -110,6 +110,12 @@ public class Tweet  implements Parcelable {
         wordEntries.add(entry);
     }
 
+    public String getTweetColor() {
+//        if(tweetColor==null) {
+//            assignTweetColorToTweet();
+//        }
+        return tweetColor;
+    }
 
 
     public Boolean getFavorited() {
@@ -283,6 +289,63 @@ public class Tweet  implements Parcelable {
 
 
 
+    public void assignTweetColorToTweet(ColorThresholds colorThresholds) {
+        if(wordEntries!=null) {
+            int greyCount = 0;
+            int redCount = 0;
+            int yellowCount = 0;
+            int greenCount = 0;
+            int total = 0;
+
+            for(WordEntry wordEntry : wordEntries) {
+                switch (wordEntry.getColor()) {
+                    case "Grey":
+                        greyCount += 1;
+                        total += 1;
+                        break;
+                    case "Red":
+                        redCount += 1;
+                        total += 1;
+                        break;
+                    case "Yellow":
+                        yellowCount += 1;
+                        total += 1;
+                        break;
+                    case "Green":
+                        greenCount += 1;
+                        total += 1;
+                        break;
+                }
+            }
+
+            if(total == 0) {
+                tweetColor = "Empty";
+            } else if((float)greyCount/(float)total > colorThresholds.getTweetGreyThreshold()) {
+                tweetColor = "Grey";
+            } else if((float)greenCount/(float)total >= colorThresholds.getTweetGreenthreshold()) {
+                tweetColor = "Green";
+            } else if((float)redCount/(float)total >= colorThresholds.getTweetRedthreshold()) {
+                tweetColor = "Red";
+            } else if((float)yellowCount/(float)total >= colorThresholds.getTweetYellowthreshold()) {
+                tweetColor = "Yellow";
+            } else if(greyCount>greenCount && greyCount>yellowCount && greyCount>redCount) {
+                tweetColor = "Grey";
+            } else if(greenCount >greyCount && greenCount>yellowCount && greenCount>redCount) {
+                tweetColor = "Green";
+            } else if(redCount>greenCount && redCount>yellowCount && redCount>greyCount) {
+                tweetColor = "Red";
+            } else if(yellowCount>greenCount && yellowCount>greyCount && yellowCount>redCount) {
+                tweetColor = "Yellow";
+            } else {
+                tweetColor = "Grey";
+            }
+
+        } else {
+            tweetColor = "Empty";
+        }
+    }
+
+
     // Parcelling part
     public Tweet(Parcel in){
 
@@ -297,15 +360,16 @@ public class Tweet  implements Parcelable {
         this.created_at = in.readString();
         this.id_str = in.readString();
 
-        if(retweet_count !=null) {
-            this.retweet_count = in.readInt();
-        }
+//        if(retweet_count !=null) {
+//            this.retweet_count = in.readInt();
+//        }
+//
+//        if(favorite_count !=null) {
+//            this.favorite_count  = in.readInt();
+//        }
 
-        if(favorite_count !=null) {
-            this.favorite_count  = in.readInt();
-        }
-
-
+        this.retweet_count = (Integer)in.readSerializable();
+        this.favorite_count = (Integer)in.readSerializable();
 
         this.text = in.readString();
         this.quizWeight = in.readDouble();
@@ -332,13 +396,8 @@ public class Tweet  implements Parcelable {
         dest.writeString(this.created_at);
         dest.writeString(this.id_str);
 
-        if(retweet_count !=null) {
-            dest.writeInt(this.retweet_count);
-        }
-
-        if(favorite_count !=null) {
-            dest.writeInt(this.favorite_count);
-        }
+        dest.writeSerializable(this.retweet_count);
+        dest.writeSerializable(this.favorite_count);
 
         dest.writeString(this.text);
         dest.writeDouble(this.quizWeight);

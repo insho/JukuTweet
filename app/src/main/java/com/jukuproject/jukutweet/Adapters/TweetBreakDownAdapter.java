@@ -114,16 +114,21 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
             holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
         }
 
-        /* Parse the definition into an array of multiple lines, if there are multiple sub-definitions in the string */
-        if(mWords.get(holder.getAdapterPosition()).getTotal()< mColorThresholds.getGreyThreshold()) {
-            holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuGrey));
-        } else if(mWords.get(holder.getAdapterPosition()).getPercentage()< mColorThresholds.getRedThreshold()){
-            holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuRed));
-        } else if (mWords.get(holder.getAdapterPosition()).getPercentage()< mColorThresholds.getYellowThreshold()){
-            holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuYellow));
-        } else {
-            holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuGreen));
+        try {
+            holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, mWords.get(holder.getAdapterPosition()).getColorValue()));
+        } catch (Exception e) {
+            Log.e(TAG,"Tweetbreakdown adding colorbar exception");
         }
+//        /* Parse the definition into an array of multiple lines, if there are multiple sub-definitions in the string */
+//        if(mWords.get(holder.getAdapterPosition()).getTotal()< mColorThresholds.getGreyThreshold()) {
+//            holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuGrey));
+//        } else if(mWords.get(holder.getAdapterPosition()).getPercentage()< mColorThresholds.getRedThreshold()){
+//            holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuRed));
+//        } else if (mWords.get(holder.getAdapterPosition()).getPercentage()< mColorThresholds.getYellowThreshold()){
+//            holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuYellow));
+//        } else {
+//            holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuGreen));
+//        }
 
 
         holder.lstDefinitions.setText(mWords.get(holder.getAdapterPosition()).getDefinitionMultiLineString(10));
