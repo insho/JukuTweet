@@ -20,7 +20,17 @@
 
             >
 
-
+            <TextView
+                android:layout_width="10dp"
+                android:id="@+id/colorbar"
+                android:text=""
+                android:background="@android:color/white"
+                android:layout_height="match_parent"
+                android:descendantFocusability="blocksDescendants"
+                android:clickable="false"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                />
 
             <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="match_parent"

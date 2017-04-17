@@ -103,7 +103,7 @@ public class MyListExpandableAdapter extends BaseExpandableListAdapter {
         }
 
         /* For the child entries of the adapter, only show the "colorblocks" in the first row of a mylist. This is differentiated
-        * here by the string "Browse/Edit" which only appears in the "MyListFragment" fragment */
+        * here by the string "Browse/Edit" which only appears in the "WordListFragment" fragment */
         if(mMenuHeader.get(groupPosition).getColorBlockMeasurables() != null && childText.equalsIgnoreCase(mContext.getString(R.string.menuchildbrowse))) {
 
             setColorBlocks(mContext
@@ -200,7 +200,11 @@ public class MyListExpandableAdapter extends BaseExpandableListAdapter {
 
                     imageButton.setImageResource(R.drawable.ic_star_black);
                     imageButton.setVisibility(ImageButton.VISIBLE);
-                    lblListHeader.setText("Favorites");
+//                    if(mMenuHeader.get(groupPosition).isMyList()) {
+                        lblListHeader.setText("Favorite Words");
+//                    } else {
+//                        lblListHeader.setText("Favorite Tweets");
+//                    }
 
                     final TextView lblListHeaderCount = (TextView) convertView.findViewById(R.id.lblListHeaderCount);
 

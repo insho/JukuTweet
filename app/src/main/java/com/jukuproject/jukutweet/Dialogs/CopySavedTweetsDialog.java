@@ -22,8 +22,8 @@ import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.MyListEntry;
-import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.R;
+import com.jukuproject.jukutweet.SharedPrefManager;
 
 import java.util.ArrayList;
 

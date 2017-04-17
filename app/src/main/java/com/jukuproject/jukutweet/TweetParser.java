@@ -896,9 +896,12 @@ public class TweetParser {
 
                 final String newSentenceFragment = entireSentence.substring(foundKanjiPosition, entireSentence.length());
                 final String edictKanji = c.getString(0);
-                final String coreKanji = assignCoreKanji(c.getString(0));
-//TODO SOLVE THIS CORE KANJI THING...
-
+                final String coreKanji;
+                if(newSentenceFragment.length()>edictKanji.length() && newSentenceFragment.substring(0,edictKanji.length()).equals(edictKanji)) {
+                    coreKanji = edictKanji;
+                } else {
+                    coreKanji = assignCoreKanji(c.getString(0));
+                }
 
 
 //                if(debug) {
@@ -913,6 +916,8 @@ public class TweetParser {
 
                     final int startposition = newSentenceFragment.indexOf(coreKanji);
                     final int endposition = startposition + coreKanji.length();
+
+
 
 //                    if(debug) {
 //                        Log.d(TAG, "edictKanji: " + edictKanji);

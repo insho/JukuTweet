@@ -58,10 +58,15 @@ public class Tab1Container extends BaseContainerFragment {
 
     public boolean isTopFragmentShowing() {
         try {
-            (getChildFragmentManager().findFragmentByTag("userlistfragment")).isVisible();
-            return true;
+            if(getChildFragmentManager().getBackStackEntryCount() == 0) {
+                return true;
+            } else {
+                return false;
+            }
+//            (getChildFragmentManager().findFragmentByTag("userlistfragment")).isVisible();
+//            return true;
         } catch (Exception e) {
-            Log.e("Tab1Container","Could not find userListFragment");
+            Log.e("TEST-Tab1Container","isTopFragmentShowing failed");
             return false;
         }
     }

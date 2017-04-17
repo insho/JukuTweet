@@ -20,7 +20,7 @@ import android.widget.AdapterView;
 import android.widget.ExpandableListView;
 import android.widget.TextView;
 
-import com.jukuproject.jukutweet.Adapters.MyListExpandableAdapter;
+import com.jukuproject.jukutweet.Adapters.SavedTweetsExpandableAdapter;
 import com.jukuproject.jukutweet.BaseContainerFragment;
 import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
@@ -30,8 +30,9 @@ import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MenuHeader;
 import com.jukuproject.jukutweet.Models.MyListEntry;
-import com.jukuproject.jukutweet.Models.SharedPrefManager;
+import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.R;
+import com.jukuproject.jukutweet.SharedPrefManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,40 +43,94 @@ import java.util.Arrays;
  * Shows user-created lists of vocabulary
  */
 
-public class MyListFragment  extends Fragment{
+public class SavedTweetsListFragment extends Fragment {
 
-    String TAG = "MyListFragment";
+    String TAG = "SavedTweetsAll";
     FragmentInteractionListener mCallback;
-    MyListExpandableAdapter MyListFragmentAdapter;
+    SavedTweetsExpandableAdapter SavedTweetsFragmentAdapter;
     ExpandableListView expListView;
     ArrayList<MenuHeader> mMenuHeader;
     private int lastExpandedPosition = -1;
     private SharedPrefManager sharedPrefManager;
+    private UserInfo mUserInfo;
 
-    public static MyListFragment newInstance(Bundle bundle) {
-        MyListFragment fragment = new MyListFragment();
+    public static SavedTweetsListFragment newInstance() {
+        SavedTweetsListFragment fragment = new SavedTweetsListFragment();
+//        Bundle args = new Bundle();
+//        args.putParcelable("userInfo", null);
+//        fragment.setArguments(args);
+        return fragment;
+    }
+
+    public static SavedTweetsListFragment newInstance(UserInfo userInfo) {
+        SavedTweetsListFragment fragment = new SavedTweetsListFragment();
+        Bundle args = new Bundle();
+        args.putParcelable("userInfo", userInfo);
+        fragment.setArguments(args);
         return fragment;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        //Call shared prefs to find out which star colors (i.e. favorites lists) to include
-        sharedPrefManager = SharedPrefManager.getInstance(getContext());
 
         View v = inflater.inflate(R.layout.fragment_mylists, container, false);
-
-
         expListView = (ExpandableListView) v.findViewById(R.id.lvMyListCategory);
+
+
+        return v;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        sharedPrefManager = SharedPrefManager.getInstance(getContext());
         expListView.setClickable(true);
-        prepareListData();
 
-        MyListFragmentAdapter = new MyListExpandableAdapter(getContext(),mMenuHeader,getdimenscore(),0);
+        if(savedInstanceState == null) {
+            mUserInfo = null;
+            if (getArguments() != null && ((mUserInfo = getArguments().getParcelable("userInfo")) != null)) {
+                // do something with task
+                prepareListData(mUserInfo);
+            } else {
+                prepareListData(null);
+            }
+//            try {
+//                if(getArguments() != null && getArguments().hasp)
+//                mUserInfo = getArguments().getParcelable("userInfo");
+//            } catch (NullPointerException e) {
+//                mUserInfo = null;
+//            }
+        } else {
+            mMenuHeader = savedInstanceState.getParcelableArrayList("mMenuHeader");
 
-        expListView.setAdapter(MyListFragmentAdapter);
+            lastExpandedPosition = savedInstanceState.getInt("lastExpandedPosition");
+
+            if ((mUserInfo = savedInstanceState.getParcelable("mUserInfo")) != null) {
+                // do something with task
+                prepareListData(mUserInfo);
+            } else {
+                prepareListData(null);
+            }
+
+        }
+
+        if(mUserInfo != null) {
+            prepareListData(mUserInfo);
+        } else {
+            prepareListData(null);
+        }
+
+
+
+        SavedTweetsFragmentAdapter = new SavedTweetsExpandableAdapter(getContext(),mMenuHeader,getdimenscore(),0);
+
+        expListView.setAdapter(SavedTweetsFragmentAdapter);
         expListView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
             @Override
             public boolean onGroupClick(ExpandableListView parent, View v,
                                         int groupPosition, long id) {
+
 
                 //If the list being clicked on is empty, show (or hide) the "(empty)" header label
                 if(mMenuHeader.get(groupPosition).getColorBlockMeasurables().getTotalCount() == 0) {
@@ -88,12 +143,11 @@ public class MyListFragment  extends Fragment{
                     }
                 } else if (!mMenuHeader.get(groupPosition).isExpanded()) {
 
-//                    if(lastExpandedPosition != groupPosition) {
-//                        expListView.collapseGroup(lastExpandedPosition);
-//                    }
+                    if(lastExpandedPosition != groupPosition) {
+                        expListView.collapseGroup(lastExpandedPosition);
+                    }
 
                     expandTheListViewAtPosition(groupPosition);
-
                 }  else {
                     expListView.collapseGroup(groupPosition);
                     mMenuHeader.get(groupPosition).setExpanded(false);
@@ -126,17 +180,25 @@ public class MyListFragment  extends Fragment{
             public boolean onChildClick(ExpandableListView parent, View v,
                                         int groupPosition, int childPosition, long id) {
                 String childOption = mMenuHeader.get(groupPosition).getChildOptions().get(childPosition); //This is the text in the child that the user clicked
+
                 switch (childOption) {
                     case "Browse/Edit":
-                        MyListBrowseFragment fragment = MyListBrowseFragment.newInstance(new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).getSystemList()));
-                        ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"mylistbrowse");
-                        //Hide the fab
-                        mCallback.showFab(false,"");
+                        if(mUserInfo != null) {
+                            SavedTweetsBrowseFragment fragment = SavedTweetsBrowseFragment.newInstance(mUserInfo);
+                            ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"savedtweetsbrowse");
+                        } else {
+
+                            SavedTweetsBrowseFragment fragment = SavedTweetsBrowseFragment.newInstance(new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle()
+                                                                                                                        ,mMenuHeader.get(groupPosition).getSystemList()
+                                                                                                                        ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()));
+                            ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"savedtweetsbrowse");
+                        }
                         break;
+
                     case "Flash Cards":
                         if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
                             QuizMenuDialog.newInstance("flashcards"
-                                    ,2
+                                    ,1
                                     ,lastExpandedPosition
                                     ,mMenuHeader.get(groupPosition).getMyListEntry()
                                     ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
@@ -146,10 +208,11 @@ public class MyListFragment  extends Fragment{
                         }
 
                         break;
+
                     case "Multiple Choice":
                         if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
                             QuizMenuDialog.newInstance("multiplechoice"
-                                    ,2
+                                    ,1
                                     ,lastExpandedPosition
                                     ,mMenuHeader.get(groupPosition).getMyListEntry()
                                     ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
@@ -163,7 +226,7 @@ public class MyListFragment  extends Fragment{
                     case "Fill in the Blanks":
                         if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
                             QuizMenuDialog.newInstance("fillintheblanks"
-                                    ,2
+                                    ,1
                                     ,lastExpandedPosition
                                     ,mMenuHeader.get(groupPosition).getMyListEntry()
                                     ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
@@ -173,19 +236,57 @@ public class MyListFragment  extends Fragment{
 
                         break;
                     case "Stats":
-                        MyListEntry myListEntry = new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).getSystemList());
-                        ColorBlockMeasurables colorBlockMeasurables = prepareColorBlockDataForList(myListEntry);
-
-
-                        StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newInstance(myListEntry
-                                , 10
-                                ,colorBlockMeasurables);
-                        ((BaseContainerFragment)getParentFragment()).replaceFragment(statsFragmentProgress, true,"mylistbrowse");
-                        mCallback.showFab(false,"");
+//                        MyListEntry myListEntry = new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).getSystemList());
+//                        ColorBlockMeasurables colorBlockMeasurables = prepareColorBlockDataForList(myListEntry);
+//
+//
+//                        StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newInstance(myListEntry
+//                                , 10
+//                                ,colorBlockMeasurables);
+//                        ((BaseContainerFragment)getParentFragment()).replaceFragment(statsFragmentProgress, true,"mylistbrowse");
+//                        mCallback.showFab(false,"");
                         break;
+
 
                     default:
+
                         break;
+//                        sendMessage(parent, Header, sys);
+//                        break;
+//                    case "Multiple Choice":
+//                        MenuOptionsDialog x = new MenuOptionsDialog(getActivity(), 0, 0, "multiplechoice", true, Header, sys, mylistposition);
+//                        x.CreateDialog();
+//                        break;
+//
+//                    case "Fill in the Blanks":
+//                        /** I'm being lazy here, and inputing groupposition in the "levelblock" place*/
+//                        MenuOptionsDialog b = new MenuOptionsDialog(getActivity(), 0, groupPosition, "fragment_fillintheblanks", true, Header, sys, mylistposition);
+//                        b.CreateDialog();
+//
+//                        break;
+//
+//                    case "Word Builder":
+//                        MenuOptionsDialog c = new MenuOptionsDialog(getActivity(), 0, groupPosition, "wordbuilder", true, Header, sys, mylistposition);
+//                        c.CreateDialog();
+//                        break;
+//                    case "Word Match":
+//                        MenuOptionsDialog d = new MenuOptionsDialog(getActivity(), 0, groupPosition, "wordmatch", true, Header, sys, mylistposition);
+//                        d.CreateDialog();
+//                        break;
+//
+//                    case "Stats":
+//
+//                        Intent intent = new Intent(getActivity(), BlockStatsNoTab.class);
+//                        intent.putExtra("blockNumber", 0);
+//                        intent.putExtra("levelNumber", 0);
+//                        intent.putExtra("mylists", true);
+//                        intent.putExtra("mylistposition", lastExpandedPosition);
+//                        intent.putExtra("Header", Header);
+//                        intent.putExtra("Sys", sys);
+//                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+//                        getActivity().finish();
+//                        startActivity(intent);
+//                        break;
                 }
                 return false;
             }
@@ -194,61 +295,63 @@ public class MyListFragment  extends Fragment{
         expListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-        mCallback.showEditMyListDialog("MyList",mMenuHeader.get(position).getHeaderTitle(),mMenuHeader.get(position).isSystemList());
+                mCallback.showEditMyListDialog("TweetList",mMenuHeader.get(position).getHeaderTitle(),mMenuHeader.get(position).isSystemList());
+
                 return false;
             }
         });
 
-        expListView.setGroupIndicator(null);
 
+
+        /* deciding which mylist to open on activity start */
+        expListView.setGroupIndicator(null);
 
         //Expand the last expanded position (or expand first availalbe non-empty list)
         if(lastExpandedPosition >=0) {
             expandTheListViewAtPosition(lastExpandedPosition);
         }
 
-
         setRetainInstance(true);
-        return v;
     }
 
-    public void expandTheListViewAtPosition(int position) {
-
-        if(lastExpandedPosition >=0 && mMenuHeader.size()>lastExpandedPosition) {
-            expListView.collapseGroup(lastExpandedPosition);
-        }
-
-        expListView.expandGroup(position);
-        expListView.setSelectedGroup(position);
-        mMenuHeader.get(position).setExpanded(true);
-        lastExpandedPosition = position;
-    };
-
-    public void prepareListData() {
+    public void prepareListData(@Nullable UserInfo userInfo) {
         mMenuHeader = new ArrayList<>();
-//        InternalDB helper =  InternalDB.getInstance(getActivity());
-//        SQLiteDatabase db = helper.getWritableDatabase();
 
-        ArrayList<String> availableFavoritesStars = sharedPrefManager.getActiveFavoriteStars();
+        ArrayList<String> availableFavoritesStars = sharedPrefManager.getActiveTweetFavoriteStars();
         ColorThresholds colorThresholds = sharedPrefManager.getColorThresholds();
-       ArrayList<String> childOptions = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.menu_mylist)));
+        ArrayList<String> childOptions = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.menu_mylist)));
 
-        Cursor c = InternalDB.getWordInterfaceInstance(getContext()).getWordListColorBlockCursor(colorThresholds,null);
+        Cursor c;
+        if(userInfo != null) {
+            c = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListColorBlocksCursorForSingleUser(colorThresholds,userInfo.getUserId());
+        } else {
 
+            c = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListColorBlocksCursor(colorThresholds,null);
+        }
         if(c.getCount()>0) {
             c.moveToFirst();
             while (!c.isAfterLast()) {
 
-                if(BuildConfig.DEBUG){Log.d(TAG,"PULLING NAME: " + c.getString(0) + ", SYS: " + c.getString(1) + ", TOTAL: " + c.getString(2) + ", GREY: " + c.getString(3));}
-                if(BuildConfig.DEBUG){Log.d("yes", "pulling list: " + c.getString(0) + ", sys: " + c.getString(1));}
+                if(BuildConfig.DEBUG){Log.d(TAG,"NAME: ==" + c.getString(0)
+                        + "==, SYS: " + c.getString(1)
+                        + ", TOTAL: " + c.getString(2)
+                        + ", GREY: " + c.getString(3)
+                        + ", (4): " + c.getString(4)+ ", (5): " + c.getString(5));}
 
                 /* We do not want to include favorites star lists that are not active in the user
                 * preferences. So if an inactivated list shows up in the sql query, ignore it (don't add to mMenuHeader)*/
 
+                Log.d(TAG,"availableFavoritesStars: " + availableFavoritesStars);
                 if(c.getInt(1) != 1 || (availableFavoritesStars.contains(c.getString(0)))) {
-                    MenuHeader menuHeader = new MenuHeader(c.getString(0));
+                    MenuHeader menuHeader = new MenuHeader();
+                    if(userInfo!=null) {
+                        menuHeader.setHeaderTitle(userInfo.getDisplayScreenName());
+                    } else {
+                        menuHeader.setHeaderTitle(c.getString(0));
+                    }
+//                    MenuHeader menuHeader = new MenuHeader(c.getString(0));
                     menuHeader.setChildOptions(childOptions);
-                    menuHeader.setMyList(true);
+                    menuHeader.setMyList(false);
 
                     menuHeader.setMyListEntry(new MyListEntry(c.getString(0),c.getInt(1)));
                     if(c.getInt(1) == 1 ) {
@@ -261,33 +364,31 @@ public class MyListFragment  extends Fragment{
                     colorBlockMeasurables.setRedCount(c.getInt(4));
                     colorBlockMeasurables.setYellowCount(c.getInt(5));
                     colorBlockMeasurables.setGreenCount(c.getInt(6));
-                    colorBlockMeasurables.setEmptyCount(0);
+                    colorBlockMeasurables.setEmptyCount(c.getInt(7));
 
-                      /* Set the first available non-empty list to be automatically expanded when
+                    /* Set the first available non-empty list to be automatically expanded when
                       fragment is created. This is achieved by making it the "lastexpandedposition" from the get-go */
                     if(lastExpandedPosition<0 && c.getInt(2)>0) {
                         lastExpandedPosition = mMenuHeader.size();
                     }
 
+
                     colorBlockMeasurables.setGreyMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreyCount())));
                     colorBlockMeasurables.setRedMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getRedCount())));
                     colorBlockMeasurables.setYellowMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getYellowCount())));
                     colorBlockMeasurables.setGreenMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreenCount())));
-                    colorBlockMeasurables.setEmptyMinWidth(0);
+                    colorBlockMeasurables.setEmptyMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getEmptyCount())));
+
                     menuHeader.setColorBlockMeasurables(colorBlockMeasurables);
                     mMenuHeader.add(menuHeader);
-
                 }
-
 
                 c.moveToNext();
             }
         }
         c.close();
-//        db.close();
-//        helper.close();
-
     }
+
 
 
     @Override
@@ -300,18 +401,29 @@ public class MyListFragment  extends Fragment{
      * to half of the screenwidth
      * @return maximum width in pixels of colored bars
      *
-     * @see MyListExpandableAdapter
+     * @see SavedTweetsExpandableAdapter
      */
     private int getdimenscore() {
 
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
-      return Math.round((float)metrics.widthPixels*(float).5);
-
+//        return Math.round((float)metrics.widthPixels*(float).5);
+        if(metrics.heightPixels>metrics.widthPixels) {
+            return Math.round((float)metrics.widthPixels*(float).5);
+        } else {
+            return Math.round((float)metrics.heightPixels*(float).5);
+        }
     }
 
+    public void expandTheListViewAtPosition(int position) {
+        expListView.expandGroup(position);
+        expListView.setSelectedGroup(position);
+        mMenuHeader.get(position).setExpanded(true);
+        lastExpandedPosition = position;
+    };
 
-    public static int getExpandableAdapterColorBlockBasicWidths(Activity activity, String text){
+
+    public int getExpandableAdapterColorBlockBasicWidths(Activity activity, String text){
         int result = 0;
         if(!text.equals("0")) {
             View view = activity.getLayoutInflater().inflate(R.layout.expandablelistadapter_listitem, null);
@@ -339,9 +451,13 @@ public class MyListFragment  extends Fragment{
     }
 
     public void updateMyListAdapter() {
-        prepareListData();
-        MyListFragmentAdapter = new MyListExpandableAdapter(getContext(),mMenuHeader,getdimenscore(),0);
-        expListView.setAdapter(MyListFragmentAdapter);
+        if(mUserInfo!= null && mUserInfo.getScreenName() != null) {
+            prepareListData(mUserInfo);
+        } else {
+            prepareListData(null);
+        }
+        SavedTweetsFragmentAdapter = new SavedTweetsExpandableAdapter(getContext(),mMenuHeader,getdimenscore(),0);
+        expListView.setAdapter(SavedTweetsFragmentAdapter);
 //        expListView.invalidateViews();
     }
 
@@ -356,38 +472,17 @@ public class MyListFragment  extends Fragment{
         }
     }
 
-    public ColorBlockMeasurables prepareColorBlockDataForList(MyListEntry myListEntry) {
-        ColorBlockMeasurables colorBlockMeasurables = new ColorBlockMeasurables();
 
-        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
-        Cursor c = InternalDB.getWordInterfaceInstance(getContext()).getWordListColorBlockCursor(colorThresholds,myListEntry);
-//        InternalDB.getWordInterfaceInstance(getContext()).supertest(colorThresholds,myListEntry);
-        if(c.getCount()>0) {
-            c.moveToFirst();
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
 
-                /* We do not want to include favorites star lists that are not active in the user
-                * preferences. So if an inactivated list shows up in the sql query, ignore it (don't add to mMenuHeader)*/
-
-            colorBlockMeasurables.setGreyCount(c.getInt(3));
-            colorBlockMeasurables.setRedCount(c.getInt(4));
-            colorBlockMeasurables.setYellowCount(c.getInt(5));
-            colorBlockMeasurables.setGreenCount(c.getInt(6));
-            colorBlockMeasurables.setEmptyCount(0);
-
-            colorBlockMeasurables.setGreyMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreyCount())));
-            colorBlockMeasurables.setRedMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getRedCount())));
-            colorBlockMeasurables.setYellowMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getYellowCount())));
-            colorBlockMeasurables.setGreenMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreenCount())));
-            colorBlockMeasurables.setEmptyMinWidth(0);
-
-
-
-            c.moveToNext();
-        } else {
-            Log.e(TAG,"no results for query listname: " + myListEntry.getListName() + ", sys: " + myListEntry.getListsSys());
-        }
-        c.close();
-        return  colorBlockMeasurables;
+        outState.putInt("lastExpandedPosition", lastExpandedPosition);
+        outState.putParcelable("mUserInfo", mUserInfo);
+        outState.putParcelableArrayList("mUserInfo", mMenuHeader);
     }
+
 }
+
+
 

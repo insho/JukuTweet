@@ -105,7 +105,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
 
 
 
-    public Cursor getRandomKanji(String keysToExclude, int limit) {
+    public Cursor getRandomKanji(int keyToExclude, int limit) {
         return sqlOpener.getWritableDatabase().rawQuery("SELECT [_id]" +
                 ",[Kanji]" +
                 ",[Furigana]" +
@@ -121,7 +121,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                 ",[Definition]  " +
                 "FROM [Edict] " +
                 "where [Common] = 1 " +
-                " and [_id]  not in (" +  keysToExclude + ") " +
+                " and [_id]  <> " +  keyToExclude + " " +
                 " and [Furigana] is not null " +
                 " ORDER BY RANDOM() LIMIT "+ limit +" " +
                 ") " +

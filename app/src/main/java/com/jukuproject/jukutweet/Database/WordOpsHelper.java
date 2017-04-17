@@ -10,6 +10,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.jukuproject.jukutweet.BuildConfig;
+import com.jukuproject.jukutweet.Fragments.WordListBrowseFragment;
 import com.jukuproject.jukutweet.Interfaces.WordListOperationsInterface;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MyListEntry;
@@ -263,7 +264,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
      * @param myListEntry MyList Object containing the name and sys variables for a WordList
      * @return bool true if successful delete, false if error
      *
-     * @see com.jukuproject.jukutweet.Fragments.MyListBrowseFragment
+     * @see WordListBrowseFragment
      */
     public boolean removeMultipleWordsFromWordList(String concatenatedWordIds, MyListEntry myListEntry) {
         SQLiteDatabase db = sqlOpener.getWritableDatabase();

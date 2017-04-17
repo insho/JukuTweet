@@ -36,7 +36,9 @@ public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapte
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
+
         public LinearLayout layoutMain;
+        public TextView txtColorBar;
         public TextView txtTweet;
         public TextView txtCreated;
         public TextView txtFavorited;
@@ -57,6 +59,7 @@ public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapte
             txtFavorited = (TextView) v.findViewById(R.id.favorited);
             txtReTweeted = (TextView) v.findViewById(R.id.retweeted);
 
+            txtColorBar = (TextView) v.findViewById(R.id.colorbar);
             txtUserName = (TextView) v.findViewById(R.id.timelineName);
             txtUserScreenName = (TextView) v.findViewById(R.id.timelineDisplayScreenName);
             imgStar = (ImageButton) v.findViewById(R.id.favorite);
@@ -100,6 +103,18 @@ public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapte
         holder.imgFavorite.setVisibility(View.GONE);
 
 
+        /* Parse the definition into an array of multiple lines, if there are multiple sub-definitions in the string */
+        if(tweet.get.getTotal()< mColorThresholds.getGreyThreshold()) {
+            holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuGrey));
+        } else if(wordEntry.getPercentage()< mColorThresholds.getRedThreshold()){
+            holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuRed));
+        } else if (wordEntry.getPercentage()< mColorThresholds.getYellowThreshold()){
+            holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuYellow));
+        } else {
+            holder.txtColorBar.setBackgroundColor(ContextCompat.getColor(mContext, R.color.colorJukuGreen));
+        }
+
+
         /* IF the activity is being recreated, set any entries in the selectedEntries
         * list to be selected again */
         if(mSelectedEntries!=null && mSelectedEntries.contains(tweet.getIdString())){
@@ -123,7 +138,7 @@ public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapte
                 if(mSelectedEntries.size()>0) {
                     if(holder.layoutMain.isSelected()) {
                         holder.layoutMain.setSelected(false);
-                        //Send id back to MyListBrowseFragment so it can be added to the selected map
+                        //Send id back to WordListBrowseFragment so it can be added to the selected map
                     } else {
                         holder.layoutMain.setSelected(true);
                     }
@@ -144,7 +159,7 @@ public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapte
             public boolean onLongClick(View v) {
                 if(holder.layoutMain.isSelected()) {
                     holder.layoutMain.setSelected(false);
-                    //Send id back to MyListBrowseFragment so it can be added to the selected map
+                    //Send id back to WordListBrowseFragment so it can be added to the selected map
                 } else {
                     holder.layoutMain.setSelected(true);
                 }

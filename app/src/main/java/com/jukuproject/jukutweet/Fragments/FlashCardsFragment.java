@@ -115,35 +115,36 @@ public class FlashCardsFragment extends Fragment {
             @Override
             public void onClick(View v) {
 
-                Collections.shuffle(mDataset);
-                cardNumber = 1;
-                currentPosition = 0;
-                page.setTag(mDataset.get(0).getId());
-                vp.setAdapter(new MyPagesAdapter_Array());
-                mFrontShowing = true; //toggle the boolean to reflect current flipped state
+                if(mDataset.size() > 0) {
+                    Collections.shuffle(mDataset);
+                    cardNumber = 1;
+                    currentPosition = 0;
+                    page.setTag(mDataset.get(0).getId());
+                    vp.setAdapter(new MyPagesAdapter_Array());
+                    mFrontShowing = true; //toggle the boolean to reflect current flipped state
 
-                animator_rightin = AnimatorInflater.loadAnimator(getContext(),
-                        R.animator.card_flip_right_in);
-                animator_rightout = AnimatorInflater.loadAnimator(getContext(),
-                        R.animator.card_flip_right_out);
-                animator_leftin = AnimatorInflater.loadAnimator(getContext(),
-                        R.animator.card_flip_left_in);
-                animator_leftout = AnimatorInflater.loadAnimator(getContext(),
-                        R.animator.card_flip_left_out);
+                    animator_rightin = AnimatorInflater.loadAnimator(getContext(),
+                            R.animator.card_flip_right_in);
+                    animator_rightout = AnimatorInflater.loadAnimator(getContext(),
+                            R.animator.card_flip_right_out);
+                    animator_leftin = AnimatorInflater.loadAnimator(getContext(),
+                            R.animator.card_flip_left_in);
+                    animator_leftout = AnimatorInflater.loadAnimator(getContext(),
+                            R.animator.card_flip_left_out);
 
-                Animation slide_in_left_again = AnimationUtils.loadAnimation(getContext(), R.anim.slide_in_right);
-                vp.startAnimation(slide_in_left_again);
+                    Animation slide_in_left_again = AnimationUtils.loadAnimation(getContext(), R.anim.slide_in_right);
+                    vp.startAnimation(slide_in_left_again);
 
-                animator_rightin.setTarget(vp);
-                animator_rightin.start();
-                animator_rightin.setStartDelay(100);
-                animator_rightin.start();
+                    animator_rightin.setTarget(vp);
+                    animator_rightin.start();
+                    animator_rightin.setStartDelay(100);
+                    animator_rightin.start();
 
 
 
-                String stringcount = cardNumber + "/" + totalCardCount;
-                ((TextView) page.findViewById(R.id.scorecount)).setText(stringcount);
-
+                    String stringcount = cardNumber + "/" + totalCardCount;
+                    ((TextView) page.findViewById(R.id.scorecount)).setText(stringcount);
+                }
             }
         });
 

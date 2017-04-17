@@ -102,8 +102,17 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         holder.txtFurigana.setText(mWords.get(holder.getAdapterPosition()).getFurigana());
 
 //        assignStarColor(mWords.get(holder.getAdapterPosition()),holder.imgStar);
-        holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars));
-        holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
+//        try {
+//
+//        }
+        Log.d(TAG,"favs kanji: " + mWords.get(holder.getAdapterPosition()).getKanji());
+        Log.d(TAG,"favs: " + (mWords.get(holder.getAdapterPosition()).getItemFavorites() == null));
+
+        Integer starColorDrawableInt = FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars);
+        holder.imgStar.setImageResource(starColorDrawableInt);
+        if(starColorDrawableInt!=R.drawable.ic_star_multicolor) {
+            holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
+        }
 
         /* Parse the definition into an array of multiple lines, if there are multiple sub-definitions in the string */
         if(mWords.get(holder.getAdapterPosition()).getTotal()< mColorThresholds.getGreyThreshold()) {

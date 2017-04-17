@@ -22,7 +22,7 @@ public interface QuizOperationsInterface {
             , String alreadyaddedkanji
             , String kanjiToBreak
             , String possibleKanjiPart);
-    Cursor getRandomKanji(String keysToExclude, int limit);
+    Cursor getRandomKanji(int keyToExclude, int limit);
     void setSpinnersForTweetWithMyListWords(SQLiteDatabase db
             , String myListType
             , MyListEntry myListEntry

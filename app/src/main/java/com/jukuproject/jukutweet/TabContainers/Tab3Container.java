@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.jukuproject.jukutweet.BaseContainerFragment;
-import com.jukuproject.jukutweet.Fragments.MyListFragment;
+import com.jukuproject.jukutweet.Fragments.WordListFragment;
 import com.jukuproject.jukutweet.R;
 
 
@@ -49,12 +49,12 @@ public class Tab3Container extends BaseContainerFragment {
 
     private void initView() {
 //        Log.e("test", "tab 2 init view");
-        replaceFragment(new MyListFragment(), false,"mylistfragment");
+        replaceFragment(new WordListFragment(), false,"mylistfragment");
     }
 
     public boolean updateMyListFragment() {
         try {
-            ((MyListFragment) getChildFragmentManager().findFragmentByTag("mylistfragment")).updateMyListAdapter();
+            ((WordListFragment) getChildFragmentManager().findFragmentByTag("mylistfragment")).updateMyListAdapter();
             return true;
         } catch (Exception e) {
             Log.e("Tab1Container","Could not find userListFragment");

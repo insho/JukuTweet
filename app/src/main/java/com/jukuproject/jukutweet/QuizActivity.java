@@ -37,7 +37,6 @@ import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MultChoiceResult;
 import com.jukuproject.jukutweet.Models.MyListEntry;
-import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.TabContainers.QuizTab1Container;
@@ -47,7 +46,7 @@ import java.util.ArrayList;
 
 import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
 
-import static com.jukuproject.jukutweet.Fragments.MyListFragment.getExpandableAdapterColorBlockBasicWidths;
+import static com.jukuproject.jukutweet.Fragments.WordListFragment.getExpandableAdapterColorBlockBasicWidths;
 import static com.jukuproject.jukutweet.MainActivity.assignWordWeightsAndGetTotalWeight;
 
 /**
@@ -742,8 +741,6 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
             , Integer currentExpandedPosition
             , String quizSize
             , String selectedColorString) {
-
-
     }
 
 

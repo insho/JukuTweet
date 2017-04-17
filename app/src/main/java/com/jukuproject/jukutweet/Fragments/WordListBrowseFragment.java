@@ -2,6 +2,7 @@ package com.jukuproject.jukutweet.Fragments;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteException;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
@@ -27,9 +28,9 @@ import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Interfaces.WordListOperationsInterface;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MyListEntry;
-import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
+import com.jukuproject.jukutweet.SharedPrefManager;
 
 import java.util.ArrayList;
 
@@ -47,9 +48,9 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * Created by JClassic on 3/26/2017.
  */
 
-public class MyListBrowseFragment extends Fragment  {
+public class WordListBrowseFragment extends Fragment  {
 
-    String TAG = "MyListFragment";
+    String TAG = "WordListFragment";
     private RxBus mRxBus = new RxBus();
     private RecyclerView mRecyclerView;
     /*Tracks elapsed time since last click of a recyclerview row. Used to
@@ -63,8 +64,8 @@ public class MyListBrowseFragment extends Fragment  {
     private ArrayList<Integer> mSelectedEntries = new ArrayList<>(); //Tracks which entries in the adapter are currently selected (id key)
     private Subscription undoSubscription;
 
-    public static MyListBrowseFragment newInstance(MyListEntry myListEntry) {
-        MyListBrowseFragment fragment = new MyListBrowseFragment();
+    public static WordListBrowseFragment newInstance(MyListEntry myListEntry) {
+        WordListBrowseFragment fragment = new WordListBrowseFragment();
         Bundle args = new Bundle();
         args.putParcelable("mylistentry", myListEntry);
         fragment.setArguments(args);
@@ -236,10 +237,10 @@ public class MyListBrowseFragment extends Fragment  {
             deselectAll();
             mCallback.showMenuMyListBrowse(false,2);
         } catch (NullPointerException e) {
-            Log.e(TAG,"Nullpointer in MyListBrowseFragment saveAndUpdateMyLists : " + e);
+            Log.e(TAG,"Nullpointer in WordListBrowseFragment saveAndUpdateMyLists : " + e);
             Toast.makeText(getContext(), "Unable to update lists", Toast.LENGTH_SHORT).show();
         } catch (SQLiteException e) {
-            Log.e(TAG,"SQLiteException in MyListBrowseFragment saveAndUpdateMyLists : " + e);
+            Log.e(TAG,"SQLiteException in WordListBrowseFragment saveAndUpdateMyLists : " + e);
             Toast.makeText(getContext(), "Unable to update lists", Toast.LENGTH_SHORT).show();
         }
 
@@ -258,10 +259,10 @@ public class MyListBrowseFragment extends Fragment  {
             mSelectedEntries = new ArrayList<>();
             mAdapter.swapDataSet(mWords);
         } catch (NullPointerException e) {
-            Log.e(TAG,"Nullpointer in MyListBrowseFragment removeKanjiFromList : " + e);
+            Log.e(TAG,"Nullpointer in WordListBrowseFragment removeKanjiFromList : " + e);
             Toast.makeText(getContext(), "Unable to delete entries", Toast.LENGTH_SHORT).show();
         } catch (SQLiteException e) {
-            Log.e(TAG,"SQLiteException in MyListBrowseFragment removeKanjiFromList : " + e);
+            Log.e(TAG,"SQLiteException in WordListBrowseFragment removeKanjiFromList : " + e);
             Toast.makeText(getContext(), "Unable to delete entries", Toast.LENGTH_SHORT).show();
         }
     }
@@ -279,10 +280,10 @@ public class MyListBrowseFragment extends Fragment  {
             mAdapter.swapDataSet(mWords);
             showUndoPopup(kanjiString,mMyListEntry);
         } catch (NullPointerException e) {
-            Log.e(TAG,"Nullpointer in MyListBrowseFragment removeKanjiFromList : " + e);
+            Log.e(TAG,"Nullpointer in WordListBrowseFragment removeKanjiFromList : " + e);
             Toast.makeText(getContext(), "Unable to delete entries", Toast.LENGTH_SHORT).show();
         } catch (SQLiteException e) {
-            Log.e(TAG,"SQLiteException in MyListBrowseFragment removeKanjiFromList : " + e);
+            Log.e(TAG,"SQLiteException in WordListBrowseFragment removeKanjiFromList : " + e);
             Toast.makeText(getContext(), "Unable to delete entries", Toast.LENGTH_SHORT).show();
         }
     }
@@ -303,7 +304,7 @@ public class MyListBrowseFragment extends Fragment  {
         popupWindow.setClippingEnabled(false);
         popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
 //        View v = getLayoutInflater().inflate(R.layout.popup_undo,null);
-
+        final Drawable drawable = ContextCompat.getDrawable(getContext(), R.drawable.colorblock);
         popupWindow.setWidth((int)(metrics.widthPixels*.66f));
 
         TextView undoButton = (TextView) v.findViewById(R.id.undoButton);
@@ -337,10 +338,10 @@ public class MyListBrowseFragment extends Fragment  {
                     }
 
                 } catch (NullPointerException e) {
-                    Log.e(TAG,"Nullpointer in MyListBrowseFragment showUndoPopup : re-add" + e);
+                    Log.e(TAG,"Nullpointer in WordListBrowseFragment showUndoPopup : re-add" + e);
                     Toast.makeText(getContext(), "Unable to undo delete!", Toast.LENGTH_SHORT).show();
                 } catch (SQLiteException e) {
-                    Log.e(TAG,"SQLiteException in MyListBrowseFragment showUndoPopup re-add : " + e);
+                    Log.e(TAG,"SQLiteException in WordListBrowseFragment showUndoPopup re-add : " + e);
                     Toast.makeText(getContext(), "Unable to undo delete!", Toast.LENGTH_SHORT).show();
                 }
 
@@ -348,6 +349,11 @@ public class MyListBrowseFragment extends Fragment  {
         });
 
 
+//        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+//            holder.txtOption.setBackground(drawable);
+//        } else {
+//            holder.txtOption.setBackgroundDrawable(drawable);
+//        }
         popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.popup_drawable));
         popupWindow.setContentView(v);
         popupWindow.showAtLocation(mRecyclerView, Gravity.BOTTOM, 0, (int)(metrics.heightPixels / (float)9.5));

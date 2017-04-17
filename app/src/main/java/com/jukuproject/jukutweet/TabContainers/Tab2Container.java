@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.jukuproject.jukutweet.BaseContainerFragment;
-import com.jukuproject.jukutweet.Fragments.SavedTweetsAllFragment;
+import com.jukuproject.jukutweet.Fragments.SavedTweetsListFragment;
 import com.jukuproject.jukutweet.R;
 
 
@@ -48,7 +48,7 @@ public class Tab2Container extends BaseContainerFragment {
 
     private void initView() {
 //        Log.e("test", "tab 3 init view");
-        replaceFragment(new SavedTweetsAllFragment(), false,"savedtweetsallfragment");
+        replaceFragment(new SavedTweetsListFragment(), false,"savedtweetsallfragment");
     }
 //    public boolean isTopFragmentShowing() {
 //        try {
@@ -79,7 +79,7 @@ public class Tab2Container extends BaseContainerFragment {
     }
     public boolean updateTweetListFragment() {
         try {
-            ((SavedTweetsAllFragment) getChildFragmentManager().findFragmentByTag("savedtweetsallfragment")).updateMyListAdapter();
+            ((SavedTweetsListFragment) getChildFragmentManager().findFragmentByTag("savedtweetsallfragment")).updateMyListAdapter();
             return true;
         } catch (Exception e) {
             Log.e("Tab2Container","Could not find userListFragment");

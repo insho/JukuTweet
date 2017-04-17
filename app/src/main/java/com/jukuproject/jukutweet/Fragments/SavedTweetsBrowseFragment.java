@@ -26,11 +26,13 @@ import com.jukuproject.jukutweet.Dialogs.CopySavedTweetsDialog;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface;
+import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MyListEntry;
-import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.Models.Tweet;
+import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.R;
+import com.jukuproject.jukutweet.SharedPrefManager;
 
 import java.util.ArrayList;
 
@@ -57,20 +59,34 @@ public class SavedTweetsBrowseFragment extends Fragment {
     private BrowseTweetsAdapter mAdapter;
     private ArrayList<Tweet> mDataset;
     private MyListEntry mMyListEntry;
+    private ColorBlockMeasurables mColorBlockMeasurables;
     private ColorThresholds mColorThresholds;
     private ArrayList<String> mSelectedEntries = new ArrayList<>(); //Tracks which entries in the adapter are currently selected (tweet_id)
     private Subscription undoSubscription;
+    private UserInfo mUserInfo;
 
     public SavedTweetsBrowseFragment() {}
 
-    /**
-     * Returns a new instance of UserListFragment
-     */
-    public static SavedTweetsBrowseFragment newInstance(MyListEntry myListEntry) {
+    public static SavedTweetsBrowseFragment newInstance(MyListEntry myListEntry, ColorBlockMeasurables colorBlockMeasurables) {
         SavedTweetsBrowseFragment fragment = new SavedTweetsBrowseFragment();
 
         Bundle args = new Bundle();
         args.putParcelable("mylistentry", myListEntry);
+        args.putParcelable("colorBlockMeasurables",colorBlockMeasurables);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    /**
+     * Create new instance of fragment focusing on saved tweets of a SINGLE USER
+     * @param userInfo Info of specific user whose saved tweets will be displayed
+     * @return
+     */
+    public static SavedTweetsBrowseFragment newInstance(UserInfo userInfo) {
+        SavedTweetsBrowseFragment fragment = new SavedTweetsBrowseFragment();
+
+        Bundle args = new Bundle();
+        args.putParcelable("userInfo",userInfo);
         fragment.setArguments(args);
         return fragment;
     }
@@ -86,9 +102,28 @@ public class SavedTweetsBrowseFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mMyListEntry = getArguments().getParcelable("mylistentry");
         mColorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
-        pullData(mMyListEntry);
+
+        if(savedInstanceState != null) {
+            mDataset = savedInstanceState.getParcelableArrayList("mDataset");
+
+
+        } else {
+            if (getArguments() != null
+                    && ((mMyListEntry = getArguments().getParcelable("mylistentry")) != null)
+                    && ((mColorBlockMeasurables = getArguments().getParcelable("colorBlockMeasurables")) != null)) {
+                mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mMyListEntry,mColorThresholds);
+            } else if(getArguments() != null && ((mUserInfo = getArguments().getParcelable("userInfo")) != null))  {
+                mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mUserInfo,mColorThresholds);
+
+            } else {
+                //TODO kick user out
+            }
+        }
+
+        setUpAdapter();
+
+
     }
 
     @Override
@@ -99,9 +134,9 @@ public class SavedTweetsBrowseFragment extends Fragment {
     }
 
 
-    public void pullData(MyListEntry myListEntry){
-        mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(myListEntry,mColorThresholds);
-        mRecyclerView.setAdapter(mAdapter);
+    public void setUpAdapter(){
+
+//        mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         //Create UserListAdapter and attach rxBus click listeners to it
@@ -250,10 +285,10 @@ public class SavedTweetsBrowseFragment extends Fragment {
             deselectAll();
             mCallback.showMenuMyListBrowse(false,1);
         } catch (NullPointerException e) {
-            Log.e(TAG,"Nullpointer in MyListBrowseFragment saveAndUpdateMyLists : " + e);
+            Log.e(TAG,"Nullpointer in WordListBrowseFragment saveAndUpdateMyLists : " + e);
             Toast.makeText(getContext(), "Unable to update lists", Toast.LENGTH_SHORT).show();
         } catch (SQLiteException e) {
-            Log.e(TAG,"SQLiteException in MyListBrowseFragment saveAndUpdateMyLists : " + e);
+            Log.e(TAG,"SQLiteException in WordListBrowseFragment saveAndUpdateMyLists : " + e);
             Toast.makeText(getContext(), "Unable to update lists", Toast.LENGTH_SHORT).show();
         }
 

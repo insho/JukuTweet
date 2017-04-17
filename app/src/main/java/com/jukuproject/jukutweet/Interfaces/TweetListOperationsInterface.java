@@ -43,7 +43,8 @@ public interface TweetListOperationsInterface {
     int saveParsedTweetKanji(ArrayList<WordEntry> wordEntries, String tweet_id);
     HashMap<String,ItemFavorites> getStarFavoriteDataForAUsersTweets(String userId);
     ArrayList<Tweet> getTweetsForSavedTweetsList(MyListEntry myListEntry , ColorThresholds colorThresholds);
-//    Cursor getWordEntryForWordId(int kanjiId, ColorThresholds colorThresholds);
+    ArrayList<Tweet> getTweetsForSavedTweetsList(UserInfo userInfo, ColorThresholds colorThresholds);
+    //    Cursor getWordEntryForWordId(int kanjiId, ColorThresholds colorThresholds);
     Cursor getTweetListColorBlocksCursor(ColorThresholds colorThresholds, @Nullable MyListEntry myListEntry);
     Cursor getTweetListColorBlocksCursorForSingleUser(ColorThresholds colorThresholds, String userId);
 }

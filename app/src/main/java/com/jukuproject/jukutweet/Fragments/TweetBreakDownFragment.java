@@ -37,11 +37,11 @@ import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.ItemFavorites;
-import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
+import com.jukuproject.jukutweet.SharedPrefManager;
 import com.jukuproject.jukutweet.TweetParser;
 
 import java.util.ArrayList;

@@ -23,12 +23,12 @@ import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.ItemFavorites;
-import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
+import com.jukuproject.jukutweet.SharedPrefManager;
 import com.jukuproject.jukutweet.TweetParser;
 import com.jukuproject.jukutweet.TwitterUserClient;
 
@@ -154,7 +154,6 @@ public class UserTimeLineFragment extends Fragment {
 
                         @Override public void onCompleted() {
                             if(BuildConfig.DEBUG){Log.d(TAG, "In onCompleted()");}
-//                            mCallback.showProgressBar(false);
 
                             mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mUserInfo,mTimeLine,mActiveTweetFavoriteStars);
 
@@ -254,6 +253,9 @@ public class UserTimeLineFragment extends Fragment {
 
                                     }
 
+
+
+
                                 }
 
                             });
@@ -262,7 +264,8 @@ public class UserTimeLineFragment extends Fragment {
 
 
                             mRecyclerView.setAdapter(mAdapter);
-
+                            mCallback.showProgressBar(false);
+                            Log.d(TAG,"show progress FALSE");
                             //TODO Make this its own subscribable that we can chain!
                         /* Check most recent user info (if it exists within timeline api response)
                         * against the user info stored in db. update db with any changed ino */
@@ -279,12 +282,13 @@ public class UserTimeLineFragment extends Fragment {
 
                             }
 
+
                         }
 
                         @Override public void onError(Throwable e) {
                             e.printStackTrace();
                             if(BuildConfig.DEBUG){Log.d(TAG, "In onError()");}
-//                            mCallback.showProgressBar(false);
+                            mCallback.showProgressBar(false);
                             Toast.makeText(getContext(), "Unable to get timeline for @" + userInfo.getScreenName(), Toast.LENGTH_SHORT).show();
                         }
 

@@ -14,8 +14,8 @@ import android.widget.TextView;
 import com.jukuproject.jukutweet.Adapters.PostQuizStatsAdapter;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MultChoiceResult;
-import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.R;
+import com.jukuproject.jukutweet.SharedPrefManager;
 
 import java.util.ArrayList;
 

@@ -113,7 +113,7 @@ public class BrowseMyListAdapter extends RecyclerView.Adapter<BrowseMyListAdapte
 
                 if(holder.layout.isSelected()) {
                     holder.layout.setSelected(false);
-                    //Send id back to MyListBrowseFragment so it can be added to the selected map
+                    //Send id back to WordListBrowseFragment so it can be added to the selected map
                 } else {
                     holder.layout.setSelected(true);
                 }

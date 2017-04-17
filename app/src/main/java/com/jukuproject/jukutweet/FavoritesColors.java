@@ -81,14 +81,22 @@ public class FavoritesColors {
 
     @Nullable
     public static Integer assignStarColor(ItemFavorites itemFavorites, ArrayList<String> preferenceFavorites ) {
+
+        Log.d("TEST","item favs should open popup: " + itemFavorites.shouldOpenFavoritePopup(preferenceFavorites));
+                for(String string : preferenceFavorites) {
+                    Log.d("TEST","prefs favs strings: " + string);
+                }
+
         if(itemFavorites.shouldOpenFavoritePopup(preferenceFavorites) &&
                 itemFavorites.systemListCount(preferenceFavorites) >1) {
 //            imgStar.setColorFilter(null);
+//            Log.d("TEST","returning null here...");
 //            imgStar.setImageResource(R.drawable.ic_star_multicolor);
-            return null;
+            return android.R.color.black;
         } else {
 //            imgStar.setImageResource(R.drawable.ic_star_black);
 //            imgStar.setColorFilter(ContextCompat.getColor(mContext, );
+//            Log.d("TEST","getting favs star color...");
             return getFavoritesStarColor(preferenceFavorites,itemFavorites);
         }
     }

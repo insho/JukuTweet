@@ -51,6 +51,8 @@ public class QuizMenuDialog extends DialogFragment {
     private int mTabNumber;
     private int mCurrentExpandedPosition;
     private MyListEntry mMyListEntry;
+
+
     private ColorBlockMeasurables mColorBlockMeasurables;
     private int mAvailablePopupWidth;
     private RxBus mRxBus = new RxBus();
@@ -212,6 +214,8 @@ public class QuizMenuDialog extends DialogFragment {
             }
         });
 
+
+
         //Set up the colorblocks
         textViewColorBlock_grey = (TextView) view.findViewById(R.id.listitem_colors_1);
         textViewColorBlock_red = (TextView) view.findViewById(R.id.listitem_colors_2);
@@ -222,17 +226,6 @@ public class QuizMenuDialog extends DialogFragment {
         textViewColorBlock_red.setGravity(Gravity.CENTER);
         textViewColorBlock_yellow.setGravity(Gravity.CENTER);
         textViewColorBlock_green.setGravity(Gravity.CENTER);
-
-
-//        try {
-//            textViewColorBlock_grey.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-//            textViewColorBlock_red.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-//            textViewColorBlock_yellow.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-//            textViewColorBlock_green.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-//        } catch (Exception e) {
-//            Log.e(TAG,"exception, too old to set gravitiy");
-//        }
-
 
         if(mColorBlockMeasurables.getTotalCount()>0) {
             setColorBlocks(mColorBlockMeasurables
@@ -360,7 +353,7 @@ public class QuizMenuDialog extends DialogFragment {
         popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.popup_drawable));
 
         RecyclerView recyclerView = new RecyclerView(getContext());
-        MenuDropDownColorsPopupAdapter adapter = new MenuDropDownColorsPopupAdapter(getContext(),mColorBlockMeasurables.getDropDownOptions(),mRxBus);
+        MenuDropDownColorsPopupAdapter adapter = new MenuDropDownColorsPopupAdapter(getContext(),mColorBlockMeasurables.getDropDownOptions(),mColorBlockMeasurables.getSelectedColorString(),mRxBus);
 
         mRxBus.toClickObserverable()
                 .subscribe(new Action1<Object>() {
@@ -369,16 +362,16 @@ public class QuizMenuDialog extends DialogFragment {
                         if(event instanceof DropDownMenuOption) {
                             DropDownMenuOption chosenOption = (DropDownMenuOption) event;
                             if(chosenOption.getButtonNumber() == 5) {
+
                                 if(chosenOption.isColorSelected()) {
-                                    mColorBlockMeasurables. updateSelectedColorsAdd(chosenOption.getChosenOption());
-                                } else {
-                                    mColorBlockMeasurables. updateSelectedColorsRemove(chosenOption.getChosenOption());
+                                    mColorBlockMeasurables.updateSelectedColorsAdd(chosenOption.getChosenOption());
+                                } else if(mColorBlockMeasurables.getSelectedColorString().length() > 0){
+                                    mColorBlockMeasurables.updateSelectedColorsRemove(chosenOption.getChosenOption());
                                 }
                                 setColorBlockVisibility(chosenOption);
                             }
-
+                        Log.d(TAG,"colorstring: " + mColorBlockMeasurables.getSelectedColorString());
                         }
-                        popupWindow.dismiss();
                     }
 
                 });
@@ -436,9 +429,6 @@ public class QuizMenuDialog extends DialogFragment {
         txtRed.setVisibility(View.GONE);
         txtYellow.setVisibility(View.GONE);
         txtGreen.setVisibility(View.GONE);
-
-
-
 
         txtRed.setText(String.valueOf(colorBlockMeasurables.getRedCount()));
         txtYellow.setText(String.valueOf(colorBlockMeasurables.getYellowCount()));
@@ -538,7 +528,7 @@ public class QuizMenuDialog extends DialogFragment {
                         break;
                 }
             } else {
-                if(option.isColorSelected()) {
+//                if(option.isColorSelected()) {
                     switch (option.getChosenOption()) {
                         case "Grey":
                             textViewColorBlock_grey.setVisibility(View.GONE);
@@ -553,7 +543,7 @@ public class QuizMenuDialog extends DialogFragment {
                             textViewColorBlock_green.setVisibility(View.GONE);
                             break;
                     }
-                }
+//                }
             }
 
     }

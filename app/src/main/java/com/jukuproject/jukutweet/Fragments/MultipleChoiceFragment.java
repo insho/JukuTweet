@@ -30,9 +30,9 @@ import com.jukuproject.jukutweet.Interfaces.QuizFragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MultChoiceResult;
 import com.jukuproject.jukutweet.Models.MyListEntry;
-import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
+import com.jukuproject.jukutweet.SharedPrefManager;
 import com.jukuproject.jukutweet.TweetParser;
 
 import java.util.ArrayList;
@@ -158,7 +158,7 @@ public class MultipleChoiceFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
-//Set layout depending on screen orientation
+        //Set layout depending on screen orientation
         TypedValue tv = new TypedValue();
         int displayheight = getResources().getDisplayMetrics().heightPixels;
         int actionBarHeight = 0;
@@ -653,7 +653,7 @@ public class MultipleChoiceFragment extends Fragment {
         final int remainingIncorrectAnswerSlots = 5 - incorrectAnswerSet.size();
         if (remainingIncorrectAnswerSlots > 0) { //We're filling the rest of the array with random records (in the case that we didn't have 6 initial records to begin with)
             long startTime = System.currentTimeMillis();
-            Cursor c = InternalDB.getQuizInterfaceInstance(mContext).getRandomKanji(String.valueOf(correctWordEntry.getId()), remainingIncorrectAnswerSlots);
+            Cursor c = InternalDB.getQuizInterfaceInstance(mContext).getRandomKanji(correctWordEntry.getId(), remainingIncorrectAnswerSlots);
             Log.i("TEST", "ELLAPSED TIME TOTAL other block: " + (System.currentTimeMillis() - startTime) / 1000.0f);
             if (c.getCount() > 0) {
                 c.moveToFirst();

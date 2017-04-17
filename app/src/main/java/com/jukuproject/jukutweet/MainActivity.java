@@ -37,15 +37,14 @@ import com.jukuproject.jukutweet.Dialogs.AddUserDialog;
 import com.jukuproject.jukutweet.Dialogs.EditMyListDialog;
 import com.jukuproject.jukutweet.Dialogs.RemoveUserDialog;
 import com.jukuproject.jukutweet.Fragments.FlashCardsFragment;
-import com.jukuproject.jukutweet.Fragments.MyListBrowseFragment;
-import com.jukuproject.jukutweet.Fragments.MyListFragment;
-import com.jukuproject.jukutweet.Fragments.SavedTweetsAllFragment;
 import com.jukuproject.jukutweet.Fragments.SavedTweetsBrowseFragment;
+import com.jukuproject.jukutweet.Fragments.SavedTweetsListFragment;
+import com.jukuproject.jukutweet.Fragments.WordListBrowseFragment;
+import com.jukuproject.jukutweet.Fragments.WordListFragment;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.QuizMenuDialogInteractionListener;
 import com.jukuproject.jukutweet.Models.MyListEntry;
-import com.jukuproject.jukutweet.Models.SharedPrefManager;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
@@ -129,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             fragments[0] = Tab1Container.newInstance();
             fragments[1] = Tab2Container.newInstance();
             fragments[2] = Tab3Container.newInstance();
-            mAdapterTitles = new String[]{"Users","Saved Tweets","My Lists"};
+            mAdapterTitles = new String[]{"Users","Saved Tweets","Word Lists"};
             fragmentWasChanged = getIntent().getBooleanExtra("fragmentWasChanged",false);
         }
 
@@ -269,13 +268,17 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
 
         switch(id) {
+             case android.R.id.home:
+                        onBackPressed();
+                       break;
+
             case R.id.action_cancel:
                 try {
                     if(tabsShowingBrowseMenu[2] && findFragmentByPosition(2) != null
                             && findFragmentByPosition(2) instanceof Tab3Container
                             && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse") != null
                             && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse").isVisible()) {
-                        ((MyListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).deselectAll();
+                        ((WordListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).deselectAll();
 
                         //Hide the action icons
                         showMenuMyListBrowse(false, 2);
@@ -303,7 +306,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                             && findFragmentByPosition(2) instanceof Tab3Container
                             && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse") != null
                             && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse").isVisible()) {
-                        ((MyListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).showCopyMyListDialog();
+                        ((WordListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).showCopyMyListDialog();
                     } else if(tabsShowingBrowseMenu[1] && findFragmentByPosition(1) != null
                             && findFragmentByPosition(1) instanceof Tab2Container
                             && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse") != null
@@ -324,7 +327,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                             && findFragmentByPosition(2) instanceof Tab3Container
                             && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse") != null
                             && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse").isVisible()) {
-                        ((MyListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).removeKanjiFromList();
+                        ((WordListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).removeKanjiFromList();
 
                         //Hide the action icons
                         showMenuMyListBrowse(false, 2);
@@ -355,7 +358,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                             && findFragmentByPosition(2) instanceof Tab3Container
                             && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse") != null
                             && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse").isVisible()) {
-                        ((MyListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).selectAll();
+                        ((WordListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).selectAll();
                     } else if(tabsShowingBrowseMenu[1] && findFragmentByPosition(1) != null
                             && findFragmentByPosition(1) instanceof Tab2Container
                             && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse") != null
@@ -606,49 +609,42 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             fragmentWasChanged = false;
         }
 
-        //Pop backstack depending on the overall tab position (if applicable)
-        switch (mViewPager.getCurrentItem()) {
-            case 0:
-                isPopFragment = ((BaseContainerFragment)findFragmentByPosition(0)).popFragment();
-                try {
-                    if(isTopShowing(0)) {
-                        showActionBarBackButton(false,getString(R.string.app_name));
-                        updateTabs(new String[]{"Users","Saved Tweets","My Lists"});
+        /* If the user is in the 2 tab (timeline,saved tweets) section, pop tab container 1 AND tab container 2,
+         * as well as changing tabs to the main menu 3 container setting  */
+        if(mAdapterTitles.length == 2 && mAdapterTitles[0].equals("Timeline")) {
+            isPopFragment = (((BaseContainerFragment)findFragmentByPosition(0)).popFragment()  && ((BaseContainerFragment)findFragmentByPosition(1)).popFragment());
+            showActionBarBackButton(false,getString(R.string.app_name));
+            updateTabs(new String[]{"Users","Saved Tweets","Word Lists"});
+        } else {
 
+            isPopFragment = ((BaseContainerFragment)findFragmentByPosition(mViewPager.getCurrentItem())).popFragment();
+            try {
+                if(isTopShowing(mViewPager.getCurrentItem())) {
+                    showActionBarBackButton(false,getString(R.string.app_name));
+                    updateTabs(new String[]{"Users","Saved Tweets","Word Lists"});
+                    showMenuMyListBrowse(false,mViewPager.getCurrentItem());
+                    switch (mViewPager.getCurrentItem()) {
+                        case 0:
+                            showFab(true,"addUser");
+                            break;
+                        case 1:
+                            showFab(true,"addTweetList");
+                            break;
+                        case 2:
+                            showFab(true,"addMyList");
+                            break;
+                        default:
+                            showFab(false);
+                            break;
                     }
-                } catch (NullPointerException e) {
-                    Log.e(TAG,"OnBackPressed child entrycount null : " + e);
                 }
-                    break;
-            case 1:
-                isPopFragment = ((BaseContainerFragment)findFragmentByPosition(1)).popFragment();
-                try {
-                    if(isTopShowing(1)) {
-                        showActionBarBackButton(false,getString(R.string.app_name));
-                        updateTabs(new String[]{"Users","Saved Tweets","My Lists"});
+            } catch (NullPointerException e) {
+                Log.e(TAG,"OnBackPressed child entrycount null : " + e);
+            }
 
-                    }
-                    showMenuMyListBrowse(false,1);
-                } catch (NullPointerException e) {
-                    Log.e(TAG,"OnBackPressed child entrycount null : " + e);
-                }
-                break;
-            case 2:
-                isPopFragment = ((BaseContainerFragment)findFragmentByPosition(2)).popFragment();
-                try {
-                    if(isTopShowing(2)) {
-                        showActionBarBackButton(false,getString(R.string.app_name));
-
-                        updateTabs(new String[]{"Users","Saved Tweets","My Lists"});
-                    }
-                    showMenuMyListBrowse(false,2);
-                } catch (NullPointerException e) {
-                    Log.e(TAG,"OnBackPressed child entrycount null : " + e);
-                }
-                break;
-            default:
-                break;
         }
+
+
 
         if (!isPopFragment) {
             finish();
@@ -738,7 +734,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             if(InternalDB.getWordInterfaceInstance(getBaseContext()).saveWordList(listName)) {
             /* Locate Tab2Continer and update the MyList adapter to reflect removed item */
                 if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
-                    ((Tab3Container) findFragmentByPosition(1)).updateMyListFragment();
+                    ((Tab3Container) findFragmentByPosition(2)).updateMyListFragment();
                 }
             }
         } else if(listType.equals("TweetList")) {
@@ -974,14 +970,17 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
     }
 
+    /**
+     * When user clicks on a timeline for a twitter user in the {@link com.jukuproject.jukutweet.Fragments.UserListFragment}
+     * the  {@link SavedTweetsListFragment} in the  tab2 bucket should switch from showing ALL saved tweet lists, to a single list of
+     * saved tweets for that specific user. The method replaces the savedtweets all fragment with a new one for the specific user
+      * @param userInfo Userinfo of twitter user whose timeline is being shown, and whose saved tweets will be displayed in the saved tweets fragment
+     */
     public void showSavedTweetsTabForIndividualUser(UserInfo userInfo){
 
         try {
-//            Tab2Container container = ((Tab2Container) findFragmentByPosition(1));
-            SavedTweetsAllFragment savedTweetsAllFragment = SavedTweetsAllFragment.newInstance(userInfo);
-            ((BaseContainerFragment)findFragmentByPosition(1)).replaceFragment(savedTweetsAllFragment,true,"savedTweetsAllFragmentIndividual");
-
-//            ((SavedTweetsAllFragment) container.getChildFragmentManager().findFragmentByTag("savedtweetsallfragment")).expandTheListViewAtPosition(positionToExpand);
+            SavedTweetsListFragment savedTweetsListFragment = SavedTweetsListFragment.newInstance(userInfo);
+            ((BaseContainerFragment)findFragmentByPosition(1)).replaceFragment(savedTweetsListFragment,true,"savedTweetsAllFragmentIndividual");
         } catch (Exception e) {
             Log.e("TEST","showSavedTweetsTabForIndividualUser failed");
         }
@@ -992,12 +991,12 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     public void saveAndUpdateMyLists(String kanjiIdString, ArrayList<MyListEntry> listsToCopyTo, boolean move, MyListEntry currentList) {
         if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
             try {
-                ((MyListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).saveAndUpdateMyLists(kanjiIdString,listsToCopyTo,move,currentList);
+                ((WordListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).saveAndUpdateMyLists(kanjiIdString,listsToCopyTo,move,currentList);
 
             } catch (NullPointerException e) {
-                Log.e(TAG,"Tab3Container->MyListBrowseFragment saveAndUpdateMyLists Nullpointer: " + e.toString());
+                Log.e(TAG,"Tab3Container->WordListBrowseFragment saveAndUpdateMyLists Nullpointer: " + e.toString());
             } catch (Exception e) {
-                Log.e(TAG,"Tab3Container->MyListBrowseFragment saveAndUpdateMyLists error: " + e.toString());
+                Log.e(TAG,"Tab3Container->WordListBrowseFragment saveAndUpdateMyLists error: " + e.toString());
             }
 
         }
@@ -1284,7 +1283,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
             try {
                 Tab2Container container = ((Tab2Container) findFragmentByPosition(tabNumber));
-                ((SavedTweetsAllFragment) container.getChildFragmentManager().findFragmentByTag("savedtweetsallfragment")).expandTheListViewAtPosition(positionToExpand);
+                ((SavedTweetsListFragment) container.getChildFragmentManager().findFragmentByTag("savedtweetsallfragment")).expandTheListViewAtPosition(positionToExpand);
             } catch (Exception e) {
                 Log.e("TEST","setPreviousMyListExpanded savedtweetsallfragment could not set prev expanded");
             }
@@ -1292,7 +1291,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         } else if(findFragmentByPosition(tabNumber) != null && findFragmentByPosition(tabNumber) instanceof Tab3Container) {
             try {
                 Tab3Container container = ((Tab3Container) findFragmentByPosition(tabNumber));
-                ((MyListFragment) container.getChildFragmentManager().findFragmentByTag("mylistfragment")).expandTheListViewAtPosition(positionToExpand);
+                ((WordListFragment) container.getChildFragmentManager().findFragmentByTag("mylistfragment")).expandTheListViewAtPosition(positionToExpand);
             } catch (Exception e) {
                 Log.e("TEST","setPreviousMyListExpanded mylistfragment could not set prev expanded");
             }

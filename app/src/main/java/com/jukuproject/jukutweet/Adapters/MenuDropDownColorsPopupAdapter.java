@@ -8,6 +8,7 @@ import android.os.Build;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,13 +26,13 @@ public class MenuDropDownColorsPopupAdapter extends RecyclerView.Adapter<MenuDro
     private ArrayList<DropDownMenuOption> mOptions;
     private RxBus mRxBus;
     private Context mContext;
+    private String mInitialSelectedColors;
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
         public TextView txtOption;
         public AppCompatCheckBox chkBox;
         public LinearLayout layoutMain;
-
 
         public ViewHolder(View v) {
             super(v);
@@ -42,10 +43,11 @@ public class MenuDropDownColorsPopupAdapter extends RecyclerView.Adapter<MenuDro
     }
 
 
-    public MenuDropDownColorsPopupAdapter(Context context, ArrayList<DropDownMenuOption> options, RxBus rxbus) {
+    public MenuDropDownColorsPopupAdapter(Context context, ArrayList<DropDownMenuOption> options, String initialSelectedColors, RxBus rxbus) {
         mContext = context;
         mOptions = options;
         mRxBus = rxbus;
+        mInitialSelectedColors = initialSelectedColors;
     }
 
 
@@ -64,21 +66,36 @@ public class MenuDropDownColorsPopupAdapter extends RecyclerView.Adapter<MenuDro
 
         final DropDownMenuOption option = mOptions.get(holder.getAdapterPosition());
 
+
 //        holder.txtOption.setText(option.getChosenOption());
         holder.txtOption.setClickable(false);
+        holder.chkBox.setClickable(false);
+        if(mInitialSelectedColors.contains(option.getChosenOption())) {
+            option.setColorSelected(true);
+        } else {
+            option.setColorSelected(false);
+        }
         holder.chkBox.setChecked(option.isColorSelected());
         holder.itemView.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
+
+            Log.d("TEST","COLOR " + mOptions.get(holder.getAdapterPosition()).getChosenOption() + " SELECTED: " + mOptions.get(holder.getAdapterPosition()).isColorSelected());
                 if(mOptions.get(holder.getAdapterPosition()).isColorSelected()) {
-                    mOptions.get(holder.getAdapterPosition()).setColorSelected(false);
-                    holder.chkBox.setChecked(false);
+
+                    /*Only allow user to de-select the colorblock if it is NOT THE LAST colorblock selected.
+                        There must always be at least one selected. */
+                    if(getTotalSelectedColors(mOptions)>1) {
+                        mOptions.get(holder.getAdapterPosition()).setColorSelected(false);
+                        holder.chkBox.setChecked(false);
+                        mRxBus.send(option);
+                    }
                 } else {
                     mOptions.get(holder.getAdapterPosition()).setColorSelected(true);
                     holder.chkBox.setChecked(true);
+                    mRxBus.send(option);
                 }
-                mRxBus.send(option);
             }
         });
 
@@ -123,7 +140,16 @@ public class MenuDropDownColorsPopupAdapter extends RecyclerView.Adapter<MenuDro
 
     }
 
-
+    public static int getTotalSelectedColors(ArrayList<DropDownMenuOption> dropDownMenuOptions) {
+        int totalSelectedColors = 0;
+        for (DropDownMenuOption dropDownMenuOption : dropDownMenuOptions) {
+            if(dropDownMenuOption.isColorSelected()){
+                totalSelectedColors += 1;
+                Log.d("TEST","TOTALSELECTEDCOLORS: " + dropDownMenuOption.getChosenOption() + " selected: " + dropDownMenuOption.isColorSelected() + ", TOTAL COUNT: " + totalSelectedColors);
+            };
+        }
+        return totalSelectedColors;
+    }
     //TODO MOVE THIS TO GLOBAL
     public static void setAppCompatCheckBoxColors(final AppCompatCheckBox _checkbox,
                                                   final int _uncheckedColor, final int _checkedColor) {

@@ -1,8 +1,10 @@
-package com.jukuproject.jukutweet.Models;
+package com.jukuproject.jukutweet;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+
+import com.jukuproject.jukutweet.Models.ColorThresholds;
 
 import java.util.ArrayList;
 import java.util.HashSet;
