@@ -43,6 +43,7 @@ import com.jukuproject.jukutweet.Fragments.UserDetailPopupFragment;
 import com.jukuproject.jukutweet.Fragments.WordListBrowseFragment;
 import com.jukuproject.jukutweet.Fragments.WordListFragment;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
+import com.jukuproject.jukutweet.Interfaces.DialogRemoveUserInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.QuizMenuDialogInteractionListener;
 import com.jukuproject.jukutweet.Models.MyListEntry;
@@ -70,7 +71,8 @@ import rx.schedulers.Schedulers;
  */
 public class MainActivity extends AppCompatActivity implements FragmentInteractionListener
         , DialogInteractionListener
-        , QuizMenuDialogInteractionListener {
+        , QuizMenuDialogInteractionListener
+        , DialogRemoveUserInteractionListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -423,9 +425,9 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * Shows remove UserInfo Dialog
      * @param user UserInfo to "unfollow" (i.e. remove from database)
      */
-    public void showRemoveUserDialog(String user) {
+    public void showRemoveUserDialog(UserInfo userInfo) {
         if(getFragmentManager().findFragmentByTag("dialogRemove") == null || !getFragmentManager().findFragmentByTag("dialogRemove").isAdded()) {
-            RemoveUserDialog.newInstance(user).show(getSupportFragmentManager(),"dialogRemove");
+            RemoveUserDialog.newInstance(userInfo).show(getSupportFragmentManager(),"dialogRemove");
         }
     }
 
@@ -436,9 +438,9 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      *
      */
     @Override
-    public void onRemoveUserDialogPositiveClick(String screenName) {
+    public void onRemoveUserDialogPositiveClick(String userId) {
 
-        if (InternalDB.getUserInterfaceInstance(getBaseContext()).deleteUser(screenName) ) {
+        if (InternalDB.getUserInterfaceInstance(getBaseContext()).deleteUser(userId) ) {
 
             // Locate Tab1Continer and update the UserListInfo adapter to reflect removed item
             if(findFragmentByPosition(0) != null && findFragmentByPosition(0) instanceof Tab1Container) {
@@ -1312,7 +1314,9 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                                 UserDetailPopupFragment userDetailFragment = UserDetailPopupFragment.newInstance(userInfo);
 
         userDetailFragment.show(getSupportFragmentManager(),"xxx");
+//        userDetailFragment.getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
+//        userDetailFragment.getDialog().getWindow().setBackgroundDrawableResource(android.R.color.transparent);
     }
 
 

@@ -14,6 +14,7 @@
     <string name="dialog_mylist_rename_title">Enter New List Name</string>
 
     <string name="notweets">no tweets found</string>
+    <string name="nousers">no users found</string>
 
     <string name="testUser">jukuproject</string>
     <string name="atsign">\u0040</string>

@@ -13,7 +13,7 @@ import java.util.ArrayList;
  */
 public interface DialogInteractionListener {
     void onAddUserDialogPositiveClick(String user);
-    void onRemoveUserDialogPositiveClick(String user);
+
     void onAddMyListDialogPositiveClick(String listType, String listName);
     void onEditMyListDialogPositiveClick(String listType, int selectedItem, String listName, boolean isStarFavorite);
     void onRenameMyListDialogPositiveClick(String listType, String oldListName, String listName);

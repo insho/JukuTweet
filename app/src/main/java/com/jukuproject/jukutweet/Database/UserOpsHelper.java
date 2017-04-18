@@ -110,10 +110,10 @@ public class UserOpsHelper implements UserOperationsInterface {
      * @param user user screen_name to remove
      * @return bool True if operation is succesful, false if an error occurs
      */
-    public boolean deleteUser(String user) {
+    public boolean deleteUser(String userId) {
         try{
             SQLiteDatabase db = sqlOpener.getWritableDatabase();
-            db.delete(InternalDB.Tables.TABLE_USERS, InternalDB.Columns.TMAIN_COL0 + "= ?", new String[]{user});
+            db.delete(InternalDB.Tables.TABLE_USERS, InternalDB.Columns.TMAIN_COL1 + "= ?", new String[]{userId});
             db.close();
             return true;
         } catch(SQLiteException exception) {

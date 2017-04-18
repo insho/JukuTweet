@@ -10,28 +10,29 @@ import android.support.v4.content.ContextCompat;
 import android.view.Gravity;
 import android.widget.TextView;
 
-import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
+import com.jukuproject.jukutweet.Interfaces.DialogRemoveUserInteractionListener;
+import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.R;
 
 public class RemoveUserDialog extends DialogFragment {
 
-    public DialogInteractionListener mRemoveUserDialogListener;
+    public DialogRemoveUserInteractionListener mRemoveUserDialogListener;
 
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            mRemoveUserDialogListener = (DialogInteractionListener) activity;
+            mRemoveUserDialogListener = (DialogRemoveUserInteractionListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString() + " must implement mAddUserDialogListener");
         }
     }
 
-    public static RemoveUserDialog newInstance(String user) {
+    public static RemoveUserDialog newInstance(UserInfo userInfo) {
 
         RemoveUserDialog frag = new RemoveUserDialog();
         Bundle args = new Bundle();
-        args.putString("user", user);
+        args.putParcelable("userInfo", userInfo);
         frag.setArguments(args);
         return frag;
     }
@@ -40,10 +41,10 @@ public class RemoveUserDialog extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
-        final String user = getArguments().getString("user");
+        final UserInfo userInfo = getArguments().getParcelable("userInfo");
 
         TextView title = new TextView(getActivity());
-        title.setText(getString(R.string.remove_dialog_title, user));
+        title.setText(getString(R.string.remove_dialog_title, userInfo.getScreenName()));
         title.setTextSize(18);
         title.setPadding(20,0,0,0);
         title.setGravity(Gravity.CENTER_VERTICAL);
@@ -54,7 +55,7 @@ public class RemoveUserDialog extends DialogFragment {
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                mRemoveUserDialogListener.onRemoveUserDialogPositiveClick(user);
+                mRemoveUserDialogListener.onRemoveUserDialogPositiveClick(userInfo.getUserId());
                 dialog.dismiss();
             }
         });

@@ -1,130 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@android:color/transparent">
-
-<RelativeLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:id="@+id/popuptab_layout"
     android:layout_height="match_parent"
-    android:layout_gravity="top">
+    android:orientation="vertical"
+    android:background="@android:color/white">
 
 
-    <android.support.design.widget.CoordinatorLayout
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/main_content"
+
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/toplayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fitsSystemWindows="true"
-        tools:context="com.jukuproject.jukutweet.MainActivity">
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal"
+        android:layout_marginLeft="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_gravity="start|top"
+       >
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_alignParentTop="true"
-            android:id="@+id/layoutBanner">
-
-
-
-
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="130dp"
-                android:layout_marginBottom="40dp"
-                android:id="@+id/imgBanner"
-                />
-
-
-        </LinearLayout>
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:minWidth="80dp"
             android:minHeight="80dp"
+            android:layout_gravity="start"
             android:id="@+id/imgUser"
-            app:layout_anchor="@id/layoutBanner"
-            app:layout_anchorGravity="bottom|start"
-
-            android:layout_marginLeft="20dp"
-            android:layout_marginStart="20dp"
             />
 
-        <fr.castorflex.android.smoothprogressbar.SmoothProgressBar
-            xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            android:id="@+id/progressbar"
 
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:indeterminate="true"
-            android:visibility="visible"
-            app:spb_sections_count="6"
-            app:spb_color="#000000"
-            app:spb_speed="2.0"
-            app:spb_stroke_width="1dp"
-            app:spb_stroke_separator_length="4dp"
-            app:spb_reversed="false"
-            app:spb_mirror_mode="false"
-            app:spb_progressiveStart_activated="true"
-            app:spb_progressiveStart_speed="3.0"
-            app:layout_anchor="@id/imgBanner"
-            app:layout_anchorGravity="bottom"
-            app:spb_progressiveStop_speed="3.4"
-            />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginTop="20dp"
 
-    </android.support.design.widget.CoordinatorLayout>
+            android:layout_marginLeft="10dp"
+            android:layout_marginStart="10dp"
+            android:orientation="vertical"
+            android:id="@+id/layoutInfo">
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/txtName"
+                android:ellipsize="marquee"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black" />
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/txtScreenName"
+                android:ellipsize="marquee"
+                android:textSize="20sp"
+                android:textColor="@color/colorJukuGrey" />
 
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/main_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginLeft="20dp"
-        android:layout_marginStart="20dp"
-        android:orientation="vertical"
-        android:id="@+id/layoutInfo">
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentLeft="true"
-        android:id="@+id/layoutNames"
-        android:orientation="vertical">
-
-    <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/txtName"
-            android:ellipsize="marquee"
-            android:layout_gravity="start"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/black" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/txtScreenName"
-            android:ellipsize="marquee"
-            android:layout_gravity="start"
-            android:textSize="20sp"
-            android:textColor="@color/colorJukuGrey" />
         </LinearLayout>
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -134,32 +69,122 @@
             android:textSize="18sp"
             android:paddingLeft="4dp"
             android:paddingRight="4dp"
-            android:layout_toEndOf="@id/layoutNames"
-            android:layout_toRightOf="@id/layoutNames"
+
             android:textStyle="bold"
             android:textColor="@color/colorAccent" />
 
-        </RelativeLayout>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/txtUrl"
-            android:visibility="gone"
-            android:ellipsize="marquee"
-            android:layout_gravity="start"
-            android:textSize="16sp"
-            android:textColor="@color/colorJukuGrey" />
-</LinearLayout>
+    </LinearLayout>
+
+    <!---->
+    <!--<LinearLayout-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_alignParentTop="true"-->
+    <!--android:layout_marginTop="5dp"-->
+    <!--android:layout_marginLeft="20dp"-->
+    <!--android:layout_marginStart="20dp"-->
+    <!--android:orientation="vertical"-->
+    <!--android:id="@+id/layoutInfo">-->
 
 
 
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtUrl"
+        android:visibility="gone"
+        android:ellipsize="marquee"
+        android:layout_gravity="start|top"
+        android:textSize="16sp"
+        android:textColor="@color/colorJukuGrey" />
+    <!--<LinearLayout-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_marginTop="20dp"-->
+    <!--android:layout_marginLeft="20dp"-->
+    <!--android:layout_marginStart="20dp"-->
+    <!--android:orientation="horizontal">-->
+
+    <!--<ImageView-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:minWidth="80dp"-->
+    <!--android:minHeight="80dp"-->
+    <!--android:id="@+id/imgUser"-->
+    <!--/>-->
+
+
+
+    <!--<LinearLayout-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="match_parent"-->
+    <!--android:layout_marginTop="20dp"-->
+
+    <!--android:layout_marginLeft="10dp"-->
+    <!--android:layout_marginStart="10dp"-->
+    <!--android:orientation="vertical"-->
+    <!--android:id="@+id/layoutNames">-->
+
+    <!--<TextView-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:id="@+id/txtName"-->
+    <!--android:ellipsize="marquee"-->
+    <!--android:layout_gravity="start"-->
+    <!--android:textSize="24sp"-->
+    <!--android:textStyle="bold"-->
+    <!--android:textColor="@android:color/black" />-->
+
+    <!--<TextView-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:id="@+id/txtScreenName"-->
+    <!--android:ellipsize="marquee"-->
+    <!--android:layout_gravity="start"-->
+    <!--android:textSize="20sp"-->
+    <!--android:textColor="@color/colorJukuGrey" />-->
+    <!--</LinearLayout>-->
+
+    <!--<TextView-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:id="@+id/txtRemoveUserButton"-->
+    <!--android:gravity="center"-->
+    <!--android:text="Remove User?"-->
+    <!--android:textSize="18sp"-->
+    <!--android:paddingLeft="4dp"-->
+    <!--android:paddingRight="4dp"-->
+
+    <!--android:textStyle="bold"-->
+    <!--android:textColor="@color/colorAccent" />-->
+
+
+
+    <!--</LinearLayout>-->
+
+    <!--<TextView-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:id="@+id/txtUrl"-->
+    <!--android:visibility="gone"-->
+    <!--android:ellipsize="marquee"-->
+    <!--android:layout_gravity="start"-->
+    <!--android:textSize="16sp"-->
+    <!--android:textColor="@color/colorJukuGrey" />-->
+    <!--</LinearLayout>-->
+
+
+    <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
     <LinearLayout
         android:orientation="horizontal" android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@android:color/black"
         android:layout_marginBottom="6dp"
-        android:layout_below="@id/layoutInfo"
+
         android:id="@+id/linearLayoutFollowerButtons"
         android:weightSum="1">
 
@@ -210,15 +235,50 @@
     </LinearLayout>
 
 
+        <fr.castorflex.android.smoothprogressbar.SmoothProgressBar
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/progressbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:visibility="invisible"
+            app:spb_sections_count="6"
+            app:spb_color="#FF0000"
+            app:spb_speed="2.0"
+            app:spb_stroke_width="2dp"
+            app:spb_stroke_separator_length="4dp"
+            app:spb_reversed="false"
+            app:spb_mirror_mode="false"
+            app:spb_progressiveStart_activated="true"
+            app:spb_progressiveStart_speed="3.0"
+            app:layout_anchor="@id/linearLayoutFollowerButtons"
+            app:layout_anchorGravity="bottom"
+            app:spb_progressiveStop_speed="3.4"
+
+            />
+
+    </android.support.design.widget.CoordinatorLayout>
+
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/listView"
+        android:id="@+id/userInfoRecycler"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@android:color/transparent"
-        android:layout_below="@id/linearLayoutFollowerButtons"
         android:scrollbars="vertical" />
 
-
-</RelativeLayout>
-
+    <TextView
+        android:id="@+id/txtNoUsers"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/recyclerTimeLine"
+        android:minHeight="30dp"
+        android:layout_marginTop="4dp"
+        android:text="@string/notweets"
+        android:clickable="false"
+        android:textStyle="italic"
+        android:visibility="gone"
+        android:textSize="18sp" />
 </LinearLayout>
+<!---->
+<!--</LinearLayout>-->

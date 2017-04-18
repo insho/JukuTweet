@@ -1,23 +1,25 @@
 package com.jukuproject.jukutweet;
 
-        import android.support.annotation.NonNull;
-        import com.google.gson.FieldNamingPolicy;
-        import com.google.gson.Gson;
-        import com.google.gson.GsonBuilder;
-        import com.jukuproject.jukutweet.Models.Tweet;
-        import com.jukuproject.jukutweet.Models.UserInfo;
-        import com.jukuproject.jukutweet.Models.UserProfileBanner;
+import android.support.annotation.NonNull;
 
-        import java.util.List;
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.jukuproject.jukutweet.Models.Tweet;
+import com.jukuproject.jukutweet.Models.UserFollowersListContainer;
+import com.jukuproject.jukutweet.Models.UserInfo;
+import com.jukuproject.jukutweet.Models.UserProfileBanner;
 
-        import okhttp3.OkHttpClient;
-        import okhttp3.logging.HttpLoggingInterceptor;
-        import retrofit2.Retrofit;
-        import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
-        import retrofit2.converter.gson.GsonConverterFactory;
-        import rx.Observable;
-        import se.akerfeldt.okhttp.signpost.OkHttpOAuthConsumer;
-        import se.akerfeldt.okhttp.signpost.SigningInterceptor;
+import java.util.List;
+
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
+import rx.Observable;
+import se.akerfeldt.okhttp.signpost.OkHttpOAuthConsumer;
+import se.akerfeldt.okhttp.signpost.SigningInterceptor;
 
 /**
  * Created by JClassic on 2/21/2017.
@@ -39,16 +41,8 @@ public class TwitterUserClient {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
 
-//        OkHttpOAuthConsumer consumer = new OkHttpOAuthConsumer(BuildConfig.TWEET_API_KEY, BuildConfig.TWEET_API_SECRET);
-//        consumer.setTokenWithSecret(token, tokenSecret);
-
         OkHttpOAuthConsumer consumer = new OkHttpOAuthConsumer(BuildConfig.TWEET_API_KEY, BuildConfig.TWEET_API_SECRET);
         consumer.setTokenWithSecret(token, tokenSecret);
-
-//        OAuthConsumer consumer = new DefaultOAuthConsumer(
-//                BuildConfig.TWEET_API_KEY,
-//                BuildConfig.TWEET_API_SECRET);
-//        consumer.setTokenWithSecret(token, tokenSecret);
 
         client.addInterceptor(new SigningInterceptor(consumer));
         client.addInterceptor(loggingInterceptor);
@@ -80,6 +74,14 @@ public class TwitterUserClient {
 
     public Observable<UserProfileBanner> getProfileBanner(@NonNull String username) {
         return twitterService.getProfileBanner(username);
+    }
+
+    public Observable<UserFollowersListContainer> getFollowersUserInfo(@NonNull String username,Long cursor, int limit) {
+        return twitterService.getFollowerUserInfo(username,cursor,limit,false,false);
+    }
+
+    public Observable<UserFollowersListContainer> getFriendsUserInfo(@NonNull String username,Long cursor, int limit) {
+        return twitterService.getFriendsUserInfo(username,cursor,limit,false,false);
     }
 
 }
