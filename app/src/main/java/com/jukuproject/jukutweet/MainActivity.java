@@ -39,6 +39,7 @@ import com.jukuproject.jukutweet.Dialogs.RemoveUserDialog;
 import com.jukuproject.jukutweet.Fragments.FlashCardsFragment;
 import com.jukuproject.jukutweet.Fragments.SavedTweetsBrowseFragment;
 import com.jukuproject.jukutweet.Fragments.SavedTweetsListFragment;
+import com.jukuproject.jukutweet.Fragments.UserDetailPopupFragment;
 import com.jukuproject.jukutweet.Fragments.WordListBrowseFragment;
 import com.jukuproject.jukutweet.Fragments.WordListFragment;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
@@ -1305,6 +1306,14 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 //        super.onWindowFocusChanged(hasFocus);
 //    }
 
+
+    public void showUserDetailFragment(UserInfo userInfo) {
+
+                                UserDetailPopupFragment userDetailFragment = UserDetailPopupFragment.newInstance(userInfo);
+
+        userDetailFragment.show(getSupportFragmentManager(),"xxx");
+
+    }
 
 
     @Override

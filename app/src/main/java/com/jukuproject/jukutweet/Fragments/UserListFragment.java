@@ -138,7 +138,11 @@ public class UserListFragment extends Fragment {
                         public void call(Object event) {
                             if(isUniqueClick(1000) && event instanceof UserInfo) {
                                 UserInfo userInfo = (UserInfo) event;
-                                mCallback.showRemoveUserDialog(userInfo.getScreenName());
+
+                                mCallback.showUserDetailFragment(userInfo);
+//                                UserDetailPopupFragment userDetailFragment = UserDetailPopupFragment.newInstance(userInfo);
+//                                ((BaseContainerFragment)getParentFragment()).replaceFragment(userDetailFragment, true,"userDetailPopup");
+//                                mCallback.showRemoveUserDialog(userInfo.getScreenName());
                             }
 
                         }

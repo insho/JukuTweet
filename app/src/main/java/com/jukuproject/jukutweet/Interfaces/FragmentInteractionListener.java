@@ -21,4 +21,6 @@ public interface FragmentInteractionListener {
     void notifyFragmentsChanged();
 
     void showSavedTweetsTabForIndividualUser(UserInfo userInfo);
+
+    void showUserDetailFragment(UserInfo userInfo);
 }

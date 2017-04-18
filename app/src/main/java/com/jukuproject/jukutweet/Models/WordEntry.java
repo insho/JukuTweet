@@ -301,8 +301,6 @@ public class WordEntry implements Parcelable {
         return stringBuilder.toString();
     }
 
-
-
     public int getColorValue() {
         if(color == null) {
             return android.R.color.black;

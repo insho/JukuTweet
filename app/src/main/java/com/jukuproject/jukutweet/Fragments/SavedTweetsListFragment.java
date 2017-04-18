@@ -481,7 +481,7 @@ public class SavedTweetsListFragment extends Fragment {
 
         outState.putInt("lastExpandedPosition", lastExpandedPosition);
         outState.putParcelable("mUserInfo", mUserInfo);
-        outState.putParcelableArrayList("mUserInfo", mMenuHeader);
+        outState.putParcelableArrayList("mMenuHeader", mMenuHeader);
     }
 
 }

@@ -683,10 +683,13 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
     public int saveParsedTweetKanji(ArrayList<WordEntry> wordEntries, String tweet_id) {
         SQLiteDatabase db = sqlOpener.getReadableDatabase();
         int resultCode = -1;
-
+        Log.d(TAG,"HEERRRRRREEEE");
         try {
             if(wordEntries.size()>0) {
                 for(int i=0;i<wordEntries.size();i++) {
+                    Log.d(TAG,"SAVING TWEET: " + wordEntries.get(i).getKanji() + ", core: "
+                            + wordEntries.get(i).getCoreKanjiBlock()
+                            + ", " + wordEntries.get(i).getStartIndex() + " - " + wordEntries.get(i).getEndIndex());
                     ContentValues values = new ContentValues();
                     values.put(InternalDB.Columns.TSAVEDTWEET_COL2, tweet_id);
                     values.put(InternalDB.Columns.TSAVEDTWEETITEMS_COL2, wordEntries.get(i).getId());
@@ -695,9 +698,12 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                     values.put(InternalDB.Columns.TSAVEDTWEETITEMS_COL4, wordEntries.get(i).getEndIndex());
                     resultCode = (int)db.insert(InternalDB.Tables.TABLE_SAVED_TWEET_KANJI, null, values);
                 }
+            } else {
+                Log.d(TAG,"Word entries 0....");
             }
             return resultCode;
         } catch(SQLiteException exception) {
+            Log.e(TAG,"Error saving tweets");
             return resultCode;
         } finally {
             db.close();
