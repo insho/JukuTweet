@@ -23,4 +23,7 @@ public interface FragmentInteractionListener {
     void showSavedTweetsTabForIndividualUser(UserInfo userInfo);
 
     void showUserDetailFragment(UserInfo userInfo);
+
+    void runDictionarySearch(String query, boolean isRomaji);
+    void runTwitterSearch(String query);
 }

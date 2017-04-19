@@ -29,16 +29,7 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
 
         return mSavedFragments[position];
-//        switch (position) {
-//            case 0:
-//                return Tab1Container.newInstance();
-//            case 1:
-//                return Tab2Container.newInstance();
-//            case 2:
-//                return Tab3Container.newInstance();
-//            default:
-//                return Tab1Container.newInstance();
-//        }
+
     }
 
 
@@ -54,31 +45,11 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
         return POSITION_NONE;
     }
 
-//    @Override
-//    public long getItemId(int position) {
-//        // give an ID different from position when position has been changed
-//        return baseId + position;
-//    }
     @Override
     public CharSequence getPageTitle(int position) {
 
         return mCurrentTabs[position];
-//            switch (position) {
-//                case 0:
-//                    return tab1Title;
-//                case 1:
-//                    return "My Lists";
-//                case 2:
-//                    return "Saved Tweets";
-//                default:
-//                    return "";
-//            }
     }
-
-//    public void updateTitleData(String title) {
-//        this.tab1Title = title;
-//        notifyDataSetChanged();
-//    }
 
     public void updateTabs(String[] updatedTabs) {
         this.mCurrentTabs = updatedTabs;

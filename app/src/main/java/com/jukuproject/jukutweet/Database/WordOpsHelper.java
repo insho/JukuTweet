@@ -13,6 +13,7 @@ import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Fragments.WordListBrowseFragment;
 import com.jukuproject.jukutweet.Interfaces.WordListOperationsInterface;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
+import com.jukuproject.jukutweet.Models.ItemFavorites;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.WordEntry;
 
@@ -505,7 +506,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
             db.close();
         }
     }
-
+//asdf
     public Cursor getWordEntryForWordId(int kanjiId, ColorThresholds colorThresholds) {
         return sqlOpener.getWritableDatabase().rawQuery("SELECT [Kanji]" +
                 ",(CASE WHEN Furigana is null then '' else Furigana  end) as [Furigana]" +
@@ -824,4 +825,412 @@ public class WordOpsHelper implements WordListOperationsInterface {
         return  wordEntries;
     }
 
+
+    public ArrayList<WordEntry> getSearchWordEntriesForRomaji(String hiraganaKatakanaPlaceholders
+            ,String wordIds) {
+
+        ArrayList<WordEntry> wordEntries = new ArrayList<>();
+        SQLiteDatabase db = sqlOpener.getWritableDatabase();
+        try {
+
+            Cursor c = db.rawQuery("SELECT * " +
+                    "FROM " +
+                    "(" +
+                    "SELECT [_id]" +
+                    ",[Kanji]" +
+                    ",(CASE WHEN Furigana is null then '' else Furigana  end) as [Furigana]" +
+                    ",[Definition]" +
+                    ",[Correct]" +
+                    ",[Total]" +
+                    " ,[Blue]" +
+                    " ,[Red] " +
+                    " ,[Green] " +
+                    " ,[Yellow] " +
+                    " ,[Purple] " +
+                    " ,[Orange] " +
+                    " ,[Other] " +
+//                    " ,(CASE WHEN [Total] is NULL THEN 'Grey' " +
+//                    "WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 'Grey' " +
+//                    "WHEN CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 'Red' " +
+//                    "WHEN CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + " THEN 'Yellow' " +
+//                    "ELSE 'Green' END) as [Color] " +
+                    ", (CASE WHEN [Kanji] in (" + hiraganaKatakanaPlaceholders + ") OR [Furigana] in (" + hiraganaKatakanaPlaceholders + ") THEN 1 ELSE 2 END) as [OrderValue]" +
+                    ",LENGTH(ifnull([Furigana],[Kanji])) as [KanjiLength]  " +
+                    "FROM " +
+                    "(" +
+                    "SELECT [_id]" +
+                    ",[Kanji]" +
+                    ",[Furigana]" +
+                    ",[Definition]" +
+                    ",ifnull([Total],0) as [Total] " +
+                    ",ifnull([Correct],0)  as [Correct]" +
+                    " ,[Blue]" +
+                    " ,[Red] " +
+                    " ,[Green] " +
+                    " ,[Yellow] " +
+                    " ,[Purple] " +
+                    " ,[Orange] " +
+
+                    " ,[Other] " +
+                    "FROM " +
+                    "(" +
+                    "SELECT [_id]" +
+                    ",[Kanji]" +
+                    ",[Furigana]" +
+                    ",[Definition]  " +
+                    "FROM [Edict] " +
+                    "where [_id] in ( " + wordIds + ")" +
+                    ") NATURAL LEFT JOIN (" +
+                    "SELECT [_id]" +
+                    ",sum([Correct]) as [Correct]" +
+                    ",sum([Total]) as [Total] " +
+                    "from [JScoreboard]  " +
+                    "GROUP BY [_id]" +
+
+
+                    ") NATURAL LEFT JOIN (" +
+                    "SELECT [_id]" +
+                    ",SUM([Blue]) as [Blue]" +
+                    ",SUM([Red]) as [Red]" +
+                    ",SUM([Green]) as [Green]" +
+                    ",SUM([Yellow]) as [Yellow]" +
+                    ",SUM([Yellow]) as [Purple]" +
+                    ",SUM([Yellow]) as [Orange]" +
+
+                    ", SUM([Other]) as [Other] " +
+                    "FROM (" +
+                    "SELECT [_id] " +
+                    ",(CASE WHEN ([Sys] = 1 and Name = 'Blue') then 1 else 0 end) as [Blue]" +
+                    ",(CASE WHEN ([Sys] = 1 AND Name = 'Red') then 1 else 0 end) as [Red]" +
+                    ",(CASE WHEN ([Sys] = 1 AND Name = 'Green') then 1 else 0 end) as [Green]" +
+                    ",(CASE WHEN ([Sys] = 1  AND Name = 'Yellow') then 1 else 0 end) as [Yellow]" +
+                    ",(CASE WHEN ([Sys] = 1  AND Name = 'Purple') then 1 else 0 end) as [Purple]" +
+                    ",(CASE WHEN ([Sys] = 1  AND Name = 'Orange') then 1 else 0 end) as [Orange]" +
+                    ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
+                    "FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
+                    "WHERE [_id] = ?) as x Group by [_id]" +
+
+
+                    ") )" +
+                    ") " +
+                    "ORDER BY [OrderValue],[KanjiLength]", null);
+
+            if(c.getCount()>0) {
+                c.moveToFirst();
+                while (!c.isAfterLast())
+
+                {
+                    WordEntry wordEntry = new WordEntry();
+                    wordEntry.setId(c.getInt(0));
+                    wordEntry.setKanji(c.getString(1));
+                    wordEntry.setFurigana(c.getString(2));
+                    wordEntry.setDefinition(c.getString(3));
+                    wordEntry.setCorrect(c.getInt(4));
+                    wordEntry.setTotal(c.getInt(5));
+                    wordEntries.add(wordEntry);
+
+                    wordEntry.setItemFavorites(new ItemFavorites(c.getInt(6)
+                            ,c.getInt(7)
+                            ,c.getInt(8)
+                            ,c.getInt(9)
+                            ,c.getInt(10)
+                            ,c.getInt(11)
+                            ,c.getInt(12)));
+
+                    c.moveToNext();
+                }
+                c.close();
+            } else {
+                if(BuildConfig.DEBUG) {Log.d(TAG,"getmylistwords c.getcount was 0!!");}
+            }
+
+
+
+        }  catch (SQLiteException e) {
+            Log.e(TAG,"getSearchWordEntriesForRomaji sqlite exception: " + e);
+        }  catch (NullPointerException e) {
+            Log.e(TAG,"getSearchWordEntriesForRomaji something was null: " + e);
+        } finally {
+            db.close();
+        }
+
+        return wordEntries;
+    }
+
+    public ArrayList<WordEntry> getSearchWordEntriesForDefinition(String wordIds) {
+
+        ArrayList<WordEntry> wordEntries = new ArrayList<>();
+        SQLiteDatabase db = sqlOpener.getWritableDatabase();
+        try {
+
+            Cursor c = db.rawQuery("SELECT * " +
+                    "FROM " +
+                    "(" +
+                    "SELECT [_id]" +
+                    ",[Kanji]" +
+                    ",(CASE WHEN Furigana is null then '' else Furigana  end) as [Furigana]" +
+                    ",[Definition]" +
+                    ",[Correct]" +
+                    ",[Total]" +
+                    " ,[Blue]" +
+                    " ,[Red] " +
+                    " ,[Green] " +
+                    " ,[Yellow] " +
+                    " ,[Purple] " +
+                    " ,[Orange] " +
+                    " ,[Other] " +
+                    ",[Common] " +
+                    "FROM " +
+                    "(" +
+                    "SELECT [_id]" +
+                    ",[Kanji]" +
+                    ",[Furigana]" +
+                    ",[Definition]" +
+                    ",ifnull([Total],0) as [Total] " +
+                    ",ifnull([Correct],0)  as [Correct]" +
+                    " ,[Blue]" +
+                    " ,[Red] " +
+                    " ,[Green] " +
+                    " ,[Yellow] " +
+                    " ,[Purple] " +
+                    " ,[Orange] " +
+
+                    " ,[Other] " +
+                    ",[Common] " +
+                    "FROM " +
+                    "(" +
+                    "SELECT [_id]" +
+                    ",[Kanji]" +
+                    ",[Furigana]" +
+                    ",[Definition]" +
+                    ",[Common]  " +
+                    "FROM [Edict] " +
+                    "where [_id] in ( " + wordIds + ")" +
+                    ") NATURAL LEFT JOIN (" +
+                    "SELECT [_id]" +
+                    ",sum([Correct]) as [Correct]" +
+                    ",sum([Total]) as [Total] " +
+                    "from [JScoreboard]  " +
+                    ") NATURAL LEFT JOIN (" +
+                    "SELECT [_id]" +
+                    ",SUM([Blue]) as [Blue]" +
+                    ",SUM([Red]) as [Red]" +
+                    ",SUM([Green]) as [Green]" +
+                    ",SUM([Yellow]) as [Yellow]" +
+                    ",SUM([Yellow]) as [Purple]" +
+                    ",SUM([Yellow]) as [Orange]" +
+
+                    ", SUM([Other]) as [Other] " +
+                    "FROM (" +
+                    "SELECT [_id] " +
+                    ",(CASE WHEN ([Sys] = 1 and Name = 'Blue') then 1 else 0 end) as [Blue]" +
+                    ",(CASE WHEN ([Sys] = 1 AND Name = 'Red') then 1 else 0 end) as [Red]" +
+                    ",(CASE WHEN ([Sys] = 1 AND Name = 'Green') then 1 else 0 end) as [Green]" +
+                    ",(CASE WHEN ([Sys] = 1  AND Name = 'Yellow') then 1 else 0 end) as [Yellow]" +
+                    ",(CASE WHEN ([Sys] = 1  AND Name = 'Purple') then 1 else 0 end) as [Purple]" +
+                    ",(CASE WHEN ([Sys] = 1  AND Name = 'Orange') then 1 else 0 end) as [Orange]" +
+                    ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
+                    "FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
+                    "WHERE [_id] = ?) as x Group by [_id]" +
+
+
+                    ") )" +
+                    ") " +
+                    " ORDER BY [Common]", null);
+
+            if(c.getCount()>0) {
+                c.moveToFirst();
+                while (!c.isAfterLast())
+
+                {
+                    WordEntry wordEntry = new WordEntry();
+                    wordEntry.setId(c.getInt(0));
+                    wordEntry.setKanji(c.getString(1));
+                    wordEntry.setFurigana(c.getString(2));
+                    wordEntry.setDefinition(c.getString(3));
+                    wordEntry.setCorrect(c.getInt(4));
+                    wordEntry.setTotal(c.getInt(5));
+                    wordEntries.add(wordEntry);
+
+                    c.moveToNext();
+                }
+                c.close();
+            } else {
+                if(BuildConfig.DEBUG) {Log.d(TAG,"getSearchWordEntriesForDefinition c.getcount was 0!!");}
+            }
+
+
+        }  catch (SQLiteException e) {
+            Log.e(TAG,"getSearchWordEntriesForDefinition sqlite exception: " + e);
+        }  catch (NullPointerException e) {
+            Log.e(TAG,"getSearchWordEntriesForDefinition something was null: " + e);
+        } finally {
+            db.close();
+        }
+
+        return wordEntries;
+    }
+
+    public String getWordIdsForRomajiMatches(ArrayList<String> possibleHiraganaSearchQueries
+    ,ArrayList<String> possibleKatakanaSearchQueries) {
+        StringBuilder idStringBuilder = new StringBuilder();
+        SQLiteDatabase db = sqlOpener.getWritableDatabase();
+        try {
+
+
+        /** First, search for katakana & hiragana ONLY words */
+        if(possibleKatakanaSearchQueries.size()>0) {
+            for(String possibleKatakanaQuery : possibleKatakanaSearchQueries){
+
+                Cursor c = db.rawQuery("Select _id from Edict Where Furigana is null and [Kanji] like ? Order by Common Limit 15", new String[]{'%' + possibleKatakanaQuery + '%'});
+                if(BuildConfig.DEBUG){Log.d(TAG,"Looking for ONLY hiragana/katakana query: " + possibleKatakanaQuery);}
+                if(c.getCount()>0) {
+                    c.moveToFirst();
+                    while(!c.isAfterLast()){
+                        if(BuildConfig.DEBUG){Log.d(TAG,"RESULT FOUND for " + possibleKatakanaQuery + ": " + c.getString(0));}
+                        if (idStringBuilder.length() > 0) {
+                            idStringBuilder.append(", ");
+                        }
+                        idStringBuilder.append(c.getString(0));
+                        c.moveToNext();
+                    }
+
+                }
+                c.close();
+
+
+            }
+
+        }
+
+        /** Next, search for Kanji by matching their furigana */
+        if(possibleHiraganaSearchQueries.size()>0) {
+            for(String possibleHiraganaQuery : possibleHiraganaSearchQueries){
+
+                Cursor c = db.rawQuery("Select _id from Edict Where Furigana is not null and [Furigana] like ? Order by Common Limit 20", new String[]{'%' + possibleHiraganaQuery + '%'});
+                if(BuildConfig.DEBUG){Log.d(TAG,"Looking for Kanji matches on furigana: " + possibleHiraganaQuery);}
+                if(c.getCount()>0) {
+                    c.moveToFirst();
+                    while(!c.isAfterLast()){
+                        if(BuildConfig.DEBUG){Log.d(TAG, "RESULT FOUND for " + possibleHiraganaQuery  + ": " + c.getString(0));}
+                        if (idStringBuilder.length() > 0) {
+                            idStringBuilder.append(", ");
+                        }
+                        idStringBuilder.append(c.getString(0));
+                        c.moveToNext();
+                    }
+
+                }
+                c.close();
+
+
+            }
+
+        }
+        }  catch (SQLiteException e) {
+            Log.e(TAG,"getWordIdsForRomajiMatches sqlite exception: " + e);
+        }  catch (NullPointerException e) {
+            Log.e(TAG,"getWordIdsForRomajiMatches something was null: " + e);
+        } finally {
+            db.close();
+        }
+        return idStringBuilder.toString();
+    }
+
+
+    public String getWordIdsForDefinitionMatch(String query) {
+        StringBuilder idStringBuilder = new StringBuilder();
+        SQLiteDatabase db = sqlOpener.getWritableDatabase();
+        try {
+            /** Lastly, search for the definition*/
+            Cursor c = db.rawQuery("Select _id FROM (Select _id,Common,( CASE WHEN SUBSTR(Definition,0,LENGTH(Definition)*(.7)) like ? then 1 Else 2 END) as [Pos] from Edict Where REPLACE(REPLACE(REPLACE(Definition,\")\",\" \"),\"(\",\" \"),\",\",\" \") like ?) as [Search] LEFT JOIN (SELECT Edict_id,Count(Edict_id) as [Count] From ExampleSentXRef Group by Edict_id) as [Sentence_Count] ON  [Search]._id = Sentence_Count.Edict_id Order by Common asc, [Pos] asc,[Count] desc LIMIT 25",new String[]{'%' + query + '%','%' + " " + query + " " + '%'});
+            if(BuildConfig.DEBUG){Log.d(TAG, "Looking for definition matches on: " + query);}
+            if(c.getCount()>0) {
+                c.moveToFirst();
+                while(!c.isAfterLast()){
+                    if(BuildConfig.DEBUG){Log.d(TAG, "RESULT FOUND for " + query + ": " + c.getString(0));}
+                    if (idStringBuilder.length() > 0) {
+                        idStringBuilder.append(", ");
+                    }
+                    idStringBuilder.append(c.getString(0));
+                    c.moveToNext();
+                }
+                c.close();
+            } else {
+
+                Cursor d = db.rawQuery("Select _id FROM (Select _id,Common,( CASE WHEN SUBSTR(Definition,0,LENGTH(Definition)*(.7)) like ? then 1 Else 2 END) as [Pos] from Edict Where REPLACE(REPLACE(REPLACE(Definition,\")\",\" \"),\"(\",\" \"),\",\",\" \") like ?) as [Search] LEFT JOIN (SELECT Edict_id,Count(Edict_id) as [Count] From ExampleSentXRef Group by Edict_id) as [Sentence_Count] ON  [Search]._id = Sentence_Count.Edict_id Order by Common asc, [Pos] asc,[Count] desc LIMIT 25",new String[]{'%' + query + '%','%' + query + '%'});
+                if(BuildConfig.DEBUG){Log.d(TAG,"Looking for secondary definition matches on: " + query);}
+                if(d.getCount()>0) {
+                    d.moveToFirst();
+                    while(!d.isAfterLast()){
+                        if(BuildConfig.DEBUG){Log.d(TAG, "RESULT FOUND for " + query + ": " + d.getString(0));}
+                        if (idStringBuilder.length() > 0) {
+                            idStringBuilder.append(", ");
+                        }
+                        idStringBuilder.append(d.getString(0));
+                        d.moveToNext();
+                    }
+
+                }
+                d.close();
+            }
+        }  catch (SQLiteException e) {
+            Log.e(TAG,"getWordIdsForDefinitionMatch sqlite exception: " + e);
+        }  catch (NullPointerException e) {
+            Log.e(TAG,"getWordIdsForDefinitionMatch something was null: " + e);
+        } finally {
+            db.close();
+        }
+//        /** First, search for katakana & hiragana ONLY words */
+//        if(possibleKatakanaSearchQueries.size()>0) {
+//            for(String possibleKatakanaQuery : possibleKatakanaSearchQueries){
+//
+//                Cursor c = db.rawQuery("Select _id from Edict Where Furigana is null and [Kanji] like ? Order by Common Limit 15", new String[]{'%' + possibleKatakanaQuery + '%'});
+//                if(BuildConfig.DEBUG){Log.d(TAG,"Looking for ONLY hiragana/katakana query: " + possibleKatakanaQuery);}
+//                if(c.getCount()>0) {
+//                    c.moveToFirst();
+//                    while(!c.isAfterLast()){
+//                        if(BuildConfig.DEBUG){Log.d(TAG,"RESULT FOUND for " + possibleKatakanaQuery + ": " + c.getString(0));}
+//                        if (idStringBuilder.length() > 0) {
+//                            idStringBuilder.append(", ");
+//                        }
+//                        idStringBuilder.append(c.getString(0));
+//                        c.moveToNext();
+//                    }
+//
+//                }
+//                c.close();
+//
+//
+//            }
+//
+//        }
+
+//        /** Next, search for Kanji by matching their furigana */
+//        if(possibleHiraganaSearchQueries.size()>0) {
+//            for(String possibleHiraganaQuery : possibleHiraganaSearchQueries){
+//
+//                Cursor c = db.rawQuery("Select _id from Edict Where Furigana is not null and [Furigana] like ? Order by Common Limit 20", new String[]{'%' + possibleHiraganaQuery + '%'});
+//                if(BuildConfig.DEBUG){Log.d(TAG,"Looking for Kanji matches on furigana: " + possibleHiraganaSearchQueries.get(a));}
+//                if(c.getCount()>0) {
+//                    c.moveToFirst();
+//                    while(!c.isAfterLast()){
+//                        if(BuildConfig.DEBUG){Log.d(TAG, "RESULT FOUND for " + possibleHiraganaQuery  + ": " + c.getString(0));}
+//                        if (idStringBuilder.length() > 0) {
+//                            idStringBuilder.append(", ");
+//                        }
+//                        idStringBuilder.append(c.getString(0));
+//                        c.moveToNext();
+//                    }
+//
+//                }
+//                c.close();
+//
+//
+//            }
+//
+//        }
+
+        return idStringBuilder.toString();
+    }
 }

@@ -493,7 +493,7 @@ public class TweetBreakDownFragment extends Fragment {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        outState.putStringArrayList("mActiveTweetFavoriteStars", mActiveTweetFavoriteStars);
+//        outState.putStringArrayList("mActiveTweetFavoriteStars", mActiveTweetFavoriteStars);
         outState.putBoolean("mSavedTweet", mSavedTweet);
         outState.putParcelableArrayList("mDisectedTweet", mDisectedTweet);
         outState.putParcelable("mTweet", mTweet);

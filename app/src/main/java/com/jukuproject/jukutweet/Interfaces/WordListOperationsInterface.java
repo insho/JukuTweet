@@ -41,5 +41,14 @@ public interface WordListOperationsInterface {
             ,ColorThresholds colorThresholds
             ,int totalCountLimit
             ,double topbottomThreshold);
+
+    ArrayList<WordEntry> getSearchWordEntriesForRomaji(String hiraganaKatakanaPlaceholders
+    ,String wordIds);
+
+    ArrayList<WordEntry> getSearchWordEntriesForDefinition(String wordIds);
+
+    String getWordIdsForRomajiMatches(ArrayList<String> possibleHiraganaSearchQueries
+            ,ArrayList<String> possibleKatakanaSearchQueries);
+    String getWordIdsForDefinitionMatch(String query);
 //    void supertest(ColorThresholds colorThresholds, MyListEntry myListEntry);
 }
