@@ -26,4 +26,5 @@ public interface FragmentInteractionListener {
 
     void runDictionarySearch(String query, boolean isRomaji);
     void runTwitterSearch(String query);
+    void showAddUserCheckDialog(UserInfo userInfo);
 }

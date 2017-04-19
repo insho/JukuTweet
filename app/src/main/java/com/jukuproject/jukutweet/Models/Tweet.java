@@ -67,6 +67,9 @@ public class Tweet  implements Parcelable {
 
 
     public ItemFavorites getItemFavorites() {
+        if(itemFavorites ==null) {
+            return new ItemFavorites();
+        }
         return itemFavorites;
     }
 

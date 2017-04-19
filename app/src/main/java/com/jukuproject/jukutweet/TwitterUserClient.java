@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.jukuproject.jukutweet.Models.SearchTweetsContainer;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.UserFollowersListContainer;
 import com.jukuproject.jukutweet.Models.UserInfo;
@@ -82,6 +83,13 @@ public class TwitterUserClient {
 
     public Observable<UserFollowersListContainer> getFriendsUserInfo(@NonNull String username,Long cursor, int limit) {
         return twitterService.getFriendsUserInfo(username,cursor,limit,false,false);
+    }
+
+    public Observable<SearchTweetsContainer> getSearchTweets(String query, String languageCode, int limit) {
+
+
+
+        return twitterService.getSearchTweets(query, languageCode,limit);
     }
 
 }

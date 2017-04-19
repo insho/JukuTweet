@@ -12,11 +12,60 @@
         android:id="@+id/searchtoplayout"
         android:layout_marginBottom="4dp">
 
+        <TextView
+            android:layout_gravity="start|center_vertical"
+            android:text="Search: "
+            android:textSize="19sp"
+            android:textColor="@android:color/black"
+            android:clickable="false"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            />
+
+
         <android.support.v7.widget.AppCompatCheckBox
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_marginStart="10dp"
             android:layout_marginLeft="10dp"
+            android:text="@string/search_dictionary"
+            android:textColorHighlight="@android:color/transparent"
+            android:id="@+id/checkBoxDictionary"
+            android:textSize="19sp"
+            android:layout_gravity="start"
+            />
+
+        <android.support.v7.widget.AppCompatCheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginStart="15dp"
+            android:text="@string/search_twitter"
+
+            android:layout_marginLeft="15dp"
+            android:textSize="19sp"
+            android:textColorHighlight="@android:color/transparent"
+            android:id="@+id/checkBoxTwitter"
+            android:layout_gravity="start"
+            />
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal" android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/searchOnOptionLayout"
+        android:layout_marginBottom="4dp">
+
+
+        <android.support.v7.widget.AppCompatCheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginStart="10dp"
+            android:layout_marginLeft="10dp"
+            android:textColorHighlight="@android:color/transparent"
+            android:text="@string/search_romaji"
+
             android:id="@+id/checkBoxRomaji"
             android:textSize="19sp"
             android:layout_gravity="start"
@@ -25,20 +74,13 @@
         <android.support.v7.widget.AppCompatCheckBox
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
+            android:textColorHighlight="@android:color/transparent"
+            android:text="@string/search_definition"
+
             android:layout_marginLeft="15dp"
             android:layout_marginStart="15dp"
             android:textSize="19sp"
             android:id="@+id/checkBoxDefinition"
-            android:layout_gravity="start"
-            />
-
-        <android.support.v7.widget.AppCompatCheckBox
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_marginStart="15dp"
-            android:layout_marginLeft="15dp"
-            android:textSize="19sp"
-            android:id="@+id/checkBoxTwitter"
             android:layout_gravity="start"
             />
 

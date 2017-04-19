@@ -1137,6 +1137,61 @@ public class WordOpsHelper implements WordListOperationsInterface {
         return idStringBuilder.toString();
     }
 
+    public String getWordIdsForKanjiMatch(String kanji) {
+        StringBuilder idStringBuilder = new StringBuilder();
+        SQLiteDatabase db = sqlOpener.getWritableDatabase();
+        try {
+
+
+                    Cursor c = db.rawQuery("Select _id, RankNumber, Common FROM (" +
+                            "Select _id, 1 as [RankNumber],[Common] from Edict Where [Kanji] = ? " +
+                            " UNION " +
+                            " Select _id, 2 as [RankNumber],[Common] from Edict Where [Furigana] = ? " +
+                            " UNION " +
+                            " Select _id, 3 as [RankNumber],[Common] from Edict Where [Kanji] like ? " +
+                            " OR [Kanji] like ? " +
+                            " OR [Kanji] like ? " +
+                            " OR [Furigana] like ? " +
+                            " OR [Furigana] like ? " +
+                            " OR [Furigana] like ? " +
+                            " " +
+                            ") " +
+                            "Order by RankNumber, Common Limit 20", new String[]{kanji
+                            ,kanji
+                            ,'%' + kanji + '%'
+                            ,'%' + kanji
+                            ,kanji + '%'
+                            ,'%' + kanji + '%'
+                            ,'%' + kanji
+                            ,kanji + '%'});
+//                    if(BuildConfig.DEBUG){Log.d(TAG,"Looking for Kanji matches on furigana: " + possibleHiraganaQuery);}
+                    if(c.getCount()>0) {
+                        c.moveToFirst();
+                        while(!c.isAfterLast()){
+                            if(BuildConfig.DEBUG){Log.d(TAG, "RESULT FOUND for " + kanji  + ": " + c.getString(0));}
+                            if (idStringBuilder.length() > 0) {
+                                idStringBuilder.append(", ");
+                            }
+                            idStringBuilder.append(c.getString(0));
+                            c.moveToNext();
+                        }
+
+                    }
+                    c.close();
+
+
+
+
+
+        }  catch (SQLiteException e) {
+            Log.e(TAG,"getWordIdsForKanjiMatch sqlite exception: " + e);
+        }  catch (NullPointerException e) {
+            Log.e(TAG,"getWordIdsForKanjiMatch something was null: " + e);
+        } finally {
+            db.close();
+        }
+        return idStringBuilder.toString();
+    }
 
     public String getWordIdsForDefinitionMatch(String query) {
         StringBuilder idStringBuilder = new StringBuilder();

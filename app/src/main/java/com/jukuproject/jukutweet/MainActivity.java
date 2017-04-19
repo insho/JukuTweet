@@ -47,7 +47,9 @@ import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.DialogRemoveUserInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.QuizMenuDialogInteractionListener;
+import com.jukuproject.jukutweet.Models.ItemFavorites;
 import com.jukuproject.jukutweet.Models.MyListEntry;
+import com.jukuproject.jukutweet.Models.SearchTweetsContainer;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
@@ -64,6 +66,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.Callable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
 import rx.Observable;
@@ -1315,25 +1319,160 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
     }
 
-//    @Override
-//    public void onWindowFocusChanged(boolean hasFocus) {
-//        super.onWindowFocusChanged(hasFocus);
-//    }
-
-
     public void showUserDetailFragment(UserInfo userInfo) {
-
-                                UserDetailPopupFragment userDetailFragment = UserDetailPopupFragment.newInstance(userInfo);
-
+        UserDetailPopupFragment userDetailFragment = UserDetailPopupFragment.newInstance(userInfo);
         userDetailFragment.show(getSupportFragmentManager(),"xxx");
-//        userDetailFragment.getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-
-//        userDetailFragment.getDialog().getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-    }
+    };
 
 public void runTwitterSearch(final String query) {
+    if(searchQuerySubscription !=null && !searchQuerySubscription.isUnsubscribed()) {
+        searchQuerySubscription.unsubscribe();
+    }
 
+    //If query is in romaji, convert it to a kanji and run the search on that kanji if possible
+    String kanjiQuery = query;
+    if(isRomaji(query)) {
+        ArrayList<WordEntry> conversionResults = actuallyRuntheSearch(query,true);
+        if(conversionResults != null && conversionResults.size()>0) {
+            kanjiQuery = conversionResults.get(0).getKanji();
+        }
+
+    };
+
+
+
+    String token = getResources().getString(R.string.access_token);
+    String tokenSecret = getResources().getString(R.string.access_token_secret);
+
+    searchQuerySubscription = TwitterUserClient.getInstance(token,tokenSecret)
+            .getSearchTweets(kanjiQuery,"ja",25)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(new Observer<SearchTweetsContainer>() {
+
+                ArrayList<Tweet> mDataSet = new ArrayList<>();
+
+                @Override public void onCompleted() {
+                    if(BuildConfig.DEBUG){Log.d(TAG, "runTwitterSearch In onCompleted()");}
+
+                    try {
+                        //Compile a string concatenation of all user ids in the set of tweets
+                        StringBuilder stringBuilder = new StringBuilder();
+                        for(Tweet tweet : mDataSet) {
+                            if(stringBuilder.length()>0) {
+                                stringBuilder.append(",");
+
+                            }
+                            stringBuilder.append(tweet.getUser().getUserId());
+                        }
+
+                        //Pull a list of favorited tweets for those user ids (if any exist)
+                        if(stringBuilder.length()>0) {
+                            HashMap<String,ItemFavorites> tweetIdStringsInFavorites = InternalDB.getTweetInterfaceInstance(getBaseContext()).getStarFavoriteDataForAUsersTweets(stringBuilder.toString());
+
+                            if(tweetIdStringsInFavorites.size()>0) {
+                                for(Tweet tweet : mDataSet) {
+
+                                    //Attach colorfavorites to tweet, if they exists in db
+                                    if(tweet.getIdString()!=null && tweetIdStringsInFavorites.keySet().contains(tweet.getIdString())) {
+                                        tweet.setItemFavorites(tweetIdStringsInFavorites.get(tweet.getIdString()));
+                                    } else {
+                                        tweet.setItemFavorites(new ItemFavorites());
+                                    }
+
+                                }
+                            }
+                        }
+
+                    } catch (Exception e){
+                        Log.e(TAG,"Adding favorite information to tweets exception: " + e.toString());
+                    }
+
+
+                    if(findFragmentByPosition(3) != null) {
+                        try {
+
+                            ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment")).recieveTwitterSearchResults(mDataSet);
+
+                        } catch (NullPointerException e) {
+                            Log.e(TAG,"runTwitterSearch onsuccess error updating SearchFragment, null: " + e.toString());
+                        } catch (Exception e) {
+                            Log.e(TAG,"runTwitterSearch onsuccess error updating SearchFragment, generic exception: " + e.toString());
+
+                        }
+                    }
+
+                }
+
+                @Override public void onError(Throwable e) {
+                    e.printStackTrace();
+                    if(BuildConfig.DEBUG){Log.d(TAG, "runTwitterSearch In onError()");}
+                }
+
+                @Override public void onNext(SearchTweetsContainer results) {
+                    if(BuildConfig.DEBUG) {
+                        Log.d(TAG, "runTwitterSearch In onNext()");
+//                        Log.d(TAG," tweet search results SIZE: " + results.size());
+                    }
+                    if(mDataSet.size() == 0) {
+                        try{
+                            mDataSet.addAll(results.getTweets());
+                        } catch (Exception e){
+                            Log.e(TAG,"exception in runTwitterSearch get tweets");
+                        }
+//
+                    }
+
+                }
+            });
+
+//    searchQuerySubscription = Observable.fromCallable(new Callable<List<Tweet>>() {
+//        @Override
+//        public List<Tweet> call() throws Exception {
+//
+//            return actuallyRuntheSearch(query.trim(),isRomaji);
+//        }
+//    }).subscribeOn(Schedulers.io())
+//            .observeOn(AndroidSchedulers.mainThread())
+//            .subscribe(new Subscriber<List<Tweet>>() {
+//                List<Tweet> searchResults = new ArrayList<Tweet>();
+//                @Override
+//                public void onCompleted() {
+//                    if(findFragmentByPosition(3) != null) {
+//                        try {
+//
+//                            ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment")).recieveTwitterSearchResults(searchResults);
+//
+//                        } catch (NullPointerException e) {
+//                            Log.e(TAG,"runTwitterSearch onsuccess error updating SearchFragment, null: " + e.toString());
+//                        } catch (Exception e) {
+//                            Log.e(TAG,"runTwitterSearch onsuccess error updating SearchFragment, generic exception: " + e.toString());
+//
+//                        }
+//                    }
+//                }
+//
+//                @Override
+//                public void onError(Throwable e) {
+//                    Log.e(TAG,"IN ON ERROR OF searchQuerySubscription in MAIN ACTIVITY");
+//
+//                    try {
+//                        ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment")).RessBar(false);
+//                    } catch (Exception ee) {
+//                        Log.e(TAG,"runTwitterSearch in MAIN A inerror error hiding progress bar! generic exception: " + e.toString());
+//
+//                    }
+//                }
+//
+//                @Override
+//                public void onNext(List<Tweet> wordEntries) {
+//                    searchResults = wordEntries;
+//                }
+//            });
 }
+
+
+
     public void runDictionarySearch(final String query, final boolean isRomaji) {
 
         if(searchQuerySubscription !=null && !searchQuerySubscription.isUnsubscribed()) {
@@ -1427,225 +1566,239 @@ public void runTwitterSearch(final String query) {
 //        return new ArrayList<>();
 //    }
 
+    public boolean isRomaji(String query) {
+        Pattern ps = Pattern.compile("^[a-zA-Z0-9 ]+$");
+        Matcher ms = ps.matcher(query.trim());
+//        boolean okquery = ms.matches();
+        return ms.matches();
+    }
 
+    public ArrayList<WordEntry> actuallyRuntheSearch(String query, boolean isKanji) {
 
-    public ArrayList<WordEntry> actuallyRuntheSearch(String query, boolean isRomaji) {
-
-        StringBuilder FinalHiraganaKatakanaEntries = new StringBuilder();
-        StringBuilder FinalHiraganaKatakanaPlaceHolders = new StringBuilder();
-        ArrayList<String> possibleHiraganaSearchQueries = new ArrayList<>();
-        ArrayList<String> possibleKatakanaSearchQueries = new ArrayList<>();
-
-        final HashMap<String,ArrayList<String>> romajiSearchMap = InternalDB.getInstance(getBaseContext()).getWordLists().getRomajiMap();
 
         ArrayList<WordEntry> searchResults = new ArrayList<>();
+        String idstopasson;
+        StringBuilder FinalHiraganaKatakanaPlaceHolders = new StringBuilder();
+            /* If the Query is ROMAJI */
+        if(isKanji && isRomaji(query)) {
 
-        /***
-         *
-         * First convert the query from Romaji --> Furigana and Katakana
-         *
-         * **/
+            StringBuilder FinalHiraganaKatakanaEntries = new StringBuilder();
+
+            ArrayList<String> possibleHiraganaSearchQueries = new ArrayList<>();
+            ArrayList<String> possibleKatakanaSearchQueries = new ArrayList<>();
 
 
-        if(isRomaji && !query.contains(" ") && query.length()>0) {
-            /** Only search definition */
+            final HashMap<String,ArrayList<String>> romajiSearchMap = InternalDB.getInstance(getBaseContext()).getWordLists().getRomajiMap();
 
-            int startposition = 0;
-            int iterator = 3;
-            if(query.length()<iterator){
-                iterator = 2;
-            }
-            boolean foundone = false;
-            FinalHiraganaKatakanaEntries = new StringBuilder();
-            FinalHiraganaKatakanaPlaceHolders = new StringBuilder();
+            /***
+             *
+             * First convert the query from Romaji --> Furigana and Katakana
+             *
+             * **/
 
-            while(query.length()>=(startposition+ iterator) && query.length()-startposition >0) {
+            if(isKanji && !query.contains(" ") && query.length()>0) {
+                /** Only search definition */
 
-                while(iterator>0 && !foundone) {
-                    String querychunk = query.substring(startposition,(startposition+iterator)).toLowerCase();
-                    if(debug){Log.d(TAG,"QUERYCHUNK: " + querychunk);}
+                int startposition = 0;
+                int iterator = 3;
+                if(query.length()<iterator){
+                    iterator = 2;
+                }
+                boolean foundone = false;
+                FinalHiraganaKatakanaEntries = new StringBuilder();
+                FinalHiraganaKatakanaPlaceHolders = new StringBuilder();
+
+                while(query.length()>=(startposition+ iterator) && query.length()-startposition >0) {
+
+                    while(iterator>0 && !foundone) {
+                        String querychunk = query.substring(startposition,(startposition+iterator)).toLowerCase();
+                        if(debug){Log.d(TAG,"QUERYCHUNK: " + querychunk);}
 
                     /*If it's a 3 char double like: ppu --> っぷ , throw in the っ character, unless it's a "nn"*/
-                    if(iterator==2 && String.valueOf(querychunk.charAt(0)).equals(String.valueOf(querychunk.charAt(1))) && !String.valueOf(querychunk.charAt(0)).equals("n")) {
+                        if(iterator==2 && String.valueOf(querychunk.charAt(0)).equals(String.valueOf(querychunk.charAt(1))) && !String.valueOf(querychunk.charAt(0)).equals("n")) {
 
-                        //an even number, meaning its a hiragana
-                        StringBuilder matchBuilder = new StringBuilder();
-                        ArrayList<String> newPossibleHiraganaSearchQueries = new ArrayList<String>();
-                        if(possibleHiraganaSearchQueries.size()>0){
-                            for(int ii=0;ii<possibleHiraganaSearchQueries.size();ii++){
-                                matchBuilder.append(possibleHiraganaSearchQueries.get(ii));
-                                matchBuilder.append("っ");
-                                newPossibleHiraganaSearchQueries.add(matchBuilder.toString());
-                                if(debug){Log.d(TAG,"(1)Appending hiragana chunk: " + possibleHiraganaSearchQueries.get(ii) + " + " + matchBuilder.toString());}
-                                matchBuilder.setLength(0);
-                            }
-                            possibleHiraganaSearchQueries = new ArrayList<String>(newPossibleHiraganaSearchQueries);
-
-                        } else{
-                            if(debug){Log.d(TAG,"Adding first hiragana chunk: " + "っ");}
-                            possibleHiraganaSearchQueries.add("っ");
-                        }
-
-                        //an odd number, meaning its a Katakana
-                        StringBuilder matchBuilder2 = new StringBuilder();
-                        ArrayList<String> newPossibleKatakanaSearchQueries = new ArrayList<String>();
-                        if(possibleKatakanaSearchQueries.size()>0){
-                            for(int ii=0;ii<possibleKatakanaSearchQueries.size();ii++){
-                                matchBuilder2.append(possibleKatakanaSearchQueries.get(ii));
-                                matchBuilder2.append("ッ");
-                                newPossibleKatakanaSearchQueries.add(matchBuilder2.toString());
-                                if(debug){Log.d(TAG,"(1)Appending katakana chunk: " + possibleKatakanaSearchQueries.get(ii) + " + " + matchBuilder2.toString());}
-                                matchBuilder2.setLength(0);
-                            }
-                            possibleKatakanaSearchQueries = new ArrayList<String>(newPossibleKatakanaSearchQueries);
-
-                        } else{
-                            if(debug){Log.d(TAG,"Adding first katakana chunk: ッ");}
-                            possibleKatakanaSearchQueries.add("ッ");
-                        }
-
-
-                        iterator -= 1;
-                        foundone = true;
-                    } else {
-
-                        if(romajiSearchMap.containsKey(querychunk)){
-                            foundone = true;
-                            ArrayList<String> furiganaoptions = romajiSearchMap.get(querychunk);
-                            for(int i=0;i<furiganaoptions.size();i++){
-                                String currentFuriganaOption = furiganaoptions.get(i);
-                                if(debug){Log.d(TAG,"Current Furigana Option: " + currentFuriganaOption);}
-                                if((i%2)==0){
-                                    //an even number, meaning its a hiragana
-                                    StringBuilder matchBuilder = new StringBuilder();
-                                    ArrayList<String> newPossibleHiraganaSearchQueries = new ArrayList<String>();
-                                    if(possibleHiraganaSearchQueries.size()>0){
-                                        for(int ii=0;ii<possibleHiraganaSearchQueries.size();ii++){
-                                            matchBuilder.append(possibleHiraganaSearchQueries.get(ii));
-                                            matchBuilder.append(currentFuriganaOption);
-                                            newPossibleHiraganaSearchQueries.add(matchBuilder.toString());
-                                            if(debug){Log.d(TAG,"Appending hiragana chunk: " + possibleHiraganaSearchQueries.get(ii) + " + " + matchBuilder.toString());}
-                                            matchBuilder.setLength(0);
-                                        }
-                                        possibleHiraganaSearchQueries = new ArrayList<String>(newPossibleHiraganaSearchQueries);
-
-                                    } else{
-                                        if(debug){Log.d(TAG,"Adding first hiragana chunk: " + currentFuriganaOption);}
-                                        possibleHiraganaSearchQueries.add(currentFuriganaOption);
-                                    }
-
-                                } else {
-                                    //an odd number, meaning its a Katakana
-                                    StringBuilder matchBuilder = new StringBuilder();
-                                    ArrayList<String> newPossibleKatakanaSearchQueries = new ArrayList<String>();
-                                    if(possibleKatakanaSearchQueries.size()>0){
-                                        for(int ii=0;ii<possibleKatakanaSearchQueries.size();ii++){
-                                            matchBuilder.append(possibleKatakanaSearchQueries.get(ii));
-                                            matchBuilder.append(currentFuriganaOption);
-                                            newPossibleKatakanaSearchQueries.add(matchBuilder.toString());
-                                            if(debug){Log.d(TAG, "Appending katakana chunk: " + possibleKatakanaSearchQueries.get(ii) + " + " + matchBuilder.toString());}
-
-                                            if (FinalHiraganaKatakanaEntries.length() > 0) {
-                                                FinalHiraganaKatakanaEntries.append(",");
-                                            }
-                                            FinalHiraganaKatakanaEntries.append(matchBuilder.toString());
-
-                                            if (FinalHiraganaKatakanaPlaceHolders.length() > 0) {
-                                                FinalHiraganaKatakanaPlaceHolders.append(", ");
-                                            }
-                                            FinalHiraganaKatakanaPlaceHolders.append("?");
-
-                                            matchBuilder.setLength(0);
-                                        }
-                                        possibleKatakanaSearchQueries = new ArrayList<String>(newPossibleKatakanaSearchQueries);
-
-                                    } else{
-                                        if(debug){Log.d(TAG,"Adding first katakana chunk: " + currentFuriganaOption);}
-                                        possibleKatakanaSearchQueries.add(currentFuriganaOption);
-                                    }
-
+                            //an even number, meaning its a hiragana
+                            StringBuilder matchBuilder = new StringBuilder();
+                            ArrayList<String> newPossibleHiraganaSearchQueries = new ArrayList<String>();
+                            if(possibleHiraganaSearchQueries.size()>0){
+                                for(int ii=0;ii<possibleHiraganaSearchQueries.size();ii++){
+                                    matchBuilder.append(possibleHiraganaSearchQueries.get(ii));
+                                    matchBuilder.append("っ");
+                                    newPossibleHiraganaSearchQueries.add(matchBuilder.toString());
+                                    if(debug){Log.d(TAG,"(1)Appending hiragana chunk: " + possibleHiraganaSearchQueries.get(ii) + " + " + matchBuilder.toString());}
+                                    matchBuilder.setLength(0);
                                 }
+                                possibleHiraganaSearchQueries = new ArrayList<String>(newPossibleHiraganaSearchQueries);
+
+                            } else{
+                                if(debug){Log.d(TAG,"Adding first hiragana chunk: " + "っ");}
+                                possibleHiraganaSearchQueries.add("っ");
                             }
 
-                        } else {
-                            if(debug){Log.d(TAG,"iterator subtract (1)");}
+                            //an odd number, meaning its a Katakana
+                            StringBuilder matchBuilder2 = new StringBuilder();
+                            ArrayList<String> newPossibleKatakanaSearchQueries = new ArrayList<String>();
+                            if(possibleKatakanaSearchQueries.size()>0){
+                                for(int ii=0;ii<possibleKatakanaSearchQueries.size();ii++){
+                                    matchBuilder2.append(possibleKatakanaSearchQueries.get(ii));
+                                    matchBuilder2.append("ッ");
+                                    newPossibleKatakanaSearchQueries.add(matchBuilder2.toString());
+                                    if(debug){Log.d(TAG,"(1)Appending katakana chunk: " + possibleKatakanaSearchQueries.get(ii) + " + " + matchBuilder2.toString());}
+                                    matchBuilder2.setLength(0);
+                                }
+                                possibleKatakanaSearchQueries = new ArrayList<String>(newPossibleKatakanaSearchQueries);
+
+                            } else{
+                                if(debug){Log.d(TAG,"Adding first katakana chunk: ッ");}
+                                possibleKatakanaSearchQueries.add("ッ");
+                            }
+
+
                             iterator -= 1;
+                            foundone = true;
+                        } else {
+
+                            if(romajiSearchMap.containsKey(querychunk)){
+                                foundone = true;
+                                ArrayList<String> furiganaoptions = romajiSearchMap.get(querychunk);
+                                for(int i=0;i<furiganaoptions.size();i++){
+                                    String currentFuriganaOption = furiganaoptions.get(i);
+                                    if(debug){Log.d(TAG,"Current Furigana Option: " + currentFuriganaOption);}
+                                    if((i%2)==0){
+                                        //an even number, meaning its a hiragana
+                                        StringBuilder matchBuilder = new StringBuilder();
+                                        ArrayList<String> newPossibleHiraganaSearchQueries = new ArrayList<String>();
+                                        if(possibleHiraganaSearchQueries.size()>0){
+                                            for(int ii=0;ii<possibleHiraganaSearchQueries.size();ii++){
+                                                matchBuilder.append(possibleHiraganaSearchQueries.get(ii));
+                                                matchBuilder.append(currentFuriganaOption);
+                                                newPossibleHiraganaSearchQueries.add(matchBuilder.toString());
+                                                if(debug){Log.d(TAG,"Appending hiragana chunk: " + possibleHiraganaSearchQueries.get(ii) + " + " + matchBuilder.toString());}
+                                                matchBuilder.setLength(0);
+                                            }
+                                            possibleHiraganaSearchQueries = new ArrayList<String>(newPossibleHiraganaSearchQueries);
+
+                                        } else{
+                                            if(debug){Log.d(TAG,"Adding first hiragana chunk: " + currentFuriganaOption);}
+                                            possibleHiraganaSearchQueries.add(currentFuriganaOption);
+                                        }
+
+                                    } else {
+                                        //an odd number, meaning its a Katakana
+                                        StringBuilder matchBuilder = new StringBuilder();
+                                        ArrayList<String> newPossibleKatakanaSearchQueries = new ArrayList<String>();
+                                        if(possibleKatakanaSearchQueries.size()>0){
+                                            for(int ii=0;ii<possibleKatakanaSearchQueries.size();ii++){
+                                                matchBuilder.append(possibleKatakanaSearchQueries.get(ii));
+                                                matchBuilder.append(currentFuriganaOption);
+                                                newPossibleKatakanaSearchQueries.add(matchBuilder.toString());
+                                                if(debug){Log.d(TAG, "Appending katakana chunk: " + possibleKatakanaSearchQueries.get(ii) + " + " + matchBuilder.toString());}
+
+                                                if (FinalHiraganaKatakanaEntries.length() > 0) {
+                                                    FinalHiraganaKatakanaEntries.append(",");
+                                                }
+                                                FinalHiraganaKatakanaEntries.append(matchBuilder.toString());
+
+                                                if (FinalHiraganaKatakanaPlaceHolders.length() > 0) {
+                                                    FinalHiraganaKatakanaPlaceHolders.append(", ");
+                                                }
+                                                FinalHiraganaKatakanaPlaceHolders.append("?");
+
+                                                matchBuilder.setLength(0);
+                                            }
+                                            possibleKatakanaSearchQueries = new ArrayList<String>(newPossibleKatakanaSearchQueries);
+
+                                        } else{
+                                            if(debug){Log.d(TAG,"Adding first katakana chunk: " + currentFuriganaOption);}
+                                            possibleKatakanaSearchQueries.add(currentFuriganaOption);
+                                        }
+
+                                    }
+                                }
+
+                            } else {
+                                if(debug){Log.d(TAG,"iterator subtract (1)");}
+                                iterator -= 1;
+
+                            }
 
                         }
 
                     }
 
-                }
 
+                    if(!foundone) {
+                        if(debug){Log.d(TAG,"nothing found, moving 3 char ahead");}
+                        iterator = 3;
+                        startposition = (startposition + 3);
 
-                if(!foundone) {
-                    if(debug){Log.d(TAG,"nothing found, moving 3 char ahead");}
-                    iterator = 3;
-                    startposition = (startposition + 3);
-
-                }else {
-                    if(debug){
-                        Log.d(TAG,"Chunk added, moving " + iterator + " chars ahead(2)");
-                        Log.d(TAG,"old start pos: " + startposition);
-                        Log.d(TAG,"new start pos: " + (startposition + iterator));
-                    }
-                    startposition = (startposition + iterator);
-                    iterator = 3;
-                    foundone = false;
-                }
-
-                while(iterator>0 && query.length()-startposition >0 && query.length()<(startposition+iterator)){
-                    iterator -=1;
-                }
-                if(debug){Log.d(TAG,"iterator at end of loop: " + iterator);}
-            }
-
-            if(debug){
-
-                if(possibleHiraganaSearchQueries.size()>0 ){
-                    for(int a = 0; a<possibleHiraganaSearchQueries.size();a++) {
-                        Log.d(TAG,"FINAL possible hiragana query: " + possibleHiraganaSearchQueries.get(a));
-                    }
-                }
-                if(possibleKatakanaSearchQueries.size()>0 ){
-                    for(int a = 0; a<possibleKatakanaSearchQueries.size();a++) {
-                        Log.d(TAG,"FINAL possible katakana query: " + possibleKatakanaSearchQueries.get(a));
+                    }else {
+                        if(debug){
+                            Log.d(TAG,"Chunk added, moving " + iterator + " chars ahead(2)");
+                            Log.d(TAG,"old start pos: " + startposition);
+                            Log.d(TAG,"new start pos: " + (startposition + iterator));
+                        }
+                        startposition = (startposition + iterator);
+                        iterator = 3;
+                        foundone = false;
                     }
 
+                    while(iterator>0 && query.length()-startposition >0 && query.length()<(startposition+iterator)){
+                        iterator -=1;
+                    }
+                    if(debug){Log.d(TAG,"iterator at end of loop: " + iterator);}
+                }
+
+                if(debug){
+
+                    if(possibleHiraganaSearchQueries.size()>0 ){
+                        for(int a = 0; a<possibleHiraganaSearchQueries.size();a++) {
+                            Log.d(TAG,"FINAL possible hiragana query: " + possibleHiraganaSearchQueries.get(a));
+                        }
+                    }
+                    if(possibleKatakanaSearchQueries.size()>0 ){
+                        for(int a = 0; a<possibleKatakanaSearchQueries.size();a++) {
+                            Log.d(TAG,"FINAL possible katakana query: " + possibleKatakanaSearchQueries.get(a));
+                        }
+
+                    }
                 }
             }
-        }
 
 
-        /**Adding hiragana entries to the katakana ones, so we can look for hiragana and katakan ones in db all at once baby*/
-        if(possibleHiraganaSearchQueries.size()>0) {
-            for(int a=0;a<possibleHiraganaSearchQueries.size();a++) {
-                possibleKatakanaSearchQueries.add(possibleHiraganaSearchQueries.get(a));
-                if (FinalHiraganaKatakanaEntries.length() > 0) {
-                    FinalHiraganaKatakanaEntries.append(",");
+            /**Adding hiragana entries to the katakana ones, so we can look for hiragana and katakan ones in db all at once baby*/
+            if(possibleHiraganaSearchQueries.size()>0) {
+                for(int a=0;a<possibleHiraganaSearchQueries.size();a++) {
+                    possibleKatakanaSearchQueries.add(possibleHiraganaSearchQueries.get(a));
+                    if (FinalHiraganaKatakanaEntries.length() > 0) {
+                        FinalHiraganaKatakanaEntries.append(",");
+                    }
+                    FinalHiraganaKatakanaEntries.append(possibleHiraganaSearchQueries.get(a));
+
+                    if (FinalHiraganaKatakanaPlaceHolders.length() > 0) {
+                        FinalHiraganaKatakanaPlaceHolders.append(", ");
+                    }
+                    FinalHiraganaKatakanaPlaceHolders.append("?");
+
                 }
-                FinalHiraganaKatakanaEntries.append(possibleHiraganaSearchQueries.get(a));
-
-                if (FinalHiraganaKatakanaPlaceHolders.length() > 0) {
-                    FinalHiraganaKatakanaPlaceHolders.append(", ");
-                }
-                FinalHiraganaKatakanaPlaceHolders.append("?");
-
             }
-        }
-
-//        boolean atleastoneisfound = false;
-//        String idstopasson = "";
-//        StringBuilder idStringBuilder = new StringBuilder();
-
-        String idstopasson;
-        if(isRomaji && !query.contains(" ")) {
-
             idstopasson = InternalDB.getWordInterfaceInstance(getBaseContext()).getWordIdsForRomajiMatches(possibleHiraganaSearchQueries,possibleKatakanaSearchQueries);
-
+        } else if(isKanji && !query.contains(" ")){
+            idstopasson = InternalDB.getWordInterfaceInstance(getBaseContext()).getWordIdsForKanjiMatch(query.trim());
         } else {
             idstopasson = InternalDB.getWordInterfaceInstance(getBaseContext()).getWordIdsForDefinitionMatch(query);
         }
+
+////        boolean atleastoneisfound = false;
+////        String idstopasson = "";
+////        StringBuilder idStringBuilder = new StringBuilder();
+//
+//
+//        if(isKanji && !query.contains(" ")) {
+//
+//        } else {
+//
+//        }
 
 
         /***
@@ -1664,7 +1817,7 @@ public void runTwitterSearch(final String query) {
 
 
 
-            if(isRomaji) {
+            if(isKanji) {
 
 
                 //TODO WHAAAAT?
@@ -1693,7 +1846,9 @@ public void runTwitterSearch(final String query) {
 
     @Override
     protected void onDestroy() {
-        searchQuerySubscription.unsubscribe();
+        if(searchQuerySubscription!=null) {
+            searchQuerySubscription.unsubscribe();
+        }
         super.onDestroy();
     }
 

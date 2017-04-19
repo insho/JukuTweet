@@ -743,9 +743,9 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             ",(CASE WHEN ([Sys] = 1  AND Name = 'Orange') then 1 else 0 end) as [Orange]" +
                             ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
                             "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
-                            " WHERE UserId = ? " +
+                            " WHERE UserId in (" + userId + ") " +
                             ") as [All]" +
-                            "Group by [_id] " , new String[]{userId});
+                            "Group by [_id] " , null);
 
             Log.d(TAG,"SAVED ENTRIES COUNT: " + c.getCount());
             if (c.moveToFirst()) {
@@ -774,6 +774,8 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 
         return  map;
     }
+
+
 
 
 

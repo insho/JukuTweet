@@ -155,7 +155,7 @@ public class UserTimeLineFragment extends Fragment {
                         @Override public void onCompleted() {
                             if(BuildConfig.DEBUG){Log.d(TAG, "In onCompleted()");}
 
-                            mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mUserInfo,mTimeLine,mActiveTweetFavoriteStars);
+                            mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mTimeLine,mActiveTweetFavoriteStars);
 
                             _rxBus.toClickObserverable()
                                     .subscribe(new Action1<Object>() {
@@ -169,6 +169,8 @@ public class UserTimeLineFragment extends Fragment {
                                                 TweetBreakDownFragment fragment = TweetBreakDownFragment.newInstanceTimeLine(tweet);
                                                 ((BaseContainerFragment)getParentFragment()).addFragment(fragment, true,"tweetbreakdown");
                                                 mCallback.showFab(false,"");
+
+
                                             }
 
                                         }
@@ -319,7 +321,7 @@ public class UserTimeLineFragment extends Fragment {
                     });
         } else {
             Log.d(TAG,"MTIMELINE WAS NULL SO MAKING THE SHIT INVISIBLE");
-            mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mUserInfo,mTimeLine,mActiveTweetFavoriteStars);
+            mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mTimeLine,mActiveTweetFavoriteStars);
             mRecyclerView.setAdapter(mAdapter);
 //            mCallback.showProgressBar(false);
         }

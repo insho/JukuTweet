@@ -50,5 +50,6 @@ public interface WordListOperationsInterface {
     String getWordIdsForRomajiMatches(ArrayList<String> possibleHiraganaSearchQueries
             ,ArrayList<String> possibleKatakanaSearchQueries);
     String getWordIdsForDefinitionMatch(String query);
+    String getWordIdsForKanjiMatch(String kanji);
 //    void supertest(ColorThresholds colorThresholds, MyListEntry myListEntry);
 }

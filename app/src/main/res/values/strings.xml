@@ -66,9 +66,10 @@
     <string name="actionicon_copy">Copy</string>
     <string name="actionicon_selectall">Select All</string>
 
-    <string name="search_romaji">Romaji</string>
+    <string name="search_romaji">日本語/Romaji</string>
     <string name="search_definition">Definition</string>
     <string name="search_twitter">Twitter</string>
+    <string name="search_dictionary">Dictionary</string>
     <string name="searchquerytoolong">Query must be 25 characters or less</string>
     <string name="searchinputtexttosearch">Input some text to search</string>
     <string name="searchchoosecriteria">Choose search criteria (Romaji or Definition)</string>

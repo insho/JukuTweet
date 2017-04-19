@@ -21,10 +21,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Adapters.TweetBreakDownAdapter;
+import com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.Tweet;
+import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
@@ -32,6 +34,8 @@ import com.jukuproject.jukutweet.SharedPrefManager;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import rx.functions.Action1;
 
 import static com.jukuproject.jukutweet.Adapters.ChooseFavoritesAdapter.setAppCompatCheckBoxColors;
 
@@ -52,6 +56,7 @@ public class SearchFragment extends Fragment {
     AppCompatCheckBox checkBoxRomaji;
     AppCompatCheckBox checkBoxDefinition;
     AppCompatCheckBox checkBoxTwitter;
+    AppCompatCheckBox checkBoxDictionary;
     SearchView searchView;
     String currentSearchText;
 
@@ -64,7 +69,7 @@ public class SearchFragment extends Fragment {
     ColorThresholds mColorThresholds;
     ArrayList<String> mActiveFavoriteStars;
     ArrayList<String> mActiveTweetFavoriteStars;
-
+    LinearLayout mDictionarySearchLayout;
     private View mDividerView;
     public SearchFragment() {}
 
@@ -80,20 +85,19 @@ public class SearchFragment extends Fragment {
     }
 
 
-
-
-
     @Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.search, container, false);
 
+        mDictionarySearchLayout = (LinearLayout) view.findViewById(R.id.searchOnOptionLayout);
         mRecyclerView = (RecyclerView) view.findViewById(R.id.search_recycler);
         progressBar = (ProgressBar) view.findViewById(R.id.progressbar);
         searchtoplayout = (LinearLayout) view.findViewById(R.id.searchtoplayout);
+        checkBoxTwitter = (AppCompatCheckBox) view.findViewById(R.id.checkBoxTwitter);
+        checkBoxDictionary = (AppCompatCheckBox) view.findViewById(R.id.checkBoxDictionary);
         checkBoxRomaji = (AppCompatCheckBox) view.findViewById(R.id.checkBoxRomaji);
         checkBoxDefinition = (AppCompatCheckBox) view.findViewById(R.id.checkBoxDefinition);
-        checkBoxTwitter = (AppCompatCheckBox) view.findViewById(R.id.checkBoxTwitter);
         searchView = (SearchView) view.findViewById(R.id.dbsearch);
         mNoLists = (TextView) view.findViewById(R.id.noresults);
         mDividerView = (View) view.findViewById(R.id.dividerview);
@@ -129,10 +133,13 @@ public class SearchFragment extends Fragment {
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        checkBoxRomaji.setText(getString(R.string.search_romaji));
-        checkBoxDefinition.setText(getString(R.string.search_definition));
-        checkBoxTwitter.setText(getString(R.string.search_twitter));
+//        checkBoxDictionary.setText(getString(R.string.search_dictionary));
+//        checkBoxTwitter.setText(getString(R.string.search_twitter));
+//        checkBoxRomaji.setText(getString(R.string.search_romaji));
+//        checkBoxDefinition.setText(getString(R.string.search_definition));
 
+
+        setAppCompatCheckBoxColors(checkBoxDictionary, ContextCompat.getColor(getContext(), android.R.color.black), ContextCompat.getColor(getContext(), android.R.color.black));
         setAppCompatCheckBoxColors(checkBoxRomaji, ContextCompat.getColor(getContext(), android.R.color.black), ContextCompat.getColor(getContext(), android.R.color.black));
         setAppCompatCheckBoxColors(checkBoxDefinition, ContextCompat.getColor(getContext(), android.R.color.black), ContextCompat.getColor(getContext(), android.R.color.black));
         setAppCompatCheckBoxColors(checkBoxTwitter, ContextCompat.getColor(getContext(), android.R.color.black), ContextCompat.getColor(getContext(), android.R.color.black));
@@ -142,17 +149,26 @@ public class SearchFragment extends Fragment {
         checkBoxTwitter.setHighlightColor(ContextCompat.getColor(getContext(), android.R.color.transparent));
 
         mCheckedOption = "Romaji";
+        mDictionarySearchLayout.setVisibility(View.VISIBLE);
+        checkBoxDictionary.setChecked(true);
         checkBoxRomaji.setChecked(true);
         checkBoxDefinition.setChecked(false);
         checkBoxTwitter.setChecked(false);
-
+        checkBoxDictionary.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    mDictionarySearchLayout.setVisibility(View.VISIBLE);
+                    checkBoxTwitter.setChecked(false);
+                }
+            }
+        });
         checkBoxRomaji.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     mCheckedOption = "Romaji";
                     checkBoxDefinition.setChecked(false);
-                    checkBoxTwitter.setChecked(false);
                 }
             }
         });
@@ -162,7 +178,6 @@ public class SearchFragment extends Fragment {
                 if (isChecked) {
                     mCheckedOption = "Definition";
                     checkBoxRomaji.setChecked(false);
-                    checkBoxTwitter.setChecked(false);
                 }
 
             }
@@ -173,8 +188,8 @@ public class SearchFragment extends Fragment {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     mCheckedOption = "Twitter";
-                    checkBoxRomaji.setChecked(false);
-                    checkBoxDefinition.setChecked(false);
+                    checkBoxDictionary.setChecked(false);
+                    mDictionarySearchLayout.setVisibility(View.GONE);
                 }
             }
         });
@@ -196,25 +211,27 @@ public class SearchFragment extends Fragment {
 
                     Pattern ps = Pattern.compile("^[a-zA-Z0-9 ]+$");
                     Matcher ms = ps.matcher(query.trim());
-                    boolean okquery = ms.matches();
-                    if (!okquery) {
-                        Toast.makeText(getContext(), getString(R.string.searchalphanumericsonly), Toast.LENGTH_LONG).show();
-                    } else {
+//                    boolean okquery = ms.matches();
+//                    if (!okquery) {
+//                        Toast.makeText(getContext(), getString(R.string.searchalphanumericsonly), Toast.LENGTH_LONG).show();
+//                    } else {
 
                         /* Run the query */
                         showRecyclerView(true);
                         showProgressBar(true);
-                        if(checkBoxRomaji.isChecked()) {
-                            mCallback.runDictionarySearch(query,true);
-                        } else if(checkBoxDefinition.isChecked()) {
-                            mCallback.runDictionarySearch(query,false);
+                        searchView.clearFocus();
+                        if(checkBoxDictionary.isChecked() && checkBoxRomaji.isChecked()) {
+                            mCallback.runDictionarySearch(query.trim(),true);
+                        } else if(checkBoxDictionary.isChecked() && checkBoxDefinition.isChecked()) {
+                            mCallback.runDictionarySearch(query.trim(),false);
                         } else if(checkBoxTwitter.isChecked()) {
                             //TODO
+                            mCallback.runTwitterSearch(query.trim());
 //                            mCallback.runTwitterSearch(query);
                         } else {
                             Toast.makeText(getContext(), "Select a search option", Toast.LENGTH_SHORT).show();
                         }
-                    }
+//                    }
 
                 }
 
@@ -285,6 +302,38 @@ public class SearchFragment extends Fragment {
                     ,mDictionaryResults
                     ,mColorThresholds
                     ,mActiveFavoriteStars);
+            mRecyclerView.setAdapter(mAdapter);
+            mRecyclerView.setVerticalScrollBarEnabled(true);
+        } else {
+            showRecyclerView(false);
+        }
+    }
+
+    public void recieveTwitterSearchResults(ArrayList<Tweet> results) {
+        showProgressBar(false);
+        if(results.size()>0) {
+            mTwitterResults = results;
+
+            UserTimeLineAdapter mAdapter = new UserTimeLineAdapter(getContext()
+                    ,_rxBus
+                    ,mTwitterResults
+                    ,mActiveTweetFavoriteStars);
+
+            _rxBus.toLongClickObserverable()
+                    .subscribe(new Action1<Object>() {
+                        @Override
+                        public void call(Object event) {
+
+//                            if(isUniqueClick(1000) && event instanceof UserInfo) {
+//                                Log.d(TAG,"LONG CLICK TO CALLBACK")
+                                UserInfo userInfo = (UserInfo) event;
+                                mCallback.showAddUserCheckDialog(userInfo);
+//                            }
+
+                        }
+
+                    });
+
             mRecyclerView.setAdapter(mAdapter);
             mRecyclerView.setVerticalScrollBarEnabled(true);
         } else {

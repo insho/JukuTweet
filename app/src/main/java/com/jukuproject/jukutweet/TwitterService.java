@@ -4,6 +4,7 @@ package com.jukuproject.jukutweet;
  * Created by JClassic on 3/20/2017.
  */
 
+import com.jukuproject.jukutweet.Models.SearchTweetsContainer;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.UserFollowersListContainer;
 import com.jukuproject.jukutweet.Models.UserInfo;
@@ -27,20 +28,24 @@ public interface TwitterService {
         @GET("statuses/user_timeline.json")
         Observable<List<Tweet>> getUserTimeline(@Query("screen_name") String screenName, @Query("count") int count);
 
-        //Initial call to pull user information and store in DB match it to UserInfo
         @GET("followers/list.json") Observable<UserFollowersListContainer> getFollowerUserInfo(@Query("screen_name") String username
                 , @Query("cursor") Long cursor
                 , @Query("limit") int limit
                 , @Query("skip_status") Boolean skipStatus
         , @Query("include_user_entities") Boolean includeEntities);
 
-        //Initial call to pull user information and store in DB match it to UserInfo
         @GET("friends/list.json") Observable<UserFollowersListContainer> getFriendsUserInfo(@Query("screen_name") String username
                 , @Query("cursor") Long cursor
                 , @Query("limit") int limit
                 , @Query("skip_status") Boolean skipStatus
                 , @Query("include_user_entities") Boolean includeEntities);
 
+        @GET("search/tweets.json") Observable<SearchTweetsContainer> getSearchTweets(@Query("q") String query
+                , @Query("lang") String languageCode
+                , @Query("count") int limit);
+
+
+//        GET https://api.twitter.com/1.1/search/tweets.json?q=%23freebandnames&since_id=24012619984051000&max_id=250126199840518145&result_type=mixed&count=4
 
 //        GET https://api.twitter.com/1.1/friends/list.json?cursor=-1&screen_name=twitterapi&skip_status=true&include_user_entities=false
 //        GET https://api.twitter.com/1.1/users/show.json?screen_name=twitterdev

@@ -23,7 +23,6 @@ import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.TweetUrl;
-import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.R;
 
 import java.util.ArrayList;
@@ -36,7 +35,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
     private static final String TAG = "TEST-timefrag";
     private RxBus _rxbus;
-    private UserInfo mUserInfo;
+//    private UserInfo mUserInfo;
     private List<Tweet> mDataset;
     private Context mContext;
     private ArrayList<String> mActiveTweetFavoriteStars;
@@ -65,11 +64,15 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
         }
     }
 
-    public UserTimeLineAdapter(Context context, RxBus rxBus, UserInfo userInfo, List<Tweet> myDataset, ArrayList<String> activeTweetFavoriteStars) {
+    public UserTimeLineAdapter(Context context
+            , RxBus rxBus
+//            , UserInfo userInfo
+            , List<Tweet> myDataset
+            , ArrayList<String> activeTweetFavoriteStars) {
         mContext = context;
         _rxbus = rxBus;
         mDataset = myDataset;
-        mUserInfo = userInfo;
+//        mUserInfo = userInfo;
         mActiveTweetFavoriteStars = activeTweetFavoriteStars;
     }
 
@@ -85,9 +88,12 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
 
+//
+//        holder.txtUserName.setText(mUserInfo.getName());
+//        holder.txtUserScreenName.setText(mUserInfo.getDisplayScreenName());
 
-        holder.txtUserName.setText(mUserInfo.getName());
-        holder.txtUserScreenName.setText(mUserInfo.getDisplayScreenName());
+        holder.txtUserName.setText(mDataset.get(holder.getAdapterPosition()).getUser().getName());
+        holder.txtUserScreenName.setText(mDataset.get(holder.getAdapterPosition()).getUser().getDisplayScreenName());
 
 
         /* Insert tweet metadata if it exists*/
@@ -113,7 +119,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                 Tweet currentTweet = mDataset.get(holder.getAdapterPosition());
                 TweetListOperationsInterface helperTweetOps = InternalDB.getTweetInterfaceInstance(mContext);
                 //Toggle favorite list association for this tweet
-                if(FavoritesColors.onFavoriteStarToggleTweet(mContext,mActiveTweetFavoriteStars,mUserInfo.getUserId(),mDataset.get(holder.getAdapterPosition()))) {
+                if(FavoritesColors.onFavoriteStarToggleTweet(mContext,mActiveTweetFavoriteStars,mDataset.get(holder.getAdapterPosition()).getUser().getUserId(),mDataset.get(holder.getAdapterPosition()))) {
                     holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars));
                     holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, FavoritesColors.assignStarColor(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars)));
 
@@ -130,7 +136,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                             Log.d(TAG,"TWEET Doesn't exist");
                             //Otherwise enter the tweet into the database and then toggle
 
-                            int addTweetResultCode = helperTweetOps.saveTweetToDB(mUserInfo,currentTweet);
+                            int addTweetResultCode = helperTweetOps.saveTweetToDB(mDataset.get(holder.getAdapterPosition()).getUser(),currentTweet);
                             Log.d(TAG,"addTweetResultCode: " + addTweetResultCode);
                             if(addTweetResultCode < 0) {
                                 //TODO handle error -- can't insert tweet
@@ -210,6 +216,18 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
             public void onClick(View v) {
                 //If it's a short click, send the tweet back to UserTimeLineFragment
                 _rxbus.send(mDataset.get(holder.getAdapterPosition()));
+            }
+        });
+
+        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                try {
+                    _rxbus.sendLongClick(mDataset.get(holder.getAdapterPosition()).getUser());
+                } catch (Exception e) {
+                    Log.e(TAG,"usertimeline adapter long click error. no user attached to tweet?");
+                }
+                return false;
             }
         });
 
