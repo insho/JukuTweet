@@ -19,7 +19,7 @@ public interface DialogInteractionListener {
     void onRenameMyListDialogPositiveClick(String listType, String oldListName, String listName);
 
     void saveAndUpdateUserInfoList(UserInfo userInfo);
-
+    void showFab(boolean show);
     void saveAndUpdateMyLists(String kanjiIdString, ArrayList<MyListEntry> listsToCopyTo, boolean move, MyListEntry currentList);
     void saveAndUpdateTweetLists(String tweetIds, ArrayList<MyListEntry> listsToCopyTo, boolean move, MyListEntry currentList);
 

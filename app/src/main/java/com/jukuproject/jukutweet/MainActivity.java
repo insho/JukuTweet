@@ -1325,7 +1325,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         userDetailFragment.show(getSupportFragmentManager(),"xxx");
     };
 
-public void runTwitterSearch(final String query) {
+ public void runTwitterSearch(final String query) {
     if(searchQuerySubscription !=null && !searchQuerySubscription.isUnsubscribed()) {
         searchQuerySubscription.unsubscribe();
     }
@@ -1480,6 +1480,7 @@ public void runTwitterSearch(final String query) {
             searchQuerySubscription.unsubscribe();
         }
 
+//        actuallyRuntheSearch(query.trim(),isRomaji);
 
         searchQuerySubscription = Observable.fromCallable(new Callable<ArrayList<WordEntry>>() {
             @Override

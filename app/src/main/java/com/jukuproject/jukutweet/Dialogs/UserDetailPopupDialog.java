@@ -111,7 +111,7 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 //        setStyle(DialogFragment.STYLE_NO_FRAME, getTheme());
-        setStyle(STYLE_NO_FRAME, android.R.style.Theme_Holo_NoActionBar_TranslucentDecor);
+        setStyle(STYLE_NO_FRAME, android.R.style.Theme_Holo_Light);
 //        getDialog().getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 //        getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         return super.onCreateDialog(savedInstanceState);
@@ -453,7 +453,6 @@ mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
             public void onAnimationEnd(Animator animator) {
 
 //                popupWindow.dismiss();
-                mCallback.onBackPressed();
                 if(BuildConfig.DEBUG){Log.d(TAG,") Blue: popupWindow.dismiss A");}
 
                 //reset the position variables
@@ -463,6 +462,8 @@ mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
                 isScrollingUp = false;
                 isScrollingDown = false;
                 dismiss();
+                mCallback.showFab(true);
+//                mCallback.onBackPressed();
             }
         });
         positionAnimator.start();
@@ -508,7 +509,9 @@ mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
                 isClosing = false;
                 isScrollingUp = false;
                 isScrollingDown = false;
-//                dismiss();
+                dismiss();
+                mCallback.showFab(true);
+//                mCallback.onBackPressed();
             }
 
         });

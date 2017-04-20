@@ -4,11 +4,12 @@ import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Point;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
@@ -25,19 +26,29 @@ import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import com.jukuproject.jukutweet.Adapters.UserListAdapter;
+import com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter;
 import com.jukuproject.jukutweet.BuildConfig;
+import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.FavoritesColors;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
+import com.jukuproject.jukutweet.Models.ColorThresholds;
+import com.jukuproject.jukutweet.Models.ItemFavorites;
+import com.jukuproject.jukutweet.Models.SearchTweetsContainer;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
+import com.jukuproject.jukutweet.TwitterUserClient;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
+import rx.Observer;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 
 /**
@@ -50,11 +61,12 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         private DialogInteractionListener mCallback;
     //    private Context mContext;
 //    private View mAnchorView;
-//    private RxBus mRxBusTweetBreak= new RxBus();
+    private RxBus mRxBus = new RxBus();
     private RecyclerView mRecyclerView;
 
     private SmoothProgressBar progressBar;
     private View divider;
+    private ArrayList<String> mActiveTweetFavoriteStars;
 
     private WordEntry mWordEntry;
     private boolean showSavedTweetsSelected;
@@ -79,17 +91,25 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
     private boolean isClosing = false;
     private boolean isScrollingUp = false;
     private boolean isScrollingDown = false;
-    private UserListAdapter mAdapter;
+    private ColorThresholds mColorThresholds;
+    private UserTimeLineAdapter mAdapter;
     private ScrollView mScrollView;
     private ImageView imgBanner;
     /* keep from constantly recieving button clicks through the RxBus */
     private long mLastClickTime = 0;
     private String mCursorString = "-1";
-
+    private Subscription searchQuerySubscription;
     private LinearLayoutManager mLayoutManager;
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setStyle(STYLE_NO_FRAME, android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
 
-    private RxBus _rxBus = new RxBus();
+    }
+
+
+    //    private RxBus _rxBus = new RxBus();
 
     public WordDetailPopupDialog() {}
 
@@ -101,13 +121,13 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         return  fragment;
     }
 
-    @NonNull
-    @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState) {
-        setStyle(STYLE_NO_FRAME, android.R.style.Theme_Translucent);
-        return super.onCreateDialog(savedInstanceState);
-
-    }
+//    @NonNull
+//    @Override
+//    public Dialog onCreateDialog(Bundle savedInstanceState) {
+//        setStyle(STYLE_NO_FRAME, android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
+//        return super.onCreateDialog(savedInstanceState);
+//
+//    }
 
 
     @Override
@@ -138,11 +158,14 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         baseLayout.setOnTouchListener(this);
+        mActiveTweetFavoriteStars = SharedPrefManager.getInstance(getContext()).getActiveTweetFavoriteStars();
+        mColorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
 
         if(savedInstanceState == null) {
             showSavedTweetsSelected = true;
             mWordEntry = getArguments().getParcelable("mWordEntry");
-            mDataSet = new ArrayList<>();
+
+            mDataSet = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsThatIncludeAWord(String.valueOf(mWordEntry.getId()),mColorThresholds);
 
         } else {
             mWordEntry = savedInstanceState.getParcelable("mWordEntry");
@@ -151,11 +174,10 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         }
 
 
+
         setButtonActive(btnShowSavedTweetsToggle,true);
         setButtonActive(btnSearchForTweetsToggle,false);
 
-        mLayoutManager = new LinearLayoutManager(getContext());
-        mRecyclerView.setLayoutManager(mLayoutManager);
 
         StringBuilder displayKanji = new StringBuilder();
         displayKanji.append(mWordEntry.getKanji());
@@ -191,6 +213,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
                     btnCollapseDefinition.setText("+");
                 } else {
                     listViewPopupDefinition.setText(mWordEntry.getDefinitionMultiLineString(20));
+                    listViewPopupDefinition.setTag(20);
                     btnCollapseDefinition.setText("-");
                 }
             }
@@ -255,36 +278,62 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         btnShowSavedTweetsToggle.setText("Saved Tweets");
         btnSearchForTweetsToggle.setText("Search Twitter");
 
-//        btnShowSavedTweetsToggle.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                setButtonActive(btnSearchForTweetsToggle,false);
-//                setButtonActive(btnShowSavedTweetsToggle,true);
-//
-//                if(!showSavedTweetsSelected) {
-//                    mDataSet = new ArrayList<Tweet>();
-//                    mCursorString = "-1";
-//                    searchForTweetsWithWord(mUserInfo,mCursorString,60,0);
-//                    showSavedTweetsSelected = true;
-//                }
-//
-//            }
-//        });
+        btnShowSavedTweetsToggle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setButtonActive(btnSearchForTweetsToggle,false);
+                setButtonActive(btnShowSavedTweetsToggle,true);
 
-//        btnSearchForTweetsToggle.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                setButtonActive(btnSearchForTweetsToggle,true);
-//                setButtonActive(btnShowSavedTweetsToggle,false);
-//                if(showSavedTweetsSelected) {
+                if(!showSavedTweetsSelected) {
 //                    mDataSet = new ArrayList<Tweet>();
-//                    mCursorString = "-1";
-//                    pullFollowerUserInfoList(mUserInfo,mCursorString,60,0);
-//                    showSavedTweetsSelected = false;
-//                }
-//            }
-//
-//        });
+                    mCursorString = "-1";
+                    showSavedTweetsSelected = true;
+                    mDataSet.clear();
+                    mDataSet.addAll(InternalDB.getTweetInterfaceInstance(getContext()).getTweetsThatIncludeAWord(String.valueOf(mWordEntry.getId()),mColorThresholds));
+                    mAdapter.notifyDataSetChanged();
+                }
+
+            }
+        });
+
+        btnSearchForTweetsToggle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setButtonActive(btnSearchForTweetsToggle,true);
+                setButtonActive(btnShowSavedTweetsToggle,false);
+                if(showSavedTweetsSelected) {
+                    showProgressBar(true);
+                    mDataSet.clear();
+                    mAdapter.notifyDataSetChanged();
+                    mCursorString = "-1";
+                    runTwitterSearch(mWordEntry.getKanji());
+                    showSavedTweetsSelected = false;
+                }
+            }
+
+        });
+
+        mLayoutManager = new LinearLayoutManager(getContext());
+        mRecyclerView.setLayoutManager(mLayoutManager);
+
+//        String coreKanjiBlock;
+//        try {
+//            Log.e(TAG,"BULLSHIT, start: " +mWordEntry.getKanji() + ": " + mWordEntry.getStartIndex() + " = " + mWordEntry.getEndIndex());
+//            coreKanjiBlock = mWordEntry.getKanji().substring(0,mWordEntry.getEndIndex()-mWordEntry.getStartIndex());
+//        } catch (Exception e) {
+//            coreKanjiBlock = mWordEntry.getKanji();
+//            Log.e(TAG,"FAILED TO SET CORE KANJI BLOCK, start: " + mWordEntry.getStartIndex() + " = " + mWordEntry.getEndIndex());
+//        }
+
+        mAdapter = new UserTimeLineAdapter(getContext(), mRxBus, mDataSet, mActiveTweetFavoriteStars,mWordEntry.getKanji());
+
+        if(mDataSet.size()==0) {
+            showRecyclerView(false);
+        } else {
+            showRecyclerView(true);
+            mRecyclerView.setAdapter(mAdapter);
+        }
+
 
 //        if(mDataSet.size() == 0) {
 //            pullFollowerUserInfoList(mUserInfo,mCursorString,60,0);
@@ -425,7 +474,9 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
                 isClosing = false;
                 isScrollingUp = false;
                 isScrollingDown = false;
-                mCallback.onBackPressed();
+//                mCallback.onBackPressed();
+                dismiss();
+//                mCallback.showFab(true);
             }
         });
         positionAnimator.start();
@@ -471,8 +522,9 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
                 isClosing = false;
                 isScrollingUp = false;
                 isScrollingDown = false;
-                mCallback.onBackPressed();
-//                dismiss();
+                dismiss();
+//                mCallback.showFab(true);
+
             }
 
         });
@@ -681,5 +733,122 @@ return linecounter;
 //        return count;
     }
 
+
+
+    public void runTwitterSearch(final String query) {
+        if(searchQuerySubscription !=null && !searchQuerySubscription.isUnsubscribed()) {
+            searchQuerySubscription.unsubscribe();
+        }
+
+        String token = getResources().getString(R.string.access_token);
+        String tokenSecret = getResources().getString(R.string.access_token_secret);
+
+        searchQuerySubscription = TwitterUserClient.getInstance(token,tokenSecret)
+                .getSearchTweets(query,"ja",25)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<SearchTweetsContainer>() {
+
+//                    ArrayList<Tweet> mDataSet = new ArrayList<>();
+
+                    @Override public void onCompleted() {
+                        if(BuildConfig.DEBUG){Log.d(TAG, "runTwitterSearch In onCompleted()");}
+                        showProgressBar(false);
+
+                        try {
+                            //Compile a string concatenation of all user ids in the set of tweets
+                            StringBuilder stringBuilder = new StringBuilder();
+                            for(Tweet tweet : mDataSet) {
+                                if(stringBuilder.length()>0) {
+                                    stringBuilder.append(",");
+
+                                }
+                                stringBuilder.append(tweet.getUser().getUserId());
+                            }
+
+                            //Pull a list of favorited tweets for those user ids (if any exist)
+                            if(stringBuilder.length()>0) {
+                                HashMap<String,ItemFavorites> tweetIdStringsInFavorites = InternalDB.getTweetInterfaceInstance(getContext()).getStarFavoriteDataForAUsersTweets(stringBuilder.toString());
+
+                                if(tweetIdStringsInFavorites.size()>0) {
+                                    for(Tweet tweet : mDataSet) {
+
+                                        //Attach colorfavorites to tweet, if they exists in db
+                                        if(tweet.getIdString()!=null && tweetIdStringsInFavorites.keySet().contains(tweet.getIdString())) {
+                                            tweet.setItemFavorites(tweetIdStringsInFavorites.get(tweet.getIdString()));
+                                        } else {
+                                            tweet.setItemFavorites(new ItemFavorites());
+                                        }
+
+                                    }
+                                }
+                            }
+
+                        } catch (Exception e){
+                            Log.e(TAG,"Adding favorite information to tweets exception: " + e.toString());
+                        }
+
+
+                       //TODO add shit to adapter and run it... and save it if necessary...
+//                        mActiveTweetFavoriteStars = SharedPrefManager.getInstance(getContext()).getActiveTweetFavoriteStars();
+//                        mAdapter = new UserTimeLineAdapter(getContext(), mRxBus, mDataSet, mActiveTweetFavoriteStars);
+//                        mRecyclerView.setAdapter(mAdapter)
+                        mAdapter.notifyDataSetChanged();
+                    }
+
+                    @Override public void onError(Throwable e) {
+                        e.printStackTrace();
+                        showProgressBar(false);
+
+                        if(BuildConfig.DEBUG){Log.d(TAG, "runTwitterSearch In onError()");}
+                    }
+
+                    @Override public void onNext(SearchTweetsContainer results) {
+                        if(BuildConfig.DEBUG) {
+                            Log.d(TAG, "runTwitterSearch In onNext()");
+//                        Log.d(TAG," tweet search results SIZE: " + results.size());
+                        }
+                        if(mDataSet.size() == 0) {
+                            try{
+                                mDataSet.addAll(results.getTweets());
+                            } catch (Exception e){
+                                Log.e(TAG,"exception in runTwitterSearch get tweets");
+                            }
+//
+                        }
+
+                    }
+                });
+
+    }
+
+    @Override
+    public void onDismiss(DialogInterface dialog) {
+        if(searchQuerySubscription!=null) {
+            searchQuerySubscription.unsubscribe();
+        }
+        super.onDismiss(dialog);
+    }
+
+    @Override
+    public void onDestroy() {
+        if(searchQuerySubscription!=null) {
+            searchQuerySubscription.unsubscribe();
+        }
+        super.onDestroy();
+    }
+
+    @Override
+    public void onStart()
+    {
+        super.onStart();
+        Dialog dialog = getDialog();
+        if (dialog != null)
+        {
+            int width = ViewGroup.LayoutParams.MATCH_PARENT;
+            int height = ViewGroup.LayoutParams.MATCH_PARENT;
+            dialog.getWindow().setLayout(width, height);
+        }
+    }
 }
 

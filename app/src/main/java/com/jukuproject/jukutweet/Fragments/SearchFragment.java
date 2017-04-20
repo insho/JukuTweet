@@ -33,8 +33,6 @@ import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
 
 import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import rx.functions.Action1;
 
@@ -121,16 +119,6 @@ public class SearchFragment extends Fragment {
         mActiveFavoriteStars = sharedPrefManager.getActiveFavoriteStars();
 
 
-
-
-
-
-
-//        checkBoxDictionary.setText(getString(R.string.search_dictionary));
-//        checkBoxTwitter.setText(getString(R.string.search_twitter));
-//        checkBoxRomaji.setText(getString(R.string.search_romaji));
-//        checkBoxDefinition.setText(getString(R.string.search_definition));
-
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
 
@@ -138,10 +126,6 @@ public class SearchFragment extends Fragment {
         setAppCompatCheckBoxColors(checkBoxRomaji, ContextCompat.getColor(getContext(), android.R.color.black), ContextCompat.getColor(getContext(), android.R.color.black));
         setAppCompatCheckBoxColors(checkBoxDefinition, ContextCompat.getColor(getContext(), android.R.color.black), ContextCompat.getColor(getContext(), android.R.color.black));
         setAppCompatCheckBoxColors(checkBoxTwitter, ContextCompat.getColor(getContext(), android.R.color.black), ContextCompat.getColor(getContext(), android.R.color.black));
-//
-//        checkBoxRomaji.setHighlightColor(ContextCompat.getColor(getContext(), android.R.color.transparent));
-//        checkBoxDefinition.setHighlightColor(ContextCompat.getColor(getContext(), android.R.color.transparent));
-//        checkBoxTwitter.setHighlightColor(ContextCompat.getColor(getContext(), android.R.color.transparent));
 
         mCheckedOption = "Romaji";
         mDictionarySearchLayout.setVisibility(View.VISIBLE);
@@ -155,7 +139,11 @@ public class SearchFragment extends Fragment {
                 if (isChecked) {
                     mDictionarySearchLayout.setVisibility(View.VISIBLE);
                     checkBoxTwitter.setChecked(false);
+                } else if(!checkBoxTwitter.isChecked()){
+                    checkBoxDictionary.setChecked(true);
                 }
+
+
             }
         });
         checkBoxRomaji.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -164,6 +152,8 @@ public class SearchFragment extends Fragment {
                 if (isChecked) {
                     mCheckedOption = "Romaji";
                     checkBoxDefinition.setChecked(false);
+                } else if(!checkBoxDefinition.isChecked()){
+                    checkBoxRomaji.setChecked(true);
                 }
             }
         });
@@ -173,6 +163,8 @@ public class SearchFragment extends Fragment {
                 if (isChecked) {
                     mCheckedOption = "Definition";
                     checkBoxRomaji.setChecked(false);
+                } else if(!checkBoxRomaji.isChecked()){
+                    checkBoxDefinition.setChecked(true);
                 }
 
             }
@@ -185,6 +177,8 @@ public class SearchFragment extends Fragment {
                     mCheckedOption = "Twitter";
                     checkBoxDictionary.setChecked(false);
                     mDictionarySearchLayout.setVisibility(View.GONE);
+                } else if(!checkBoxDictionary.isChecked()){
+                    checkBoxTwitter.setChecked(true);
                 }
             }
         });
@@ -204,8 +198,8 @@ public class SearchFragment extends Fragment {
                     Toast.makeText(getContext(), getString(R.string.searchchoosecriteria), Toast.LENGTH_LONG).show();
                 } else {
 
-                    Pattern ps = Pattern.compile("^[a-zA-Z0-9 ]+$");
-                    Matcher ms = ps.matcher(query.trim());
+//                    Pattern ps = Pattern.compile("^[a-zA-Z0-9 ]+$");
+//                    Matcher ms = ps.matcher(query.trim());
 //                    boolean okquery = ms.matches();
 //                    if (!okquery) {
 //                        Toast.makeText(getContext(), getString(R.string.searchalphanumericsonly), Toast.LENGTH_LONG).show();
@@ -250,7 +244,7 @@ public class SearchFragment extends Fragment {
         //If saved instance state is not null, run the adapter...
         if(savedInstanceState!=null) {
             try {
-                mCheckedOption = savedInstanceState.getString("mCheckedOption");
+                mCheckedOption = savedInstanceState.getString("mCheckedOption","Romaji");
                 if(mCheckedOption.equals("Twitter")) {
                     mTwitterResults = savedInstanceState.getParcelableArrayList("mTwitterResults");
                     recieveTwitterSearchResults(mTwitterResults);
@@ -324,7 +318,8 @@ public class SearchFragment extends Fragment {
             UserTimeLineAdapter mAdapter = new UserTimeLineAdapter(getContext()
                     ,_rxBus
                     ,mTwitterResults
-                    ,mActiveTweetFavoriteStars);
+                    ,mActiveTweetFavoriteStars
+            ,currentSearchText);
 
             _rxBus.toLongClickObserverable()
                     .subscribe(new Action1<Object>() {
@@ -383,14 +378,21 @@ public class SearchFragment extends Fragment {
         super.onSaveInstanceState(outState);
 
         outState.putString("mCheckedOption", mCheckedOption);
-        if(mCheckedOption.equals("Twitter")) {
+//        if(mCheckedOption.equals("Twitter")) {
             outState.putParcelableArrayList("mTwitterResults", mTwitterResults);
-        } else {
+//        } else {
             outState.putParcelableArrayList("mDictionaryResults", mDictionaryResults);
-        }
+//        }
 
 
     }
 
+    @Override
+    public void onPause() {
+        if(searchView!=null) {
+            searchView.clearFocus();
+        }
+        super.onPause();
+    }
 }
 

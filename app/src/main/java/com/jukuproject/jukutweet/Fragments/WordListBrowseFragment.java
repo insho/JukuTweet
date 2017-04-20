@@ -21,7 +21,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Adapters.BrowseMyListAdapter;
-import com.jukuproject.jukutweet.BaseContainerFragment;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.CopyMyListItemsDialog;
 import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
@@ -171,8 +170,11 @@ public class WordListBrowseFragment extends Fragment  {
                             if(isUniqueClick(1000) && event instanceof WordEntry) {
                                 WordEntry wordEntry = (WordEntry) event;
 
-                                WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(wordEntry);
-                                ((BaseContainerFragment)getParentFragment()).replaceFragment(wordDetailPopupDialog, true,"wordDetailPopup");
+                                Log.d(TAG,"SUPERX: " + wordEntry.getKanji() + " : " + wordEntry.getStartIndex());
+                                WordDetailPopupDialog.newInstance(wordEntry).show(getFragmentManager(),"wordDetailPopup");
+
+//                                WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(wordEntry);
+//                                ((BaseContainerFragment)getParentFragment()).replaceFragment(wordDetailPopupDialog, true,"wordDetailPopup");
 
                             }
 

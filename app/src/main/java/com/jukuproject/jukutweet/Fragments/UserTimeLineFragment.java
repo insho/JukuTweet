@@ -155,7 +155,7 @@ public class UserTimeLineFragment extends Fragment {
                         @Override public void onCompleted() {
                             if(BuildConfig.DEBUG){Log.d(TAG, "In onCompleted()");}
 
-                            mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mTimeLine,mActiveTweetFavoriteStars);
+                            mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mTimeLine,mActiveTweetFavoriteStars,null);
 
                             _rxBus.toClickObserverable()
                                     .subscribe(new Action1<Object>() {
@@ -321,7 +321,7 @@ public class UserTimeLineFragment extends Fragment {
                     });
         } else {
             Log.d(TAG,"MTIMELINE WAS NULL SO MAKING THE SHIT INVISIBLE");
-            mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mTimeLine,mActiveTweetFavoriteStars);
+            mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mTimeLine,mActiveTweetFavoriteStars,null);
             mRecyclerView.setAdapter(mAdapter);
 //            mCallback.showProgressBar(false);
         }

@@ -139,10 +139,10 @@ public class UserListFragment extends Fragment {
                         public void call(Object event) {
                             if(isUniqueClick(1000) && event instanceof UserInfo) {
                                 UserInfo userInfo = (UserInfo) event;
-
+                                mCallback.showFab(false);
 //                                mCallback.showAddUserCheckDialog(userInfo);
-                                UserDetailPopupDialog userDetailFragment = UserDetailPopupDialog.newInstance(userInfo);
-                                ((BaseContainerFragment)getParentFragment()).replaceFragment(userDetailFragment, true,"userDetailPopup");
+                               UserDetailPopupDialog.newInstance(userInfo).show(getFragmentManager(),"userDetailPopup");
+//                                ((BaseContainerFragment)getParentFragment()).replaceFragment(userDetailFragment, true,"userDetailPopup");
 //                                mCallback.showRemoveUserDialog(userInfo.getScreenName());
                             }
 

@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@android:color/transparent">
+<!--<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+    <!--android:orientation="vertical" android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:background="@android:color/transparent">-->
 
 <LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:id="@+id/popuptab_layout"
@@ -178,14 +179,21 @@
         <!--</GridLayout>-->
 
 
-
+<!--<LinearLayout-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_weight="1"-->
+    <!--android:orientation="vertical">-->
+    <!---->
+    <!---->
+<!--</LinearLayout>-->
 
         <GridLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/gridLayout_popup1"
             android:layout_weight="1"
-            android:columnCount="5"
+            android:columnCount="2"
             android:rowCount="2"
             android:layout_marginTop="2dp"
             android:layout_marginBottom="2dp"
@@ -198,23 +206,21 @@
                 android:gravity="center"
                 android:layout_row="0"
                 android:layout_column="0"
-
-                android:paddingLeft="4dp"
                 android:layout_marginLeft="20dp"
                 android:layout_marginStart="20dp"
                 android:text="Score: "
                 android:textColor="@android:color/black"
-                android:textSize="9pt" />
+                android:textSize="22sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="start"
-                android:layout_column="1"
                 android:layout_row="0"
+                android:layout_column="1"
                 android:id="@+id/textViewPopupScore"
                 android:textColor="@android:color/black"
-                android:textSize="9pt" />
+                android:textSize="22sp" />
 
 
             <TextView
@@ -225,7 +231,7 @@
                 android:layout_column="1"
                 android:id="@+id/textViewPopupPercentage"
                 android:textColor="@android:color/black"
-                android:textSize="9pt" />
+                android:textSize="22sp" />
 
 
         </GridLayout>
@@ -263,7 +269,6 @@
 
     <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_marginTop="10dp"
         android:layout_height="wrap_content">
 
         <LinearLayout
@@ -329,11 +334,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:indeterminate="true"
-            android:visibility="invisible"
+            android:visibility="gone"
             app:spb_sections_count="6"
-            app:spb_color="#FF0000"
+            app:spb_color="#000000"
             app:spb_speed="2.0"
-            app:spb_stroke_width="2dp"
+            app:spb_stroke_width="1.5dp"
             app:spb_stroke_separator_length="4dp"
             app:spb_reversed="false"
             app:spb_mirror_mode="false"
@@ -360,11 +365,11 @@
         android:layout_height="wrap_content"
         android:minHeight="30dp"
         android:layout_marginTop="4dp"
-        android:text="@string/nousers"
+        android:text="@string/notweets"
         android:clickable="false"
         android:textStyle="italic"
         android:visibility="gone"
         android:textSize="18sp" />
 
 </LinearLayout>
-</LinearLayout>
+<!--</LinearLayout>-->

@@ -391,7 +391,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
         if(resultLimit == null) {
             limit = "";
         } else {
-            limit = "LIMIT " + String.valueOf(resultLimit);
+            limit = "ORDER BY RANDOM() LIMIT " + String.valueOf(resultLimit);
         }
 
         ArrayList<WordEntry> wordEntries = new ArrayList<>();
@@ -492,7 +492,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
 
                             ") " +
                             "WHERE [Color] in (" +  colorString + ") "  +
-                            " ORDER BY RANDOM() " + limit + " "
+                            " " + limit + " "
                     , new String[]{String.valueOf(myListEntry.getListsSys()),myListEntry.getListName(),idToExclude,String.valueOf(myListEntry.getListsSys()),myListEntry.getListName(),idToExclude});
 
 
@@ -518,6 +518,8 @@ public class WordOpsHelper implements WordListOperationsInterface {
                             ,c.getInt(11)
                             ,c.getInt(12)
                             ,c.getInt(13)));
+
+
 
                     c.moveToNext();
                 }
@@ -1247,7 +1249,17 @@ public class WordOpsHelper implements WordListOperationsInterface {
         SQLiteDatabase db = sqlOpener.getWritableDatabase();
         try {
             /** Lastly, search for the definition*/
-            Cursor c = db.rawQuery("Select _id FROM (Select _id,Common,( CASE WHEN SUBSTR(Definition,0,LENGTH(Definition)*(.7)) like ? then 1 Else 2 END) as [Pos] from Edict Where REPLACE(REPLACE(REPLACE(Definition,\")\",\" \"),\"(\",\" \"),\",\",\" \") like ?) as [Search] LEFT JOIN (SELECT Edict_id,Count(Edict_id) as [Count] From ExampleSentXRef Group by Edict_id) as [Sentence_Count] ON  [Search]._id = Sentence_Count.Edict_id Order by Common asc, [Pos] asc,[Count] desc LIMIT 25",new String[]{'%' + query + '%','%' + " " + query + " " + '%'});
+            Cursor c = db.rawQuery("Select _id " +
+                    "FROM " +
+                    "(" +
+                    "Select _id" +
+                    ",Common" +
+                    ",( CASE WHEN SUBSTR(Definition,0,LENGTH(Definition)*(.4)) like ? then 1 Else 2 END) as [Pos] " +
+                    ",LENGTH(Definition) as DefinitionLength " +
+                    "from Edict " +
+                    "Where REPLACE(REPLACE(REPLACE(Definition,\")\",\" \"),\"(\",\" \"),\",\",\" \") like ?" +
+                    ") as [Search] " +
+                    "Order by Common asc,[Pos] asc, DefinitionLength asc  LIMIT 25",new String[]{'%' + query + '%','%' + query + '%'});
             if(BuildConfig.DEBUG){Log.d(TAG, "Looking for definition matches on: " + query);}
             if(c.getCount()>0) {
                 c.moveToFirst();
@@ -1262,7 +1274,16 @@ public class WordOpsHelper implements WordListOperationsInterface {
                 c.close();
             } else {
 
-                Cursor d = db.rawQuery("Select _id FROM (Select _id,Common,( CASE WHEN SUBSTR(Definition,0,LENGTH(Definition)*(.7)) like ? then 1 Else 2 END) as [Pos] from Edict Where REPLACE(REPLACE(REPLACE(Definition,\")\",\" \"),\"(\",\" \"),\",\",\" \") like ?) as [Search] LEFT JOIN (SELECT Edict_id,Count(Edict_id) as [Count] From ExampleSentXRef Group by Edict_id) as [Sentence_Count] ON  [Search]._id = Sentence_Count.Edict_id Order by Common asc, [Pos] asc,[Count] desc LIMIT 25",new String[]{'%' + query + '%','%' + query + '%'});
+                Cursor d = db.rawQuery("Select _id " +
+                        "FROM " +
+                        "(" +
+                        "Select _id" +
+                        ",Common" +
+                        ",LENGTH(Definition) as DefinitionLength " +
+                        ",(CASE WHEN SUBSTR(Definition,0,LENGTH(Definition)*(.4)) like ? then 1 Else 2 END) as [Pos] " +
+                        "from Edict " +
+                        "Where REPLACE(REPLACE(REPLACE(Definition,\")\",\" \"),\"(\",\" \"),\",\",\" \") like ?) as [Search] " +
+                        "Order by Common asc ,[Pos] asc, DefinitionLength  asc LIMIT 25",new String[]{'%' + query + '%','%' + query + '%'});
                 if(BuildConfig.DEBUG){Log.d(TAG,"Looking for secondary definition matches on: " + query);}
                 if(d.getCount()>0) {
                     d.moveToFirst();

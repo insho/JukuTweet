@@ -704,6 +704,7 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
                             , selectedColorString
                             , null
                             , Integer.parseInt(quizSize));
+
             dataType = "Word";
         }
 

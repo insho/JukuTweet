@@ -368,16 +368,9 @@ public class Tweet  implements Parcelable {
         this.created_at = in.readString();
         this.id_str = in.readString();
 
-//        if(retweet_count !=null) {
-//            this.retweet_count = in.readInt();
-//        }
-//
-//        if(favorite_count !=null) {
-//            this.favorite_count  = in.readInt();
-//        }
 
-        this.retweet_count = (Integer)in.readSerializable();
-        this.favorite_count = (Integer)in.readSerializable();
+        this.retweet_count = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.favorite_count = (Integer) in.readValue(Integer.class.getClassLoader());
 
         this.text = in.readString();
         this.quizWeight = in.readDouble();
@@ -404,8 +397,9 @@ public class Tweet  implements Parcelable {
         dest.writeString(this.created_at);
         dest.writeString(this.id_str);
 
-        dest.writeSerializable(this.retweet_count);
-        dest.writeSerializable(this.favorite_count);
+
+        dest.writeValue(this.retweet_count);
+        dest.writeValue(this.favorite_count);
 
         dest.writeString(this.text);
         dest.writeDouble(this.quizWeight);

@@ -95,6 +95,7 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
                         spinnerWords.add(wordEntry);
                         ForegroundColorSpan fcs;
                         if(wordEntry.getFillinSentencesSpinner().isCorrectFirstTry()) {
+
                             fcs = new ForegroundColorSpan(ContextCompat.getColor(mContext,R.color.colorJukuGreen));
                         } else {
                             fcs = new ForegroundColorSpan(ContextCompat.getColor(mContext,R.color.colorJukuRed));
