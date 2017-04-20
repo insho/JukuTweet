@@ -16,6 +16,7 @@ import android.widget.Toast;
 import com.jukuproject.jukutweet.Adapters.UserListAdapter;
 import com.jukuproject.jukutweet.BaseContainerFragment;
 import com.jukuproject.jukutweet.Database.InternalDB;
+import com.jukuproject.jukutweet.Dialogs.UserDetailPopupDialog;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.UserInfo;
@@ -139,9 +140,9 @@ public class UserListFragment extends Fragment {
                             if(isUniqueClick(1000) && event instanceof UserInfo) {
                                 UserInfo userInfo = (UserInfo) event;
 
-                                mCallback.showAddUserCheckDialog(userInfo);
-//                                UserDetailPopupFragment userDetailFragment = UserDetailPopupFragment.newInstance(userInfo);
-//                                ((BaseContainerFragment)getParentFragment()).replaceFragment(userDetailFragment, true,"userDetailPopup");
+//                                mCallback.showAddUserCheckDialog(userInfo);
+                                UserDetailPopupDialog userDetailFragment = UserDetailPopupDialog.newInstance(userInfo);
+                                ((BaseContainerFragment)getParentFragment()).replaceFragment(userDetailFragment, true,"userDetailPopup");
 //                                mCallback.showRemoveUserDialog(userInfo.getScreenName());
                             }
 

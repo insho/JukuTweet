@@ -23,5 +23,5 @@ public interface DialogInteractionListener {
     void saveAndUpdateMyLists(String kanjiIdString, ArrayList<MyListEntry> listsToCopyTo, boolean move, MyListEntry currentList);
     void saveAndUpdateTweetLists(String tweetIds, ArrayList<MyListEntry> listsToCopyTo, boolean move, MyListEntry currentList);
 
-
+    void onBackPressed();
 }

@@ -21,8 +21,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Adapters.BrowseMyListAdapter;
+import com.jukuproject.jukutweet.BaseContainerFragment;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.CopyMyListItemsDialog;
+import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Interfaces.WordListOperationsInterface;
@@ -160,6 +162,23 @@ public class WordListBrowseFragment extends Fragment  {
                     });
 
 
+
+
+            mRxBus.toLongClickObserverable()
+                    .subscribe(new Action1<Object>() {
+                        @Override
+                        public void call(Object event) {
+                            if(isUniqueClick(1000) && event instanceof WordEntry) {
+                                WordEntry wordEntry = (WordEntry) event;
+
+                                WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(wordEntry);
+                                ((BaseContainerFragment)getParentFragment()).replaceFragment(wordDetailPopupDialog, true,"wordDetailPopup");
+
+                            }
+
+                        }
+
+                    });
             mRecyclerView.setAdapter(mAdapter);
             mRecyclerView.setVerticalScrollBarEnabled(true);
 

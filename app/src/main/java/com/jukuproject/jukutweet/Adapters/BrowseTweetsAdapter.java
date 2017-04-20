@@ -180,6 +180,9 @@ public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapte
             final SpannableStringBuilder sb = new SpannableStringBuilder(tweet.getText());
             if(tweet.getWordEntries() != null) {
                 for(WordEntry wordEntry : tweet.getWordEntries()) {
+//                    if(wordEntry.getColor()==null) {
+//                        wordEntry.createColorForWord(mC);
+//                    }
                     final ForegroundColorSpan fcs = new ForegroundColorSpan(ContextCompat.getColor(mContext,wordEntry.getColorValue()));
                     sb.setSpan(fcs, wordEntry.getStartIndex(), wordEntry.getEndIndex(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
                 }

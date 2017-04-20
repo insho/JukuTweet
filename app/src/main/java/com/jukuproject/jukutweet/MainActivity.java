@@ -36,11 +36,11 @@ import com.jukuproject.jukutweet.Dialogs.AddUserCheckDialog;
 import com.jukuproject.jukutweet.Dialogs.AddUserDialog;
 import com.jukuproject.jukutweet.Dialogs.EditMyListDialog;
 import com.jukuproject.jukutweet.Dialogs.RemoveUserDialog;
+import com.jukuproject.jukutweet.Dialogs.UserDetailPopupDialog;
 import com.jukuproject.jukutweet.Fragments.FlashCardsFragment;
 import com.jukuproject.jukutweet.Fragments.SavedTweetsBrowseFragment;
 import com.jukuproject.jukutweet.Fragments.SavedTweetsListFragment;
 import com.jukuproject.jukutweet.Fragments.SearchFragment;
-import com.jukuproject.jukutweet.Fragments.UserDetailPopupFragment;
 import com.jukuproject.jukutweet.Fragments.WordListBrowseFragment;
 import com.jukuproject.jukutweet.Fragments.WordListFragment;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
@@ -534,8 +534,10 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
 
     public void saveAndUpdateUserInfoList(UserInfo userInfoInstance) {
-        if(InternalDB.getUserInterfaceInstance(getBaseContext()).saveUser(userInfoInstance)) {
 
+        if(InternalDB.getUserInterfaceInstance(getBaseContext()).duplicateUser(userInfoInstance.getScreenName())) {
+            Toast.makeText(this, "User is already saved", Toast.LENGTH_SHORT).show();
+        } else  if(InternalDB.getUserInterfaceInstance(getBaseContext()).saveUser(userInfoInstance)) {
             try{
 
                 downloadUserIcon(userInfoInstance.getProfileImageUrlBig(),userInfoInstance.getScreenName());
@@ -621,12 +623,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     @Override
     public void onBackPressed() {
         boolean isPopFragment = false;
-        if(fragmentWasChanged) {
-            mSectionsPagerAdapter.notifyDataSetChanged();
-            fragmentWasChanged = false;
-        }
 
-
+        showMenuMyListBrowse(false,mViewPager.getCurrentItem());
 
         /* If the user is in the 2 tab (timeline,saved tweets) section, pop tab container 1 AND tab container 2,
          * as well as changing tabs to the main menu 3 container setting  */
@@ -635,7 +633,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             showActionBarBackButton(false,getString(R.string.app_name));
             updateTabs(new String[]{"Users","Saved Tweets","Word Lists","Search"});
         } else {
-
             isPopFragment = ((BaseContainerFragment)findFragmentByPosition(mViewPager.getCurrentItem())).popFragment();
             try {
                 if(isTopShowing(mViewPager.getCurrentItem())) {
@@ -661,6 +658,10 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 Log.e(TAG,"OnBackPressed child entrycount null : " + e);
             }
 
+        }
+        if(fragmentWasChanged) {
+            mSectionsPagerAdapter.notifyDataSetChanged();
+            fragmentWasChanged = false;
         }
 
 
@@ -1320,7 +1321,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     }
 
     public void showUserDetailFragment(UserInfo userInfo) {
-        UserDetailPopupFragment userDetailFragment = UserDetailPopupFragment.newInstance(userInfo);
+        UserDetailPopupDialog userDetailFragment = UserDetailPopupDialog.newInstance(userInfo);
         userDetailFragment.show(getSupportFragmentManager(),"xxx");
     };
 

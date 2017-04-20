@@ -945,6 +945,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 
                     //FLush old tweet
                     if(!currentTweetId.equals(c.getString(5))){
+                        Log.d(TAG,"colorthresholds null = " + (colorThresholds == null));
                         tweet.assignTweetColorToTweet(colorThresholds);
                         savedTweets.add(new Tweet(tweet));
                         currentTweetId = c.getString(5);
@@ -971,8 +972,8 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 
         } catch (SQLiteException e){
             Log.e(TAG,"getTweetsForSavedTweetsList Sqlite exception: " + e);
-        } catch (Exception e) {
-            Log.e(TAG,"getTweetsForSavedTweetsList generic exception: " + e);
+//        } catch (Exception e) {
+//            Log.e(TAG,"getTweetsForSavedTweetsList generic exception: " + e);
         } finally {
             db.close();
         }
@@ -1519,12 +1520,13 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 //                        " ELSE 'Grey' END) as [Category] " +
 
                         "Select [UserId] " +
-                        ",Count([Tweet_id]) as [TweetCount] " +
+                        ",0 as [Sys]" +
                         ",SUM([Grey]) + SUM([Red]) + SUM([Yellow]) + SUM([Green]) as [Total] " +
                         ",SUM([Grey]) as [Grey]" +
                         ",SUM([Red]) as [Red]" +
                         ",SUM([Yellow]) as [Yellow]" +
                         ",SUM([Green]) as [Green] " +
+                        ",Count([Tweet_id]) as [TweetCount] " +
                         " FROM ( " +
 
                 /* Now to pull together ListName, Tweet and the totals (by color) of the kanji in those tweets */

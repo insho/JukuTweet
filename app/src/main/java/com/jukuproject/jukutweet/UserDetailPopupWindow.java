@@ -57,7 +57,7 @@
 // * Created by Joe on 11/21/2015.
 // */
 //
-//public class UserDetailPopupFragment extends Fragment  implements View.OnTouchListener {
+//public class UserDetailPopupDialog extends Fragment  implements View.OnTouchListener {
 //
 //    String TAG = "TEST-breakdownpop";
 //    //    private FragmentInteractionListener mCallback;
@@ -97,10 +97,10 @@
 //    /* keep from constantly recieving button clicks through the RxBus */
 //    private long mLastClickTime = 0;
 //
-//    public UserDetailPopupFragment() {}
+//    public UserDetailPopupDialog() {}
 //
-//    public static UserDetailPopupFragment newInstance(UserInfo userInfo) {
-//        UserDetailPopupFragment fragment = new UserDetailPopupFragment();
+//    public static UserDetailPopupDialog newInstance(UserInfo userInfo) {
+//        UserDetailPopupDialog fragment = new UserDetailPopupDialog();
 //        Bundle args = new Bundle();
 //        args.putParcelable("mUserInfo", userInfo);
 //        fragment.setArguments(args);

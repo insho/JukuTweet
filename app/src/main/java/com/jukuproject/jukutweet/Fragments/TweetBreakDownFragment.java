@@ -458,7 +458,7 @@ public class TweetBreakDownFragment extends Fragment {
         * converts the TweetKanjiColor Edic_ids into a single string, passes it
         * */
 //        mDataSet = InternalDB.getInstance(getContext()).convertTweetKanjiColorToWordEntry(disectedSavedTweet);
-        mAdapter = new TweetBreakDownAdapter(getContext(),metrics,disectedSavedTweet,colorThresholds,activeFavoriteStars);
+        mAdapter = new TweetBreakDownAdapter(getContext(),metrics,disectedSavedTweet,activeFavoriteStars);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);

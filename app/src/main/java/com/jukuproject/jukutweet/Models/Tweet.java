@@ -301,6 +301,11 @@ public class Tweet  implements Parcelable {
             int total = 0;
 
             for(WordEntry wordEntry : wordEntries) {
+
+                if(wordEntry.getColor()==null) {
+                    wordEntry.createColorForWord(colorThresholds);
+                }
+
                 switch (wordEntry.getColor()) {
                     case "Grey":
                         greyCount += 1;

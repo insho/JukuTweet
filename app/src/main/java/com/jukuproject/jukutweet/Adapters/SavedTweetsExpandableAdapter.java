@@ -122,7 +122,7 @@ public class SavedTweetsExpandableAdapter extends BaseExpandableListAdapter {
 //            Log.d(TAG,"XXX: " + mMenuHeader.get(groupPosition).getColorBlockMeasurables().getTweetCount());
 
             try {
-                tweetIconText.setText(String.valueOf(mMenuHeader.get(groupPosition).getColorBlockMeasurables().getTweetCount()));
+                tweetIconText.setText("x"+String.valueOf(mMenuHeader.get(groupPosition).getColorBlockMeasurables().getTweetCount()));
             } catch (Exception e) {
                 tweetIcon.setVisibility(View.GONE);
                 tweetIconText.setVisibility(View.GONE);

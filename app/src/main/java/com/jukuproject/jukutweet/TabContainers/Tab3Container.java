@@ -57,7 +57,7 @@ public class Tab3Container extends BaseContainerFragment {
             ((WordListFragment) getChildFragmentManager().findFragmentByTag("mylistfragment")).updateMyListAdapter();
             return true;
         } catch (Exception e) {
-            Log.e("Tab1Container","Could not find userListFragment");
+            Log.e("Tab3Container","Could not find userListFragment");
             return false;
         }
     }

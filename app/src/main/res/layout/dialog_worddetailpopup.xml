@@ -1,0 +1,370 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/transparent">
+
+<LinearLayout
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/popuptab_layout"
+    android:background="@android:color/white">
+
+
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="horizontal" android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/popuptab_layout2"
+        android:background="@color/colorPrimary">
+
+
+
+
+
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/gridLayout_popup2"
+            android:columnCount="2"
+            android:rowCount="2"
+            android:background="@color/colorPrimary"
+            android:padding="2dp"
+            android:clickable="false"
+            android:focusable="false"
+            android:focusableInTouchMode="false">
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:text="Kanji"
+                android:layout_row="0"
+                android:layout_column="0"
+                android:layout_columnSpan="2"
+
+                android:id="@+id/textViewPopupKanji"
+                android:textColor="@android:color/white"
+                android:textSize="10pt"
+                android:clickable="false"
+                android:focusable="false"
+                android:background="@android:color/transparent"
+                android:focusableInTouchMode="false"/>
+
+            <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_row="1"
+                android:layout_column="0"
+                android:layout_marginLeft="12dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginRight="12dp"
+                android:layout_marginEnd="12dp"
+                android:layout_marginTop="-1dp"
+                android:id="@+id/collapsebutton_framelayout">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="-"
+                    android:id="@+id/textViewCollapsButton1"
+                    android:textColor="@android:color/white"
+                    android:background="@android:color/transparent"
+                    android:textSize="14pt" />
+
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/listViewPopupDefinition"
+                android:background="@android:color/transparent"
+                android:layout_row="1"
+                android:layout_column="1"
+                android:textColor="@android:color/white"
+                android:textSize="18sp"
+                />
+
+
+        </GridLayout>
+
+
+
+
+
+    </LinearLayout>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="horizontal" android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        android:weightSum="2"
+        android:id="@+id/linearlayout1">
+
+
+        <!--<GridLayout-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:id="@+id/gridLayout_popup1"-->
+            <!--android:columnCount="5"-->
+            <!--android:rowCount="2"-->
+            <!--android:layout_marginTop="2dp"-->
+            <!--android:layout_marginBottom="2dp"-->
+            <!--android:background="@android:color/transparent">-->
+
+            <!--&lt;!&ndash;<TextView&ndash;&gt;-->
+                <!--&lt;!&ndash;android:layout_width="wrap_content"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:layout_height="wrap_content"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:layout_gravity="start"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:layout_row="0"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:layout_column="1"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:text="JLPT Level: "&ndash;&gt;-->
+                <!--&lt;!&ndash;android:textColor="@android:color/black"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:textSize="9pt" />&ndash;&gt;-->
+
+
+            <!--&lt;!&ndash;<TextView&ndash;&gt;-->
+                <!--&lt;!&ndash;android:layout_width="wrap_content"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:layout_height="wrap_content"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:layout_gravity="start"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:layout_row="0"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:layout_column="2"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:id="@+id/textViewPopupLevel"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:textColor="@android:color/black"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:textSize="9pt" />&ndash;&gt;-->
+
+            <!--<TextView-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_gravity="start"-->
+                <!--android:layout_row="0"-->
+                <!--android:layout_rowSpan="2"-->
+                <!--android:layout_column="0"-->
+                <!--android:text="Score: "-->
+                <!--android:textColor="@android:color/black"-->
+                <!--android:textSize="9pt" />-->
+
+
+            <!--<TextView-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_gravity="start"-->
+                <!--android:layout_row="0"-->
+                <!--android:layout_rowSpan="2"-->
+                <!--android:layout_column="1"-->
+                <!--android:id="@+id/textViewPopupScore"-->
+                <!--android:textColor="@android:color/black"-->
+                <!--android:textSize="9pt" />-->
+
+
+
+
+
+            <!--<TextView-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_gravity="start"-->
+                <!--android:layout_row="0"-->
+                <!--android:layout_column="3"-->
+                <!--android:layout_rowSpan="2"-->
+                <!--android:layout_columnSpan="2"-->
+                <!--android:id="@+id/textViewPopupPercentage"-->
+                <!--android:textColor="@android:color/black"-->
+                <!--android:textSize="9pt" />-->
+
+
+        <!--</GridLayout>-->
+
+
+
+
+        <GridLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/gridLayout_popup1"
+            android:layout_weight="1"
+            android:columnCount="5"
+            android:rowCount="2"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="2dp"
+            android:background="@android:color/transparent">
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_row="0"
+                android:layout_column="0"
+
+                android:paddingLeft="4dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginStart="20dp"
+                android:text="Score: "
+                android:textColor="@android:color/black"
+                android:textSize="9pt" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:layout_column="1"
+                android:layout_row="0"
+                android:id="@+id/textViewPopupScore"
+                android:textColor="@android:color/black"
+                android:textSize="9pt" />
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:layout_row="1"
+                android:layout_column="1"
+                android:id="@+id/textViewPopupPercentage"
+                android:textColor="@android:color/black"
+                android:textSize="9pt" />
+
+
+        </GridLayout>
+
+
+
+        <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="end|center_vertical"
+            android:layout_marginEnd="10dp"
+            android:layout_marginRight="10dp"
+            android:id="@+id/popup_framelayout">
+
+            <ImageButton  android:id="@+id/favorite"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:contentDescription="star"
+                android:background="@android:color/transparent"
+
+                android:clickable="false"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                />
+
+        </FrameLayout>
+
+
+
+    </LinearLayout>
+
+    <View style="@style/Divider_Black"/>
+
+    <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_marginTop="10dp"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:orientation="horizontal" android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/black"
+            android:layout_marginBottom="6dp"
+
+            android:id="@+id/linearLayoutFollowerButtons"
+            android:weightSum="1">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="Following"
+                android:id="@+id/txtShowFollowingToggle"
+                android:layout_gravity="center"
+                android:clickable="true"
+                android:background="@android:color/white"
+                android:gravity="center"
+                android:textSize="18sp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:paddingLeft="2dp"
+                android:paddingStart="2dp"
+                android:ellipsize="marquee"
+
+                android:paddingRight="1dp"
+                android:paddingEnd="1dp"
+
+                android:textColor="@android:color/black"
+                android:layout_weight=".5"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="Followers"
+                android:clickable="true"
+                android:id="@+id/txtShowFollowersToggle"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:textSize="18sp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:paddingLeft="1dp"
+                android:paddingStart="1dp"
+                android:ellipsize="marquee"
+
+                android:paddingRight="2dp"
+                android:paddingEnd="2dp"
+                android:background="@android:color/white"
+                android:textColor="@android:color/black"
+                android:layout_weight=".5"/>
+
+
+        </LinearLayout>
+
+
+        <fr.castorflex.android.smoothprogressbar.SmoothProgressBar
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/progressbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:visibility="invisible"
+            app:spb_sections_count="6"
+            app:spb_color="#FF0000"
+            app:spb_speed="2.0"
+            app:spb_stroke_width="2dp"
+            app:spb_stroke_separator_length="4dp"
+            app:spb_reversed="false"
+            app:spb_mirror_mode="false"
+            app:spb_progressiveStart_activated="true"
+            app:spb_progressiveStart_speed="3.0"
+            app:layout_anchor="@id/linearLayoutFollowerButtons"
+            app:layout_anchorGravity="bottom"
+            app:spb_progressiveStop_speed="3.4"
+
+            />
+
+    </android.support.design.widget.CoordinatorLayout>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/userInfoRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:scrollbars="vertical" />
+
+    <TextView
+        android:id="@+id/txtNoUsers"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="30dp"
+        android:layout_marginTop="4dp"
+        android:text="@string/nousers"
+        android:clickable="false"
+        android:textStyle="italic"
+        android:visibility="gone"
+        android:textSize="18sp" />
+
+</LinearLayout>
+</LinearLayout>

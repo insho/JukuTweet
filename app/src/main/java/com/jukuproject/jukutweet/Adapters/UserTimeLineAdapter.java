@@ -3,12 +3,6 @@ package com.jukuproject.jukutweet.Adapters;
 import android.content.Context;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.TextPaint;
-import android.text.method.LinkMovementMethod;
-import android.text.style.ClickableSpan;
-import android.text.style.URLSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,7 +16,6 @@ import com.jukuproject.jukutweet.FavoritesColors;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface;
 import com.jukuproject.jukutweet.Models.Tweet;
-import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.R;
 
 import java.util.ArrayList;
@@ -159,57 +152,57 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
             }
         });
 
-
-        try {
-            SpannableString text = new SpannableString(getTweet(position).getText());
-//        holder.txtTweet.setText(getTweet(position).getText());
-
-
-            ClickableSpan normalClick = new ClickableSpan() {
-                @Override
-                public void onClick(View textView) {
-                    _rxbus.send(mDataset.get(holder.getAdapterPosition()));
-
-                }
-
-
-                @Override
-                public void updateDrawState(TextPaint ds) {
-                    super.updateDrawState(ds);
-                    ds.setColor(ContextCompat.getColor(mContext, android.R.color.black));
-                    ds.setUnderlineText(false);
-
-                }
-            };
-
-            text.setSpan(normalClick, 0, text.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
-            List<TweetUrl> tweetUrls =  getTweet(position).getEntities().getUrls();
-
-            for(TweetUrl url : tweetUrls) {
-                int[] indices = url.getIndices();
-
-                String urlToLinkify = "";
-
-                if(getTweet(position).getText().substring(indices[0]).contains(url.getDisplay_url())) {
-                    urlToLinkify = url.getDisplay_url();
-                } else if(getTweet(position).getText().substring(indices[0]).contains(url.getUrl())) {
-                    urlToLinkify = url.getUrl();
-                }
-                int startingLinkPos = getTweet(position).getText().indexOf(urlToLinkify,indices[0]);
-
-                text.setSpan(new URLSpan(url.getUrl()), startingLinkPos, startingLinkPos + urlToLinkify.length(), 0);
-
-
-            }
-            holder.txtTweet.setText(text, TextView.BufferType.SPANNABLE);
-            holder.txtTweet.setMovementMethod(LinkMovementMethod.getInstance());
-        } catch (NullPointerException e) {
-            holder.txtTweet.setText(getTweet(position).getText());
-            Log.e(TAG,"mTweet urls are null : " + e);
-        } catch (Exception e) {
-            holder.txtTweet.setText(getTweet(position).getText());
-            Log.e(TAG,"Error adding url info: " + e);
-        }
+//
+//        try {
+//            SpannableString text = new SpannableString(getTweet(position).getText());
+////        holder.txtTweet.setText(getTweet(position).getText());
+//
+//
+//            ClickableSpan normalClick = new ClickableSpan() {
+//                @Override
+//                public void onClick(View textView) {
+//                    _rxbus.send(mDataset.get(holder.getAdapterPosition()));
+//
+//                }
+//
+//
+//                @Override
+//                public void updateDrawState(TextPaint ds) {
+//                    super.updateDrawState(ds);
+//                    ds.setColor(ContextCompat.getColor(mContext, android.R.color.black));
+//                    ds.setUnderlineText(false);
+//
+//                }
+//            };
+//
+//            text.setSpan(normalClick, 0, text.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+//            List<TweetUrl> tweetUrls =  getTweet(position).getEntities().getUrls();
+//
+//            for(TweetUrl url : tweetUrls) {
+//                int[] indices = url.getIndices();
+//
+//                String urlToLinkify = "";
+//
+//                if(getTweet(position).getText().substring(indices[0]).contains(url.getDisplay_url())) {
+//                    urlToLinkify = url.getDisplay_url();
+//                } else if(getTweet(position).getText().substring(indices[0]).contains(url.getUrl())) {
+//                    urlToLinkify = url.getUrl();
+//                }
+//                int startingLinkPos = getTweet(position).getText().indexOf(urlToLinkify,indices[0]);
+//
+//                text.setSpan(new URLSpan(url.getUrl()), startingLinkPos, startingLinkPos + urlToLinkify.length(), 0);
+//
+//
+//            }
+//            holder.txtTweet.setText(text, TextView.BufferType.SPANNABLE);
+//            holder.txtTweet.setMovementMethod(LinkMovementMethod.getInstance());
+//        } catch (NullPointerException e) {
+//            holder.txtTweet.setText(getTweet(position).getText());
+//            Log.e(TAG,"mTweet urls are null : " + e);
+//        } catch (Exception e) {
+//            holder.txtTweet.setText(getTweet(position).getText());
+//            Log.e(TAG,"Error adding url info: " + e);
+//        }
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override

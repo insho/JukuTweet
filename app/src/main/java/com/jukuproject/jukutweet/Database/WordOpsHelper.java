@@ -405,8 +405,17 @@ public class WordOpsHelper implements WordListOperationsInterface {
                             ",Definition " +
                             ",Correct " +
                             ",Total " +
-                            ",Percent " +
+//                            ",Percent " +
                             ",Color " +
+
+                            " ,[Blue]" +
+                            " ,[Red] " +
+                            " ,[Green] " +
+                            " ,[Yellow] " +
+                            " ,[Purple] " +
+                            " ,[Orange] " +
+                            " ,[Other] " +
+
                             "FROM (" +
                             "SELECT  x.[_id]" +
                             ",x.[Kanji]" +
@@ -414,6 +423,14 @@ public class WordOpsHelper implements WordListOperationsInterface {
                             ",x.[Definition]" +
                             ",ifnull(y.[Correct],0) as [Correct] " +
                             ",ifnull(y.[Total],0) as [Total] " +
+                            " ,[Blue]" +
+                            " ,[Red] " +
+                            " ,[Green] " +
+                            " ,[Yellow] " +
+                            " ,[Purple] " +
+                            " ,[Orange] " +
+
+                            " ,[Other] " +
                             ",(CASE WHEN [Total] >0 THEN CAST(ifnull([Correct],0)  as float)/[Total] ELSE 0 END) as [Percent] " +
                             " ,(CASE WHEN [Total] is NULL THEN 'Grey' " +
                             "WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 'Grey' " +
@@ -447,6 +464,32 @@ public class WordOpsHelper implements WordListOperationsInterface {
                             "GROUP BY [_id]" +
                             ") as y " +
                             "ON x.[_id] = y.[_id] " +
+
+                            " LEFT JOIN (" +
+                            "SELECT [_id]" +
+                            ",SUM([Blue]) as [Blue]" +
+                            ",SUM([Red]) as [Red]" +
+                            ",SUM([Green]) as [Green]" +
+                            ",SUM([Yellow]) as [Yellow]" +
+                            ",SUM([Yellow]) as [Purple]" +
+                            ",SUM([Yellow]) as [Orange]" +
+
+                            ", SUM([Other]) as [Other] " +
+                            "FROM (" +
+                            "SELECT [_id] " +
+                            ",(CASE WHEN ([Sys] = 1 and Name = 'Blue') then 1 else 0 end) as [Blue]" +
+                            ",(CASE WHEN ([Sys] = 1 AND Name = 'Red') then 1 else 0 end) as [Red]" +
+                            ",(CASE WHEN ([Sys] = 1 AND Name = 'Green') then 1 else 0 end) as [Green]" +
+                            ",(CASE WHEN ([Sys] = 1  AND Name = 'Yellow') then 1 else 0 end) as [Yellow]" +
+                            ",(CASE WHEN ([Sys] = 1  AND Name = 'Purple') then 1 else 0 end) as [Purple]" +
+                            ",(CASE WHEN ([Sys] = 1  AND Name = 'Orange') then 1 else 0 end) as [Orange]" +
+                            ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
+                            "FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
+                            "WHERE [_id] = ?) Group by [_id]" +
+
+                            ") as z " +
+                            "ON z.[_id] = z.[_id] " +
+
                             ") " +
                             "WHERE [Color] in (" +  colorString + ") "  +
                             " ORDER BY RANDOM() " + limit + " "
@@ -466,6 +509,15 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     wordEntry.setCorrect(c.getInt(4));
                     wordEntry.setTotal(c.getInt(5));
                     wordEntries.add(wordEntry);
+
+
+                    wordEntry.setItemFavorites(new ItemFavorites(c.getInt(7)
+                            ,c.getInt(8)
+                            ,c.getInt(9)
+                            ,c.getInt(10)
+                            ,c.getInt(11)
+                            ,c.getInt(12)
+                            ,c.getInt(13)));
 
                     c.moveToNext();
                 }
@@ -887,7 +939,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     "from [JScoreboard]  " +
                     "GROUP BY [_id]" +
 
-
                     ") NATURAL LEFT JOIN (" +
                     "SELECT [_id]" +
                     ",SUM([Blue]) as [Blue]" +
@@ -909,8 +960,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
                     "FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
                     "WHERE [_id] = ?) as x Group by [_id]" +
-
-
                     ") )" +
                     ") " +
                     "ORDER BY [OrderValue],[KanjiLength]", null);

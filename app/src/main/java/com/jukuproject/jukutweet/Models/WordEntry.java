@@ -14,8 +14,9 @@ public class WordEntry implements Parcelable {
     private String furigana;
     private String definition;
     private Integer correct;
-//    private float percentage;
     private Integer total;
+
+
     private ItemFavorites itemFavorites;
 
     //Used when positioning a word in a broken-up sentence, and coloring it
@@ -57,6 +58,9 @@ public class WordEntry implements Parcelable {
 
 
     public ItemFavorites getItemFavorites() {
+        if(itemFavorites==null) {
+            itemFavorites = new ItemFavorites();
+        }
         return itemFavorites;
     }
 
@@ -250,7 +254,6 @@ public class WordEntry implements Parcelable {
 
             }
         }
-
         return stringBuilder.toString();
     }
 
@@ -299,6 +302,23 @@ public class WordEntry implements Parcelable {
         }
 
         return stringBuilder.toString();
+    }
+
+    public void createColorForWord(ColorThresholds colorThresholds) {
+        if (total != null && correct != null) {
+            if (total < colorThresholds.getTweetGreyThreshold()) {
+                color = "Grey";
+            } else if (getPercentage() < colorThresholds.getRedThreshold()) {
+                color = "Red";
+            } else if (getPercentage() < colorThresholds.getYellowThreshold()) {
+                color = "Yellow";
+            } else {
+                color = "Green";
+            }
+        } else {
+            color = "Grey";
+        }
+
     }
 
     public int getColorValue() {

@@ -10,6 +10,7 @@ import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -70,6 +71,8 @@ public class SearchFragment extends Fragment {
     ArrayList<String> mActiveFavoriteStars;
     ArrayList<String> mActiveTweetFavoriteStars;
     LinearLayout mDictionarySearchLayout;
+
+    private final String TAG = "TEST-searchfrag";
     private View mDividerView;
     public SearchFragment() {}
 
@@ -118,35 +121,27 @@ public class SearchFragment extends Fragment {
         mActiveFavoriteStars = sharedPrefManager.getActiveFavoriteStars();
 
 
-        if(savedInstanceState!=null) {
-            mCheckedOption = savedInstanceState.getString("mCheckedOption");
-            if(mCheckedOption.equals("Twitter")) {
-                mTwitterResults = savedInstanceState.getParcelableArrayList("mTwitterResults");
-            } else {
-                mDictionaryResults = savedInstanceState.getParcelableArrayList("mDictionaryResults");
-            }
-        } else {
-
-        }
 
 
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
-        mRecyclerView.setLayoutManager(mLayoutManager);
+
+
 
 //        checkBoxDictionary.setText(getString(R.string.search_dictionary));
 //        checkBoxTwitter.setText(getString(R.string.search_twitter));
 //        checkBoxRomaji.setText(getString(R.string.search_romaji));
 //        checkBoxDefinition.setText(getString(R.string.search_definition));
 
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
+        mRecyclerView.setLayoutManager(mLayoutManager);
 
         setAppCompatCheckBoxColors(checkBoxDictionary, ContextCompat.getColor(getContext(), android.R.color.black), ContextCompat.getColor(getContext(), android.R.color.black));
         setAppCompatCheckBoxColors(checkBoxRomaji, ContextCompat.getColor(getContext(), android.R.color.black), ContextCompat.getColor(getContext(), android.R.color.black));
         setAppCompatCheckBoxColors(checkBoxDefinition, ContextCompat.getColor(getContext(), android.R.color.black), ContextCompat.getColor(getContext(), android.R.color.black));
         setAppCompatCheckBoxColors(checkBoxTwitter, ContextCompat.getColor(getContext(), android.R.color.black), ContextCompat.getColor(getContext(), android.R.color.black));
-
-        checkBoxRomaji.setHighlightColor(ContextCompat.getColor(getContext(), android.R.color.transparent));
-        checkBoxDefinition.setHighlightColor(ContextCompat.getColor(getContext(), android.R.color.transparent));
-        checkBoxTwitter.setHighlightColor(ContextCompat.getColor(getContext(), android.R.color.transparent));
+//
+//        checkBoxRomaji.setHighlightColor(ContextCompat.getColor(getContext(), android.R.color.transparent));
+//        checkBoxDefinition.setHighlightColor(ContextCompat.getColor(getContext(), android.R.color.transparent));
+//        checkBoxTwitter.setHighlightColor(ContextCompat.getColor(getContext(), android.R.color.transparent));
 
         mCheckedOption = "Romaji";
         mDictionarySearchLayout.setVisibility(View.VISIBLE);
@@ -252,10 +247,22 @@ public class SearchFragment extends Fragment {
         });
 
 
+        //If saved instance state is not null, run the adapter...
+        if(savedInstanceState!=null) {
+            try {
+                mCheckedOption = savedInstanceState.getString("mCheckedOption");
+                if(mCheckedOption.equals("Twitter")) {
+                    mTwitterResults = savedInstanceState.getParcelableArrayList("mTwitterResults");
+                    recieveTwitterSearchResults(mTwitterResults);
+                } else {
+                    mDictionaryResults = savedInstanceState.getParcelableArrayList("mDictionaryResults");
+                    recieveDictionarySearchResults(mDictionaryResults);
+                }
+            } catch (NullPointerException e) {
+                Log.e(TAG,"Nullpointer exception in loading saved state on search fragment");
+            }
 
-
-
-//        updateAdapter();
+        }
     }
 
     @Override
@@ -300,7 +307,7 @@ public class SearchFragment extends Fragment {
             TweetBreakDownAdapter mAdapter = new TweetBreakDownAdapter(getContext()
                     ,mMetrics
                     ,mDictionaryResults
-                    ,mColorThresholds
+//                    ,mColorThresholds
                     ,mActiveFavoriteStars);
             mRecyclerView.setAdapter(mAdapter);
             mRecyclerView.setVerticalScrollBarEnabled(true);

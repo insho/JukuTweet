@@ -20,7 +20,6 @@ import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.FavoritesColors;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
-import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.PopupChooseFavoriteLists;
@@ -43,7 +42,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
     private Context mContext;
     private DisplayMetrics mMetrics;
     private ArrayList<WordEntry> mWords;
-    private  ColorThresholds mColorThresholds;
+//    private  ColorThresholds mColorThresholds;
     private ArrayList<String> mActiveFavoriteStars;
     private PopupWindow chooseFavoritesPopup = null;
 
@@ -71,11 +70,14 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
     }
 
 
-    public TweetBreakDownAdapter(Context context, DisplayMetrics metrics, ArrayList<WordEntry> words, ColorThresholds colorThresholds, ArrayList<String> activeFavoriteStars) {
+    public TweetBreakDownAdapter(Context context, DisplayMetrics metrics
+            , ArrayList<WordEntry> words
+//            , ColorThresholds colorThresholds
+            , ArrayList<String> activeFavoriteStars) {
         mContext = context;
         mMetrics = metrics;
         mWords = words;
-        mColorThresholds = colorThresholds;
+//        mColorThresholds = colorThresholds;
         this.mActiveFavoriteStars = activeFavoriteStars;
     }
 
@@ -184,6 +186,12 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                                     case "Yellow":
                                         mWords.get(holder.getAdapterPosition()).getItemFavorites().setSystemYellowCount(myListEntry.getSelectionLevel());
                                         break;
+                                    case "Purple":
+                                        mWords.get(holder.getAdapterPosition()).getItemFavorites().setSystemPurpleCount(myListEntry.getSelectionLevel());
+                                        break;
+                                    case "Orange":
+                                        mWords.get(holder.getAdapterPosition()).getItemFavorites().setSystemOrangeCount(myListEntry.getSelectionLevel());
+                                        break;
                                     default:
                                         break;
                                 }
@@ -274,6 +282,12 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                                                     break;
                                                 case "Yellow":
                                                     mWords.get(holder.getAdapterPosition()).getItemFavorites().setSystemYellowCount(myListEntry.getSelectionLevel());
+                                                    break;
+                                                case "Purple":
+                                                    mWords.get(holder.getAdapterPosition()).getItemFavorites().setSystemPurpleCount(myListEntry.getSelectionLevel());
+                                                    break;
+                                                case "Orange":
+                                                    mWords.get(holder.getAdapterPosition()).getItemFavorites().setSystemOrangeCount(myListEntry.getSelectionLevel());
                                                     break;
                                                 default:
                                                     break;

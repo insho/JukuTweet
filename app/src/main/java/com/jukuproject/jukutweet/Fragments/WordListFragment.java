@@ -53,8 +53,8 @@ public class WordListFragment extends Fragment {
     private SharedPrefManager sharedPrefManager;
 
     public static WordListFragment newInstance(Bundle bundle) {
-        WordListFragment fragment = new WordListFragment();
-        return fragment;
+//        WordListFragment fragment = new WordListFragment();
+        return new WordListFragment();
     }
 
     @Override
@@ -63,14 +63,25 @@ public class WordListFragment extends Fragment {
         sharedPrefManager = SharedPrefManager.getInstance(getContext());
 
         View v = inflater.inflate(R.layout.fragment_mylists, container, false);
-
-
         expListView = (ExpandableListView) v.findViewById(R.id.lvMyListCategory);
+
+        setRetainInstance(true);
+        return v;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
         expListView.setClickable(true);
-        prepareListData();
+
+        if(savedInstanceState != null) {
+            mMenuHeader = savedInstanceState.getParcelableArrayList("mMenuHeader");
+        } else {
+
+            prepareListData();
+        }
 
         MyListFragmentAdapter = new MyListExpandableAdapter(getContext(),mMenuHeader,getdimenscore(),0);
-
         expListView.setAdapter(MyListFragmentAdapter);
         expListView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
             @Override
@@ -87,10 +98,6 @@ public class WordListFragment extends Fragment {
                         lblListHeaderCount.setText(getString(R.string.empty_parenthesis));
                     }
                 } else if (!mMenuHeader.get(groupPosition).isExpanded()) {
-
-//                    if(lastExpandedPosition != groupPosition) {
-//                        expListView.collapseGroup(lastExpandedPosition);
-//                    }
 
                     expandTheListViewAtPosition(groupPosition);
 
@@ -194,7 +201,7 @@ public class WordListFragment extends Fragment {
         expListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-        mCallback.showEditMyListDialog("MyList",mMenuHeader.get(position).getHeaderTitle(),mMenuHeader.get(position).isSystemList());
+                mCallback.showEditMyListDialog("MyList",mMenuHeader.get(position).getHeaderTitle(),mMenuHeader.get(position).isSystemList());
                 return false;
             }
         });
@@ -207,9 +214,6 @@ public class WordListFragment extends Fragment {
             expandTheListViewAtPosition(lastExpandedPosition);
         }
 
-
-        setRetainInstance(true);
-        return v;
     }
 
     public void expandTheListViewAtPosition(int position) {
@@ -226,9 +230,6 @@ public class WordListFragment extends Fragment {
 
     public void prepareListData() {
         mMenuHeader = new ArrayList<>();
-//        InternalDB helper =  InternalDB.getInstance(getActivity());
-//        SQLiteDatabase db = helper.getWritableDatabase();
-
         ArrayList<String> availableFavoritesStars = sharedPrefManager.getActiveFavoriteStars();
         ColorThresholds colorThresholds = sharedPrefManager.getColorThresholds();
        ArrayList<String> childOptions = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.menu_mylist)));
@@ -393,5 +394,12 @@ public class WordListFragment extends Fragment {
         c.close();
         return  colorBlockMeasurables;
     }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList("mMenuHeader", mMenuHeader);
+    }
 }
+
 

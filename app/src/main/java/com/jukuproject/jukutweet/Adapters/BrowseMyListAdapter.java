@@ -122,6 +122,14 @@ public class BrowseMyListAdapter extends RecyclerView.Adapter<BrowseMyListAdapte
             }
         });
 
+        holder.layout.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                mRxBus.sendLongClick(wordEntry);
+                return false;
+            }
+        });
+
     }
 
 
