@@ -169,13 +169,7 @@ public class WordListBrowseFragment extends Fragment  {
                         public void call(Object event) {
                             if(isUniqueClick(1000) && event instanceof WordEntry) {
                                 WordEntry wordEntry = (WordEntry) event;
-
-                                Log.d(TAG,"SUPERX: " + wordEntry.getKanji() + " : " + wordEntry.getStartIndex());
                                 WordDetailPopupDialog.newInstance(wordEntry).show(getFragmentManager(),"wordDetailPopup");
-
-//                                WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(wordEntry);
-//                                ((BaseContainerFragment)getParentFragment()).replaceFragment(wordDetailPopupDialog, true,"wordDetailPopup");
-
                             }
 
                         }

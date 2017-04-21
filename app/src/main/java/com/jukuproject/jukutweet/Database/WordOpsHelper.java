@@ -297,6 +297,8 @@ public class WordOpsHelper implements WordListOperationsInterface {
     public ArrayList<MyListEntry> getWordListsForAWord(ArrayList<String> activeFavoriteStars
             , String concatenatedWordIds
             , @Nullable MyListEntry entryToExclude) {
+        Log.d(TAG,"concatenateids: " + concatenatedWordIds);
+//        Log.d(TAG,"entryToExclude: " + entryToExclude.getListName());
 
         ArrayList<MyListEntry> myListEntries = new ArrayList<>();
         SQLiteDatabase db = sqlOpener.getWritableDatabase();
@@ -331,20 +333,20 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     ",Sys "    +
                     ", Count(_id) as UserCount " +
                     "FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " "    +
-                    " Where _id in (?) " +
+                    " Where _id in (" + concatenatedWordIds + ") " +
                     " Group by Name, Sys " +
                     ") as UserEntries "    +
                     " "    +
-                    "ON Lists.Name = UserEntries.Name ", new String[]{concatenatedWordIds});
+                    "ON Lists.Name = UserEntries.Name and Lists.Sys = UserEntries.Sys", null);
 
-            c.moveToFirst();
+
             if(c.getCount()>0) {
-
+                c.moveToFirst();
                 while (!c.isAfterLast()) {
                     //Add all user lists (where sys == 0)
                     //Only add system lists (sys==1), but only if the system lists are actived in user preferences
                     if((c.getInt(1) == 0 || activeFavoriteStars.contains(c.getString(0)))
-                            && (entryToExclude!= null && !(entryToExclude.getListName().equals(c.getString(0)) && entryToExclude.getListsSys() == c.getInt(1)))) {
+                            && (entryToExclude == null || !(entryToExclude.getListName().equals(c.getString(0)) && entryToExclude.getListsSys() == c.getInt(1)))) {
                         MyListEntry entry = new MyListEntry(c.getString(0),c.getInt(1),c.getInt(2));
                         myListEntries.add(entry);
                         Log.d(TAG,"RETURN LISTNAME: " + c.getString(0) + ", SYS: " + c.getInt(1));

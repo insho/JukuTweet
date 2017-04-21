@@ -1,6 +1,7 @@
 package com.jukuproject.jukutweet.Fragments;
 
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.text.SpannableString;
@@ -18,6 +19,8 @@ import android.widget.TextView;
 import com.jukuproject.jukutweet.Adapters.MyListExpandableAdapter;
 import com.jukuproject.jukutweet.Adapters.StatsTop5Adapter;
 import com.jukuproject.jukutweet.Database.InternalDB;
+import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
+import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MyListEntry;
@@ -27,6 +30,8 @@ import com.jukuproject.jukutweet.SharedPrefManager;
 
 import java.util.ArrayList;
 
+import rx.functions.Action1;
+
 /**
  * Created by JClassic on 3/31/2017.
  */
@@ -34,7 +39,7 @@ import java.util.ArrayList;
 public class StatsFragmentProgress extends Fragment {
 
     String TAG = "Test-stats2";
-
+    private long mLastClickTime = 0;
 //    private String mQuizType;
     private MyListEntry mMyListEntry;
     private ColorBlockMeasurables mColorBlockMeasurables;
@@ -204,14 +209,14 @@ public class StatsFragmentProgress extends Fragment {
 
         //THIS IS THE BOTTOM COUNT (ascending by percent)
         ArrayList<WordEntry> bottomFive = InternalDB.getWordInterfaceInstance(getContext()).getTopFiveWordEntries("Bottom",null,mMyListEntry,colorThresholds,mTopCountLimit,topbottomThreshold);
-        Log.d(TAG,"HEREEEEE 3");
 
         //THIS ONE IS the BOTTOM 5 Adapter
-        final StatsTop5Adapter adapter_bottom = new StatsTop5Adapter(getContext(),bottomFive,colorThresholds);
-        Log.d(TAG,"HEREEEEE 4");
+        RxBus rxBus = new RxBus();
+        final StatsTop5Adapter adapter_bottom = new StatsTop5Adapter(getContext(),bottomFive,colorThresholds,rxBus);
 
         bottomFiveList.setAdapter(adapter_bottom);
-        Log.d(TAG,"bottomFiveList: " + adapter_bottom.getCount());
+
+
 
         ArrayList<Integer> idsToExclude = new ArrayList<>();
         for(WordEntry wordEntry : bottomFive) {
@@ -221,10 +226,40 @@ public class StatsFragmentProgress extends Fragment {
         }
 
         ArrayList<WordEntry> topFive = InternalDB.getWordInterfaceInstance(getContext()).getTopFiveWordEntries("Top",idsToExclude,mMyListEntry,colorThresholds,mTopCountLimit,topbottomThreshold);
-        final StatsTop5Adapter adapter_top_desc = new StatsTop5Adapter(getContext(),topFive,colorThresholds);
+        final StatsTop5Adapter adapter_top_desc = new StatsTop5Adapter(getContext(),topFive,colorThresholds,rxBus);
 
         topFiveList.setAdapter(adapter_top_desc);
 
+        rxBus.toClickObserverable()
+                .subscribe(new Action1<Object>() {
+                    @Override
+                    public void call(Object event) {
+
+                        if(isUniqueClick(100) && event instanceof WordEntry) {
+                            WordEntry wordEntry = (WordEntry) event;
+                            WordDetailPopupDialog.newInstance(wordEntry).show(getFragmentManager(),"wordDetailPopup");
+                        }
+
+                    }
+
+                });
+
+    }
+
+    /**
+     * Checks how many milliseconds have elapsed since the last time "mLastClickTime" was updated
+     * If enough time has elapsed, returns True and updates mLastClickTime.
+     * This is to stop unwanted rapid clicks of the same button
+     * @param elapsedMilliSeconds threshold of elapsed milliseconds before a new button click is allowed
+     * @return bool True if enough time has elapsed, false if not
+     */
+    public boolean isUniqueClick(int elapsedMilliSeconds) {
+        if(SystemClock.elapsedRealtime() - mLastClickTime > elapsedMilliSeconds) {
+            mLastClickTime = SystemClock.elapsedRealtime();
+            return true;
+        } else {
+            return false;
+        }
     }
 
 

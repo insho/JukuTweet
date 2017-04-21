@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
@@ -24,17 +25,21 @@ import java.util.ArrayList;
 public class StatsTop5Adapter extends ArrayAdapter<WordEntry> {
     public StatsTop5Adapter(Context context
             , ArrayList<WordEntry> wordEntries
-            , ColorThresholds colorThresholds) {
+            , ColorThresholds colorThresholds
+            , RxBus rxBus
+    ) {
         super(context,0, wordEntries);
         this.mContext =context;
         mWordEntries = wordEntries;
         this.mColorThresholds = colorThresholds;
+        this.mRxBus = rxBus;
 
     }
     private ArrayList<WordEntry> mWordEntries;
     private ColorThresholds mColorThresholds;
 
     Context mContext;
+    RxBus mRxBus;
 //    private Activity mActivity;
 
 
@@ -77,13 +82,12 @@ public class StatsTop5Adapter extends ArrayAdapter<WordEntry> {
 
 
             //TODO set up worddetail popup
-//            answerText.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//                    WordDetailPopupWindow x = new WordDetailPopupWindow(mActivity, v, PKey);
-//                    x.CreateView();
-//                }
-//            });
+            answerText.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mRxBus.send(wordEntry);
+                }
+            });
 
 
         return convertView;

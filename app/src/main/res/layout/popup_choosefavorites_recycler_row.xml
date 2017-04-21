@@ -11,6 +11,7 @@
         android:id="@+id/listitemgridview"
         android:rowCount="1"
         android:columnCount="3"
+        android:paddingRight="10dp"
         >
 
 

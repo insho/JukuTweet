@@ -186,6 +186,7 @@
         android:layout_height="wrap_content"
         android:indeterminate="true"
         android:visibility="gone"
+        android:paddingTop="4dp"
         app:spb_sections_count="6"
         app:spb_color="#000000"
         app:spb_speed="2.0"

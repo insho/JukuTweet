@@ -108,7 +108,7 @@
 //    }
 //
 //    @Override
-//    public View onCreateView(LayoutInflater inflater,
+//    public View onCreatePopupWindow(LayoutInflater inflater,
 //                             ViewGroup container, Bundle savedInstanceState) {
 //        View view = LayoutInflater.from(getActivity()).inflate(R.layout.fragment_userdetailpopup, null);
 //        mRecyclerView = (RecyclerView) view.findViewById(R.id.parseSentenceRecyclerView);

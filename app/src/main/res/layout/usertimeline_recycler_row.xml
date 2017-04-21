@@ -28,6 +28,7 @@
                 android:layout_height="match_parent"
                 android:descendantFocusability="blocksDescendants"
                 android:clickable="false"
+                android:visibility="gone"
                 android:focusable="false"
                 android:focusableInTouchMode="false"
                 />

@@ -625,7 +625,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         boolean isPopFragment = false;
 
         showMenuMyListBrowse(false,mViewPager.getCurrentItem());
-
+        showProgressBar(false);
         /* If the user is in the 2 tab (timeline,saved tweets) section, pop tab container 1 AND tab container 2,
          * as well as changing tabs to the main menu 3 container setting  */
         if(mAdapterTitles.length == 2 && mAdapterTitles[0].equals("Timeline")) {

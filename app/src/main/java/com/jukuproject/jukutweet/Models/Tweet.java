@@ -60,6 +60,9 @@ public class Tweet  implements Parcelable {
         this.text = text;
     }
 
+    public void setWordEntries(ArrayList<WordEntry> wordEntries) {
+        this.wordEntries = wordEntries;
+    }
 
     public ArrayList<WordEntry> getWordEntries() {
         return wordEntries;
@@ -359,12 +362,16 @@ public class Tweet  implements Parcelable {
 
 
 
-        if(favorited !=null) {
-            this.favorited = in.readByte() != 0;
-        }
-        if(truncated != null) {
-            this.truncated = in.readByte() != 0;
-        }
+//        if(favorited !=null) {
+//            this.favorited = in.readByte() != 0;
+//        }
+//        if(truncated != null) {
+//            this.truncated = in.readByte() != 0;
+//        }
+
+        this.favorited = (Boolean) in.readValue(Boolean.class.getClassLoader());
+        this.truncated= (Boolean) in.readValue(Boolean.class.getClassLoader());
+
         this.created_at = in.readString();
         this.id_str = in.readString();
 
@@ -388,12 +395,15 @@ public class Tweet  implements Parcelable {
 
 
 
-        if(favorited !=null) {
-            dest.writeByte((byte) (this.favorited ? 1 : 0));
-        }
-        if(truncated != null) {
-            dest.writeByte((byte) (this.truncated ? 1 : 0));
-        }
+//        if(favorited !=null) {
+//            dest.writeByte((byte) (this.favorited ? 1 : 0));
+//        }
+//        if(truncated != null) {
+//            dest.writeByte((byte) (this.truncated ? 1 : 0));
+//        }
+        dest.writeValue(this.favorited);
+        dest.writeValue(this.truncated);
+
         dest.writeString(this.created_at);
         dest.writeString(this.id_str);
 

@@ -111,7 +111,7 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 //        setStyle(DialogFragment.STYLE_NO_FRAME, getTheme());
-        setStyle(STYLE_NO_FRAME, android.R.style.Theme_Holo_Light);
+        setStyle(STYLE_NO_FRAME, android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
 //        getDialog().getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 //        getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         return super.onCreateDialog(savedInstanceState);

@@ -338,11 +338,11 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                     ",Sys "    +
                     ", Count(_id) as UserCount " +
                     "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " "    +
-                    " Where _id in (?) " +
+                    " Where _id in (" +  concatenatedTweetIds + ") " +
                     " Group by Name, Sys " +
                     ") as UserEntries "    +
                     " "    +
-                    "ON Lists.Name = UserEntries.Name ", new String[]{concatenatedTweetIds});
+                    "ON Lists.Name = UserEntries.Name ", null);
 
             c.moveToFirst();
             if(c.getCount()>0) {
@@ -351,7 +351,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                     //Add all user lists (where sys == 0)
                     //Only add system lists (sys==1), but only if the system lists are actived in user preferences
                     if((c.getInt(1) == 0 || activeFavoriteStars.contains(c.getString(0)))
-                            && (entryToExclude!= null && !(entryToExclude.getListName().equals(c.getString(0)) && entryToExclude.getListsSys() == c.getInt(1)))) {
+                            && (entryToExclude== null || !(entryToExclude.getListName().equals(c.getString(0)) && entryToExclude.getListsSys() == c.getInt(1)))) {
                         MyListEntry entry = new MyListEntry(c.getString(0),c.getInt(1),c.getInt(2));
                         myListEntries.add(entry);
                         if(BuildConfig.DEBUG) { Log.d(TAG,"RETURN LISTNAME: " + c.getString(0) + ", SYS: " + c.getInt(1));}
