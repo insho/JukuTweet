@@ -58,7 +58,6 @@ public class SavedTweetsBrowseFragment extends Fragment {
     private BrowseTweetsAdapter mAdapter;
     private ArrayList<Tweet> mDataset;
     private MyListEntry mMyListEntry;
-//    private ColorBlockMeasurables mColorBlockMeasurables;
     private ColorThresholds mColorThresholds;
     private ArrayList<String> mSelectedEntries = new ArrayList<>(); //Tracks which entries in the adapter are currently selected (tweet_id)
     private Subscription undoSubscription;
@@ -105,7 +104,9 @@ public class SavedTweetsBrowseFragment extends Fragment {
 
         if(savedInstanceState != null) {
             mDataset = savedInstanceState.getParcelableArrayList("mDataset");
-
+            mMyListEntry = savedInstanceState.getParcelable("mMyListEntry");
+            mUserInfo = savedInstanceState.getParcelable("mUserInfo");
+            mSelectedEntries = savedInstanceState.getStringArrayList("mSelectedEntries");
 
         } else {
             if (getArguments() != null
@@ -116,7 +117,14 @@ public class SavedTweetsBrowseFragment extends Fragment {
 
             } else {
                 //TODO kick user out
+
             }
+        }
+
+        /*If orientation changed and some rows were selected before activity restarts,
+         show the browse menu when activity is recreated */
+        if(mSelectedEntries != null && mSelectedEntries.size()>0) {
+            mCallback.showMenuMyListBrowse(true,1);
         }
 
         setUpAdapter();
@@ -140,8 +148,6 @@ public class SavedTweetsBrowseFragment extends Fragment {
         //Create UserListAdapter and attach rxBus click listeners to it
         if(mDataset != null && mDataset.size() > 0){
             mAdapter = new BrowseTweetsAdapter(getContext(), mRxBus, mDataset, mSelectedEntries);
-
-
 
             mRxBus.toClickObserverable()
                     .subscribe(new Action1<Object>() {
@@ -296,7 +302,7 @@ public class SavedTweetsBrowseFragment extends Fragment {
     public void removeTweetFromList(String bulkTweetIds, MyListEntry currentList){
         try {
             InternalDB.getTweetInterfaceInstance(getContext()).removeMultipleTweetsFromTweetList(bulkTweetIds,currentList);
-            mSelectedEntries = new ArrayList<>();
+            mSelectedEntries.clear();
             mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mMyListEntry,mColorThresholds);
             mAdapter.swapDataSet(mDataset);
         } catch (NullPointerException e) {
@@ -315,6 +321,7 @@ public class SavedTweetsBrowseFragment extends Fragment {
             final String tweetIds = joinSelectedStrings(mSelectedEntries);
             InternalDB.getTweetInterfaceInstance(getContext()).removeMultipleTweetsFromTweetList(tweetIds,mMyListEntry);
             mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mMyListEntry,mColorThresholds);
+            mSelectedEntries.clear();
             mAdapter.swapDataSet(mDataset);
             showUndoPopupTweets(tweetIds,mMyListEntry);
         } catch (NullPointerException e) {
@@ -407,6 +414,16 @@ public class SavedTweetsBrowseFragment extends Fragment {
         } catch (Exception e) {
 
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putParcelable("mMyListEntry", mMyListEntry);
+        outState.putParcelable("mUserInfo", mUserInfo);
+        outState.putStringArrayList("mSelectedEntries", mSelectedEntries);
+        outState.putParcelableArrayList("mDataset", mDataset);
     }
 }
 

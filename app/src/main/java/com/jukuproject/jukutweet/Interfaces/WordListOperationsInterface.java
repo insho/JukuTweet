@@ -43,9 +43,10 @@ public interface WordListOperationsInterface {
             ,double topbottomThreshold);
 
     ArrayList<WordEntry> getSearchWordEntriesForRomaji(String hiraganaKatakanaPlaceholders
-    ,String wordIds);
+    ,String wordIds
+    , ColorThresholds colorThresholds);
 
-    ArrayList<WordEntry> getSearchWordEntriesForDefinition(String wordIds);
+    ArrayList<WordEntry> getSearchWordEntriesForDefinition(String wordIds, ColorThresholds colorThresholds);
 
     String getWordIdsForRomajiMatches(ArrayList<String> possibleHiraganaSearchQueries
             ,ArrayList<String> possibleKatakanaSearchQueries);

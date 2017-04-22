@@ -27,6 +27,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.TextView;
 
 import com.jukuproject.jukutweet.BuildConfig;
+import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
 
@@ -174,6 +175,12 @@ public class FlashCardsFragment extends Fragment {
 
                 return true;
             }
+
+            @Override
+            public void onLongPress(MotionEvent e) {
+                super.onLongPress(e);
+                WordDetailPopupDialog.newInstance(mDataset.get(currentPosition)).show(getFragmentManager(),"wordDetailPopup");
+            };
 
             @Override
             public boolean onSingleTapConfirmed(MotionEvent e) {

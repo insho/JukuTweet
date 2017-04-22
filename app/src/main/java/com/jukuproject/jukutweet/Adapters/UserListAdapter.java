@@ -58,33 +58,47 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
 
-        holder.txtUserName.setText(getUser(position).getName());
-        holder.txtUserScreenName.setText(getUser(position).getDisplayScreenName());
 
-        holder.txtUserDescription.setText(getUser(position).getDescription());
+        /* If the user only contains the username, and everything else is null, it is because the device
+        * was offline while saving the user, and this row should be greyed out, and only display the username... */
 
-
-        holder.image.setVisibility(View.VISIBLE);
-        Picasso picasso = new Picasso.Builder(mContext)
-                .listener(new Picasso.Listener() {
-                    @Override
-                    public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception) {
-                        //Here your log
-                        holder.image.setVisibility(View.GONE);
-
-                    }
-                })
-                .build();
-        picasso.load(getUser(position).getProfileImageUrlBig())
-                .into(holder.image);
-//
-//
-//        Picasso.with(mContext).load(mDataset.get(position).getProfileImageFilePath())
-//                .into(holder.image);
-        holder.image.setAdjustViewBounds(true);
+        if(getUser(holder.getAdapterPosition()).getUserId() == null) {
+            holder.txtUserName.setText(getUser(holder.getAdapterPosition()).getDisplayScreenName());
+            holder.txtUserName.setAlpha(.7f);
+            holder.txtUserName.setPadding(0,10,0,10);
+            holder.txtUserScreenName.setVisibility(View.GONE);
+            holder.txtUserDescription.setVisibility(View.GONE);
 
 
+        } else {
+            holder.txtUserName.setAlpha(1.0f);
+            holder.txtUserName.setPadding(0,0,0,0);
+            holder.txtUserScreenName.setVisibility(View.VISIBLE);
+            holder.txtUserDescription.setVisibility(View.VISIBLE);
 
+            holder.txtUserName.setText(getUser(position).getName());
+            holder.txtUserScreenName.setText(getUser(position).getDisplayScreenName());
+
+            holder.txtUserDescription.setText(getUser(position).getDescription());
+
+
+            holder.image.setVisibility(View.VISIBLE);
+            Picasso picasso = new Picasso.Builder(mContext)
+                    .listener(new Picasso.Listener() {
+                        @Override
+                        public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception) {
+                            //Here your log
+                            holder.image.setVisibility(View.GONE);
+
+                        }
+                    })
+                    .build();
+            picasso.load(getUser(position).getProfileImageUrlBig())
+                    .into(holder.image);
+            holder.image.setAdjustViewBounds(true);
+
+
+        }
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -104,6 +118,7 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
                 return false;
             }
         });
+
     }
 
     @Override

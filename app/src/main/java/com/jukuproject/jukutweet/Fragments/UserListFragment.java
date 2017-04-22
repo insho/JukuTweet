@@ -11,7 +11,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Adapters.UserListAdapter;
 import com.jukuproject.jukutweet.BaseContainerFragment;
@@ -105,11 +104,9 @@ public class UserListFragment extends Fragment {
                         @Override
                         public void call(Object event) {
 
-                            //TODO MOVE THIS METHOD TO THE FRAGMENT, AND ONLY CALL BACK TO MAIN ACTIVITY???
-                            //TODO OR only if there is no userinfo, fill that shit in. otherwise dont
                             if(isUniqueClick(1000) && event instanceof UserInfo) {
 
-                                if(mCallback.isOnline()) {
+//                                if(mCallback.isOnline()) {
                                     mCallback.showProgressBar(true);
                                     UserInfo userInfo = (UserInfo) event;
                                     UserTimeLineFragment fragment = new UserTimeLineFragment();
@@ -124,9 +121,9 @@ public class UserListFragment extends Fragment {
                                     mCallback.updateTabs(new String[]{"Timeline","Saved Tweets"});
                                     mCallback.showFab(false);
 
-                                } else {
-                                    Toast.makeText(getActivity(), "No internet connection", Toast.LENGTH_SHORT).show();
-                                }
+//                                } else {
+//                                    Toast.makeText(getActivity(), "No internet connection", Toast.LENGTH_SHORT).show();
+//                                }
 
                             }
 
@@ -140,10 +137,7 @@ public class UserListFragment extends Fragment {
                             if(isUniqueClick(1000) && event instanceof UserInfo) {
                                 UserInfo userInfo = (UserInfo) event;
                                 mCallback.showFab(false);
-//                                mCallback.showAddUserCheckDialog(userInfo);
-                               UserDetailPopupDialog.newInstance(userInfo).show(getFragmentManager(),"userDetailPopup");
-//                                ((BaseContainerFragment)getParentFragment()).replaceFragment(userDetailFragment, true,"userDetailPopup");
-//                                mCallback.showRemoveUserDialog(userInfo.getScreenName());
+                                    UserDetailPopupDialog.newInstance(userInfo).show(getFragmentManager(),"userDetailPopup");
                             }
 
                         }

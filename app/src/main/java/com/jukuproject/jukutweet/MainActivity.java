@@ -47,6 +47,7 @@ import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.DialogRemoveUserInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.QuizMenuDialogInteractionListener;
+import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.ItemFavorites;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.SearchTweetsContainer;
@@ -109,6 +110,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     private static final boolean debug = true;
 //    private  Observable<ArrayList<WordEntry>> queryDictionary;
     private Subscription searchQuerySubscription;
+    private Subscription userInfoSubscription;
+
 
     private boolean fragmentWasChanged = false;
 
@@ -180,7 +183,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
              */
             @Override
             public void onPageSelected(int position) {
-                if(fragmentWasChanged) {
+                if(fragmentWasChanged && mSectionsPagerAdapter != null) {
                     mSectionsPagerAdapter.notifyDataSetChanged();
                     fragmentWasChanged = false;
                 }
@@ -429,10 +432,24 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         if(InternalDB.getUserInterfaceInstance(getBaseContext()).duplicateUser(inputText.trim())) {
             Toast.makeText(this, "UserInfo already exists", Toast.LENGTH_SHORT).show();
         } else if (!isOnline()) {
-            Toast.makeText(getBaseContext(), "Unable to access internet", Toast.LENGTH_SHORT).show();
+
+            if(!InternalDB.getUserInterfaceInstance(getBaseContext()).saveUserWithoutData(inputText.trim())) {
+                Toast.makeText(getBaseContext(), "Unable to save " + inputText.trim(), Toast.LENGTH_SHORT).show();
+            } else {
+                try {
+                    ((Tab1Container) findFragmentByPosition(0)).updateUserListFragment();
+                } catch (NullPointerException e) {
+                    Log.e(TAG,"nullpointer error onRemoveUserDialogPOsitiveclick " + e.toString());
+                } catch (Exception e) {
+                    Log.e(TAG,"generic exception error onRemoveUserDialogPOsitiveclick " + e.toString());
+                }
+            }
+
+//            Toast.makeText(getBaseContext(), "Unable to access internet", Toast.LENGTH_SHORT).show();
             } else {
             tryToGetUserInfo(inputText.trim());
         }
+
     }
 
     /**
@@ -457,9 +474,15 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         if (InternalDB.getUserInterfaceInstance(getBaseContext()).deleteUser(userId) ) {
 
             // Locate Tab1Continer and update the UserListInfo adapter to reflect removed item
-            if(findFragmentByPosition(0) != null && findFragmentByPosition(0) instanceof Tab1Container) {
-                ((Tab1Container) findFragmentByPosition(0)).updateUserListFragment();
-            }
+//            if(findFragmentByPosition(0) != null && findFragmentByPosition(0) instanceof Tab1Container) {
+                try {
+                    ((Tab1Container) findFragmentByPosition(0)).updateUserListFragment();
+                } catch (NullPointerException e) {
+                    Log.e(TAG,"nullpointer error onRemoveUserDialogPOsitiveclick " + e.toString());
+                } catch (Exception e) {
+                    Log.e(TAG,"generic exception error onRemoveUserDialogPOsitiveclick " + e.toString());
+                }
+//            }
         } else {
             Toast.makeText(this, "Could not remove item", Toast.LENGTH_SHORT).show();
         }
@@ -487,7 +510,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             String token = getResources().getString(R.string.access_token);
             String tokenSecret = getResources().getString(R.string.access_token_secret);
 
-            TwitterUserClient.getInstance(token,tokenSecret)
+
+        userInfoSubscription = TwitterUserClient.getInstance(token,tokenSecret)
                     .getUserInfo(screenName)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
@@ -512,6 +536,10 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                             if(debug){Log.d(TAG, "In onError()");}
                             Toast.makeText(getBaseContext(), "Unable to connect to Twitter API", Toast.LENGTH_SHORT).show();
 
+                            /* If process is unable to get userInfo, save the screenName only as a placeholder to be accessed later */
+                            if(!InternalDB.getUserInterfaceInstance(getBaseContext()).duplicateUser(screenName)) {
+                                InternalDB.getUserInterfaceInstance(getBaseContext()).saveUserWithoutData(screenName);
+                            }
                             Log.d(TAG,"ERROR CAUSE: " + e.getCause());
                         }
 
@@ -1577,7 +1605,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
     public ArrayList<WordEntry> actuallyRuntheSearch(String query, boolean isKanji) {
 
-
         ArrayList<WordEntry> searchResults = new ArrayList<>();
         String idstopasson;
         StringBuilder FinalHiraganaKatakanaPlaceHolders = new StringBuilder();
@@ -1592,14 +1619,9 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
             final HashMap<String,ArrayList<String>> romajiSearchMap = InternalDB.getInstance(getBaseContext()).getWordLists().getRomajiMap();
 
-            /***
-             *
-             * First convert the query from Romaji --> Furigana and Katakana
-             *
-             * **/
+            /* First convert the query from Romaji --> Furigana and Katakana */
 
-            if(isKanji && !query.contains(" ") && query.length()>0) {
-                /** Only search definition */
+            if(!query.contains(" ") && query.length()>0) {
 
                 int startposition = 0;
                 int iterator = 3;
@@ -1791,17 +1813,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             idstopasson = InternalDB.getWordInterfaceInstance(getBaseContext()).getWordIdsForDefinitionMatch(query);
         }
 
-////        boolean atleastoneisfound = false;
-////        String idstopasson = "";
-////        StringBuilder idStringBuilder = new StringBuilder();
-//
-//
-//        if(isKanji && !query.contains(" ")) {
-//
-//        } else {
-//
-//        }
-
 
         /***
          *
@@ -1810,29 +1821,14 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
          * **/
         if(idstopasson!=null && idstopasson.length()>0) {
 
-            /** If we have at least on positive match, we pull further edict data from Edict
+            /* If we have at least on positive match, we pull further edict data from Edict
              * If there isn't, we can skip all this and just iterate through the list showing "item not found"s*/
             if(debug) {Log.d(TAG, "ids to pass on: " + idstopasson);}
-
-            /** Double up the finalhiragana entries and placeholders, because we need one bigass array */
-
-
-
-
+            ColorThresholds colorThresholds = SharedPrefManager.getInstance(getBaseContext()).getColorThresholds();
             if(isKanji) {
-
-
-                //TODO WHAAAAT?
-//                    if(debug){  Log.d(TAG, "FinalHiraganaKatakanaEntries.toString(): " + FinalHiraganaKatakanaEntries.toString());};
-//                    FinalHiraganaKatakanaEntries.append(",");
-//                    FinalHiraganaKatakanaEntries.append(FinalHiraganaKatakanaEntries.toString());
-
-                searchResults = InternalDB.getWordInterfaceInstance(getBaseContext()).getSearchWordEntriesForRomaji(FinalHiraganaKatakanaPlaceHolders.toString(),idstopasson);
-
-//                d = db.rawQuery("SELECT * FROM (SELECT [_id],[Kanji],[Percent],[Total],[Definition],(CASE WHEN (Furigana is null OR  Furigana = '') then \"\" else \"(\" || Furigana || \")\" end) as [Furigana],(CASE WHEN [Total] < " + greythreshold + " THEN 1 WHEN [Percent] < " + redthreshold + "  THEN 2 WHEN ([Percent] >= " + redthreshold + " and [Percent] <  " + yellowthreshold + ") THEN 3 WHEN [Percent]>= " + yellowthreshold + " THEN 4 END) as [Color], (CASE WHEN [Kanji] in (" + FinalHiraganaKatakanaPlaceHolders.toString() + ") OR [Furigana] in (" + FinalHiraganaKatakanaPlaceHolders.toString() + ") THEN 1 ELSE 2 END) as [OrderValue],LENGTH(ifnull([Furigana],[Kanji])) as [KanjiLength]  FROM (SELECT [_id],[Kanji],[Furigana],[Definition],ifnull([Total],0) as [Total] ,ifnull([Correct],0)  as [Correct],CAST(ifnull([Correct],0)  as float)/[Total] as [Percent] FROM (SELECT [_id],[Kanji],[Furigana],[Definition]  FROM [Edict] where [_id] in ( " + idstopasson + ")) NATURAL LEFT JOIN (SELECT [_id],sum([Correct]) as [Correct],sum([Total]) as [Total] from [JScoreboard]  GROUP BY [_id]) )) ORDER BY [OrderValue],[KanjiLength]", new String[]{FinalHiraganaKatakanaEntries.toString()});
+                searchResults = InternalDB.getWordInterfaceInstance(getBaseContext()).getSearchWordEntriesForRomaji(FinalHiraganaKatakanaPlaceHolders.toString(),idstopasson,colorThresholds);
             } else {
-                searchResults = InternalDB.getWordInterfaceInstance(getBaseContext()).getSearchWordEntriesForDefinition(idstopasson);
-//                d = db.rawQuery("SELECT * FROM (SELECT [_id],[Kanji],[Percent],[Total],[Definition],(CASE WHEN (Furigana is null OR  Furigana = '') then \"\" else \"(\" || Furigana || \")\" end) as [Furigana],(CASE WHEN [Total] < " + greythreshold + " THEN 1 WHEN [Percent] < " + redthreshold + "  THEN 2 WHEN ([Percent] >= " + redthreshold + " and [Percent] <  " + yellowthreshold + ") THEN 3 WHEN [Percent]>= " + yellowthreshold + " THEN 4 END) as [Color],[Common] FROM (SELECT [_id],[Kanji],[Furigana],[Definition],ifnull([Total],0) as [Total] ,ifnull([Correct],0)  as [Correct],CAST(ifnull([Correct],0)  as float)/[Total] as [Percent],[Common] FROM (SELECT [_id],[Kanji],[Furigana],[Definition],[Common]  FROM [Edict] where [_id] in ( " + idstopasson + ")) NATURAL LEFT JOIN (SELECT [_id],sum([Correct]) as [Correct],sum([Total]) as [Total] from [JScoreboard]  GROUP BY [_id]) )) ORDER BY [Common]", null);
+                searchResults = InternalDB.getWordInterfaceInstance(getBaseContext()).getSearchWordEntriesForDefinition(idstopasson,colorThresholds);
             }
 
 

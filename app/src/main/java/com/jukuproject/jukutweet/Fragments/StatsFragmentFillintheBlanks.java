@@ -1,6 +1,7 @@
 package com.jukuproject.jukutweet.Fragments;
 
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
@@ -13,12 +14,17 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.jukuproject.jukutweet.Adapters.PostQuizStatsFillintheBlankAdapter;
+import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
+import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.Tweet;
+import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
 
 import java.util.ArrayList;
+
+import rx.functions.Action1;
 
 /**
  * Created by JClassic on 3/31/2017.
@@ -28,15 +34,15 @@ public class StatsFragmentFillintheBlanks extends Fragment {
 
     String TAG = "Test-stats1";
 
-    RecyclerView resultsRecycler;
-    ArrayList<Tweet> mDataset;
-    int mCorrect;
-    int mTotal;
+    private RecyclerView resultsRecycler;
+    private ArrayList<Tweet> mDataset;
+    private int mCorrect;
+    private int mTotal;
 
     LinearLayout topscoreLayout;
     TextView textScore;
     TextView textPercentage;
-
+    private long mLastClickTime = 0;
 
     public StatsFragmentFillintheBlanks() {}
 
@@ -87,7 +93,25 @@ public class StatsFragmentFillintheBlanks extends Fragment {
         resultsRecycler.setLayoutManager(layoutManager);
 
         int adapterRowHeightMultiplier = Math.round((float) 10 * getResources().getDisplayMetrics().density);
-        resultsRecycler.setAdapter(new PostQuizStatsFillintheBlankAdapter(getContext(), mDataset,adapterRowHeightMultiplier));
+        RxBus rxBus = new RxBus();
+        resultsRecycler.setAdapter(new PostQuizStatsFillintheBlankAdapter(getContext()
+                , mDataset
+                ,adapterRowHeightMultiplier
+                ,rxBus));
+
+        rxBus.toClickObserverable()
+                .subscribe(new Action1<Object>() {
+                    @Override
+                    public void call(Object event) {
+
+                        if(isUniqueClick(100) && event instanceof WordEntry) {
+                            WordEntry wordEntry = (WordEntry) event;
+                            WordDetailPopupDialog.newInstance(wordEntry).show(getFragmentManager(),"wordDetailPopup");
+                        }
+
+                    }
+
+                });
 
             try {
                 ColorThresholds colorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
@@ -118,6 +142,21 @@ public class StatsFragmentFillintheBlanks extends Fragment {
 
     }
 
+    /**
+     * Checks how many milliseconds have elapsed since the last time "mLastClickTime" was updated
+     * If enough time has elapsed, returns True and updates mLastClickTime.
+     * This is to stop unwanted rapid clicks of the same button
+     * @param elapsedMilliSeconds threshold of elapsed milliseconds before a new button click is allowed
+     * @return bool True if enough time has elapsed, false if not
+     */
+    public boolean isUniqueClick(int elapsedMilliSeconds) {
+        if(SystemClock.elapsedRealtime() - mLastClickTime > elapsedMilliSeconds) {
+            mLastClickTime = SystemClock.elapsedRealtime();
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {

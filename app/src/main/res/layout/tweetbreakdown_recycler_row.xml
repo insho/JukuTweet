@@ -64,9 +64,6 @@
                 >
 
 
-
-
-
                 <TextView
                     android:id="@+id/textViewBrowseAdapter_Kanji"
                     android:gravity="start"
@@ -132,7 +129,7 @@
             android:id="@+id/browseitems_frameLayout"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-
+            android:background="@android:color/transparent"
             android:layout_weight=".1">
 
             <ImageButton  android:id="@+id/favorite"

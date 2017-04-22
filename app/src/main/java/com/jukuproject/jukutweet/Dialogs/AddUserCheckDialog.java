@@ -116,6 +116,7 @@ public class AddUserCheckDialog extends DialogFragment {
                     .build();
             picasso.load(userInfo.getProfileImageUrlBig())
                     .into(imgProfile);
+            imgProfile.bringToFront();
 
         }
 

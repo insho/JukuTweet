@@ -66,7 +66,9 @@ public class QuizTab1Container extends BaseContainerFragment {
             , double totalWeight
             , String myListType
             , String colorString
-            , MyListEntry myListEntry) {
+            , MyListEntry myListEntry
+//            , Integer tabStripHeightAdjustment
+    ) {
         QuizTab1Container fragment = new QuizTab1Container();
         Bundle args = new Bundle();
         args.putString("mQuiz","MultipleChoice");
@@ -82,6 +84,8 @@ public class QuizTab1Container extends BaseContainerFragment {
         args.putString("myListType",myListType);
         args.putString("colorString",colorString);
         args.putParcelable("myListEntry",myListEntry);
+//        args.putInt("tabStripHeightAdjustment",tabStripHeightAdjustment);
+
         fragment.setArguments(args);
         return  fragment;
     }
@@ -127,7 +131,9 @@ public class QuizTab1Container extends BaseContainerFragment {
                         , getArguments().getDouble("totalWeight")
                         , getArguments().getString("myListType")
                         , getArguments().getString("colorString")
-                        , (MyListEntry)getArguments().getParcelable("myListEntry"));
+                        , (MyListEntry)getArguments().getParcelable("myListEntry")
+//                        , getArguments().getInt("tabStripHeightAdjustment")
+                );
                 replaceFragment(multipleChoiceFragment, false,"multipleChoiceFragment");
                 break;
             case "FillintheBlanks":

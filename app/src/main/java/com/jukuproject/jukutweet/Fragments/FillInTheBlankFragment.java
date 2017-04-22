@@ -24,10 +24,10 @@ import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
+import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
 import com.jukuproject.jukutweet.Interfaces.QuizFragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.FillinSentencesSpinner;
 import com.jukuproject.jukutweet.Models.MyListEntry;
@@ -121,7 +121,6 @@ public class FillInTheBlankFragment extends Fragment  {
             currentTotal = savedInstanceState.getInt("currentTotal");
             currentCorrect = savedInstanceState.getInt("currentCorrect");
             currentLineWidth = savedInstanceState.getInt("currentLineWidth");
-            displayWidth = savedInstanceState.getInt("displayWidth");
         } else {
             mDataset = getArguments().getParcelableArrayList("tweets");
             mQuizSize = Integer.parseInt(getArguments().getString("quizSize"));
@@ -311,7 +310,7 @@ public class FillInTheBlankFragment extends Fragment  {
                     ClickableSpan kanjiClick = new ClickableSpan() {
                         @Override
                         public void onClick(View textView) {
-                            Toast.makeText(getContext(), wordEntry.getFurigana(), Toast.LENGTH_SHORT).show();
+                            WordDetailPopupDialog.newInstance(wordEntry).show(getFragmentManager(),"wordDetailPopup");
                         }
 
                         @Override
@@ -672,7 +671,6 @@ public class FillInTheBlankFragment extends Fragment  {
         outState.putInt("currentTotal", currentTotal);
         outState.putInt("currentCorrect",currentCorrect);
         outState.putInt("currentLineWidth",currentLineWidth);
-        outState.putInt("displayWidth",displayWidth);
     }
 
 

@@ -107,7 +107,7 @@ public class UserOpsHelper implements UserOperationsInterface {
 
     /**
      * Removes a user from the database
-     * @param user user screen_name to remove
+//     * @param user user screen_name to remove
      * @return bool True if operation is succesful, false if an error occurs
      */
     public boolean deleteUser(String userId) {
@@ -126,15 +126,57 @@ public class UserOpsHelper implements UserOperationsInterface {
 
     //TODO == hook this to user id? instead of screenname
     public void addMediaURItoDB(String URI, String screenName) {
-
-//        Log.d(TAG,"URI VALUE: " + rowID + " - " + URI);
         SQLiteDatabase db = sqlOpener.getWritableDatabase();
+        try {
+
         ContentValues values = new ContentValues();
         values.put(InternalDB.Columns.TMAIN_COL6, URI);
         db.update(InternalDB.Tables.TABLE_USERS, values, InternalDB.Columns.TMAIN_COL0 + "= ?", new String[] {screenName});
-        db.close();
         Log.d(TAG,"SUCESSFUL INSERT URI for name: " + screenName);
+        } catch (SQLiteException e) {
+            Log.e(TAG,"addMediaURItoDB sqlite problem: " + e);
+        } catch (Exception e) {
+            Log.e(TAG,"addMediaURItoDB exception... " + e);
+        } finally {
+            db.close();
+        }
+    }
 
+
+    public void updateUserInfo(UserInfo userInfo) {
+        SQLiteDatabase db = sqlOpener.getWritableDatabase();
+        try {
+
+            ContentValues values = new ContentValues();
+
+            if(userInfo.getUserId()!=null) {
+                values.put(InternalDB.Columns.TMAIN_COL1, userInfo.getUserId());
+            }
+            if(userInfo.getFollowerCount()!=null) {
+                values.put(InternalDB.Columns.TMAIN_COL3, userInfo.getFollowerCount());
+            }
+            if(userInfo.getFriendCount()!=null) {
+                values.put(InternalDB.Columns.TMAIN_COL4, userInfo.getFriendCount());
+            }
+            if(userInfo.getDescription()!=null) {
+                values.put(InternalDB.Columns.TMAIN_COL2, userInfo.getDescription());
+            }
+            if(userInfo.getName()!=null) {
+                values.put(InternalDB.Columns.TMAIN_COL7, userInfo.getName());
+            }
+            if(userInfo.getProfileImageUrl() != null) {
+                values.put(InternalDB.Columns.TMAIN_COL5, userInfo.getProfileImageUrl().trim());
+            }
+
+            db.update(InternalDB.Tables.TABLE_USERS, values, InternalDB.Columns.TMAIN_COL0 + "= ?", new String[] {userInfo.getScreenName()});
+            Log.d(TAG,"SUCESSFUL UPDATE OF USER INFO FOR: " + userInfo.getScreenName());
+        } catch (SQLiteException e) {
+            Log.e(TAG,"updateUserInfo sqlite problem: " + e);
+        } catch (Exception e) {
+            Log.e(TAG,"updateUserInfo exception... " + e);
+        } finally {
+            db.close();
+        }
     }
 
     /**
@@ -145,7 +187,15 @@ public class UserOpsHelper implements UserOperationsInterface {
     public List<UserInfo> getSavedUserInfo() {
         List<UserInfo> userInfoList = new ArrayList<UserInfo>();
 
-        String querySelectAll = "Select distinct ScreenName,IFNULL(Description,''),FollowerCount, FriendCount, IFNULL(ProfileImgUrl,''),UserId, ProfileImgFilePath, UserName From " + InternalDB.Tables.TABLE_USERS;
+        String querySelectAll = "Select distinct ScreenName" +
+                ",IFNULL(Description,'')" +
+                ",IFNULL(FollowerCount,-1)" +
+                ", IFNULL(FriendCount,-1)" +
+                ", IFNULL(ProfileImgUrl,'')" +
+                ",UserId" +
+                ", ProfileImgFilePath" +
+                ", UserName " +
+                "From " + InternalDB.Tables.TABLE_USERS;
         SQLiteDatabase db = sqlOpener.getReadableDatabase();
         Cursor c = db.rawQuery(querySelectAll, null);
 
@@ -156,28 +206,38 @@ public class UserOpsHelper implements UserOperationsInterface {
                     UserInfo userInfo = new UserInfo(c.getString(0));
                     userInfo.setDescription(c.getString(1));
 
-                    try {
-                        userInfo.setUserId(c.getString(5));
-                    } catch (SQLiteException e) {
-                        Log.e(TAG,"getSavedUserInfo adding user ID sqlite problem: " + e);
-                    } catch (Exception e) {
-                        Log.e(TAG,"getSavedUserInfo adding user ID other exception... " + e);
-                    }
+//                    try {
+//                        userInfo.setUserId(c.getString(5));
+//                    } catch (SQLiteException e) {
+//                        Log.e(TAG,"getSavedUserInfo adding user ID sqlite problem: " + e);
+//                    } catch (Exception e) {
+//                        Log.e(TAG,"getSavedUserInfo adding user ID other exception... " + e);
+//                    }
 
                     try {
-                        userInfo.setFollowerCount(c.getInt(2));
+                        if(c.getString(5)!=null) {
+                            userInfo.setUserId(c.getString(5));
+                        }
+                        if(c.getInt(2)>=0) {
+                            userInfo.setFollowerCount(c.getInt(2));
+                        }
+                        if(c.getInt(3)>=0) {
+                            userInfo.setFriendCount(c.getInt(3));
+                        }
+                        userInfo.setName(c.getString(7));
+                        userInfo.setProfile_image_url(c.getString(4));
                     } catch (SQLiteException e) {
-                        Log.e(TAG,"getSavedUserInfo adding followers count sqlite problem: " + e);
+                        Log.e(TAG,"getSavedUserInfo adding extra user info sqlite problem: " + e);
                     } catch (Exception e) {
-                        Log.e(TAG,"getSavedUserInfo adding followers count other exception... " + e);
+                        Log.e(TAG,"getSavedUserInfo adding extra user info exception... " + e);
                     }
-                    try {
-                        userInfo.setFriendCount(c.getInt(3));
-                    }  catch (SQLiteException e) {
-                        Log.e(TAG,"getSavedUserInfo adding setFriendCount sqlite problem: " + e);
-                    } catch (Exception e) {
-                        Log.e(TAG,"getSavedUserInfo adding setFriendCount other exception... " + e);
-                    }
+//                    try {
+//
+//                    }  catch (SQLiteException e) {
+//                        Log.e(TAG,"getSavedUserInfo adding setFriendCount sqlite problem: " + e);
+//                    } catch (Exception e) {
+//                        Log.e(TAG,"getSavedUserInfo adding setFriendCount other exception... " + e);
+//                    }
 
                     try {
                         userInfo.setProfileImageFilePath(c.getString(6));
@@ -187,15 +247,15 @@ public class UserOpsHelper implements UserOperationsInterface {
                         Log.e(TAG,"getSavedUserInfo adding setProfileImgFilePath other exception... " + e);
                     }
 
-                    try {
-                        userInfo.setName(c.getString(7));
-                    }  catch (SQLiteException e) {
-                        Log.e(TAG,"getSavedUserInfo adding setProfileImgFilePath sqlite problem: " + e);
-                    } catch (Exception e) {
-                        Log.e(TAG,"getSavedUserInfo adding setProfileImgFilePath other exception... " + e);
-                    }
+//                    try {
+//
+//                    }  catch (SQLiteException e) {
+//                        Log.e(TAG,"getSavedUserInfo adding setProfileImgFilePath sqlite problem: " + e);
+//                    } catch (Exception e) {
+//                        Log.e(TAG,"getSavedUserInfo adding setProfileImgFilePath other exception... " + e);
+//                    }
 
-                    userInfo.setProfile_image_url(c.getString(4));
+
                     userInfoList.add(userInfo);
                 } while (c.moveToNext());
             }
@@ -258,5 +318,24 @@ public class UserOpsHelper implements UserOperationsInterface {
         }
         return false;
     }
+
+
+    public boolean saveUserWithoutData(String screenName) {
+        SQLiteDatabase db = sqlOpener.getWritableDatabase();
+        try {
+                ContentValues values = new ContentValues();
+                if(BuildConfig.DEBUG) {
+                    Log.d(TAG,"saving OFFLINE screenname placeholder: " + screenName );
+                }
+                values.put(InternalDB.Columns.TMAIN_COL0, screenName.trim());
+                db.insert(InternalDB.Tables.TABLE_USERS, null, values);
+                return true;
+
+        } catch(SQLiteException exception) {
+            return false;
+        } finally {
+            db.close();
+        }
+    };
 
 }

@@ -1,6 +1,7 @@
 package com.jukuproject.jukutweet.Fragments;
 
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -12,12 +13,17 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.jukuproject.jukutweet.Adapters.PostQuizStatsAdapter;
+import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
+import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MultChoiceResult;
+import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
 
 import java.util.ArrayList;
+
+import rx.functions.Action1;
 
 /**
  * Created by JClassic on 3/31/2017.
@@ -27,14 +33,15 @@ public class StatsFragmentMultipleChoice extends Fragment {
 
     String TAG = "Test-stats1";
 
-    ListView resultslistView;
-    ArrayList<MultChoiceResult> mDataset;
-    String mQuizType;
-    boolean mIsHighScore;
-    boolean mIsWordBuilder;
-    Integer mWordBuilderScore;
-    int mCorrect;
-    int mTotal;
+    private ListView resultslistView;
+    private ArrayList<MultChoiceResult> mDataset;
+    private String mQuizType;
+    private boolean mIsHighScore;
+    private boolean mIsWordBuilder;
+    private Integer mWordBuilderScore;
+    private int mCorrect;
+    private int mTotal;
+    private long mLastClickTime = 0;
 
     LinearLayout topscoreLayout;
     TextView textScore;
@@ -42,6 +49,7 @@ public class StatsFragmentMultipleChoice extends Fragment {
 
 
     public StatsFragmentMultipleChoice() {}
+
 
     public static StatsFragmentMultipleChoice newInstance(ArrayList<MultChoiceResult> dataset
             , String quizType
@@ -100,7 +108,22 @@ public class StatsFragmentMultipleChoice extends Fragment {
             mTotal = getArguments().getInt("total");
         }
 
-        resultslistView.setAdapter(new PostQuizStatsAdapter(getContext(), mDataset,mIsWordBuilder));
+        RxBus rxBus = new RxBus();
+        resultslistView.setAdapter(new PostQuizStatsAdapter(getContext(), mDataset,mIsWordBuilder,rxBus));
+
+        rxBus.toClickObserverable()
+                .subscribe(new Action1<Object>() {
+                    @Override
+                    public void call(Object event) {
+
+                        if(isUniqueClick(100) && event instanceof WordEntry) {
+                            WordEntry wordEntry = (WordEntry) event;
+                            WordDetailPopupDialog.newInstance(wordEntry).show(getFragmentManager(),"wordDetailPopup");
+                        }
+
+                    }
+
+                });
 
         //TODO replace with string vars
         if(mQuizType != null && mQuizType.equals("WordBuilder")) {
@@ -145,6 +168,22 @@ public class StatsFragmentMultipleChoice extends Fragment {
 
         }
 
+    }
+
+    /**
+     * Checks how many milliseconds have elapsed since the last time "mLastClickTime" was updated
+     * If enough time has elapsed, returns True and updates mLastClickTime.
+     * This is to stop unwanted rapid clicks of the same button
+     * @param elapsedMilliSeconds threshold of elapsed milliseconds before a new button click is allowed
+     * @return bool True if enough time has elapsed, false if not
+     */
+    public boolean isUniqueClick(int elapsedMilliSeconds) {
+        if(SystemClock.elapsedRealtime() - mLastClickTime > elapsedMilliSeconds) {
+            mLastClickTime = SystemClock.elapsedRealtime();
+            return true;
+        } else {
+            return false;
+        }
     }
 
 

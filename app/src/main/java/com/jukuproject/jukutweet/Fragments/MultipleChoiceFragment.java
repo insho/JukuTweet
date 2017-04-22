@@ -59,6 +59,14 @@ public class MultipleChoiceFragment extends Fragment {
     WordEntry currentCorrectAnswer;
     ArrayList<WordEntry> questionSet;
 
+
+    TextView txtQuestion;
+    TextView txtFurigana;
+    TextView txtTotal;
+    TextView txtScore;
+    TextView txtPlusMinus;
+
+
     CountDownTimer coundDownTimer;
     long millstogo; //milliseconds left on the timer
 //    static Integer timer;
@@ -73,8 +81,7 @@ public class MultipleChoiceFragment extends Fragment {
     public ArrayList<Integer> wrongAnswerIds;
     public Integer previousId;
 
-    public TextView txtviewhighlight;
-    public GridView Publicgrid;
+    public GridView answerGrid;
     public boolean isCorrectFirstTry = true;
     Integer totalheightofanswergrid; // This designates the individual size of the "answer" rows when the phone is in horizontal mode. It gets passed to the adapter and used there. Ignored if =0;
 
@@ -83,6 +90,7 @@ public class MultipleChoiceFragment extends Fragment {
     Double sliderLowerBound = .025;
     int sliderCountMax = 30;
     int widthofquestionpane = 0;
+//    Integer tabStripHeightAdjustment = 0;
     private TextView txtTimer;
     public MultipleChoiceFragment() {
     }
@@ -94,7 +102,9 @@ public class MultipleChoiceFragment extends Fragment {
             , double totalWeight
             , String myListType
             , String colorString
-            , MyListEntry myListEntry) {
+            , MyListEntry myListEntry
+//            , Integer tabStripHeightAdjustment
+    ) {
         MultipleChoiceFragment fragment = new MultipleChoiceFragment();
         Bundle args = new Bundle();
         args.putParcelableArrayList("wordEntries", wordEntries);
@@ -105,6 +115,7 @@ public class MultipleChoiceFragment extends Fragment {
         args.putString("myListType", myListType);
         args.putString("colorString", colorString);
         args.putParcelable("myListEntry", myListEntry);
+//        args.putInt("tabStripHeightAdjustment",tabStripHeightAdjustment);
         fragment.setArguments(args);
         return fragment;
     }
@@ -123,6 +134,7 @@ public class MultipleChoiceFragment extends Fragment {
             mMyListType = getArguments().getString("myListType");
             mColorString = getArguments().getString("colorString");
             mMyListEntry = getArguments().getParcelable("myListEntry");
+//            tabStripHeightAdjustment = getArguments().getInt("tabStripHeightAdjustment",0);
 
             questionResults = new ArrayList<>();
 
@@ -145,9 +157,12 @@ public class MultipleChoiceFragment extends Fragment {
             questionResults = savedInstanceState.getParcelableArrayList("questionResults");
             millstogo = savedInstanceState.getLong("millstogo");
             currentCorrectAnswer = savedInstanceState.getParcelable("currentCorrectAnswer");
+//            tabStripHeightAdjustment = savedInstanceState.getInt("tabStripHeightAdjustment",0);
         }
 
+//        Log.d(TAG,"tabStripHeightAdjustmentnull: " + tabStripHeightAdjustment );
 
+//        answerGrid.setPadding(0,tabStripHeightAdjustment,0,0);
 
 
         setUpQuestion((savedInstanceState == null));
@@ -157,6 +172,9 @@ public class MultipleChoiceFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
+
+
+
 
         //Set layout depending on screen orientation
         TypedValue tv = new TypedValue();
@@ -199,9 +217,12 @@ public class MultipleChoiceFragment extends Fragment {
 
             }
         }
-
-
-
+        answerGrid = (GridView) mainView.findViewById(R.id.gridView);
+        txtQuestion = (TextView) mainView.findViewById(R.id.question);
+        txtFurigana = (TextView) mainView.findViewById(R.id.furigana);
+        txtTotal = (TextView) mainView.findViewById(R.id.textViewTotal);
+        txtScore = (TextView) mainView.findViewById(R.id.textViewScore);
+        txtPlusMinus = (TextView) mainView.findViewById(R.id.textViewPlusMinus);
         return mainView;
     }
 
@@ -251,16 +272,10 @@ public class MultipleChoiceFragment extends Fragment {
             stringPlusMinus = String.valueOf(currentPlusMinus);
         }
 
-        Publicgrid = (GridView) mainView.findViewById(R.id.gridView);
 
-        TextView txtQuestion = (TextView) mainView.findViewById(R.id.question);
-        TextView txtFurigana = (TextView) mainView.findViewById(R.id.furigana);
         txtFurigana.setVisibility(View.INVISIBLE);
 
         //Update the Top LEFT
-        TextView txtTotal = (TextView) mainView.findViewById(R.id.textViewTotal);
-        TextView txtScore = (TextView) mainView.findViewById(R.id.textViewScore);
-        TextView txtPlusMinus = (TextView) mainView.findViewById(R.id.textViewPlusMinus);
 
 //            GridLayout gridTop = (GridLayout) mainView.findViewById(R.id.gridTop);
 
@@ -289,7 +304,7 @@ public class MultipleChoiceFragment extends Fragment {
         MultipleChoiceAdapter adapter;
         int rowheight = (int) ((float) totalheightofanswergrid / (float) 6);
         adapter = new MultipleChoiceAdapter(getContext(), questionSet, R.layout.quizmultchoice_listitem, rowheight, getResources().getDisplayMetrics().widthPixels, mQuizType, wrongAnswerIds);
-        Publicgrid.setAdapter(adapter);
+        answerGrid.setAdapter(adapter);
 
         txtQuestion.setText(currentCorrectAnswer.getQuizQuestion(mQuizType));
 
@@ -328,7 +343,7 @@ public class MultipleChoiceFragment extends Fragment {
         }
 
 
-        Publicgrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        answerGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             public void onItemClick(AdapterView parent, View v, int position, long id) {
 
@@ -383,7 +398,7 @@ public class MultipleChoiceFragment extends Fragment {
                 wrongAnswerIds.add(wordEntry.getId());
             }
         }
-        ((MultipleChoiceAdapter)Publicgrid.getAdapter()).changeRowColorsAndVisibility(wrongAnswerIds,currentCorrectAnswer.getId());
+        ((MultipleChoiceAdapter) answerGrid.getAdapter()).changeRowColorsAndVisibility(wrongAnswerIds,currentCorrectAnswer.getId());
 
 
         //We're wrapping these commands in a runnable, because we want to delay their execution with the handler
@@ -504,7 +519,7 @@ public class MultipleChoiceFragment extends Fragment {
                 Log.d(TAG, "currentTotal " + currentTotal);
 
 
-                questionResults.add(new MultChoiceResult(currentCorrectAnswer.getId(), correct, hashmapResult, currentTotal));
+                questionResults.add(new MultChoiceResult(currentCorrectAnswer, correct, hashmapResult, currentTotal));
                 wrongAnswerIds.clear();
 
                 if (mQuizSize <= currentTotal) {
@@ -520,8 +535,6 @@ public class MultipleChoiceFragment extends Fragment {
                 } else {
                     setUpQuestion(true);
                 }
-
-
             }
         };
         // This handler sends the runnable after a slight delay (showing the new color in the textview)
@@ -620,6 +633,10 @@ public class MultipleChoiceFragment extends Fragment {
                         while (!c.isAfterLast() && finalids.size() <= 5) {
                             finalids.add(c.getString(0));
 
+                            if (BuildConfig.DEBUG) {
+                                Log.d("Test-quizmultchoice", "Adding breakup incorrect words - Adding incorrect set word:" + c.getString(1));
+                            }
+
                             WordEntry wordEntry = new WordEntry();
                             wordEntry.setId(c.getInt(0));
                             wordEntry.setKanji(c.getString(1));
@@ -652,14 +669,16 @@ public class MultipleChoiceFragment extends Fragment {
         /* Fill in remaining entries if necessary */
         final int remainingIncorrectAnswerSlots = 5 - incorrectAnswerSet.size();
         if (remainingIncorrectAnswerSlots > 0) { //We're filling the rest of the array with random records (in the case that we didn't have 6 initial records to begin with)
-            long startTime = System.currentTimeMillis();
             Cursor c = InternalDB.getQuizInterfaceInstance(mContext).getRandomKanji(correctWordEntry.getId(), remainingIncorrectAnswerSlots);
-            Log.i("TEST", "ELLAPSED TIME TOTAL other block: " + (System.currentTimeMillis() - startTime) / 1000.0f);
             if (c.getCount() > 0) {
                 c.moveToFirst();
                 while (!c.isAfterLast()) {
 
-                    WordEntry wordEntry = new WordEntry();
+                    if (BuildConfig.DEBUG) {
+                        Log.d("Test-quizmultchoice", "Fill in remaining entries if necessary - Adding incorrect set word:" + c.getString(1));
+                    }
+
+                        WordEntry wordEntry = new WordEntry();
                     wordEntry.setId(c.getInt(0));
                     wordEntry.setKanji(c.getString(1));
                     wordEntry.setFurigana(c.getString(2));
@@ -817,10 +836,12 @@ public class MultipleChoiceFragment extends Fragment {
         outState.putInt("currentPlusMinus", currentPlusMinus);
         outState.putIntegerArrayList("wrongAnswerIds", wrongAnswerIds);
         outState.putInt("previousId", previousId);
-        //TODO replace this with wrong answer positions being empty?
         outState.putBoolean("isCorrectFirstTry", isCorrectFirstTry);
         outState.putParcelable("currentCorrectAnswer",currentCorrectAnswer);
         outState.putParcelableArrayList("questionResults", questionResults);
+
+//        outState.putInt("tabStripHeightAdjustment", tabStripHeightAdjustment);
+
 
     }
 }

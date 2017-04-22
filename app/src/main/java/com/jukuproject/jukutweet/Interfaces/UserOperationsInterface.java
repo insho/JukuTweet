@@ -16,5 +16,6 @@ public interface UserOperationsInterface {
     void addMediaURItoDB(String URI, String screenName);
     List<UserInfo> getSavedUserInfo();
     boolean compareUserInfoAndUpdate(UserInfo oldUserInfo, UserInfo recentUserInfo);
-
+    boolean saveUserWithoutData(String screenName);
+    void updateUserInfo(UserInfo userInfo);
 }

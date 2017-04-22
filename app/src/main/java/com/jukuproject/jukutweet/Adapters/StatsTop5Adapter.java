@@ -80,8 +80,6 @@ public class StatsTop5Adapter extends ArrayAdapter<WordEntry> {
                 answerText.setText("");
             }
 
-
-            //TODO set up worddetail popup
             answerText.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

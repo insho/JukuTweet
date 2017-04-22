@@ -27,10 +27,10 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Adapters.TweetBreakDownAdapter;
 import com.jukuproject.jukutweet.Database.InternalDB;
+import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
 import com.jukuproject.jukutweet.FavoritesColors;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
@@ -348,7 +348,7 @@ public class TweetBreakDownFragment extends Fragment {
         }
 
 
-        loadSavedArray(mTweet.getWordEntries(),sentence,txtSentence);
+        showDisectedTweet(mTweet.getWordEntries(),sentence,txtSentence);
 
     } else if(mTweet.getWordEntries()==null) {
 
@@ -404,7 +404,7 @@ public class TweetBreakDownFragment extends Fragment {
                             /*Hide the filler sentence txtSentenceView, and instead user the items
 //                            in disectedTweet to dynamically fill in the sentence with clickable, highlighted kanji, links etc. */
 //                            loadArray(disectedTweet);
-                            loadSavedArray(disectedTweet,sentence,txtSentence);
+                            showDisectedTweet(disectedTweet,sentence,txtSentence);
                             showProgressBar(false);
 //                            txtSentence.setVisibility(View.GONE);
 
@@ -448,7 +448,7 @@ public class TweetBreakDownFragment extends Fragment {
 //
 //
 
-    public void loadSavedArray(ArrayList<WordEntry> disectedSavedTweet, String entireSentence, TextView txtSentence ) {
+    public void showDisectedTweet(ArrayList<WordEntry> disectedSavedTweet, String entireSentence, TextView txtSentence ) {
 
          /* Get metrics to pass density/width/height to adapters */
         DisplayMetrics metrics = new DisplayMetrics();
@@ -469,7 +469,7 @@ public class TweetBreakDownFragment extends Fragment {
                         ClickableSpan kanjiClick = new ClickableSpan() {
                             @Override
                             public void onClick(View textView) {
-                                Toast.makeText(getContext(), wordEntry.getFurigana(), Toast.LENGTH_SHORT).show();
+                                WordDetailPopupDialog.newInstance(wordEntry).show(getFragmentManager(),"wordDetailPopup");
                             }
 
                             @Override

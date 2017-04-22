@@ -4,6 +4,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -16,9 +17,11 @@ import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -44,8 +47,6 @@ import com.jukuproject.jukutweet.TabContainers.QuizTab2Container;
 
 import java.util.ArrayList;
 
-import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
-
 import static com.jukuproject.jukutweet.Fragments.WordListFragment.getExpandableAdapterColorBlockBasicWidths;
 import static com.jukuproject.jukutweet.MainActivity.assignWordWeightsAndGetTotalWeight;
 
@@ -68,7 +69,7 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
-    private SmoothProgressBar progressbar;
+//    private SmoothProgressBar progressbar;
     private FloatingActionButton fab;
     private Menu mMenu;
     private static final String TAG = "TEST-Main";
@@ -80,16 +81,18 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
     private ColorBlockMeasurables mColorBlockMeasurables;
     private Integer mTabNumber;
     private Integer mLastExpandedPosition;
+//    private Integer tabStripHeight;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_quiz);
         new ExternalDB(this);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mViewPager = (ViewPager) findViewById(R.id.container);
-        mTitleStrip = (PagerTitleStrip) findViewById(R.id.pager_title_strip);
+//        mTitleStrip = (PagerTitleStrip) findViewById(R.id.pager_title_strip);
         fab = (FloatingActionButton) findViewById(R.id.fab);
 
         if (savedInstanceState != null) {
@@ -132,13 +135,21 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
             mTabNumber = mIntent.getIntExtra("tabNumber",2);
             mLastExpandedPosition = mIntent.getIntExtra("lastExpandedPosition",0);
             typeOfQuizThatWasCompleted = mIntent.getStringExtra("typeOfQuizThatWasCompleted");
-            
+
+//            mTitleStrip.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.EXACTLY),
+//                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.EXACTLY));
+//            tabStripHeight = mTitleStrip.getMeasuredHeight();
+//            mTitleStrip.setVisibility(View.GONE);
+
+//            mViewPager.setPadding(0,tabStripHeight,0,0);
             Fragment[] fragments = new Fragment[2];
             switch (typeOfQuizThatWasCompleted) {
                 case "Multiple Choice":
                     final ArrayList<WordEntry> datasetMultipleChoice = mIntent.getParcelableArrayListExtra("dataset");
                     fragments[0] = QuizTab1Container.newMultipleChoiceInstance(datasetMultipleChoice
-                            ,quizType,timer,quizSize,totalweight,dataType,colorString,mMyListEntry);
+                            ,quizType,timer,quizSize,totalweight,dataType,colorString,mMyListEntry
+//                            ,tabStripHeight
+                    );
 //                    fragments[1] = QuizTab1Container.newMultipleChoiceInstance(datasetMultipleChoice
 //                            ,quizType,timer,quizSize,totalweight,dataType,colorString,mMyListEntry);
                     break;
@@ -152,8 +163,9 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
 
             fragments[1] = QuizTab2Container.newInstance();
 
+//            mTitleStrip.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+//                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
 
-            mTitleStrip.setVisibility(View.GONE);
 
             // Create the adapter that will return a fragment for each of the primary sections of the activity.
             mAdapterTitles = new String[2];
@@ -163,11 +175,10 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
 
 
             mAdapterTitles = new String[]{typeOfQuizThatWasCompleted};
-            updateTabs(mAdapterTitles );
+            updateTabs(mAdapterTitles);
 
             // Set the title
             try {
-//                MyListEntry myListEntry = mIntent.getParcelableExtra("myListEntry");
                 showActionBarBackButton(true,mMyListEntry.getListName());
             } catch (Exception e) {
                 showActionBarBackButton(true,"");
@@ -179,17 +190,22 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
                 && mAdapterTitles.length > 0
                 && mAdapterTitles[0].equals("Score")) {
             showFab(true,"quizRedo");
-            mTitleStrip.setVisibility(View.VISIBLE);
+//            mTitleStrip.setVisibility(View.VISIBLE);
         } else {
             showFab(false);
-            mTitleStrip.setVisibility(View.GONE);
+//            mTitleStrip.setVisibility(View.GONE);
         }
 
         mViewPager.setAdapter(mQuizSectionsPagerAdapter);
         mViewPager.setOffscreenPageLimit(2);
 
 //        mViewPager.invalidate();
-        progressbar = (SmoothProgressBar) findViewById(R.id.progressbar);
+//        progressbar = (SmoothProgressBar) findViewById(R.id.progressbar);
+//        mViewPager.forceLayout();
+
+        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.main_content);
+        coordinatorLayout.requestLayout();
+
     }
 
 
@@ -446,7 +462,15 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
 
         //Update the viewpager to show 2 stats tabs
         mAdapterTitles = new String[]{"Score","Stats"};
-
+                if(mTitleStrip ==null) {
+                    mTitleStrip = new PagerTitleStrip(getBaseContext());
+                    mTitleStrip.setLayoutParams(new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                    mTitleStrip.setGravity(Gravity.TOP);
+                    mTitleStrip.setTag("titleStrip");
+                }
+        mViewPager.addView(mTitleStrip);
+        mViewPager.invalidate();
+        mViewPager.forceLayout();
         updateTabs(mAdapterTitles );
 
         mColorBlockMeasurables = prepareColorBlockDataForList(mMyListEntry);
@@ -516,7 +540,7 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
 
 
         showFab(true,"quizRedo");
-        mTitleStrip.setVisibility(View.VISIBLE);
+//        mTitleStrip.setVisibility(View.VISIBLE);
 
         //SET THE FAB TO REDO THE MULT CHOICE QUIZ
         fab.setOnClickListener(new View.OnClickListener() {
@@ -714,14 +738,16 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
 
             Fragment[] fragments = new Fragment[2];
             fragments[0] = QuizTab1Container.newMultipleChoiceInstance(dataset
-                    ,quizType,quizTimer,quizSize,totalweight,dataType,selectedColorString,mMyListEntry);
+                    ,quizType,quizTimer,quizSize,totalweight,dataType,selectedColorString,mMyListEntry
+//                    ,tabStripHeight
+            );
 
 //
             fragments[1] = QuizTab2Container.newInstance();
             showFab(false);
 
 
-            mTitleStrip.setVisibility(View.GONE);
+//            mTitleStrip.setVisibility(View.GONE);
 
             // Create the adapter that will return a fragment for each of the primary sections of the activity.
             mAdapterTitles = new String[1];
@@ -765,6 +791,7 @@ public class QuizActivity extends AppCompatActivity implements QuizFragmentInter
         outState.putParcelable("myListEntry",mMyListEntry);
         outState.putParcelable("colorBlockMeasurables",mColorBlockMeasurables);
         outState.putInt("tabNumber",mTabNumber);
+
     }
 
 

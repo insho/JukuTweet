@@ -18,6 +18,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.jukuproject.jukutweet.BuildConfig;
+import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
@@ -36,7 +37,7 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
     private ArrayList<Tweet> mFillInSentResults;
     private int superadaptertextviewheightsize= 0;
     private int mAdapterRowHeightMultiplier;
-
+    private RxBus mRxBus;
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
@@ -57,10 +58,14 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public PostQuizStatsFillintheBlankAdapter(Context context, ArrayList<Tweet> fillInSentResults, Integer adapterRowHeightMultiplier) {
+    public PostQuizStatsFillintheBlankAdapter(Context context
+            , ArrayList<Tweet> fillInSentResults
+            , Integer adapterRowHeightMultiplier
+            , RxBus rxBus) {
         mFillInSentResults = fillInSentResults;
         mAdapterRowHeightMultiplier = adapterRowHeightMultiplier;
         mContext = context;
+        this.mRxBus = rxBus;
     }
 
     // Create new views (invoked by the layout manager)
@@ -169,18 +174,20 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
 
     private class DefinitionAdapter_FillInSentences extends ArrayAdapter<WordEntry> {
         public DefinitionAdapter_FillInSentences(Context context
-                , ArrayList<WordEntry> wordEntries) {
+                , ArrayList<WordEntry> wordEntries
+//                , RxBus rxBus
+        ) {
             super(context,0, wordEntries);
             mContext = context;
             mWordEntries = wordEntries;
-
+//            mRxBus = rxBus;
         }
         private Context mContext;
         private ArrayList<WordEntry> mWordEntries;
         int superadaptertextviewheightsize= 0;
-
+//        private RxBus mRxBus;
         @Override
-        public View getView(int position, View v, ViewGroup parent) {
+        public View getView(final int position, View v, ViewGroup parent) {
 
             if (v == null) {
                 v = LayoutInflater.from(getContext()).inflate(R.layout.spinner_listitem, parent, false);
@@ -205,15 +212,17 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
             textWord.setFocusable(false);
             textWord.setClickable(false);
 
-            //TODO add wordpopup
-//            textWord.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//                    WordDetailPopupWindow x = new WordDetailPopupWindow(mActivity, v, key);
-//                    x.CreateView();
-//
-//                }
-//            });
+            textWord.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        mRxBus.send(mWordEntries.get(position));
+                    } catch (NullPointerException e) {
+                        Log.e("TEST-postquizadap","Error sending mult choice result word entry back");
+                    }
+                }
+            });
+
 
 
             v.measure(ViewGroup.LayoutParams.MATCH_PARENT, View.MeasureSpec.UNSPECIFIED);

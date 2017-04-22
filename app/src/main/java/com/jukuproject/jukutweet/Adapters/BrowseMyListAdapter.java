@@ -139,8 +139,9 @@ public class BrowseMyListAdapter extends RecyclerView.Adapter<BrowseMyListAdapte
         return mWords.size();
     }
 
-    public void swapDataSet(ArrayList<WordEntry> updatedDataSet) {
+    public void swapDataSet(ArrayList<WordEntry> updatedDataSet,ArrayList<Integer> updatedSelectedEntries) {
         this.mWords = updatedDataSet;
+        this.mSelectedEntries = updatedSelectedEntries;
         notifyDataSetChanged();
     }
 }

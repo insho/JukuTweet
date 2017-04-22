@@ -51,6 +51,7 @@
             android:minWidth="80dp"
             android:minHeight="80dp"
             android:id="@+id/imgUser"
+
             app:layout_anchor="@id/layoutBanner"
             app:layout_anchorGravity="bottom|start"
             android:layout_marginLeft="20dp"

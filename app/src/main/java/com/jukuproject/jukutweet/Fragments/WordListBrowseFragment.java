@@ -51,7 +51,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class WordListBrowseFragment extends Fragment  {
 
-    String TAG = "WordListFragment";
+    String TAG = "TEST-Wordbrowse";
     private RxBus mRxBus = new RxBus();
     private RecyclerView mRecyclerView;
     /*Tracks elapsed time since last click of a recyclerview row. Used to
@@ -98,6 +98,12 @@ public class WordListBrowseFragment extends Fragment  {
             mSelectedEntries = savedInstanceState.getIntegerArrayList("mSelectedEntries");
         }
         mColorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
+
+        /*If orientation changed and some rows were selected before activity restarts,
+         show the browse menu when activity is recreated */
+        if(mSelectedEntries != null && mSelectedEntries.size()>0) {
+            mCallback.showMenuMyListBrowse(true,2);
+        }
         updateAdapter((savedInstanceState == null));
     }
 
@@ -126,8 +132,6 @@ public class WordListBrowseFragment extends Fragment  {
                         @Override
                         public void call(Object event) {
 
-                            //TODO MOVE THIS METHOD TO THE FRAGMENT, AND ONLY CALL BACK TO MAIN ACTIVITY???
-                            //TODO OR only if there is no userinfo, fill that shit in. otherwise dont
                             if(isUniqueClick(100) && event instanceof Integer) {
 
                                 Integer id = (Integer) event;
@@ -271,8 +275,9 @@ public class WordListBrowseFragment extends Fragment  {
                     ,"'Grey','Red','Yellow','Green'"
                     ,null
                     ,null);
-            mSelectedEntries = new ArrayList<>();
-            mAdapter.swapDataSet(mWords);
+
+            mSelectedEntries.clear();
+            mAdapter.swapDataSet(mWords,mSelectedEntries);
         } catch (NullPointerException e) {
             Log.e(TAG,"Nullpointer in WordListBrowseFragment removeKanjiFromList : " + e);
             Toast.makeText(getContext(), "Unable to delete entries", Toast.LENGTH_SHORT).show();
@@ -292,7 +297,8 @@ public class WordListBrowseFragment extends Fragment  {
                     ,"'Grey','Red','Yellow','Green'"
                     ,null
                     ,null);
-            mAdapter.swapDataSet(mWords);
+            mSelectedEntries.clear();
+            mAdapter.swapDataSet(mWords,mSelectedEntries);
             showUndoPopup(kanjiString,mMyListEntry);
         } catch (NullPointerException e) {
             Log.e(TAG,"Nullpointer in WordListBrowseFragment removeKanjiFromList : " + e);
@@ -344,7 +350,7 @@ public class WordListBrowseFragment extends Fragment  {
                             ,null
                             ,null);
                     mSelectedEntries.clear();
-                    mAdapter.swapDataSet(mWords);
+                    mAdapter.swapDataSet(mWords,mSelectedEntries);
                     try {
                         popupWindow.dismiss();
                         undoSubscription.unsubscribe();

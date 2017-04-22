@@ -375,6 +375,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
      * @param colorString concatenated (with commas) string of colors to include in the list (ex: 'Grey','Red','Green')
      * @return list of words from the word list filtered by color
      */
+
     public ArrayList<WordEntry> getWordsFromAWordList(MyListEntry myListEntry
             , ColorThresholds colorThresholds
             , String colorString
@@ -562,7 +563,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
             db.close();
         }
     }
-//asdf
+
     public Cursor getWordEntryForWordId(int kanjiId, ColorThresholds colorThresholds) {
         return sqlOpener.getWritableDatabase().rawQuery("SELECT [Kanji]" +
                 ",(CASE WHEN Furigana is null then '' else Furigana  end) as [Furigana]" +
@@ -881,9 +882,9 @@ public class WordOpsHelper implements WordListOperationsInterface {
         return  wordEntries;
     }
 
-
     public ArrayList<WordEntry> getSearchWordEntriesForRomaji(String hiraganaKatakanaPlaceholders
-            ,String wordIds) {
+            ,String wordIds
+            ,ColorThresholds colorThresholds) {
 
         ArrayList<WordEntry> wordEntries = new ArrayList<>();
         SQLiteDatabase db = sqlOpener.getWritableDatabase();
@@ -905,11 +906,11 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     " ,[Purple] " +
                     " ,[Orange] " +
                     " ,[Other] " +
-//                    " ,(CASE WHEN [Total] is NULL THEN 'Grey' " +
-//                    "WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 'Grey' " +
-//                    "WHEN CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 'Red' " +
-//                    "WHEN CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + " THEN 'Yellow' " +
-//                    "ELSE 'Green' END) as [Color] " +
+                    " ,(CASE WHEN [Total] is NULL THEN 'Grey' " +
+                    "WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 'Grey' " +
+                    "WHEN CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 'Red' " +
+                    "WHEN CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + " THEN 'Yellow' " +
+                    "ELSE 'Green' END) as [Color] " +
                     ", (CASE WHEN [Kanji] in (" + hiraganaKatakanaPlaceholders + ") OR [Furigana] in (" + hiraganaKatakanaPlaceholders + ") THEN 1 ELSE 2 END) as [OrderValue]" +
                     ",LENGTH(ifnull([Furigana],[Kanji])) as [KanjiLength]  " +
                     "FROM " +
@@ -941,6 +942,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     ",sum([Correct]) as [Correct]" +
                     ",sum([Total]) as [Total] " +
                     "from [JScoreboard]  " +
+                    "where [_id] in ( " + wordIds + ")" +
                     "GROUP BY [_id]" +
 
                     ") NATURAL LEFT JOIN (" +
@@ -963,7 +965,9 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     ",(CASE WHEN ([Sys] = 1  AND Name = 'Orange') then 1 else 0 end) as [Orange]" +
                     ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
                     "FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
-                    "WHERE [_id] = ?) as x Group by [_id]" +
+//                    "WHERE [_id] = ?" +
+                    "where [_id] in ( " + wordIds + ")" +
+                    ") as x Group by [_id]" +
                     ") )" +
                     ") " +
                     "ORDER BY [OrderValue],[KanjiLength]", null);
@@ -980,6 +984,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     wordEntry.setDefinition(c.getString(3));
                     wordEntry.setCorrect(c.getInt(4));
                     wordEntry.setTotal(c.getInt(5));
+                    wordEntry.setColor(c.getString(13));
                     wordEntries.add(wordEntry);
 
                     wordEntry.setItemFavorites(new ItemFavorites(c.getInt(6)
@@ -1010,7 +1015,9 @@ public class WordOpsHelper implements WordListOperationsInterface {
         return wordEntries;
     }
 
-    public ArrayList<WordEntry> getSearchWordEntriesForDefinition(String wordIds) {
+
+
+    public ArrayList<WordEntry> getSearchWordEntriesForDefinition(String wordIds, ColorThresholds colorThresholds) {
 
         ArrayList<WordEntry> wordEntries = new ArrayList<>();
         SQLiteDatabase db = sqlOpener.getWritableDatabase();
@@ -1032,6 +1039,11 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     " ,[Purple] " +
                     " ,[Orange] " +
                     " ,[Other] " +
+                    " ,(CASE WHEN [Total] is NULL THEN 'Grey' " +
+                    "WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 'Grey' " +
+                    "WHEN CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 'Red' " +
+                    "WHEN CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + " THEN 'Yellow' " +
+                    "ELSE 'Green' END) as [Color] " +
                     ",[Common] " +
                     "FROM " +
                     "(" +
@@ -1064,6 +1076,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     ",sum([Correct]) as [Correct]" +
                     ",sum([Total]) as [Total] " +
                     "from [JScoreboard]  " +
+                    " where [_id] in ( " + wordIds + ")" +
                     ") NATURAL LEFT JOIN (" +
                     "SELECT [_id]" +
                     ",SUM([Blue]) as [Blue]" +
@@ -1084,7 +1097,9 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     ",(CASE WHEN ([Sys] = 1  AND Name = 'Orange') then 1 else 0 end) as [Orange]" +
                     ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
                     "FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
-                    "WHERE [_id] = ?) as x Group by [_id]" +
+//                    "WHERE [_id] = ?" +
+                    " where [_id] in ( " + wordIds + ")" +
+                    ") as x Group by [_id]" +
 
 
                     ") )" +
@@ -1103,6 +1118,16 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     wordEntry.setDefinition(c.getString(3));
                     wordEntry.setCorrect(c.getInt(4));
                     wordEntry.setTotal(c.getInt(5));
+                    wordEntry.setColor(c.getString(13));
+
+                    wordEntry.setItemFavorites(new ItemFavorites(c.getInt(6)
+                            ,c.getInt(7)
+                            ,c.getInt(8)
+                            ,c.getInt(9)
+                            ,c.getInt(10)
+                            ,c.getInt(11)
+                            ,c.getInt(12)));
+
                     wordEntries.add(wordEntry);
 
                     c.moveToNext();

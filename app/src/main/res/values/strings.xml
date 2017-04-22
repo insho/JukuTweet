@@ -15,6 +15,9 @@
 
     <string name="notweets">no tweets found</string>
     <string name="nousers">no users found</string>
+    <string name="notimeline_nointernet">Unable to access timeline. No internet.</string>
+
+
 
     <string name="testUser">jukuproject</string>
     <string name="atsign">\u0040</string>

@@ -44,9 +44,7 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
-//import com.jukuproject.jukutweet.Models.ParseSentenceItem;
-//import com.jukuproject.jukutweet.Models.ParseSentenceSpecialSpan;
-//import com.jukuproject.jukutweet.TweetParser;
+
 
 /**
  * Shows last X tweets from a twitter timeline. User can click on a tweet to bring up
@@ -111,7 +109,11 @@ public class UserTimeLineFragment extends Fragment {
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(layoutManager);
 
-        if(mUserInfo != null) {
+        if(!mCallback.isOnline()) {
+            showRecyclerView(false);
+            mNoLists.setText(getResources().getString(R.string.notimeline_nointernet));
+
+        } else if(mUserInfo != null) {
             pullTimeLineData(mUserInfo);
         } else {
             //TODO -- put error in place if there is no userinfo
@@ -133,11 +135,8 @@ public class UserTimeLineFragment extends Fragment {
      * @param userInfo UserInfo object with data from a single twitter user
      */
     public void pullTimeLineData(final UserInfo userInfo){
-
-        Log.d(TAG,"SHOW PROG TRUE: ");
         mCallback.showProgressBar(true);
-//        mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mUserInfo,new ArrayList<Tweet>());
-//        mRecyclerView.setAdapter(mAdapter);
+
         if(mTimeLine==null) {
             mTimeLine = new ArrayList<>();
             String token = getResources().getString(R.string.access_token);
@@ -156,6 +155,12 @@ public class UserTimeLineFragment extends Fragment {
                             if(BuildConfig.DEBUG){Log.d(TAG, "In onCompleted()");}
 
                             mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mTimeLine,mActiveTweetFavoriteStars,null);
+
+
+                            /* If user info is missing from db, update the user information in db*/
+                            if(mUserInfo.getUserId()==null && mTimeLine.size()>0 && mTimeLine.get(0).getUser() != null) {
+                                InternalDB.getUserInterfaceInstance(getContext()).updateUserInfo(mTimeLine.get(0).getUser());
+                            }
 
                             _rxBus.toClickObserverable()
                                     .subscribe(new Action1<Object>() {
@@ -223,32 +228,14 @@ public class UserTimeLineFragment extends Fragment {
                                                         public void onSuccess(ArrayList<WordEntry> disectedTweet) {
                                                             //load the parsed kanji ids into the database
                                                             InternalDB.getTweetInterfaceInstance(getContext()).saveParsedTweetKanji(disectedTweet,tweet.getIdString());
-
-//                                                            for(WordEntry item : disectedTweet) {
-//                                                                Log.d("XXXX",item.getKanjiConjugated());
-//                                                            }
-                                                            //TODO handle errors on insert?
                                                             mCallback.notifyFragmentsChanged();
-//                                                            helper.close();
-//                                                        db.close();
                                                         }
 
                                                         @Override
                                                         public void onError(Throwable error) {
                                                             Log.e(TAG,"ERROR IN PARSE KANJI (for saved tweet) OBSERVABLE: " + error);
-//                                                            helper.close();
-//                                                        db.close();
                                                         }
                                                     });
-//
-//                                    public Observable<List<Weather>> getWeatherForLargeUsCapitals() {
-//                                        return cityDirectory.getUsCapitals()
-//                                                .flatMap(cityList -> Observable.from(cityList))
-//                                                .filter(city -> city.getPopulation() > 500,000)
-//                                                .flatMap(city -> weatherService.getCurrentWeather(city)) //each runs in parallel
-//                                                .toSortedList((cw1,cw2) -> cw1.getCityName().compare(cw2.getCityName()));
-//                                    }
-
                                         } else {
                                             Log.e(TAG,"Tweet parsed kanji exists code if funky");
                                         }
@@ -320,7 +307,6 @@ public class UserTimeLineFragment extends Fragment {
                         }
                     });
         } else {
-            Log.d(TAG,"MTIMELINE WAS NULL SO MAKING THE SHIT INVISIBLE");
             mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mTimeLine,mActiveTweetFavoriteStars,null);
             mRecyclerView.setAdapter(mAdapter);
 //            mCallback.showProgressBar(false);

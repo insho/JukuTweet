@@ -7,6 +7,7 @@ package com.jukuproject.jukutweet;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.util.Log;
 //import com.jukuproject.jukutweet.TabContainers.Tab4Container;
 
 /**
@@ -56,5 +57,11 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
         notifyDataSetChanged();
     }
 
-
+    @Override
+    public void notifyDataSetChanged() {
+        Log.e("TEST","notifying dataset changed");
+        Log.e("TEST","mCurrentTabs length: " + mCurrentTabs.length);
+        Log.e("TEST","mSavedFragments length: " + mSavedFragments.length);
+        super.notifyDataSetChanged();
+    }
 }

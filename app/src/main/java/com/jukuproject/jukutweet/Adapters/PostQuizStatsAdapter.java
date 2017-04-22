@@ -2,12 +2,14 @@ package com.jukuproject.jukutweet.Adapters;
 
 import android.content.Context;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.MultChoiceResult;
 import com.jukuproject.jukutweet.R;
 
@@ -19,19 +21,23 @@ import java.util.ArrayList;
 
 public class PostQuizStatsAdapter extends ArrayAdapter<ArrayList<MultChoiceResult>> {
 
+    private ArrayList<MultChoiceResult> mQuestionResults;
+    Context mContext;
+    private boolean mIsWordBuilder;
+    private RxBus mRxBus;
+
+
     public PostQuizStatsAdapter(Context context
             , ArrayList<MultChoiceResult> questionResults
-            , Boolean iswordbuilder) {
+            , Boolean iswordbuilder
+            , RxBus rxBus) {
         super(context,0);
         mQuestionResults = questionResults;
         mIsWordBuilder = iswordbuilder;
         this.mContext =context;
+        this.mRxBus = rxBus;
 
     }
-    private ArrayList<MultChoiceResult> mQuestionResults;
-    Context mContext;
-    private boolean mIsWordBuilder;
-
 
     @Override
     public int getCount() {
@@ -68,14 +74,16 @@ public class PostQuizStatsAdapter extends ArrayAdapter<ArrayList<MultChoiceResul
             } else {
                 answerText.setTextColor(ContextCompat.getColor(getContext(), R.color.colorJukuRed));
             }
-            //TODO set popupwindow
-//            answerText.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//                    WordDetailPopupWindow x = new WordDetailPopupWindow(mActivity, v, multChoiceResult.getPKey());
-//                    x.CreateView();
-//                }
-//            });
+            answerText.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        mRxBus.send(multChoiceResult.getWordEntry());
+                    } catch (NullPointerException e) {
+                        Log.e("TEST-postquizadap","Error sending mult choice result word entry back");
+                    }
+                }
+            });
         } else {
 //                final String text = arrayList.get(1);
             final String questionNumber = multChoiceResult.getCurrentTotal() + " - ";
