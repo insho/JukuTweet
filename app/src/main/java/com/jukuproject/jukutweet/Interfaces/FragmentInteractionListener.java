@@ -1,5 +1,6 @@
 package com.jukuproject.jukutweet.Interfaces;
 
+import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.UserInfo;
 
 /**
@@ -7,7 +8,7 @@ import com.jukuproject.jukutweet.Models.UserInfo;
  */
 
 public interface FragmentInteractionListener {
-    void tryToGetUserInfo(final String user);
+    void getInitialUserInfoForAddUserCheck(final String user);
     void showRemoveUserDialog(UserInfo userInfo);
     void showAddUserDialog();
     void showEditMyListDialog(String listType, String currentListName, Boolean isStarFavorite);
@@ -27,4 +28,6 @@ public interface FragmentInteractionListener {
     void runDictionarySearch(String query, boolean isRomaji);
     void runTwitterSearch(String query);
     void showAddUserCheckDialog(UserInfo userInfo);
+
+    void parseAndSaveTweet(Tweet tweet);
 }

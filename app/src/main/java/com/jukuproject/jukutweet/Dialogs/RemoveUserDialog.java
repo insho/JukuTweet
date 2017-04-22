@@ -55,7 +55,13 @@ public class RemoveUserDialog extends DialogFragment {
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                mRemoveUserDialogListener.onRemoveUserDialogPositiveClick(userInfo.getUserId());
+                String userIdentifier;
+                if(userInfo.getUserId()==null) {
+                    userIdentifier = userInfo.getScreenName();
+                } else {
+                    userIdentifier = userInfo.getUserId();
+                }
+                mRemoveUserDialogListener.onRemoveUserDialogPositiveClick(userIdentifier);
                 dialog.dismiss();
             }
         });

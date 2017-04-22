@@ -105,19 +105,33 @@ public class UserOpsHelper implements UserOperationsInterface {
 
 
 
+//TODO redo javadoc
     /**
      * Removes a user from the database
 //     * @param user user screen_name to remove
      * @return bool True if operation is succesful, false if an error occurs
      */
     public boolean deleteUser(String userId) {
+        SQLiteDatabase db = sqlOpener.getWritableDatabase();
         try{
-            SQLiteDatabase db = sqlOpener.getWritableDatabase();
-            db.delete(InternalDB.Tables.TABLE_USERS, InternalDB.Columns.TMAIN_COL1 + "= ?", new String[]{userId});
-            db.close();
+
+//
+//
+//            String queryRecordExists = "Select _id From " + InternalDB.Tables.TABLE_USERS + " where " + InternalDB.Columns.TMAIN_COL0 + " = ?" ;
+//            Cursor c = db.rawQuery(queryRecordExists, new String[]{userId});
+
+//                if (c.moveToFirst()) {
+                    db.delete(InternalDB.Tables.TABLE_USERS, InternalDB.Columns.TMAIN_COL0 + "= ? OR " + InternalDB.Columns.TMAIN_COL1 + "= ? ", new String[]{userId,userId});
+//                } else {
+//                    db.delete(InternalDB.Tables.TABLE_USERS, InternalDB.Columns.TMAIN_COL1 + "= ?", new String[]{userId});
+//                }
+
+//            c.close();
             return true;
         } catch(SQLiteException exception) {
             return false;
+        } finally {
+            db.close();
         }
 
     }

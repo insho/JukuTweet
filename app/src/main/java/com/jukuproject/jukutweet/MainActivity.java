@@ -52,6 +52,7 @@ import com.jukuproject.jukutweet.Models.ItemFavorites;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.SearchTweetsContainer;
 import com.jukuproject.jukutweet.Models.Tweet;
+import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.TabContainers.Tab1Container;
@@ -67,12 +68,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
 import rx.Observable;
 import rx.Observer;
+import rx.Scheduler;
+import rx.Single;
+import rx.SingleSubscriber;
 import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -112,6 +117,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     private Subscription searchQuerySubscription;
     private Subscription userInfoSubscription;
 
+    Scheduler parseTweetScheduler = Schedulers.from(Executors.newSingleThreadExecutor());
 
     private boolean fragmentWasChanged = false;
 
@@ -447,7 +453,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
 //            Toast.makeText(getBaseContext(), "Unable to access internet", Toast.LENGTH_SHORT).show();
             } else {
-            tryToGetUserInfo(inputText.trim());
+            getInitialUserInfoForAddUserCheck(inputText.trim());
         }
 
     }
@@ -478,9 +484,9 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 try {
                     ((Tab1Container) findFragmentByPosition(0)).updateUserListFragment();
                 } catch (NullPointerException e) {
-                    Log.e(TAG,"nullpointer error onRemoveUserDialogPOsitiveclick " + e.toString());
+                    Log.e(TAG,"nullpointer error onRemoveUserDialogPOsitiveclick " + e.getCause());
                 } catch (Exception e) {
-                    Log.e(TAG,"generic exception error onRemoveUserDialogPOsitiveclick " + e.toString());
+                    Log.e(TAG,"generic exception error onRemoveUserDialogPOsitiveclick " + e.getCause());
                 }
 //            }
         } else {
@@ -505,7 +511,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * Pulls twitter feed activity for a user into a list of FeedItems
      * @param screenName name of user whose feed will be pulled from api
      */
-    public void tryToGetUserInfo(final String screenName) {
+    public void getInitialUserInfoForAddUserCheck(final String screenName) {
 
             String token = getResources().getString(R.string.access_token);
             String tokenSecret = getResources().getString(R.string.access_token_secret);
@@ -1839,16 +1845,63 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
 
 
+    public void parseAndSaveTweet(final Tweet tweet) {
 
+
+        Single.fromCallable(new Callable<ArrayList<WordEntry>>() {
+            @Override
+            public ArrayList<WordEntry> call() throws Exception {
+
+                final ArrayList<String> spansToExclude = new ArrayList<>();
+
+                if(tweet.getEntities() != null && tweet.getEntities().getUrls() != null) {
+                    for(TweetUrl url : tweet.getEntities().getUrls()) {
+                        if(url != null) {
+                            spansToExclude.add(url.getUrl());
+                        }
+                    }
+
+                }
+//                                            Log.d(TAG,"DB OPEN BEFORE: " + db.isOpen());
+                ColorThresholds colorThresholds = SharedPrefManager.getInstance(getBaseContext()).getColorThresholds();
+                return TweetParser.getInstance().parseSentence(getBaseContext()
+                        ,tweet.getText()
+                        ,spansToExclude
+                        ,colorThresholds);
+            }
+        }).subscribeOn(parseTweetScheduler)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new SingleSubscriber<ArrayList<WordEntry>>() {
+
+                    @Override
+                    public void onSuccess(ArrayList<WordEntry> disectedTweet) {
+                        //load the parsed kanji ids into the database
+                        InternalDB.getTweetInterfaceInstance(getBaseContext()).saveParsedTweetKanji(disectedTweet,tweet.getIdString());
+                        notifyFragmentsChanged();
+                    }
+
+                    @Override
+                    public void onError(Throwable error) {
+                        Log.e(TAG,"ERROR IN PARSE KANJI (for saved tweet) OBSERVABLE: " + error);
+                    }
+                });
+    }
 
 
     @Override
     protected void onDestroy() {
+
+
         if(searchQuerySubscription!=null) {
             searchQuerySubscription.unsubscribe();
         }
+        if(userInfoSubscription!=null) {
+            userInfoSubscription.unsubscribe();
+        }
         super.onDestroy();
     }
+
+
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {

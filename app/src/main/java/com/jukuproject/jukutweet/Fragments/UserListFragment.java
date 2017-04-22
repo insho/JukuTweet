@@ -7,23 +7,31 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Adapters.UserListAdapter;
 import com.jukuproject.jukutweet.BaseContainerFragment;
+import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.UserDetailPopupDialog;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.R;
+import com.jukuproject.jukutweet.TwitterUserClient;
 
 import java.util.List;
 
+import rx.Observer;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 
 
 public class UserListFragment extends Fragment {
@@ -36,7 +44,8 @@ public class UserListFragment extends Fragment {
     private RecyclerView mRecyclerView;
     UserListAdapter mAdapter;
     private TextView mNoLists;
-
+    private Subscription userInfoSubscription;
+    private String TAG = "TEST-userlistfrag";
     public UserListFragment() {}
 
     /**
@@ -106,24 +115,25 @@ public class UserListFragment extends Fragment {
 
                             if(isUniqueClick(1000) && event instanceof UserInfo) {
 
-//                                if(mCallback.isOnline()) {
-                                    mCallback.showProgressBar(true);
-                                    UserInfo userInfo = (UserInfo) event;
-                                    UserTimeLineFragment fragment = new UserTimeLineFragment();
-                                    Bundle bundle = new Bundle();
-                                    bundle.putParcelable("userInfo",userInfo);
-                                    fragment.setArguments(bundle);
-                                    ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"timeline");
-                                    mCallback.showActionBarBackButton(true,userInfo.getDisplayScreenName());
+                                UserInfo userInfo = (UserInfo) event;
+                                /* If there is no user info for that row (besides placeholder screen name, check
+                                * for internet connection, and then try to pull the userInfo for that user into the db
+                                * before moving to the timeline/savedtweets page */
+                                    if(userInfo.getUserId()==null) {
+                                        if(!mCallback.isOnline()) {
+                                            Toast.makeText(getContext(), "Connect to internet to access information/timeline for " + userInfo.getDisplayScreenName(), Toast.LENGTH_SHORT).show();
+                                        } else if(userInfo.getScreenName()!=null){
+                                            updateUserInfoBeforeShowingUserTimeline(userInfo.getScreenName());
+                                        } else {
+                                            /* This would be considered an error.*/
+                                            Log.e(TAG,"Userinfo has null screenname and null user id!?");
+                                        }
 
-//                                    mCallback.changePagerTitle(0,"Timeline");
-                                    mCallback.showSavedTweetsTabForIndividualUser(userInfo);
-                                    mCallback.updateTabs(new String[]{"Timeline","Saved Tweets"});
-                                    mCallback.showFab(false);
+                                    } else {
+                                        showUserTimelineFragment(userInfo);
+                                    }
 
-//                                } else {
-//                                    Toast.makeText(getActivity(), "No internet connection", Toast.LENGTH_SHORT).show();
-//                                }
+
 
                             }
 
@@ -136,8 +146,13 @@ public class UserListFragment extends Fragment {
                         public void call(Object event) {
                             if(isUniqueClick(1000) && event instanceof UserInfo) {
                                 UserInfo userInfo = (UserInfo) event;
-                                mCallback.showFab(false);
-                                    UserDetailPopupDialog.newInstance(userInfo).show(getFragmentManager(),"userDetailPopup");
+
+                                    if(userInfo.getUserId()==null) {
+                                        mCallback.showRemoveUserDialog(userInfo);
+                                    } else {
+                                        mCallback.showFab(false);
+                                        UserDetailPopupDialog.newInstance(userInfo).show(getFragmentManager(),"userDetailPopup");
+                                    }
                             }
 
                         }
@@ -179,6 +194,71 @@ public class UserListFragment extends Fragment {
                     + " must implement OnHeadlineSelectedListener");
         }
     }
+
+
+    public void updateUserInfoBeforeShowingUserTimeline(final String screenName) {
+
+        String token = getResources().getString(R.string.access_token);
+        String tokenSecret = getResources().getString(R.string.access_token_secret);
+
+
+        userInfoSubscription = TwitterUserClient.getInstance(token,tokenSecret)
+                .getUserInfo(screenName)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<UserInfo>() {
+                    UserInfo userInfoInstance;
+
+                    @Override public void onCompleted() {
+                        if(BuildConfig.DEBUG){
+                            Log.d(TAG, "In onCompleted()");}
+
+                            /* If the user exists and a UserInfo object has been populated,
+                            * save it to the database and update the UserInfoFragment adapter */
+                        if(userInfoInstance != null) {
+                            InternalDB.getUserInterfaceInstance(getContext()).updateUserInfo(userInfoInstance);
+                            showUserTimelineFragment(userInfoInstance);
+                        } else {
+                            Toast.makeText(getContext(), "Unable to access timeline for " + screenName, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override public void onError(Throwable e) {
+                        e.printStackTrace();
+                        if(BuildConfig.DEBUG){Log.d(TAG, "In onError()");}
+                        Toast.makeText(getContext(), "Unable to connect to Twitter API", Toast.LENGTH_SHORT).show();
+                        Log.d(TAG,"ERROR CAUSE: " + e.getCause());
+                    }
+
+                    @Override public void onNext(UserInfo userInfo) {
+                        if(BuildConfig.DEBUG) {
+                            Log.d(TAG, "In onNext()");
+                            Log.d(TAG, "userInfo: " + userInfo.getUserId() + ", " + userInfo.getDescription());
+                        }
+                        if(userInfoInstance == null) {
+                            userInfoInstance = userInfo;
+                        }
+
+
+                    }
+                });
+
+    }
+
+    public void showUserTimelineFragment(UserInfo userInfo) {
+        mCallback.showProgressBar(true);
+        UserTimeLineFragment fragment = new UserTimeLineFragment();
+        Bundle bundle = new Bundle();
+        bundle.putParcelable("userInfo",userInfo);
+        fragment.setArguments(bundle);
+        ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"timeline");
+        mCallback.showActionBarBackButton(true,userInfo.getDisplayScreenName());
+
+//                                    mCallback.changePagerTitle(0,"Timeline");
+        mCallback.showSavedTweetsTabForIndividualUser(userInfo);
+        mCallback.updateTabs(new String[]{"Timeline","Saved Tweets"});
+        mCallback.showFab(false);
+    };
 
     /**
      * Checks how many milliseconds have elapsed since the last time "mLastClickTime" was updated

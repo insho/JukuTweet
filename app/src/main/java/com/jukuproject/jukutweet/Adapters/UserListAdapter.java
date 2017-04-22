@@ -68,9 +68,10 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
             holder.txtUserName.setPadding(0,10,0,10);
             holder.txtUserScreenName.setVisibility(View.GONE);
             holder.txtUserDescription.setVisibility(View.GONE);
-
+            holder.image.setVisibility(View.INVISIBLE);
 
         } else {
+            holder.image.setVisibility(View.VISIBLE);
             holder.txtUserName.setAlpha(1.0f);
             holder.txtUserName.setPadding(0,0,0,0);
             holder.txtUserScreenName.setVisibility(View.VISIBLE);

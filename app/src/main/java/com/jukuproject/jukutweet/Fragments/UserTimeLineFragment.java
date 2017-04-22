@@ -21,25 +21,18 @@ import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface;
-import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.ItemFavorites;
 import com.jukuproject.jukutweet.Models.Tweet;
-import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.Models.UserInfo;
-import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
-import com.jukuproject.jukutweet.TweetParser;
 import com.jukuproject.jukutweet.TwitterUserClient;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import rx.Observer;
-import rx.Single;
-import rx.SingleSubscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
@@ -194,50 +187,13 @@ public class UserTimeLineFragment extends Fragment {
                                         final TweetListOperationsInterface helperTweetOps = InternalDB.getTweetInterfaceInstance(getContext());
                                         helperTweetOps.saveTweetUrls(tweet);
 
-                                        //Try to insert Kanji
+                                        //Try to insert Kanji if they do not already exist
                                         if(helperTweetOps.tweetParsedKanjiExistsInDB(tweet) == 0) {
                                             Log.d(TAG,"SAVING TWEET KANJI");
-
 //                                        final WordLoader wordLoader = helper.getWordLists(db);
-                                            Single.fromCallable(new Callable<ArrayList<WordEntry>>() {
-                                                @Override
-                                                public ArrayList<WordEntry> call() throws Exception {
-
-                                                    final ArrayList<String> spansToExclude = new ArrayList<>();
-
-                                                    if(tweet.getEntities() != null && tweet.getEntities().getUrls() != null) {
-                                                        for(TweetUrl url : tweet.getEntities().getUrls()) {
-                                                            if(url != null) {
-                                                                spansToExclude.add(url.getUrl());
-                                                            }
-                                                        }
-
-                                                    }
-//                                            Log.d(TAG,"DB OPEN BEFORE: " + db.isOpen());
-                                                    ColorThresholds colorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
-                                                    return TweetParser.getInstance().parseSentence(getContext()
-                                                            ,tweet.getText()
-                                                            ,spansToExclude
-                                                            ,colorThresholds);
-                                                }
-                                            }).subscribeOn(Schedulers.io())
-                                                    .observeOn(AndroidSchedulers.mainThread())
-                                                    .subscribe(new SingleSubscriber<ArrayList<WordEntry>>() {
-
-                                                        @Override
-                                                        public void onSuccess(ArrayList<WordEntry> disectedTweet) {
-                                                            //load the parsed kanji ids into the database
-                                                            InternalDB.getTweetInterfaceInstance(getContext()).saveParsedTweetKanji(disectedTweet,tweet.getIdString());
-                                                            mCallback.notifyFragmentsChanged();
-                                                        }
-
-                                                        @Override
-                                                        public void onError(Throwable error) {
-                                                            Log.e(TAG,"ERROR IN PARSE KANJI (for saved tweet) OBSERVABLE: " + error);
-                                                        }
-                                                    });
+                                            mCallback.parseAndSaveTweet(tweet);
                                         } else {
-                                            Log.e(TAG,"Tweet parsed kanji exists code if funky");
+                                            Log.e(TAG,"Tweet parsed kanji exists code is funky");
                                         }
 
                                     }
