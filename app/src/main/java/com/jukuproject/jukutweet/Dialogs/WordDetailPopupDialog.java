@@ -2,8 +2,7 @@ package com.jukuproject.jukutweet.Dialogs;
 
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
-import android.app.Dialog;
-import android.content.Context;
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.graphics.Point;
 import android.graphics.Typeface;
@@ -14,6 +13,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
@@ -23,6 +23,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -30,15 +31,17 @@ import com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter;
 import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.FavoritesColors;
-import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
+import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.ItemFavorites;
+import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.SearchTweetsContainer;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
+import com.jukuproject.jukutweet.TestPopupWindow;
 import com.jukuproject.jukutweet.TwitterUserClient;
 
 import java.util.ArrayList;
@@ -48,6 +51,7 @@ import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
 import rx.Observer;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
 
@@ -58,14 +62,14 @@ import rx.schedulers.Schedulers;
 public class WordDetailPopupDialog extends DialogFragment implements View.OnTouchListener {
 
     String TAG = "TEST-userdetailpop";
-        private DialogInteractionListener mCallback;
+    private WordEntryFavoritesChangedListener mCallback;
+    private boolean favoriteStarHasBeenChanged = false; // if fav star changes, call back to refresh dialog (like for browse words, the word may no longer be contained in that list..)
     //    private Context mContext;
 //    private View mAnchorView;
     private RxBus mRxBus = new RxBus();
     private RecyclerView mRecyclerView;
 
     private SmoothProgressBar progressBar;
-    private View divider;
     private ArrayList<String> mActiveTweetFavoriteStars;
 
     private WordEntry mWordEntry;
@@ -79,7 +83,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
     private TextView textPercentage;
     private TextView textScore;
     private FrameLayout imgStarLayout;
-    private ImageButton btnImageStar;
+    private ImageButton imgStar;
     private TextView btnCollapseDefinition;
     //    private TextView txtFollowersCount;
     private View baseLayout;
@@ -101,11 +105,13 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
     private Subscription searchQuerySubscription;
     private LinearLayoutManager mLayoutManager;
 
+    private DisplayMetrics metrics;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setStyle(STYLE_NO_FRAME, android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
-
+//        mCallback = (WordEntryFavoritesChangedListener) getTargetFragment();
     }
 
 
@@ -121,14 +127,17 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         return  fragment;
     }
 
-//    @NonNull
-//    @Override
-//    public Dialog onCreateDialog(Bundle savedInstanceState) {
-//        setStyle(STYLE_NO_FRAME, android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
-//        return super.onCreateDialog(savedInstanceState);
+    /* If popup is called from browse/edit fragment, it is necessary to know the word list from which the popup is called,
+    * because changing the favorite star in this word detail popup can effect whether the WordEntry should be included in the mylist */
+//    public static WordDetailPopupDialog newInstanceFromBrowse(WordEntry wordEntry,MyListEntry myListEntry) {
+//        WordDetailPopupDialog fragment = new WordDetailPopupDialog();
+//        Bundle args = new Bundle();
+//        args.putParcelable("mWordEntry", wordEntry);
+//        args.putParcelable("mMyListEntry", myListEntry);
 //
+//        fragment.setArguments(args);
+//        return  fragment;
 //    }
-
 
     @Override
     public View onCreateView(LayoutInflater inflater,
@@ -137,7 +146,6 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         mRecyclerView = (RecyclerView) view.findViewById(R.id.userInfoRecycler);
         baseLayout = view.findViewById(R.id.popuptab_layout);
         progressBar = (SmoothProgressBar) view.findViewById(R.id.progressbar);
-        divider = (View) view.findViewById(R.id.dividerview);
         mScrollView = (ScrollView) view.findViewById(R.id.scrollView);
 
         btnShowSavedTweetsToggle = (TextView) view.findViewById(R.id.txtShowFollowingToggle);
@@ -145,7 +153,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         txtNoTweetsFound = (TextView) view.findViewById(R.id.txtNoUsers);
 
         imgStarLayout = (FrameLayout) view.findViewById(R.id.popup_framelayout);
-        btnImageStar = (ImageButton) view.findViewById(R.id.favorite);
+        imgStar = (ImageButton) view.findViewById(R.id.favorite);
         textKanji = (TextView) view.findViewById(R.id.textViewPopupKanji);
         listViewPopupDefinition = (TextView) view.findViewById(R.id.listViewPopupDefinition);
         textPercentage = (TextView) view.findViewById(R.id.textViewPopupPercentage);
@@ -173,6 +181,8 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
             mDataSet = savedInstanceState.getParcelableArrayList("mDataSet");
         }
 
+        metrics = new DisplayMetrics();
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
 
         setButtonActive(btnShowSavedTweetsToggle,true);
@@ -225,8 +235,63 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
 
         imgStarLayout.setClickable(true);
         imgStarLayout.setLongClickable(true);
-        Integer starColorDrawableInt = FavoritesColors.assignStarResource(mWordEntry.getItemFavorites(), SharedPrefManager.getInstance(getContext()).getActiveFavoriteStars());
-        btnImageStar.setImageResource(starColorDrawableInt);
+
+        final ArrayList<String> activeFavoriteWordStars = SharedPrefManager.getInstance(getContext()).getActiveFavoriteStars();
+        Integer starColorDrawableInt = FavoritesColors.assignStarResource(mWordEntry.getItemFavorites(), activeFavoriteWordStars);
+        imgStar.setImageResource(starColorDrawableInt);
+
+        if(starColorDrawableInt!=R.drawable.ic_star_multicolor) {
+                try {
+//                    Log.d(TAG,"active favs : " + activeFavoriteWordStars.get(0));
+//                    Log.d(TAG,"favs: " + mWordEntry.getItemFavorites().getSystemBlueCount() + " - " + mWordEntry.getItemFavorites().shouldOpenFavoritePopup(activeFavoriteWordStars));
+                    imgStar.setColorFilter(ContextCompat.getColor(getContext(),FavoritesColors.assignStarColor(mWordEntry.getItemFavorites(),activeFavoriteWordStars)));
+                } catch (NullPointerException e) {
+                    Log.e(TAG,"Nullpointer error setting star color filter in word detail popup dialog... Need to assign item favorites to WordEntry(?)" + e.getCause());
+                }
+        }
+
+
+
+        imgStarLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //TODO favorite words
+                favoriteStarHasBeenChanged = true;
+                Log.d(TAG,"mActiveFavoriteStars: " + activeFavoriteWordStars);
+                Log.d(TAG,"should open: " + mWordEntry.getItemFavorites().shouldOpenFavoritePopup(activeFavoriteWordStars));
+
+                if(mWordEntry.getItemFavorites().shouldOpenFavoritePopup(activeFavoriteWordStars)) {
+                    showFavoriteListPopupWindow(mWordEntry,activeFavoriteWordStars,metrics);
+                } else {
+
+                    if(FavoritesColors.onFavoriteStarToggle(getContext(),activeFavoriteWordStars,mWordEntry)) {
+                        imgStar.setImageResource(R.drawable.ic_star_black);
+                        try {
+                            imgStar.setColorFilter(ContextCompat.getColor(getContext(),FavoritesColors.assignStarColor(mWordEntry.getItemFavorites(),activeFavoriteWordStars)));
+                        } catch (NullPointerException e) {
+                            Log.e(TAG,"showFavoriteListPopupWindow Nullpointer error setting star color filter in word detail popup dialog... Need to assign item favorites to WordEntry(?)" + e.getCause());
+                        }
+
+                    } else {
+                        //TODO insert an error?
+                        Log.e(TAG,"OnFavoriteStarToggle did not work...");
+                    }
+                }
+            }
+        });
+
+
+        imgStarLayout.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+
+                showFavoriteListPopupWindow(mWordEntry,activeFavoriteWordStars,metrics);
+
+                return true;
+            }
+        });
+
+
 
 
 //        if (android.os.Build.VERSION.SDK_INT >= 23) {
@@ -688,16 +753,16 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         }
     }
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        try {
-            mCallback = (DialogInteractionListener) context;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString()
-                    + " must implement OnHeadlineSelectedListener");
-        }
-    }
+//    @Override
+//    public void onAttach(Context context) {
+//        super.onAttach(context);
+//        try {
+//            mCallback = (DialogInteractionListener) context;
+//        } catch (ClassCastException e) {
+//            throw new ClassCastException(context.toString()
+//                    + " must implement OnHeadlineSelectedListener");
+//        }
+//    }
 
 
 
@@ -827,6 +892,10 @@ return linecounter;
         if(searchQuerySubscription!=null) {
             searchQuerySubscription.unsubscribe();
         }
+        if(favoriteStarHasBeenChanged) {
+            mCallback.updateWordEntryItemFavorites(mWordEntry);
+//            getTargetFragment().
+        }
         super.onDismiss(dialog);
     }
 
@@ -838,17 +907,157 @@ return linecounter;
         super.onDestroy();
     }
 
+//    @Override
+//    public void onStart()
+//    {
+//        super.onStart();
+//        Dialog dialog = getDialog();
+//        if (dialog != null)
+//        {
+//            int width = ViewGroup.LayoutParams.MATCH_PARENT;
+//            int height = ViewGroup.LayoutParams.MATCH_PARENT;
+//            dialog.getWindow().setLayout(width, height);
+//        }
+//    }
+//
+//
+
+
+
+    public void showFavoriteListPopupWindow(final WordEntry wordEntry
+            ,final ArrayList<String> activeFavoriteStars
+            ,DisplayMetrics metrics
+            ) {
+        RxBus rxBus = new RxBus();
+
+        ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getWordInterfaceInstance(getContext()).getWordListsForAWord(activeFavoriteStars,String.valueOf(wordEntry.getId()),null);
+
+        PopupWindow popupWindow =  TestPopupWindow.createWordFavoritesPopup(getContext(),metrics,rxBus,availableFavoriteLists,wordEntry.getId());
+
+        popupWindow.getContentView().measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+
+        int xadjust = popupWindow.getContentView().getMeasuredWidth() + (int) (25 * metrics.density + 0.5f);
+        int yadjust = (int)((popupWindow.getContentView().getMeasuredHeight()  + imgStar.getMeasuredHeight())/2.0f);
+
+        Log.d("TEST","pop width: " + popupWindow.getContentView().getMeasuredWidth() + " height: " + popupWindow.getContentView().getMeasuredHeight());
+        Log.d("TEST","xadjust: " + xadjust + ", yadjust: " + yadjust);
+
+
+        popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
+            @Override
+            public void onDismiss() {
+                imgStar.setImageResource(FavoritesColors.assignStarResource(wordEntry.getItemFavorites(),activeFavoriteStars));
+
+                try {
+                    imgStar.setColorFilter(ContextCompat.getColor(getContext(),FavoritesColors.assignStarColor(wordEntry.getItemFavorites(),activeFavoriteStars)));
+                } catch (NullPointerException e) {
+                    Log.e(TAG,"showFavoriteListPopupWindow Nullpointer error setting star color filter in word detail popup dialog... Need to assign item favorites to WordEntry(?)" + e.getCause());
+                }
+
+            }
+        });
+
+
+
+        rxBus.toClickObserverable().subscribe(new Action1<Object>() {
+            @Override
+            public void call(Object event) {
+
+                                    /* Recieve a MyListEntry (containing an updated list entry for this row kanji) from
+                                    * the ChooseFavoritesAdapter in the ChooseFavorites popup window */
+                if(event instanceof MyListEntry) {
+                    MyListEntry myListEntry = (MyListEntry) event;
+
+                                        /* Ascertain the type of list that the kanji was added to (or subtracted from),
+                                        and update that list's count */
+                    if(myListEntry.getListsSys() == 1) {
+                        switch (myListEntry.getListName()) {
+                            case "Blue":
+                                wordEntry.getItemFavorites().setSystemBlueCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Green":
+                                wordEntry.getItemFavorites().setSystemGreenCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Red":
+                                wordEntry.getItemFavorites().setSystemRedCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Yellow":
+                                wordEntry.getItemFavorites().setSystemYellowCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Purple":
+                                wordEntry.getItemFavorites().setSystemPurpleCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Orange":
+                                wordEntry.getItemFavorites().setSystemOrangeCount(myListEntry.getSelectionLevel());
+                                break;
+                            default:
+                                break;
+                        }
+                    } else {
+                        if(myListEntry.getSelectionLevel() == 1) {
+                            wordEntry.getItemFavorites().addToUserListCount(1);
+                        } else {
+                            wordEntry.getItemFavorites().subtractFromUserListCount(1);
+                        }
+                    }
+
+                    if(wordEntry.getItemFavorites().shouldOpenFavoritePopup(activeFavoriteStars)
+                            && wordEntry.getItemFavorites().systemListCount(activeFavoriteStars) >1) {
+                        imgStar.setColorFilter(null);
+                        imgStar.setImageResource(R.drawable.ic_star_multicolor);
+
+                    } else {
+                        imgStar.setImageResource(R.drawable.ic_star_black);
+                        try {
+                            imgStar.setColorFilter(ContextCompat.getColor(getContext(),FavoritesColors.assignStarColor(wordEntry.getItemFavorites(),activeFavoriteStars)));
+                        } catch (NullPointerException e) {
+                            Log.e(TAG,"showFavoriteListPopupWindow Nullpointer error setting star color filter in word detail popup dialog... Need to assign item favorites to WordEntry(?)" + e.getCause());
+                        }
+                    }
+
+                }
+
+            }
+
+        });
+
+
+        popupWindow.showAsDropDown(imgStar,-xadjust,-yadjust);
+
+    };
+
+//    @Override
+//    public void onAttach(Activity activity) {
+//        super.onAttach(activity);
+//        try {
+//            mCallback = (WordEntryFavoritesChangedListener) activity;
+//        } catch (ClassCastException e) {
+//            throw new ClassCastException(activity.toString() + " must implement WordEntryFavoritesChangedListener");
+//        }
+//    }
+
+//    @Override
+//    public void onAttach(Context context) {
+//        super.onAttach(context);
+//        try {
+//            mCallback = (WordEntryFavoritesChangedListener) context;
+//        } catch (ClassCastException e) {
+//            throw new ClassCastException(context.toString()
+//                    + " must implement WordEntryFavoritesChangedListener");
+//        }
+//    }
+
     @Override
-    public void onStart()
-    {
-        super.onStart();
-        Dialog dialog = getDialog();
-        if (dialog != null)
-        {
-            int width = ViewGroup.LayoutParams.MATCH_PARENT;
-            int height = ViewGroup.LayoutParams.MATCH_PARENT;
-            dialog.getWindow().setLayout(width, height);
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            mCallback = (WordEntryFavoritesChangedListener) getTargetFragment();
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString() + " must implement WordEntryFavoritesChangedListener");
         }
     }
+
+
 }
 

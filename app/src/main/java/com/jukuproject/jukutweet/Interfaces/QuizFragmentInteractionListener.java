@@ -11,8 +11,8 @@ import java.util.ArrayList;
  */
 
 public interface QuizFragmentInteractionListener {
-    void showFab(boolean show, String type);
-    void showFab(boolean show);
+//    void showFab(boolean show, String type);
+//    void showFab(boolean show);
     void showPostQuizStatsMultipleChoice(ArrayList<MultChoiceResult> dataset
             , String quizType
             , MyListEntry myListEntry

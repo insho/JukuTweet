@@ -52,5 +52,6 @@ public interface WordListOperationsInterface {
             ,ArrayList<String> possibleKatakanaSearchQueries);
     String getWordIdsForDefinitionMatch(String query);
     String getWordIdsForKanjiMatch(String kanji);
+    Boolean myListContainsWordEntry(MyListEntry myListEntry, WordEntry wordEntry);
 //    void supertest(ColorThresholds colorThresholds, MyListEntry myListEntry);
 }

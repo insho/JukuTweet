@@ -26,6 +26,7 @@ public class UserOpsHelper implements UserOperationsInterface {
     public UserOpsHelper(SQLiteOpenHelper sqlOpener) {
         this.sqlOpener = sqlOpener;
     }
+
     /**
      * Checks to see if user is already saved in table
      * @param user user's twitter handle
@@ -351,5 +352,27 @@ public class UserOpsHelper implements UserOperationsInterface {
             db.close();
         }
     };
+
+//
+//    public ArrayList<String> getListOfUserIds() {
+//        ArrayList<String> userIds = new ArrayList<>();
+//        SQLiteDatabase db = sqlOpener.getWritableDatabase();
+//            String queryRecordExists = "Select DISTINCT UserId From " + InternalDB.Tables.TABLE_SAVED_TWEETS + " where UserId IS NOT NULL " ;
+//            Cursor c = db.rawQuery(queryRecordExists, null);
+//            try {
+//                if (c.moveToFirst()) {
+//                    while(!c.isAfterLast()) {
+//                        userIds.add(c.getString(0));
+//                    }
+//                }
+//            } catch (SQLiteException e) {
+//                Log.e(TAG,"getListOfUserIds Sqlite exception: " + e);
+//            } finally {
+//                c.close();
+//                db.close();
+//            }
+//
+//            return userIds;
+//    }
 
 }

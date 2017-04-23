@@ -26,6 +26,7 @@ import com.jukuproject.jukutweet.Dialogs.CopyMyListItemsDialog;
 import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
+import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
 import com.jukuproject.jukutweet.Interfaces.WordListOperationsInterface;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MyListEntry;
@@ -49,7 +50,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * Created by JClassic on 3/26/2017.
  */
 
-public class WordListBrowseFragment extends Fragment  {
+public class WordListBrowseFragment extends Fragment implements WordEntryFavoritesChangedListener {
 
     String TAG = "TEST-Wordbrowse";
     private RxBus mRxBus = new RxBus();
@@ -173,7 +174,10 @@ public class WordListBrowseFragment extends Fragment  {
                         public void call(Object event) {
                             if(isUniqueClick(1000) && event instanceof WordEntry) {
                                 WordEntry wordEntry = (WordEntry) event;
-                                WordDetailPopupDialog.newInstance(wordEntry).show(getFragmentManager(),"wordDetailPopup");
+//
+                                WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(wordEntry);
+                                wordDetailPopupDialog.setTargetFragment(WordListBrowseFragment.this, 0);
+                                wordDetailPopupDialog.show(getFragmentManager(),"wordDetailPopup");
                             }
 
                         }
@@ -400,6 +404,26 @@ public class WordListBrowseFragment extends Fragment  {
             sb.append(list.get(i).toString());
         }
         return sb.toString();
+    }
+
+    public void updateWordEntryItemFavorites(WordEntry wordEntry) {
+        if(mWords.contains(wordEntry)) {
+            if(!InternalDB.getWordInterfaceInstance(getContext()).myListContainsWordEntry(mMyListEntry,wordEntry)) {
+                //If the word that appeared in the popup window no longer is contained in this list, remove it
+                mWords.remove(wordEntry);
+                if(mWords.size()==0) {
+                    //Kick the user back to the main menu if the word that was removed was the last word in the list
+                    mCallback.onBackPressed();
+                } else {
+                    mAdapter.notifyDataSetChanged();
+                }
+            } else {
+                mWords.get(mWords.indexOf(wordEntry)).setItemFavorites(wordEntry.getItemFavorites());
+                mAdapter.notifyDataSetChanged();
+            }
+        } else {
+            Log.e(TAG,"Dataset doesn't contain word entry y'all...");
+        }
     }
 
     @Override

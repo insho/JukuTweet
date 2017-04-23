@@ -86,10 +86,11 @@ public class TwitterUserClient {
     }
 
     public Observable<SearchTweetsContainer> getSearchTweets(String query, String languageCode, int limit) {
-
-
-
         return twitterService.getSearchTweets(query, languageCode,limit);
+    }
+
+    public Observable<UserFollowersListContainer> getSearchUsers(@NonNull String username, int limit) {
+        return twitterService.getSearchUsers(username,limit);
     }
 
 }

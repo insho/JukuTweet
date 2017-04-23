@@ -248,7 +248,6 @@ public class UserTimeLineFragment extends Fragment {
 
                                 for(Tweet tweet : timeline) {
                                     Log.d(TAG,"timeline thing: " + tweet.getIdString());
-
                                     //Attach colorfavorites to tweet, if they exists in db
                                     if(tweet.getIdString()!=null && tweetIdStringsInFavorites.keySet().contains(tweet.getIdString())) {
                                         tweet.setItemFavorites(tweetIdStringsInFavorites.get(tweet.getIdString()));

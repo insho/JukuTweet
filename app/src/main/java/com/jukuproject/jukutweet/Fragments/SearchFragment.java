@@ -22,9 +22,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Adapters.TweetBreakDownAdapter;
+import com.jukuproject.jukutweet.Adapters.UserListAdapter;
 import com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter;
+import com.jukuproject.jukutweet.BaseContainerFragment;
+import com.jukuproject.jukutweet.Database.InternalDB;
+import com.jukuproject.jukutweet.Dialogs.AddUserCheckDialog;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
+import com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface;
+import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.UserInfo;
@@ -37,9 +43,10 @@ import java.util.ArrayList;
 import rx.functions.Action1;
 
 import static com.jukuproject.jukutweet.Adapters.ChooseFavoritesAdapter.setAppCompatCheckBoxColors;
+import static com.jukuproject.jukutweet.Fragments.TweetBreakDownFragment.countOfAll;
 
 
-public class SearchFragment extends Fragment {
+public class SearchFragment extends Fragment implements WordEntryFavoritesChangedListener {
     FragmentInteractionListener mCallback;
 
     /*Tracks elapsed time since last click of a recyclerview row. Used to
@@ -49,7 +56,7 @@ public class SearchFragment extends Fragment {
 
     private TextView mNoLists;
     private RecyclerView mRecyclerView;
-    private LinearLayout searchtoplayout;
+//    private LinearLayout searchtoplayout;
     private ProgressBar progressBar;
 //    private TextView nothingfound;
     AppCompatCheckBox checkBoxRomaji;
@@ -62,13 +69,15 @@ public class SearchFragment extends Fragment {
     String mCheckedOption;
     ArrayList<WordEntry> mDictionaryResults;
     ArrayList<Tweet> mTwitterResults;
-
+    ArrayList<UserInfo> mTwitterUserResults;
     DisplayMetrics mMetrics;
 
     ColorThresholds mColorThresholds;
     ArrayList<String> mActiveFavoriteStars;
     ArrayList<String> mActiveTweetFavoriteStars;
     LinearLayout mDictionarySearchLayout;
+    TweetBreakDownAdapter mDictionaryAdapter;
+    UserTimeLineAdapter mTwitterAdapter;
 
     private final String TAG = "TEST-searchfrag";
     private View mDividerView;
@@ -94,7 +103,7 @@ public class SearchFragment extends Fragment {
         mDictionarySearchLayout = (LinearLayout) view.findViewById(R.id.searchOnOptionLayout);
         mRecyclerView = (RecyclerView) view.findViewById(R.id.search_recycler);
         progressBar = (ProgressBar) view.findViewById(R.id.progressbar);
-        searchtoplayout = (LinearLayout) view.findViewById(R.id.searchtoplayout);
+//        searchtoplayout = (LinearLayout) view.findViewById(R.id.searchtoplayout);
         checkBoxTwitter = (AppCompatCheckBox) view.findViewById(R.id.checkBoxTwitter);
         checkBoxDictionary = (AppCompatCheckBox) view.findViewById(R.id.checkBoxDictionary);
         checkBoxRomaji = (AppCompatCheckBox) view.findViewById(R.id.checkBoxRomaji);
@@ -139,6 +148,8 @@ public class SearchFragment extends Fragment {
                 if (isChecked) {
                     mDictionarySearchLayout.setVisibility(View.VISIBLE);
                     checkBoxTwitter.setChecked(false);
+                    checkBoxRomaji.setText(getResources().getString(R.string.search_romaji));
+                    checkBoxDefinition.setText("Definition");
                 } else if(!checkBoxTwitter.isChecked()){
                     checkBoxDictionary.setChecked(true);
                 }
@@ -175,8 +186,10 @@ public class SearchFragment extends Fragment {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     mCheckedOption = "Twitter";
+                    checkBoxRomaji.setText("User");
+                    checkBoxDefinition.setText("Tweet");
                     checkBoxDictionary.setChecked(false);
-                    mDictionarySearchLayout.setVisibility(View.GONE);
+                    mDictionarySearchLayout.setVisibility(View.VISIBLE);
                 } else if(!checkBoxDictionary.isChecked()){
                     checkBoxTwitter.setChecked(true);
                 }
@@ -209,14 +222,15 @@ public class SearchFragment extends Fragment {
                         showRecyclerView(true);
                         showProgressBar(true);
                         searchView.clearFocus();
+                        mDictionarySearchLayout.setVisibility(View.GONE);
                         if(checkBoxDictionary.isChecked() && checkBoxRomaji.isChecked()) {
-                            mCallback.runDictionarySearch(query.trim(),true);
+                            mCallback.runDictionarySearch(query.trim(),"Kanji");
                         } else if(checkBoxDictionary.isChecked() && checkBoxDefinition.isChecked()) {
-                            mCallback.runDictionarySearch(query.trim(),false);
-                        } else if(checkBoxTwitter.isChecked()) {
-                            //TODO
-                            mCallback.runTwitterSearch(query.trim());
-//                            mCallback.runTwitterSearch(query);
+                            mCallback.runDictionarySearch(query.trim(),"Definition");
+                        } else if(checkBoxTwitter.isChecked() && checkBoxRomaji.isChecked()) {
+                            mCallback.runTwitterSearch(query.trim(),"User");
+                        } else if(checkBoxTwitter.isChecked() && checkBoxDefinition.isChecked()) {
+                            mCallback.runTwitterSearch(query.trim(),"Tweet");
                         } else {
                             Toast.makeText(getContext(), "Select a search option", Toast.LENGTH_SHORT).show();
                         }
@@ -243,12 +257,15 @@ public class SearchFragment extends Fragment {
 
         //If saved instance state is not null, run the adapter...
         if(savedInstanceState!=null) {
+            Log.e(TAG,"SEARCH SAVE NOT NULL");
             try {
                 mCheckedOption = savedInstanceState.getString("mCheckedOption","Romaji");
                 if(mCheckedOption.equals("Twitter")) {
+                    Log.e(TAG,"running not null fuckin' twitterresults");
                     mTwitterResults = savedInstanceState.getParcelableArrayList("mTwitterResults");
                     recieveTwitterSearchResults(mTwitterResults);
                 } else {
+                    Log.e(TAG,"running not null fuckin' dictionary results");
                     mDictionaryResults = savedInstanceState.getParcelableArrayList("mDictionaryResults");
                     recieveDictionarySearchResults(mDictionaryResults);
                 }
@@ -256,6 +273,8 @@ public class SearchFragment extends Fragment {
                 Log.e(TAG,"Nullpointer exception in loading saved state on search fragment");
             }
 
+        } else {
+            Log.e(TAG,"SEARCH SAVE STATE NULL");
         }
     }
 
@@ -295,31 +314,51 @@ public class SearchFragment extends Fragment {
     }
 
     public void recieveDictionarySearchResults(ArrayList<WordEntry> results) {
+        showRecyclerView(true);
         showProgressBar(false);
         if(results.size()>0) {
             mDictionaryResults = results;
-            TweetBreakDownAdapter mAdapter = new TweetBreakDownAdapter(getContext()
+            mDictionaryAdapter = new TweetBreakDownAdapter(getContext()
                     ,mMetrics
                     ,mDictionaryResults
 //                    ,mColorThresholds
                     ,mActiveFavoriteStars);
-            mRecyclerView.setAdapter(mAdapter);
-            mRecyclerView.setVerticalScrollBarEnabled(true);
+            mRecyclerView.setAdapter(mDictionaryAdapter);
+//            mRecyclerView.setVerticalScrollBarEnabled(true);
         } else {
             showRecyclerView(false);
         }
     }
 
     public void recieveTwitterSearchResults(ArrayList<Tweet> results) {
+        showRecyclerView(true);
         showProgressBar(false);
         if(results.size()>0) {
             mTwitterResults = results;
 
-            UserTimeLineAdapter mAdapter = new UserTimeLineAdapter(getContext()
+            mTwitterAdapter = new UserTimeLineAdapter(getContext()
                     ,_rxBus
                     ,mTwitterResults
                     ,mActiveTweetFavoriteStars
             ,currentSearchText);
+
+            _rxBus.toClickObserverable()
+                    .subscribe(new Action1<Object>() {
+                        @Override
+                        public void call(Object event) {
+
+                            if(isUniqueClick(1000) && event instanceof Tweet) {
+                                Tweet tweet = (Tweet) event;
+                                TweetBreakDownFragment fragment = TweetBreakDownFragment.newInstanceTimeLine(tweet);
+                                ((BaseContainerFragment)getParentFragment()).addFragment(fragment, true,"tweetbreakdownSearch");
+                            }
+
+
+
+
+                        }
+
+                    });
 
             _rxBus.toLongClickObserverable()
                     .subscribe(new Action1<Object>() {
@@ -336,8 +375,74 @@ public class SearchFragment extends Fragment {
 
                     });
 
-            mRecyclerView.setAdapter(mAdapter);
-            mRecyclerView.setVerticalScrollBarEnabled(true);
+            _rxBus.toSaveTweetObserverable().subscribe(new Action1<Object>() {
+
+                @Override
+                public void call(Object event) {
+
+                    if(isUniqueClick(1000) && event instanceof Tweet) {
+                        final Tweet tweet = (Tweet) event;
+
+                        //Try to insert urls
+                        final TweetListOperationsInterface helperTweetOps = InternalDB.getTweetInterfaceInstance(getContext());
+                        helperTweetOps.saveTweetUrls(tweet);
+
+                        //Try to insert Kanji if they do not already exist
+                        if(helperTweetOps.tweetParsedKanjiExistsInDB(tweet) == 0) {
+                            Log.d(TAG,"SAVING TWEET KANJI");
+//                                        final WordLoader wordLoader = helper.getWordLists(db);
+                            mCallback.parseAndSaveTweet(tweet);
+                        } else {
+                            Log.e(TAG,"Tweet parsed kanji exists code is funky");
+                        }
+
+                    }
+
+
+
+
+                }
+
+            });
+
+            mRecyclerView.setAdapter(mTwitterAdapter);
+//            mRecyclerView.setVerticalScrollBarEnabled(true);
+        } else {
+            showRecyclerView(false);
+        }
+    }
+
+    public void recieveTwitterUserSearchResults(ArrayList<UserInfo> results) {
+
+
+        showRecyclerView(true);
+        showProgressBar(false);
+        if(results.size()>0) {
+            mTwitterUserResults = results;
+
+           UserListAdapter listAdapter = new UserListAdapter(getContext()
+                    ,mTwitterUserResults
+                   ,_rxBus);
+
+            _rxBus.toClickObserverable()
+                    .subscribe(new Action1<Object>() {
+                        @Override
+                        public void call(Object event) {
+
+                            if(isUniqueClick(1000) && event instanceof UserInfo) {
+                                UserInfo userInfo = (UserInfo) event;
+                                if(getFragmentManager().findFragmentByTag("dialogAddCheck") == null || !getFragmentManager().findFragmentByTag("dialogAddCheck").isAdded()) {
+                                    AddUserCheckDialog.newInstance(userInfo).show(getFragmentManager(),"dialogAddCheck");
+                                }
+                            }
+
+                        }
+
+                    });
+
+
+            mRecyclerView.setAdapter(listAdapter);
+//            mRecyclerView.setVerticalScrollBarEnabled(true);
         } else {
             showRecyclerView(false);
         }
@@ -371,6 +476,18 @@ public class SearchFragment extends Fragment {
         } else {
             return false;
         }
+    }
+
+    public void updateWordEntryItemFavorites(WordEntry wordEntry) {
+        if(mDictionaryResults!=null && countOfAll(wordEntry,mDictionaryResults)>1) {
+            for(WordEntry tweetWordEntry : mDictionaryResults) {
+                if(tweetWordEntry.getId()==wordEntry.getId()) {
+                    wordEntry.setItemFavorites(wordEntry.getItemFavorites());
+                }
+            }
+            mDictionaryAdapter.notifyDataSetChanged();
+        }
+
     }
 
     @Override

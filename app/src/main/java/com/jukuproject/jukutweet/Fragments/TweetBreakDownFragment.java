@@ -33,6 +33,7 @@ import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
 import com.jukuproject.jukutweet.FavoritesColors;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
+import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.ItemFavorites;
 import com.jukuproject.jukutweet.Models.MyListEntry;
@@ -66,7 +67,7 @@ import rx.schedulers.Schedulers;
  * Created by Joe on 11/21/2015.
  */
 
-public class TweetBreakDownFragment extends Fragment {
+public class TweetBreakDownFragment extends Fragment implements WordEntryFavoritesChangedListener {
 
     String TAG = "TEST-breakdownpop";
 //    private FragmentInteractionListener mCallback;
@@ -80,7 +81,7 @@ public class TweetBreakDownFragment extends Fragment {
     /*This is the main linear layout, that we will fill row by row with horizontal linear layouts, which are
      in turn filled with vertical layouts (with furigana on top and japanese on bottom). A big sandwhich of layouts */
     private LinearLayout linearLayoutVerticalMain;
-    private LinearLayout linearLayout;
+//    private LinearLayout linearLayout;
     private int linewidth = 0;
     private  int displaywidth = 0;
 //    private int displaymarginpadding = 30; //How much to pad the edge of the screen by when laying down the sentenceblocks (so the sentence doesn't overlap the screen or get cut up too much)
@@ -146,8 +147,8 @@ public class TweetBreakDownFragment extends Fragment {
         txtNoLists = (TextView) v.findViewById(R.id.nolists);
 
         linearLayoutVerticalMain = (LinearLayout) v.findViewById(R.id.sentence_layout);
-        linearLayout = new LinearLayout(getActivity());
-        linearLayout.setOrientation(LinearLayout.HORIZONTAL);
+//        linearLayout = new LinearLayout(getActivity());
+//        linearLayout.setOrientation(LinearLayout.HORIZONTAL);
         return v;
     }
 
@@ -174,18 +175,17 @@ public class TweetBreakDownFragment extends Fragment {
 
             txtSentence.setVisibility(View.VISIBLE);
             txtSentence.setText(mTweet.getText());
-            txtSentence.setClickable(true);
+//            txtSentence.setClickable(true);
             txtSentence.setAlpha(.7f);
 
 
 
-        final String sentence = mTweet.getText();
+            final String sentence = mTweet.getText();
 
-//Try to fill in user info at the top
+            //Try to fill in user info at the top
             try {
                 txtUserName.setText(mTweet.getUser().getName());
                 txtUserScreenName.setText(mTweet.getUser().getDisplayScreenName());
-
             } catch (NullPointerException e) {
                 Log.e(TAG,"TweetBreakDownFragment mTweet doesn't contain user?: " + e);
                 txtUserName.setVisibility(View.INVISIBLE);
@@ -451,17 +451,22 @@ public class TweetBreakDownFragment extends Fragment {
     public void showDisectedTweet(ArrayList<WordEntry> disectedSavedTweet, String entireSentence, TextView txtSentence ) {
 
          /* Get metrics to pass density/width/height to adapters */
+
+        if((getActivity()==null) || (getActivity().getWindowManager()==null)) {
+            return;
+        } else {
+
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
         displaywidth = metrics.widthPixels;
-//        displaymarginpadding =  (int)((float)(displaywidth)*0.055555556);
 
         /* Set tweet color spans. If the saved Tweet object includes a "colorIndex" object (
         * which comes from the savedTweetKanji table and contains the id, positions and color designation
         * of each kanji in the TWeet), replace the normal Tweet text with colored spans for those kanji */
             try {
-                final SpannableStringBuilder sb = new SpannableStringBuilder(entireSentence);
 
+                final SpannableStringBuilder sb = new SpannableStringBuilder(entireSentence);
+                    sb.setSpan(null, 0, entireSentence.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
                     for(final WordEntry wordEntry : disectedSavedTweet) {
 //                        final ForegroundColorSpan fcs = new ForegroundColorSpan(ContextCompat.getColor(getContext(),color.getColorValue()));
 //                        sb.setSpan(fcs, color.getStartIndex(), color.getEndIndex(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
@@ -507,7 +512,7 @@ public class TweetBreakDownFragment extends Fragment {
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.setVerticalScrollBarEnabled(true);
-
+        }
     }
 
 
@@ -623,7 +628,28 @@ public class TweetBreakDownFragment extends Fragment {
 
     };
 
+    //TODO put this in catchall
+    public static int countOfAll(Object obj, ArrayList list){
+        int count = 0;
+        for (int i = 0; i < list.size(); i++)
+            if(obj.equals(list.get(i)))
+                count += 1;
+        return count;
+    }
+    public void updateWordEntryItemFavorites(WordEntry wordEntry) {
 
+
+
+                if(mTweet.getWordEntries()!=null && countOfAll(wordEntry,mTweet.getWordEntries())>1) {
+                    for(WordEntry tweetWordEntry : mTweet.getWordEntries()) {
+                        if(tweetWordEntry.getId()==wordEntry.getId()) {
+                            wordEntry.setItemFavorites(wordEntry.getItemFavorites());
+                        }
+                    }
+                }
+            mAdapter.notifyDataSetChanged();
+
+    }
     @Override
     public void onDestroy() {
         super.onDestroy();

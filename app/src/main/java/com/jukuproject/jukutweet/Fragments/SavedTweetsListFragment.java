@@ -12,17 +12,16 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ExpandableListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Adapters.SavedTweetsExpandableAdapter;
 import com.jukuproject.jukutweet.BaseContainerFragment;
-import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.QuizMenuDialog;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
@@ -55,11 +54,11 @@ public class SavedTweetsListFragment extends Fragment {
     private UserInfo mUserInfo;
 
     public static SavedTweetsListFragment newInstance() {
-        SavedTweetsListFragment fragment = new SavedTweetsListFragment();
+//        SavedTweetsListFragment fragment = new SavedTweetsListFragment();
 //        Bundle args = new Bundle();
 //        args.putParcelable("userInfo", null);
 //        fragment.setArguments(args);
-        return fragment;
+        return new SavedTweetsListFragment();
     }
 
     public static SavedTweetsListFragment newInstance(UserInfo userInfo) {
@@ -125,7 +124,7 @@ public class SavedTweetsListFragment extends Fragment {
 
 
 
-        SavedTweetsFragmentAdapter = new SavedTweetsExpandableAdapter(getContext(),mMenuHeader,getdimenscore(),0);
+        SavedTweetsFragmentAdapter = new SavedTweetsExpandableAdapter(getContext(),mMenuHeader,getdimenscore(.36f),0);
 
         expListView.setAdapter(SavedTweetsFragmentAdapter);
         expListView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
@@ -183,6 +182,15 @@ public class SavedTweetsListFragment extends Fragment {
                                         int groupPosition, int childPosition, long id) {
                 String childOption = mMenuHeader.get(groupPosition).getChildOptions().get(childPosition); //This is the text in the child that the user clicked
 
+                /* User shouldn't be able to click on an empty list */
+                if(mMenuHeader.get(groupPosition).getColorBlockMeasurables() == null
+                        || mMenuHeader.get(groupPosition).getColorBlockMeasurables() == null
+                        || mMenuHeader.get(groupPosition).getColorBlockMeasurables().getTotalCount()==0) {
+                    Toast.makeText(getContext(), "List is empty", Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+
+
                 switch (childOption) {
                     case "Browse/Edit":
                         if(mUserInfo != null) {
@@ -203,7 +211,7 @@ public class SavedTweetsListFragment extends Fragment {
                                     ,lastExpandedPosition
                                     ,mMenuHeader.get(groupPosition).getMyListEntry()
                                     ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
-                                    ,getdimenscore()).show(getActivity().getSupportFragmentManager()
+                                    ,getdimenscore(.5f)).show(getActivity().getSupportFragmentManager()
                                     ,"dialogQuizMenu");
                             mCallback.showFab(false,"");
                         }
@@ -217,7 +225,7 @@ public class SavedTweetsListFragment extends Fragment {
                                     ,lastExpandedPosition
                                     ,mMenuHeader.get(groupPosition).getMyListEntry()
                                     ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
-                                    ,getdimenscore()).show(getActivity().getSupportFragmentManager(),"dialogQuizMenu");
+                                    ,getdimenscore(.5f)).show(getActivity().getSupportFragmentManager(),"dialogQuizMenu");
 //                            mCallback.showFab(false,"");
                         }
 
@@ -231,7 +239,7 @@ public class SavedTweetsListFragment extends Fragment {
                                     ,lastExpandedPosition
                                     ,mMenuHeader.get(groupPosition).getMyListEntry()
                                     ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
-                                    ,getdimenscore()).show(getActivity().getSupportFragmentManager(),"dialogQuizMenu");
+                                    ,getdimenscore(.5f)).show(getActivity().getSupportFragmentManager(),"dialogQuizMenu");
 //                            mCallback.showFab(false,"");
                         }
 
@@ -252,42 +260,7 @@ public class SavedTweetsListFragment extends Fragment {
                     default:
 
                         break;
-//                        sendMessage(parent, Header, sys);
-//                        break;
-//                    case "Multiple Choice":
-//                        MenuOptionsDialog x = new MenuOptionsDialog(getActivity(), 0, 0, "multiplechoice", true, Header, sys, mylistposition);
-//                        x.CreateDialog();
-//                        break;
-//
-//                    case "Fill in the Blanks":
-//                        /** I'm being lazy here, and inputing groupposition in the "levelblock" place*/
-//                        MenuOptionsDialog b = new MenuOptionsDialog(getActivity(), 0, groupPosition, "fragment_fillintheblanks", true, Header, sys, mylistposition);
-//                        b.CreateDialog();
-//
-//                        break;
-//
-//                    case "Word Builder":
-//                        MenuOptionsDialog c = new MenuOptionsDialog(getActivity(), 0, groupPosition, "wordbuilder", true, Header, sys, mylistposition);
-//                        c.CreateDialog();
-//                        break;
-//                    case "Word Match":
-//                        MenuOptionsDialog d = new MenuOptionsDialog(getActivity(), 0, groupPosition, "wordmatch", true, Header, sys, mylistposition);
-//                        d.CreateDialog();
-//                        break;
-//
-//                    case "Stats":
-//
-//                        Intent intent = new Intent(getActivity(), BlockStatsNoTab.class);
-//                        intent.putExtra("blockNumber", 0);
-//                        intent.putExtra("levelNumber", 0);
-//                        intent.putExtra("mylists", true);
-//                        intent.putExtra("mylistposition", lastExpandedPosition);
-//                        intent.putExtra("Header", Header);
-//                        intent.putExtra("Sys", sys);
-//                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-//                        getActivity().finish();
-//                        startActivity(intent);
-//                        break;
+
                 }
                 return false;
             }
@@ -333,16 +306,16 @@ public class SavedTweetsListFragment extends Fragment {
             c.moveToFirst();
             while (!c.isAfterLast()) {
 
-                if(BuildConfig.DEBUG){Log.d(TAG,"NAME: ==" + c.getString(0)
-                        + "==, SYS: " + c.getString(1)
-                        + ", TOTAL: " + c.getString(2)
-                        + ", GREY: " + c.getString(3)
-                        + ", (4): " + c.getString(4)+ ", (5): " + c.getString(5));}
+//                if(BuildConfig.DEBUG){Log.d(TAG,"NAME: ==" + c.getString(0)
+//                        + "==, SYS: " + c.getString(1)
+//                        + ", TOTAL: " + c.getString(2)
+//                        + ", GREY: " + c.getString(3)
+//                        + ", (4): " + c.getString(4)+ ", (5): " + c.getString(5));}
 
                 /* We do not want to include favorites star lists that are not active in the user
                 * preferences. So if an inactivated list shows up in the sql query, ignore it (don't add to mMenuHeader)*/
 
-                Log.d(TAG,"availableFavoritesStars: " + availableFavoritesStars);
+//                Log.d(TAG,"availableFavoritesStars: " + availableFavoritesStars);
                 if(c.getInt(1) != 1 || (availableFavoritesStars.contains(c.getString(0)))) {
                     MenuHeader menuHeader = new MenuHeader();
                     if(userInfo!=null) {
@@ -356,7 +329,7 @@ public class SavedTweetsListFragment extends Fragment {
 
                     menuHeader.setMyListEntry(new MyListEntry(c.getString(0),c.getInt(1)));
                     if(c.getInt(1) == 1 ) {
-                        if(BuildConfig.DEBUG){Log.d(TAG,c.getString(0) + " sys ==1 so adding to starlist");}
+//                        if(BuildConfig.DEBUG){Log.d(TAG,c.getString(0) + " sys ==1 so adding to starlist");}
                         menuHeader.setSystemList(true);
                     }
 
@@ -405,15 +378,15 @@ public class SavedTweetsListFragment extends Fragment {
      *
      * @see SavedTweetsExpandableAdapter
      */
-    private int getdimenscore() {
+    private int getdimenscore(float multiplier) {
 
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
 //        return Math.round((float)metrics.widthPixels*(float).5);
         if(metrics.heightPixels>metrics.widthPixels) {
-            return Math.round((float)metrics.widthPixels*(float).4);
+            return Math.round((float)metrics.widthPixels*multiplier);
         } else {
-            return Math.round((float)metrics.heightPixels*(float).4);
+            return Math.round((float)metrics.heightPixels*multiplier);
         }
     }
 
@@ -458,7 +431,7 @@ public class SavedTweetsListFragment extends Fragment {
         } else {
             prepareListData(null);
         }
-        SavedTweetsFragmentAdapter = new SavedTweetsExpandableAdapter(getContext(),mMenuHeader,getdimenscore(),0);
+        SavedTweetsFragmentAdapter = new SavedTweetsExpandableAdapter(getContext(),mMenuHeader,getdimenscore(.36f),0);
         expListView.setAdapter(SavedTweetsFragmentAdapter);
 //        expListView.invalidateViews();
     }

@@ -474,8 +474,8 @@ public class WordOpsHelper implements WordListOperationsInterface {
                             ",SUM([Red]) as [Red]" +
                             ",SUM([Green]) as [Green]" +
                             ",SUM([Yellow]) as [Yellow]" +
-                            ",SUM([Yellow]) as [Purple]" +
-                            ",SUM([Yellow]) as [Orange]" +
+                            ",SUM([Purple]) as [Purple]" +
+                            ",SUM([Orange]) as [Orange]" +
 
                             ", SUM([Other]) as [Other] " +
                             "FROM (" +
@@ -488,10 +488,11 @@ public class WordOpsHelper implements WordListOperationsInterface {
                             ",(CASE WHEN ([Sys] = 1  AND Name = 'Orange') then 1 else 0 end) as [Orange]" +
                             ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
                             "FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
-                            "WHERE [_id] = ?) Group by [_id]" +
+//                            "WHERE [_id] = ?" +
+                    ") Group by [_id]" +
 
                             ") as z " +
-                            "ON z.[_id] = z.[_id] " +
+                            "ON x.[_id] = z.[_id] " +
 
                             ") " +
                             "WHERE [Color] in (" +  colorString + ") "  +
@@ -617,8 +618,8 @@ public class WordOpsHelper implements WordListOperationsInterface {
                 ",SUM([Red]) as [Red]" +
                 ",SUM([Green]) as [Green]" +
                 ",SUM([Yellow]) as [Yellow]" +
-                ",SUM([Yellow]) as [Purple]" +
-                ",SUM([Yellow]) as [Orange]" +
+                ",SUM([Purple]) as [Purple]" +
+                ",SUM([Orange]) as [Orange]" +
 
                 ", SUM([Other]) as [Other] " +
                 "FROM (" +
@@ -951,8 +952,8 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     ",SUM([Red]) as [Red]" +
                     ",SUM([Green]) as [Green]" +
                     ",SUM([Yellow]) as [Yellow]" +
-                    ",SUM([Yellow]) as [Purple]" +
-                    ",SUM([Yellow]) as [Orange]" +
+                    ",SUM([Purple]) as [Purple]" +
+                    ",SUM([Orange]) as [Orange]" +
 
                     ", SUM([Other]) as [Other] " +
                     "FROM (" +
@@ -1083,8 +1084,8 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     ",SUM([Red]) as [Red]" +
                     ",SUM([Green]) as [Green]" +
                     ",SUM([Yellow]) as [Yellow]" +
-                    ",SUM([Yellow]) as [Purple]" +
-                    ",SUM([Yellow]) as [Orange]" +
+                    ",SUM([Purple]) as [Purple]" +
+                    ",SUM([Orange]) as [Orange]" +
 
                     ", SUM([Other]) as [Other] " +
                     "FROM (" +
@@ -1384,5 +1385,31 @@ public class WordOpsHelper implements WordListOperationsInterface {
 //        }
 
         return idStringBuilder.toString();
+    }
+
+
+    public Boolean myListContainsWordEntry(MyListEntry myListEntry, WordEntry wordEntry) {
+
+            SQLiteDatabase db = sqlOpener.getWritableDatabase();
+            String queryRecordExists = "Select _id From " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " where " + InternalDB.Columns.COL_ID + " = ? AND " + InternalDB.Columns.TFAVORITES_COL0 + " = ? AND " + InternalDB.Columns.TFAVORITES_COL1 + " = ?" ;
+            try {
+                Cursor c = db.rawQuery(queryRecordExists, new String[]{String.valueOf(wordEntry.getId()),myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+                if (c.getCount()>0) {
+                    c.close();
+                    return true;
+                } else {
+                    c.close();
+                    return false;
+                }
+
+            } catch (NullPointerException e) {
+                Log.e(TAG,"myListContainsWordEntry nullpointer exception: " + e);
+            } catch (SQLiteException e) {
+                Log.e(TAG,"myListContainsWordEntry Sqlite exception: " + e);
+            } finally {
+                db.close();
+            }
+        return true;
+
     }
 }

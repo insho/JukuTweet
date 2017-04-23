@@ -18,4 +18,5 @@ public interface UserOperationsInterface {
     boolean compareUserInfoAndUpdate(UserInfo oldUserInfo, UserInfo recentUserInfo);
     boolean saveUserWithoutData(String screenName);
     void updateUserInfo(UserInfo userInfo);
+//    ArrayList<String> getListOfUserIds();
 }

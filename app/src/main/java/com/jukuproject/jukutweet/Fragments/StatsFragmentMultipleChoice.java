@@ -15,6 +15,7 @@ import android.widget.TextView;
 import com.jukuproject.jukutweet.Adapters.PostQuizStatsAdapter;
 import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
+import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MultChoiceResult;
 import com.jukuproject.jukutweet.Models.WordEntry;
@@ -29,7 +30,7 @@ import rx.functions.Action1;
  * Created by JClassic on 3/31/2017.
  */
 
-public class StatsFragmentMultipleChoice extends Fragment {
+public class StatsFragmentMultipleChoice extends Fragment implements WordEntryFavoritesChangedListener {
 
     String TAG = "Test-stats1";
 
@@ -186,6 +187,15 @@ public class StatsFragmentMultipleChoice extends Fragment {
         }
     }
 
+
+    public void updateWordEntryItemFavorites(WordEntry wordEntry) {
+        for(MultChoiceResult multChoiceResult: mDataset) {
+            if(multChoiceResult.getWordEntry()!=null && multChoiceResult.getWordEntry().getId() == wordEntry.getId()) {
+                multChoiceResult.getWordEntry().setItemFavorites(wordEntry.getItemFavorites());
+            }
+        }
+
+    }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {

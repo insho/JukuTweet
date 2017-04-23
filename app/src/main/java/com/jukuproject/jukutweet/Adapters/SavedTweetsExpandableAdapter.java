@@ -1,13 +1,11 @@
 package com.jukuproject.jukutweet.Adapters;
 
 
-
 import android.content.Context;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -18,7 +16,6 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
 import com.jukuproject.jukutweet.Models.MenuHeader;
 import com.jukuproject.jukutweet.R;
@@ -108,9 +105,9 @@ public class SavedTweetsExpandableAdapter extends BaseExpandableListAdapter {
 //        TextView lblColorBar = (TextView) convertView.findViewById(R.id.lblcolorbar);
 //        lblColorBar.setVisibility(TextView.GONE);
 
-        if(BuildConfig.DEBUG) {
-            Log.d(TAG, "childText: " + childText);
-        }
+//        if(BuildConfig.DEBUG) {
+//            Log.d(TAG, "childText: " + childText);
+//        }
 
         /* For the child entries of the adapter, only show the "colorblocks" in the first row of a mylist. This is differentiated
         * here by the string "Browse/Edit" which only appears in the "WordListFragment" fragment */
@@ -186,7 +183,7 @@ public class SavedTweetsExpandableAdapter extends BaseExpandableListAdapter {
 
         TextView lblListHeader = (TextView) convertView.findViewById(R.id.lblListHeader);
         lblListHeader.setAlpha(1.0f);
-        if(BuildConfig.DEBUG){Log.d(TAG,"headerTitle: --" + mMenuHeader.get(groupPosition).getHeaderTitle() + "--" );}
+//        if(BuildConfig.DEBUG){Log.d(TAG,"headerTitle: --" + mMenuHeader.get(groupPosition).getHeaderTitle() + "--" );}
         if(mTextsize >0){
             lblListHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP, mTextsize);
         }
@@ -237,7 +234,7 @@ public class SavedTweetsExpandableAdapter extends BaseExpandableListAdapter {
 
                     /* Set the list name to be greyed out for empty lists */
             if(measurables.getTotalCount()>0) {
-                if(BuildConfig.DEBUG){Log.d(TAG,"setting counts...");}
+//                if(BuildConfig.DEBUG){Log.d(TAG,"setting counts...");}
                 lblListHeaderCount.setText("(" + measurables.getTotalCount() + ")");
                 lblListHeader.setAlpha(1.0f);
                 lblListHeaderCount.setAlpha(.8f);
@@ -280,7 +277,7 @@ public class SavedTweetsExpandableAdapter extends BaseExpandableListAdapter {
         }
 
 
-        if(BuildConfig.DEBUG){Log.d(TAG,"dimenscore at end of group: " + availableWidth);}
+//        if(BuildConfig.DEBUG){Log.d(TAG,"dimenscore at end of group: " + availableWidth);}
         return convertView;
     }
 
@@ -357,12 +354,12 @@ public class SavedTweetsExpandableAdapter extends BaseExpandableListAdapter {
             if(colorBlockMeasurables.getGreyCount()>0){
                 txtGrey.setText(String.valueOf(colorBlockMeasurables.getGreyCount()));
                 int dimenscore = colorBlockMeasurables.getGreyDimenscore(availableWidth);
-                if(BuildConfig.DEBUG) {
-                    Log.i(TAG,"dimenscoretotal: " + availableWidth);
-                    Log.i(TAG,"grey/count: " + colorBlockMeasurables.getGreyCount() + "/" + colorBlockMeasurables.getTotalCount());
-                    Log.i(TAG,"((float) grey / (float) count): " + ((float) colorBlockMeasurables.getGreyCount() / (float) colorBlockMeasurables.getTotalCount()));
-                    Log.i(TAG,"Rounded score: " + dimenscore);
-                }
+//                if(BuildConfig.DEBUG) {
+//                    Log.i(TAG,"dimenscoretotal: " + availableWidth);
+//                    Log.i(TAG,"grey/count: " + colorBlockMeasurables.getGreyCount() + "/" + colorBlockMeasurables.getTotalCount());
+//                    Log.i(TAG,"((float) grey / (float) count): " + ((float) colorBlockMeasurables.getGreyCount() / (float) colorBlockMeasurables.getTotalCount()));
+//                    Log.i(TAG,"Rounded score: " + dimenscore);
+//                }
                 availableWidthRemaining = availableWidth-dimenscore;
                 txtGrey.setMinimumWidth(dimenscore);
                 txtGrey.setVisibility(View.VISIBLE);

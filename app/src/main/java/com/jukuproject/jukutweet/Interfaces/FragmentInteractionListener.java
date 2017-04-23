@@ -22,11 +22,11 @@ public interface FragmentInteractionListener {
     void notifyFragmentsChanged();
 
     void showSavedTweetsTabForIndividualUser(UserInfo userInfo);
-
+    void onBackPressed();
     void showUserDetailFragment(UserInfo userInfo);
 
-    void runDictionarySearch(String query, boolean isRomaji);
-    void runTwitterSearch(String query);
+    void runDictionarySearch(String query, String queryOn);
+    void runTwitterSearch(String query, String queryOn);
     void showAddUserCheckDialog(UserInfo userInfo);
 
     void parseAndSaveTweet(Tweet tweet);

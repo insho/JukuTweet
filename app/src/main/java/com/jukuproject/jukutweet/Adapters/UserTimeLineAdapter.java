@@ -8,9 +8,7 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextPaint;
-import android.text.method.LinkMovementMethod;
 import android.text.style.BackgroundColorSpan;
-import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -24,6 +22,8 @@ import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.FavoritesColors;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface;
+import com.jukuproject.jukutweet.LongClickLinkMovementMethod;
+import com.jukuproject.jukutweet.LongClickableSpan;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.Models.WordEntry;
@@ -119,6 +119,8 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                 /* Check for, and save */
                 Tweet currentTweet = mDataset.get(holder.getAdapterPosition());
                 TweetListOperationsInterface helperTweetOps = InternalDB.getTweetInterfaceInstance(mContext);
+
+
                 //Toggle favorite list association for this tweet
                 if(FavoritesColors.onFavoriteStarToggleTweet(mContext,mActiveTweetFavoriteStars,mDataset.get(holder.getAdapterPosition()).getUser().getUserId(),mDataset.get(holder.getAdapterPosition()))) {
                     holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars));
@@ -129,9 +131,10 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                     Log.e(TAG,"OnFavoriteStarToggle did not work...");
                 }
 
+
+
                 //Check for tweet in db
                 try {
-
                         //If tweet doesn't already exist in db, insert it
                         if(helperTweetOps.tweetExistsInDB(currentTweet) == 0){
                             Log.d(TAG,"TWEET Doesn't exist");
@@ -142,6 +145,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                             if(addTweetResultCode < 0) {
                                 //TODO handle error -- can't insert tweet
                             } else {
+                                Log.e(TAG,"saving TWEET:" + mDataset.get(holder.getAdapterPosition()).getText());
                                 /*DB insert successfull, now send callback to fragment and run observable to add
                                  urls for the tweet to database, as well as parse the kanji (in observable) and add those to database */
                                 _rxbus.sendSaveTweet(mDataset.get(holder.getAdapterPosition()));
@@ -164,15 +168,31 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
         try {
             SpannableString text = new SpannableString(getTweet(position).getText());
 
+//            ClickableSpan normalClick = new ClickableSpan() {
+//                @Override
+//                public void onClick(View textView) {
+//                    _rxbus.send(mDataset.get(holder.getAdapterPosition()));
+//                }
+//
+//                @Override
+//                public void updateDrawState(TextPaint ds) {
+//                    super.updateDrawState(ds);
+//                    ds.setColor(ContextCompat.getColor(mContext, android.R.color.black));
+//                    ds.setUnderlineText(false);
+//
+//                }
+//            };
 
-            ClickableSpan normalClick = new ClickableSpan() {
+            LongClickableSpan longClick = new LongClickableSpan() {
                 @Override
-                public void onClick(View textView) {
-                    _rxbus.send(mDataset.get(holder.getAdapterPosition()));
-
+                public void onLongClick(View view) {
+                    try {
+                        Log.d(TAG,"LOOOONG CLICK!!!!");
+                        _rxbus.sendLongClick(mDataset.get(holder.getAdapterPosition()).getUser());
+                    } catch (Exception e) {
+                        Log.e(TAG,"usertimeline adapter long click error. no user attached to tweet?");
+                    }
                 }
-
-
                 @Override
                 public void updateDrawState(TextPaint ds) {
                     super.updateDrawState(ds);
@@ -180,9 +200,14 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                     ds.setUnderlineText(false);
 
                 }
+                @Override
+                public void onClick(View widget) {
+                    _rxbus.send(mDataset.get(holder.getAdapterPosition()));
+                }
             };
 
-            text.setSpan(normalClick, 0, text.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+
+            text.setSpan(longClick, 0, text.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
 
             if(getTweet(position).getEntities() != null && getTweet(position).getEntities().getUrls() != null) {
                 List<TweetUrl> tweetUrls =  getTweet(position).getEntities().getUrls();
@@ -206,7 +231,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
             Log.i(TAG,"focusedword: " + mFocusedWord);
             Log.i(TAG,"text: " + text.toString());
             if(getTweet(position).getWordEntries()!=null){
-                BackgroundColorSpan fcs = new BackgroundColorSpan(ContextCompat.getColor(mContext,R.color.colorPrimary));
+                BackgroundColorSpan fcs = new BackgroundColorSpan(ContextCompat.getColor(mContext,R.color.colorJukuYellow));
                 for(WordEntry wordEntry : getTweet(position).getWordEntries()) {
                     if(wordEntry.getKanji().equals(mFocusedWord)) {
                         try {
@@ -234,9 +259,9 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
 
             //TODO remove if this doesn't work
-            holder.txtTweet.setLongClickable(false);
+//            holder.txtTweet.setLongClickable(false);
             holder.txtTweet.setText(text, TextView.BufferType.SPANNABLE);
-            holder.txtTweet.setMovementMethod(LinkMovementMethod.getInstance());
+            holder.txtTweet.setMovementMethod(LongClickLinkMovementMethod.getInstance());
         } catch (NullPointerException e) {
             holder.txtTweet.setText(getTweet(position).getText());
             Log.e(TAG,"mTweet urls are null : " + e);

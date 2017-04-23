@@ -55,6 +55,7 @@ public class FavoritesColors {
      */
     public static int getFavoritesStarColor(ArrayList<String> preferenceFavorites, ItemFavorites itemFavorites){
         if(preferenceFavorites.contains("Blue") && itemFavorites.getSystemBlueCount() > 0) {
+            Log.d("TEST","RETURNING BLUE");
             return R.color.colorJukuBlue;
         } else if(preferenceFavorites.contains("Green") && itemFavorites.getSystemGreenCount() > 0) {
             return R.color.colorJukuGreen;
@@ -63,6 +64,7 @@ public class FavoritesColors {
         } else if(preferenceFavorites.contains("Yellow") && itemFavorites.getSystemYellowCount() > 0) {
             return R.color.colorJukuYellow;
         } else {
+            Log.d("TEST","RETURNING BLAAACK");
             return android.R.color.black;
         }
     }
@@ -329,4 +331,6 @@ public class FavoritesColors {
 //        }
 //
 //    }
+
+
 }

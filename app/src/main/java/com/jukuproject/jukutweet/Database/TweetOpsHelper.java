@@ -824,12 +824,11 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             ",[UserId] " +
                             ",[_id] as [Tweet_id]" +
                             "FROM "+ InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
-                            "WHERE [Name] = ? and cast([Sys] as INTEGER) = ? " +
+                            "WHERE [Name] = ? and [Sys] = " + myListEntry.getListsSys() +  " " +
                             ") as TweetLists " +
                             " LEFT JOIN " +
                             " ( " +
-                            "SELECT  DISTINCT [_id] " +
-                            ",[Tweet_id]" +
+                            "SELECT  DISTINCT [Tweet_id]" +
                             ",[Text]" +
                             ",[CreatedAt]  as [Date] " +
                             " FROM "+ InternalDB.Tables.TABLE_SAVED_TWEETS + " " +
@@ -857,7 +856,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 
                             "FROM " +
                             "( " +
-                            " SELECT Tweet_id" +
+                            " SELECT DISTINCT Tweet_id" +
                             ",Edict_id " +
                             ",[StartIndex]" +
                             ",[EndIndex]" +
@@ -868,8 +867,8 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             " (" +
                             "SELECT [_id] as [Edict_id]" +
                             ",sum([Correct]) as [Correct]" +
-
-                            ",sum([Total]) as [Total] FROM [JScoreboard] " +
+                            ",sum([Total]) as [Total] " +
+                            "FROM [JScoreboard] " +
                             "where [_id] in (SELECT DISTINCT [Edict_id] FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + ")" +
                             " GROUP BY [_id]" +
                             ") as b " +
@@ -899,7 +898,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             "On TweetLists.UserId = UserName.UserId " +
 
                             "Order by date(ALLTweets.Date) Desc,TweetLists.[Tweet_id] asc,TweetKanji.StartIndex asc"
-                    , new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+                    , new String[]{myListEntry.getListName()});
 
 
 
@@ -934,7 +933,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             ,c.getString(13)
                             ,c.getInt(14)
                             ,c.getInt(15));
-
+                    Log.d(TAG,"Adding saved word entry: " + c.getString(7) + " - " + c.getString(8));
                     /* Decide whether or not to make this word entry a "spinner" entry  in the
                     * fillintheblanks quiz, based two criteria:
                     *   1. words chosen at random

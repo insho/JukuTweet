@@ -45,6 +45,10 @@ public interface TwitterService {
                 , @Query("count") int limit);
 
 
+        @GET("users/search.json") Observable<UserFollowersListContainer> getSearchUsers(@Query("q") String query
+                , @Query("count") int limit);
+
+//        GET https://api.twitter.com/1.1/users/search.json?q=Twitter%20API&page=1&count=3
 //        GET https://api.twitter.com/1.1/search/tweets.json?q=%23freebandnames&since_id=24012619984051000&max_id=250126199840518145&result_type=mixed&count=4
 
 //        GET https://api.twitter.com/1.1/friends/list.json?cursor=-1&screen_name=twitterapi&skip_status=true&include_user_entities=false

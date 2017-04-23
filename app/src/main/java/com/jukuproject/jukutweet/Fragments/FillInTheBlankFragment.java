@@ -29,6 +29,7 @@ import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
 import com.jukuproject.jukutweet.Interfaces.QuizFragmentInteractionListener;
+import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
 import com.jukuproject.jukutweet.Models.FillinSentencesSpinner;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.Tweet;
@@ -44,7 +45,7 @@ import java.util.Collections;
  * Created by JClassic on 4/3/2017.
  */
 
-public class FillInTheBlankFragment extends Fragment  {
+public class FillInTheBlankFragment extends Fragment implements WordEntryFavoritesChangedListener {
 
     String TAG = "TEST-fillinblank";
 
@@ -647,6 +648,18 @@ public class FillInTheBlankFragment extends Fragment  {
     }
 
 
+    public void updateWordEntryItemFavorites(WordEntry wordEntry) {
+        for(Tweet tweet: mDataset) {
+            if(tweet.getWordEntries()!=null && tweet.getWordEntries().contains(wordEntry)) {
+                for(WordEntry tweetWordEntry : tweet.getWordEntries()) {
+                    if(tweetWordEntry.getId()==wordEntry.getId()) {
+                        wordEntry.setItemFavorites(wordEntry.getItemFavorites());
+                    }
+                }
+            }
+        }
+    }
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -672,6 +685,8 @@ public class FillInTheBlankFragment extends Fragment  {
         outState.putInt("currentCorrect",currentCorrect);
         outState.putInt("currentLineWidth",currentLineWidth);
     }
+
+
 
 
 

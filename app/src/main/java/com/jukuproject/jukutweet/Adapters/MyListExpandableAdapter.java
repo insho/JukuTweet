@@ -1,7 +1,6 @@
 package com.jukuproject.jukutweet.Adapters;
 
 
-
 import android.content.Context;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
@@ -18,7 +17,6 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
 import com.jukuproject.jukutweet.Models.MenuHeader;
 import com.jukuproject.jukutweet.R;
@@ -31,7 +29,7 @@ import java.util.ArrayList;
  * when list is clicked
  */
 public class MyListExpandableAdapter extends BaseExpandableListAdapter {
-    private String TAG = "Menu_Ex_ListAdapter";
+    private String TAG = "test-Ex_ListAdapter";
     private Context mContext;
     private ArrayList<MenuHeader> mMenuHeader;
     private int mTextsize;
@@ -98,9 +96,9 @@ public class MyListExpandableAdapter extends BaseExpandableListAdapter {
         TextView lblColorBar = (TextView) convertView.findViewById(R.id.lblcolorbar);
         lblColorBar.setVisibility(TextView.GONE);
 
-        if(BuildConfig.DEBUG) {
-            Log.d(TAG, "childText: " + childText);
-        }
+//        if(BuildConfig.DEBUG) {
+//            Log.d(TAG, "childText: " + childText);
+//        }
 
         /* For the child entries of the adapter, only show the "colorblocks" in the first row of a mylist. This is differentiated
         * here by the string "Browse/Edit" which only appears in the "WordListFragment" fragment */
@@ -161,7 +159,7 @@ public class MyListExpandableAdapter extends BaseExpandableListAdapter {
 
         TextView lblListHeader = (TextView) convertView.findViewById(R.id.lblListHeader);
         lblListHeader.setAlpha(1.0f);
-        if(BuildConfig.DEBUG){Log.d(TAG,"headerTitle: --" + mMenuHeader.get(groupPosition).getHeaderTitle() + "--" );}
+//        if(BuildConfig.DEBUG){Log.d(TAG,"headerTitle: --" + mMenuHeader.get(groupPosition).getHeaderTitle() + "--" );}
         if(mTextsize >0){
             lblListHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP, mTextsize);
         }
@@ -216,7 +214,7 @@ public class MyListExpandableAdapter extends BaseExpandableListAdapter {
 
                     /* Set the list name to be greyed out for empty lists */
                     if(measurables.getTotalCount()>0) {
-                        if(BuildConfig.DEBUG){Log.d(TAG,"setting counts...");}
+//                        if(BuildConfig.DEBUG){Log.d(TAG,"setting counts...");}
                         lblListHeaderCount.setText("(" + measurables.getTotalCount() + ")");
                         lblListHeader.setAlpha(1.0f);
                         lblListHeaderCount.setAlpha(.8f);
@@ -259,7 +257,7 @@ public class MyListExpandableAdapter extends BaseExpandableListAdapter {
                 }
 
 
-        if(BuildConfig.DEBUG){Log.d(TAG,"dimenscore at end of group: " + availableWidth);}
+//        if(BuildConfig.DEBUG){Log.d(TAG,"dimenscore at end of group: " + availableWidth);}
         return convertView;
     }
 
@@ -332,12 +330,12 @@ public class MyListExpandableAdapter extends BaseExpandableListAdapter {
             if(colorBlockMeasurables.getGreyCount()>0){
                 txtGrey.setText(String.valueOf(colorBlockMeasurables.getGreyCount()));
                 int dimenscore = colorBlockMeasurables.getGreyDimenscore(availableWidth);
-                if(BuildConfig.DEBUG) {
-                    Log.i("Test-colorblock","dimenscoretotal: " + availableWidth);
-                    Log.i("Test-colorblock","grey/count: " + colorBlockMeasurables.getGreyCount() + "/" + colorBlockMeasurables.getTotalCount());
-                    Log.i("Test-colorblock","((float) grey / (float) count): " + ((float) colorBlockMeasurables.getGreyCount() / (float) colorBlockMeasurables.getTotalCount()));
-                    Log.i("Test-colorblock","Rounded score: " + dimenscore);
-                }
+//                if(BuildConfig.DEBUG) {
+//                    Log.i("Test-colorblock","dimenscoretotal: " + availableWidth);
+//                    Log.i("Test-colorblock","grey/count: " + colorBlockMeasurables.getGreyCount() + "/" + colorBlockMeasurables.getTotalCount());
+//                    Log.i("Test-colorblock","((float) grey / (float) count): " + ((float) colorBlockMeasurables.getGreyCount() / (float) colorBlockMeasurables.getTotalCount()));
+//                    Log.i("Test-colorblock","Rounded score: " + dimenscore);
+//                }
                 availableWidthRemaining = availableWidth-dimenscore;
                 txtGrey.setMinimumWidth(dimenscore);
                 txtGrey.setVisibility(View.VISIBLE);
@@ -346,12 +344,12 @@ public class MyListExpandableAdapter extends BaseExpandableListAdapter {
             if(colorBlockMeasurables.getRedCount()>0){
                 txtRed.setText(String.valueOf(colorBlockMeasurables.getRedCount()));
                 int dimenscore = colorBlockMeasurables.getRedDimenscore(availableWidth,availableWidthRemaining);
-                if(BuildConfig.DEBUG) {
-                    Log.i("Test-colorblock","dimenscoretotal: " + availableWidth);
-                    Log.i("Test-colorblock","red/count: " + colorBlockMeasurables.getRedCount() + "/" + colorBlockMeasurables.getTotalCount());
-                    Log.i("Test-colorblock","((float) red / (float) count): " + ((float) colorBlockMeasurables.getRedCount() / (float) colorBlockMeasurables.getTotalCount()));
-                    Log.i("Test-colorblock","Rounded score: " + dimenscore);
-                }
+//                if(BuildConfig.DEBUG) {
+//                    Log.i("Test-colorblock","dimenscoretotal: " + availableWidth);
+//                    Log.i("Test-colorblock","red/count: " + colorBlockMeasurables.getRedCount() + "/" + colorBlockMeasurables.getTotalCount());
+//                    Log.i("Test-colorblock","((float) red / (float) count): " + ((float) colorBlockMeasurables.getRedCount() / (float) colorBlockMeasurables.getTotalCount()));
+//                    Log.i("Test-colorblock","Rounded score: " + dimenscore);
+//                }
                 availableWidthRemaining = availableWidthRemaining -dimenscore;
                 txtRed.setMinimumWidth(dimenscore);
                 txtRed.setVisibility(View.VISIBLE);
@@ -370,13 +368,13 @@ public class MyListExpandableAdapter extends BaseExpandableListAdapter {
             if(colorBlockMeasurables.getGreenCount()>0){
                 txtGreen.setText(String.valueOf(colorBlockMeasurables.getGreenCount()));
                 int dimenscore = colorBlockMeasurables.getGreenDimenscore(availableWidth,availableWidthRemaining);
-                if(BuildConfig.DEBUG) {
-                    Log.i("Test-colorblock","dimenscoretotal: " + availableWidth);
-                    Log.i("Test-colorblock","grey/count: " + colorBlockMeasurables.getGreenCount() + "/" + colorBlockMeasurables.getTotalCount());
-                    Log.i("Test-colorblock","((float) grey / (float) count): " + ((float) colorBlockMeasurables.getGreenCount() / (float) colorBlockMeasurables.getTotalCount()));
-                    Log.i("Test-colorblock","Rounded score: " + dimenscore);
-
-                }
+//                if(BuildConfig.DEBUG) {
+//                    Log.i("Test-colorblock","dimenscoretotal: " + availableWidth);
+//                    Log.i("Test-colorblock","grey/count: " + colorBlockMeasurables.getGreenCount() + "/" + colorBlockMeasurables.getTotalCount());
+//                    Log.i("Test-colorblock","((float) grey / (float) count): " + ((float) colorBlockMeasurables.getGreenCount() / (float) colorBlockMeasurables.getTotalCount()));
+//                    Log.i("Test-colorblock","Rounded score: " + dimenscore);
+//
+//                }
                 txtGreen.setMinimumWidth(dimenscore);
                 txtGreen.setVisibility(View.VISIBLE);
             }

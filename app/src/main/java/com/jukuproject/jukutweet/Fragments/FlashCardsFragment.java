@@ -28,6 +28,7 @@ import android.widget.TextView;
 
 import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
+import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
 
@@ -38,7 +39,7 @@ import java.util.Collections;
  * Created by JClassic on 3/31/2017.
  */
 
-public class FlashCardsFragment extends Fragment {
+public class FlashCardsFragment extends Fragment implements WordEntryFavoritesChangedListener {
 
     String TAG = "Test-FlashCards";
 
@@ -486,18 +487,24 @@ public class FlashCardsFragment extends Fragment {
         return myStaticLayout.getHeight();
     }
 
-    public static int getHeight(Context context, CharSequence text, int textSize, int deviceWidth,  int padding) {
-        TextView textView = new TextView(context);
-        textView.setPadding(padding,0,padding,padding);
-        textView.setText(text, TextView.BufferType.SPANNABLE);
-        textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
-        int widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(deviceWidth, View.MeasureSpec.AT_MOST);
-        int heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
-        textView.measure(widthMeasureSpec, heightMeasureSpec);
-        return textView.getMeasuredHeight();
+//    public static int getHeight(Context context, CharSequence text, int textSize, int deviceWidth,  int padding) {
+//        TextView textView = new TextView(context);
+//        textView.setPadding(padding,0,padding,padding);
+//        textView.setText(text, TextView.BufferType.SPANNABLE);
+//        textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+//        int widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(deviceWidth, View.MeasureSpec.AT_MOST);
+//        int heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
+//        textView.measure(widthMeasureSpec, heightMeasureSpec);
+//        return textView.getMeasuredHeight();
+//    }
+
+    public void updateWordEntryItemFavorites(WordEntry wordEntry) {
+        if(mDataset.contains(wordEntry)) {
+            mDataset.get(mDataset.indexOf(wordEntry)).setItemFavorites(wordEntry.getItemFavorites());
+        } else {
+            Log.e(TAG,"Dataset doesn't contain word entry y'all...");
+        }
     }
-
-
 
     @Override
     public void onSaveInstanceState(Bundle outState) {

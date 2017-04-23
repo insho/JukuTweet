@@ -133,8 +133,17 @@ public class WordListFragment extends Fragment {
             public boolean onChildClick(ExpandableListView parent, View v,
                                         int groupPosition, int childPosition, long id) {
                 String childOption = mMenuHeader.get(groupPosition).getChildOptions().get(childPosition); //This is the text in the child that the user clicked
+
+                if(mMenuHeader.get(groupPosition).getColorBlockMeasurables() == null
+                        || mMenuHeader.get(groupPosition).getColorBlockMeasurables() == null
+                        || mMenuHeader.get(groupPosition).getColorBlockMeasurables().getTotalCount()==0) {
+                    return false;
+                }
+
+
                 switch (childOption) {
                     case "Browse/Edit":
+
                         WordListBrowseFragment fragment = WordListBrowseFragment.newInstance(new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).getSystemList()));
                         ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"mylistbrowse");
                         //Hide the fab

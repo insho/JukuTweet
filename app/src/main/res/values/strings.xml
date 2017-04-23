@@ -10,7 +10,7 @@
     <string name="dialog_empty">RSS feed is blank</string>
     <string name="nolists">no saved users</string>
 
-    <string name="dialog_mylist_title">Enter My List Name</string>
+    <string name="dialog_mylist_title">Enter List Name</string>
     <string name="dialog_mylist_rename_title">Enter New List Name</string>
 
     <string name="notweets">no tweets found</string>

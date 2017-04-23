@@ -16,6 +16,7 @@ import android.widget.TextView;
 import com.jukuproject.jukutweet.Adapters.PostQuizStatsFillintheBlankAdapter;
 import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
+import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.WordEntry;
@@ -30,7 +31,7 @@ import rx.functions.Action1;
  * Created by JClassic on 3/31/2017.
  */
 
-public class StatsFragmentFillintheBlanks extends Fragment {
+public class StatsFragmentFillintheBlanks extends Fragment implements WordEntryFavoritesChangedListener {
 
     String TAG = "Test-stats1";
 
@@ -43,6 +44,7 @@ public class StatsFragmentFillintheBlanks extends Fragment {
     TextView textScore;
     TextView textPercentage;
     private long mLastClickTime = 0;
+    PostQuizStatsFillintheBlankAdapter mAdapter;
 
     public StatsFragmentFillintheBlanks() {}
 
@@ -94,10 +96,11 @@ public class StatsFragmentFillintheBlanks extends Fragment {
 
         int adapterRowHeightMultiplier = Math.round((float) 10 * getResources().getDisplayMetrics().density);
         RxBus rxBus = new RxBus();
-        resultsRecycler.setAdapter(new PostQuizStatsFillintheBlankAdapter(getContext()
+       mAdapter = new PostQuizStatsFillintheBlankAdapter(getContext()
                 , mDataset
                 ,adapterRowHeightMultiplier
-                ,rxBus));
+                ,rxBus);
+        resultsRecycler.setAdapter(mAdapter);
 
         rxBus.toClickObserverable()
                 .subscribe(new Action1<Object>() {
@@ -156,6 +159,20 @@ public class StatsFragmentFillintheBlanks extends Fragment {
         } else {
             return false;
         }
+    }
+
+    public void updateWordEntryItemFavorites(WordEntry wordEntry) {
+        for(Tweet tweet: mDataset) {
+            if(tweet.getWordEntries()!=null && tweet.getWordEntries().contains(wordEntry)) {
+                for(WordEntry tweetWordEntry : tweet.getWordEntries()) {
+                    if(tweetWordEntry.getId()==wordEntry.getId()) {
+                        wordEntry.setItemFavorites(wordEntry.getItemFavorites());
+                    }
+                }
+            }
+        }
+        mAdapter.notifyDataSetChanged();
+
     }
 
     @Override

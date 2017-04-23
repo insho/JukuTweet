@@ -4,6 +4,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
@@ -17,30 +18,39 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Adapters.MyListExpandableAdapter;
-import com.jukuproject.jukutweet.Database.ExternalDB;
 import com.jukuproject.jukutweet.Database.InternalDB;
+import com.jukuproject.jukutweet.Dialogs.QuizMenuDialog;
 import com.jukuproject.jukutweet.Fragments.MultipleChoiceFragment;
-import com.jukuproject.jukutweet.Interfaces.QuizFragmentInteractionListener;
+import com.jukuproject.jukutweet.Fragments.StatsFragmentFillintheBlanks;
+import com.jukuproject.jukutweet.Fragments.StatsFragmentMultipleChoice;
+import com.jukuproject.jukutweet.Interfaces.QuizMenuDialogInteractionListener;
+import com.jukuproject.jukutweet.Interfaces.StatsFragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MultChoiceResult;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.WordEntry;
+import com.jukuproject.jukutweet.TabContainers.PostQuizTab1Container;
+import com.jukuproject.jukutweet.TabContainers.PostQuizTab2Container;
 import com.jukuproject.jukutweet.TabContainers.QuizTab1Container;
+import com.jukuproject.jukutweet.TabContainers.QuizTab2Container;
 
 import java.util.ArrayList;
 
 import static com.jukuproject.jukutweet.Fragments.WordListFragment.getExpandableAdapterColorBlockBasicWidths;
+import static com.jukuproject.jukutweet.MainActivity.assignWordWeightsAndGetTotalWeight;
 
 /**
  * Quiz/PostQuiz Stats activity fragment manager
  */
-public class QuizActivity extends AppCompatActivity implements  QuizFragmentInteractionListener {
+public class PostQuizStatsActivity extends AppCompatActivity implements StatsFragmentInteractionListener, QuizMenuDialogInteractionListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -50,14 +60,14 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
      * may be best to switch to a
      * {@link android.support.v4.app.FragmentStatePagerAdapter}.
      */
-    private QuizSectionsPagerAdapter mQuizSectionsPagerAdapter;
+    private SectionsPagerAdapter mQuizSectionsPagerAdapter;
 
     /**
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
-//    private SmoothProgressBar progressbar;
-//    private FloatingActionButton fab;
+    //    private SmoothProgressBar progressbar;
+    private FloatingActionButton fab;
     private Menu mMenu;
     private static final String TAG = "TEST-Main";
     private static final boolean debug = true;
@@ -68,32 +78,40 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
     private ColorBlockMeasurables mColorBlockMeasurables;
     private Integer mTabNumber;
     private Integer mLastExpandedPosition;
-//    private Integer tabStripHeight;
+
+    private boolean mIsWordBuilder = false;
+    private boolean mIsHighScore = false;
+    private Integer mWordbuilderScore = 0;
+    private Integer mCorrect;
+    private Integer mTotal;
+    private ArrayList<MultChoiceResult> mDataSetMultipleChoice;
+
+    private ArrayList<Tweet> mDataSetFillintheBlanks;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_quiz);
-        new ExternalDB(this);
+        setContentView(R.layout.activity_main);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mViewPager = (ViewPager) findViewById(R.id.container);
 //        mTitleStrip = (PagerTitleStrip) findViewById(R.id.pager_title_strip);
-//        fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab = (FloatingActionButton) findViewById(R.id.fab);
 
         if (savedInstanceState != null) {
             //Restore the fragment's instance
             Fragment[] fragments = new Fragment[2];
-            fragments[0] = (QuizTab1Container)getSupportFragmentManager().getFragment(savedInstanceState, "tab1Container");
-//            fragments[1] = (QuizTab2Container)getSupportFragmentManager().getFragment(savedInstanceState, "tab2Container");
+            fragments[0] = (PostQuizTab1Container)getSupportFragmentManager().getFragment(savedInstanceState, "postQuizTab1Container");
+            fragments[1] = (PostQuizTab2Container)getSupportFragmentManager().getFragment(savedInstanceState, "postQuizTab2Container");
 
             mAdapterTitles = savedInstanceState.getStringArray("adapterTitles");
             typeOfQuizThatWasCompleted = savedInstanceState.getString("savedInstanceState");
             mMyListEntry = savedInstanceState.getParcelable("myListEntry");
             mColorBlockMeasurables = savedInstanceState.getParcelable("colorBlockMeasurables");
             mTabNumber = savedInstanceState.getInt("tabNumber");
-            mQuizSectionsPagerAdapter = new QuizSectionsPagerAdapter(getSupportFragmentManager(),mAdapterTitles,fragments);
+
+            mQuizSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(),mAdapterTitles,fragments);
 
         } else {
 
@@ -110,41 +128,84 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
                 * appropriate fragment */
             String quizType = mIntent.getStringExtra("quizType");
             mMyListEntry = mIntent.getParcelableExtra("myListEntry");
-            String quizSize = mIntent.getStringExtra("quizSize");
-            String colorString = mIntent.getStringExtra("colorString");
-            String timer = mIntent.getStringExtra("timer"); //Timer can be "none" so passing it on raw as string
-            double totalweight = mIntent.getDoubleExtra("totalweight",0);
-            String dataType = mIntent.getStringExtra("dataType");
+//            String quizSize = mIntent.getStringExtra("quizSize");
+//            String colorString = mIntent.getStringExtra("colorString");
+//            String timer = mIntent.getStringExtra("timer"); //Timer can be "none" so passing it on raw as string
+//            double totalweight = mIntent.getDoubleExtra("totalweight",0);
+//            String dataType = mIntent.getStringExtra("dataType");
             mTabNumber = mIntent.getIntExtra("tabNumber",2);
             mLastExpandedPosition = mIntent.getIntExtra("lastExpandedPosition",0);
             typeOfQuizThatWasCompleted = mIntent.getStringExtra("typeOfQuizThatWasCompleted");
 
-//            mTitleStrip.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.EXACTLY),
-//                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.EXACTLY));
-//            tabStripHeight = mTitleStrip.getMeasuredHeight();
-//            mTitleStrip.setVisibility(View.GONE);
+            mDataSetMultipleChoice = mIntent.getParcelableArrayListExtra("mDataSetMultipleChoice");
+            mDataSetFillintheBlanks = mIntent.getParcelableArrayListExtra("mDataSetFillintheBlanks");
+            mCorrect = mIntent.getIntExtra("mCorrect",0);
+            mTotal = mIntent.getIntExtra("mTotal",0);
+            mWordbuilderScore = mIntent.getIntExtra("mWordbuilderScore",0);
+            mIsHighScore = mIntent.getBooleanExtra("mIsHighScore",false);
+            mIsWordBuilder = mIntent.getBooleanExtra("mIsWordBuilder",false);
+            mColorBlockMeasurables = prepareColorBlockDataForList(mMyListEntry);
 
-//            mViewPager.setPadding(0,tabStripHeight,0,0);
-            Fragment[] fragments = new Fragment[1];
+            Fragment[] fragments = new Fragment[2];
             switch (typeOfQuizThatWasCompleted) {
                 case "Multiple Choice":
-                    final ArrayList<WordEntry> datasetMultipleChoice = mIntent.getParcelableArrayListExtra("dataset");
-                    fragments[0] = QuizTab1Container.newMultipleChoiceInstance(datasetMultipleChoice
-                            ,quizType,timer,quizSize,totalweight,dataType,colorString,mMyListEntry
-//                            ,tabStripHeight
-                    );
+
+                    StatsFragmentMultipleChoice statsFragmentMultipleChoice = StatsFragmentMultipleChoice.newInstance(mDataSetMultipleChoice
+                            ,quizType
+                            , mIsWordBuilder
+                            , mIsHighScore
+                            , mWordbuilderScore
+                            , mCorrect
+                            , mTotal);
+
+
+                    fragments[0] = statsFragmentMultipleChoice;
+                    fab.setOnClickListener(new View.OnClickListener() {
+
+
+                        @Override
+                        public void onClick(View view) {
+                            QuizMenuDialog.newInstance("multiplechoice"
+                                    ,mTabNumber
+                                    ,mLastExpandedPosition
+                                    ,mMyListEntry
+                                    ,mColorBlockMeasurables
+                                    ,getdimenscore()).show(getSupportFragmentManager(),"dialogQuizMenu");
+                        }
+                    });
+//                    PostQuizTab1Container.newMultipleChoiceStatsInstance(datasetMultipleChoice
+//                            ,quizType,timer,quizSize,totalweight,dataType,colorString,mMyListEntry
+//                    )
 //                    fragments[1] = QuizTab1Container.newMultipleChoiceInstance(datasetMultipleChoice
 //                            ,quizType,timer,quizSize,totalweight,dataType,colorString,mMyListEntry);
                     break;
                 case "Fill in the Blanks":
-                    final ArrayList<Tweet> datasetFillBlanks = mIntent.getParcelableArrayListExtra("dataset");
-                    fragments[0] =  QuizTab1Container.newFillintheBlanksInstance(datasetFillBlanks,quizSize,totalweight,colorString,mMyListEntry);
+
+//asdf
+//                    final ArrayList<Tweet> datasetFillBlanks = mIntent.getParcelableArrayListExtra("mDataSetFillintheBlanks");
+                    StatsFragmentFillintheBlanks statsFragmentFillintheBlanks = StatsFragmentFillintheBlanks.newInstance(mDataSetFillintheBlanks,mCorrect,mTotal);
+                    fragments[0] =  statsFragmentFillintheBlanks;
+                    fab.setOnClickListener(new View.OnClickListener() {
+
+
+                        @Override
+                        public void onClick(View view) {
+                            QuizMenuDialog.newInstance("multiplechoice"
+                                    ,mTabNumber
+                                    ,mLastExpandedPosition
+                                    ,mMyListEntry
+                                    ,mColorBlockMeasurables
+                                    ,getdimenscore()).show(getSupportFragmentManager(),"dialogQuizMenu");
+                        }
+                    });
+
+//                            PostQuizTab1Container.newFillintheBlanksStatsInstance(datasetFillBlanks,quizSize,totalweight,colorString,mMyListEntry);
                     break;
                 default:
                     break;
             }
 
-//            fragments[1] = QuizTab2Container.newInstance();
+            fragments[1] = PostQuizTab2Container.newInstance(mColorBlockMeasurables,mMyListEntry);
 
 //            mTitleStrip.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
 //                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
@@ -152,12 +213,12 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
 
             // Create the adapter that will return a fragment for each of the primary sections of the activity.
             mAdapterTitles = new String[2];
-            mAdapterTitles[0] = typeOfQuizThatWasCompleted;
-//            mAdapterTitles[1] = "dummy";
-            mQuizSectionsPagerAdapter = new QuizSectionsPagerAdapter(getSupportFragmentManager(),mAdapterTitles,fragments);
+//            mAdapterTitles[0] = typeOfQuizThatWasCompleted;
+//            mAdapterTitles[1] = "";
+            mQuizSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(),mAdapterTitles,fragments);
 
 
-            mAdapterTitles = new String[]{typeOfQuizThatWasCompleted};
+            mAdapterTitles = new String[]{"Score","Stats"};
             updateTabs(mAdapterTitles);
 
             // Set the title
@@ -168,9 +229,19 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
             }
         }
 
+        Log.d(TAG,"Madapter title: " + mAdapterTitles[0]);
+        if(mAdapterTitles != null
+                && mAdapterTitles.length > 0
+                && mAdapterTitles[0].equals("Score")) {
+            showFab(true,"quizRedo");
+//            mTitleStrip.setVisibility(View.VISIBLE);
+        } else {
+            showFab(false);
+//            mTitleStrip.setVisibility(View.GONE);
+        }
 
         mViewPager.setAdapter(mQuizSectionsPagerAdapter);
-        mViewPager.setOffscreenPageLimit(1);
+        mViewPager.setOffscreenPageLimit(2);
 
 //        mViewPager.invalidate();
 //        progressbar = (SmoothProgressBar) findViewById(R.id.progressbar);
@@ -178,6 +249,8 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
 
 //        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.main_content);
 //        coordinatorLayout.requestLayout();
+
+
 
     }
 
@@ -302,11 +375,11 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
             }
 
         }
-        
+
     }
 
 
-//asdf
+    //asdf
     public Fragment findFragmentByPosition(int position) {
 
         Log.d(TAG,"Mviewpager id: " + mViewPager.getId());
@@ -369,43 +442,43 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
 //        return true;
 //    }
 
-//    /**
-//     * Shows or hides the floating action button, and changes the image resource based on the current
-//     * fragment showing
-//     * @param show bool true to show, false to hide
-//     * @param type type of fragment (which dictates the type of image resource)
-//     */
-//    public void showFab(boolean show, String type) {
-//        try {
-//            if(show && type.equals("quizRedo")) {
-//                fab.setVisibility(View.VISIBLE);
-//                fab.setImageResource(R.drawable.ic_refresh_white_24dp);
-//            } else {
-//                fab.setVisibility(View.GONE);
-//            }
-//        } catch (NullPointerException e) {
-//            fab.setVisibility(View.GONE);
-//            Log.e(TAG,"FAB IS NULL: "  + e);
-//        }
-//
-//    }
+    /**
+     * Shows or hides the floating action button, and changes the image resource based on the current
+     * fragment showing
+     * @param show bool true to show, false to hide
+     * @param type type of fragment (which dictates the type of image resource)
+     */
+    public void showFab(boolean show, String type) {
+        try {
+            if(show && type.equals("quizRedo")) {
+                fab.setVisibility(View.VISIBLE);
+                fab.setImageResource(R.drawable.ic_refresh_white_24dp);
+            } else {
+                fab.setVisibility(View.GONE);
+            }
+        } catch (NullPointerException e) {
+            fab.setVisibility(View.GONE);
+            Log.e(TAG,"FAB IS NULL: "  + e);
+        }
 
-//    /**
-//     * Shows or hides the floating action button
-//     * @param show bool true to show, false to hide
-//     */
-//    public void showFab(boolean show) {
-//        try {
-//            if(show) {
-//                fab.setVisibility(View.VISIBLE);
-//            } else {
-//                fab.setVisibility(View.GONE);
-//            }
-//        } catch (NullPointerException e) {
-//            Log.e(TAG,"FAB IS NULL: "  + e);
-//        }
-//
-//    }
+    }
+
+    /**
+     * Shows or hides the floating action button
+     * @param show bool true to show, false to hide
+     */
+    public void showFab(boolean show) {
+        try {
+            if(show) {
+                fab.setVisibility(View.VISIBLE);
+            } else {
+                fab.setVisibility(View.GONE);
+            }
+        } catch (NullPointerException e) {
+            Log.e(TAG,"FAB IS NULL: "  + e);
+        }
+
+    }
 
     /**
      * Traffic control method which takes callback from fragment and passes it to
@@ -424,51 +497,67 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
     }
 
     //asdf
-    public void showPostQuizStatsMultipleChoice(ArrayList<MultChoiceResult> dataset
-            , String quizType
-            , final MyListEntry myListEntry
-            , boolean isWordBuilder
-            , boolean isHighScore
-            , Integer wordbuilderScore
-            , int correct
-            , int total) {
-
-        Intent intent = new Intent(getBaseContext(), PostQuizStatsActivity.class);
-
-        intent.putExtra("typeOfQuizThatWasCompleted","Multiple Choice"); //The type of quiz that was chosen inthe menu
-        intent.putExtra("quizType",quizType);
-        intent.putExtra("tabNumber", 2);
-        intent.putExtra("myListEntry",myListEntry);
-        intent.putParcelableArrayListExtra("dataset",dataset);
-        intent.putExtra("mTabNumber",mTabNumber);
-        intent.putExtra("lastExpandedPosition",mLastExpandedPosition);
-        intent.putExtra("mDataSetMultipleChoice",dataset);
-        intent.putExtra("mCorrect",correct);
-        intent.putExtra("mTotal",total);
-        intent.putExtra("mWordbuilderScore",wordbuilderScore);
-        intent.putExtra("mIsHighScore",isHighScore);
-        intent.putExtra("mIsWordBuilder",isWordBuilder);
-
-
-        startActivity(intent);
-
+//    public void showPostQuizStatsMultipleChoice(ArrayList<MultChoiceResult> dataset
+//            , String quizType
+//            , final MyListEntry myListEntry
+//            , boolean isWordBuilder
+//            , boolean isHighScore
+//            , Integer wordbuilderScore
+//            , int correct
+//            , int total) {
+//
+//        //Update the viewpager to show 2 stats tabs
+//        mAdapterTitles = new String[]{"Score","Stats"};
+//        if(mTitleStrip ==null) {
+//            mTitleStrip = new PagerTitleStrip(getBaseContext());
+//            mTitleStrip.setLayoutParams(new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+//            mTitleStrip.setGravity(Gravity.TOP);
+//            mTitleStrip.setTag("titleStrip");
+//        }
+//        mViewPager.addView(mTitleStrip);
+//        mViewPager.invalidate();
+//        mViewPager.forceLayout();
+//        updateTabs(mAdapterTitles );
 //
 //        mColorBlockMeasurables = prepareColorBlockDataForList(mMyListEntry);
 //
 //        if(dataset != null && dataset.size()>0) {
 //
+////            Log.d(TAG,"Creating statsfragment -- correct: " + correct + ", total: " + total);
+////
+//////            StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newInstance(myListEntry
+//////                    , 10
+//////                    ,mColorBlockMeasurables);
+////Log.d(TAG,"XXX HERE");
+//////            ((BaseContainerFragment) findFragmentByPosition(0)).replaceFragment(statsFragmentProgress, true, "statsFragmentProgressx");
+////            StatsFragmentMultipleChoice statsFragmentMultipleChoice = StatsFragmentMultipleChoice.newInstance(dataset
+////                            ,quizType
+////                            , isWordBuilder
+////                    , isHighScore
+////                    , wordbuilderScore
+////                    , correct
+////                    , total);
+////
+////                ((BaseContainerFragment) findFragmentByPosition(0)).replaceFragment(statsFragmentMultipleChoice, true, "statsFragmentMultipleChoice");
+////
+////            StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newInstance(myListEntry
+////                        , 10
+////                        ,mColorBlockMeasurables);
+////
+////            ((BaseContainerFragment) findFragmentByPosition(1)).replaceFragment(statsFragmentProgress, true, "statsFragmentMultipleChoice1");
+////            Log.d(TAG,"XXX HERE2");
 //            if (findFragmentByPosition(0) != null
-//                        && findFragmentByPosition(0) instanceof QuizTab1Container) {
-//                    StatsFragmentMultipleChoice statsFragmentMultipleChoice = StatsFragmentMultipleChoice.newInstance(dataset
-//                            ,quizType
-//                            , isWordBuilder
-//                    , isHighScore
-//                    , wordbuilderScore
-//                    , correct
-//                    , total);
+//                    && findFragmentByPosition(0) instanceof QuizTab1Container) {
+//                StatsFragmentMultipleChoice statsFragmentMultipleChoice = StatsFragmentMultipleChoice.newInstance(dataset
+//                        ,quizType
+//                        , isWordBuilder
+//                        , isHighScore
+//                        , wordbuilderScore
+//                        , correct
+//                        , total);
 //
 //                ((BaseContainerFragment) findFragmentByPosition(0)).replaceFragment(statsFragmentMultipleChoice, true, "statsFragmentMultipleChoice");
-//                }
+//            }
 //
 //
 //            if (findFragmentByPosition(1) != null
@@ -484,7 +573,7 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
 //                Log.d(TAG,"CANT FIND...");
 //            }
 //
-//            } else {
+//        } else {
 //            Log.e(TAG,"quiz result dataset was 0, kicking user back to main activity...");
 //            Intent intent = new Intent(getBaseContext(), MainActivity.class);
 //            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -493,49 +582,21 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
 //            intent.putExtra("lastExpandedPosition",mLastExpandedPosition);
 //            startActivity(intent);
 //            finish();
-//            }
-
-
+//        }
+//
+//
 //        showFab(true,"quizRedo");
-//        mTitleStrip.setVisibility(View.VISIBLE);
-
-        //SET THE FAB TO REDO THE MULT CHOICE QUIZ
-//        fab.setOnClickListener(new View.OnClickListener() {
+////        mTitleStrip.setVisibility(View.VISIBLE);
 //
+//        //SET THE FAB TO REDO THE MULT CHOICE QUIZ
 //
-//            @Override
-//            public void onClick(View view) {
+//    }
+
+//    public void showPostQuizStatsFillintheBlanks(ArrayList<Tweet> dataset
+//            , MyListEntry myListEntry
+//            , int correct
+//            , int total) {
 //
-//                        QuizMenuDialog.newInstance("multiplechoice"
-//                                ,mTabNumber
-//                                ,mLastExpandedPosition
-//                                ,mMyListEntry
-//                                ,mColorBlockMeasurables
-//                                ,getdimenscore()).show(getSupportFragmentManager(),"dialogQuizMenu");
-//            }
-//        });
-    }
-
-    public void showPostQuizStatsFillintheBlanks(ArrayList<Tweet> dataset
-            , MyListEntry myListEntry
-            , int correct
-            , int total) {
-
-        Intent intent = new Intent(getBaseContext(), PostQuizStatsActivity.class);
-
-        intent.putExtra("typeOfQuizThatWasCompleted","Fill in the Blanks"); //The type of quiz that was chosen inthe menu
-        intent.putExtra("tabNumber", 2);
-        intent.putExtra("myListEntry",myListEntry);
-        intent.putParcelableArrayListExtra("dataset",dataset);
-        intent.putExtra("mTabNumber",mTabNumber);
-        intent.putExtra("lastExpandedPosition",mLastExpandedPosition);
-        intent.putExtra("mDataSetMultipleChoice",dataset);
-        intent.putExtra("mCorrect",correct);
-        intent.putExtra("mTotal",total);
-
-
-        startActivity(intent);
-
 //        //Update the viewpager to show 2 stats tabs
 //        mAdapterTitles = new String[]{"Score","Stats"};
 //        updateTabs(mAdapterTitles );
@@ -574,10 +635,10 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
 //            startActivity(intent);
 //            finish();
 //        }
-
-
+//
+//
 //        showFab(true,"quizRedo");
-        //SET THE FAB TO REDO THE MULT CHOICE QUIZ
+//        //SET THE FAB TO REDO THE MULT CHOICE QUIZ
 //        fab.setOnClickListener(new View.OnClickListener() {
 //
 //
@@ -585,16 +646,16 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
 //            public void onClick(View view) {
 //
 //
-//                        QuizMenuDialog.newInstance("fillintheblanks"
-//                                ,mTabNumber
-//                                ,mLastExpandedPosition
-//                                ,mMyListEntry
-//                                ,mColorBlockMeasurables
-//                                ,getdimenscore()).show(getSupportFragmentManager(),"dialogQuizMenu");
+//                QuizMenuDialog.newInstance("fillintheblanks"
+//                        ,mTabNumber
+//                        ,mLastExpandedPosition
+//                        ,mMyListEntry
+//                        ,mColorBlockMeasurables
+//                        ,getdimenscore()).show(getSupportFragmentManager(),"dialogQuizMenu");
 //            }
 //        });
-
-    }
+//
+//    }
 
 
 
@@ -661,86 +722,86 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
             , String backValue
             , String selectedColorString) {};
 
-//    public void goToQuizActivityMultipleChoice(int tabNumber
-//            , MyListEntry listEntry
-//            ,Integer currentExpandedPosition
-//            , String quizType
-//            , String quizSize
-//            , String quizTimer
-//            , String selectedColorString) {
-//
-//
-////        Integer timer = -1;
-////        if (!quizTimer.equals("None")) {
-////            timer = Integer.parseInt(quizTimer);
-////        }
-//
-////        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getApplicationContext()).getColorThresholds();
-//
-//        ArrayList<WordEntry> dataset = new ArrayList<>();
-//        String dataType = "";
-//        if (tabNumber == 1) {
-//            //Its a mylist fragment
-//
-//            dataset = InternalDB.getTweetInterfaceInstance(getBaseContext())
-//                    .getWordsFromATweetList(listEntry
-//                            , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
-//                            , selectedColorString
-//                            , null
-//                            , Integer.parseInt(quizSize));
-//            dataType = "Tweet";
-//
-//        } else if (tabNumber == 2) {
-//
-//
-//            //Its a mylist fragment
-//            dataset = InternalDB.getWordInterfaceInstance(getBaseContext())
-//                    .getWordsFromAWordList(listEntry
-//                            , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
-//                            , selectedColorString
-//                            , null
-//                            , Integer.parseInt(quizSize));
-//
-//            dataType = "Word";
+    public void goToQuizActivityMultipleChoice(int tabNumber
+            , MyListEntry listEntry
+            ,Integer currentExpandedPosition
+            , String quizType
+            , String quizSize
+            , String quizTimer
+            , String selectedColorString) {
+
+
+//        Integer timer = -1;
+//        if (!quizTimer.equals("None")) {
+//            timer = Integer.parseInt(quizTimer);
 //        }
-//
-//        if(dataset.size()>0) {
-//            double totalweight = assignWordWeightsAndGetTotalWeight(getBaseContext(),dataset);
-//
-//
-//            Fragment[] fragments = new Fragment[1];
-//            fragments[0] = QuizTab1Container.newMultipleChoiceInstance(dataset
-//                    ,quizType,quizTimer,quizSize,totalweight,dataType,selectedColorString,mMyListEntry
-////                    ,tabStripHeight
-//            );
-//
-////
-////            fragments[1] = QuizTab2Container.newInstance();
-////            showFab(false);
-//
-//
-////            mTitleStrip.setVisibility(View.GONE);
-//
-//            // Create the adapter that will return a fragment for each of the primary sections of the activity.
-//            mAdapterTitles = new String[1];
-//            mAdapterTitles[0] = typeOfQuizThatWasCompleted;
-//            updateTabs(mAdapterTitles);
-//            ((BaseContainerFragment) findFragmentByPosition(0)).replaceFragment(fragments[0], true, "multipleChoiceFragment");
-//
-////            mQuizSectionsPagerAdapter = new QuizSectionsPagerAdapter(getSupportFragmentManager(),mAdapterTitles,fragments);
-//
-//        } else {
-//            Toast.makeText(this, "No words found to quiz on", Toast.LENGTH_SHORT).show();
-//        }
-//
-//    }
-//
-//    public void goToQuizActivityFillintheBlanks(int tabNumber
-//            , MyListEntry listEntry
-//            , Integer currentExpandedPosition
-//            , String quizSize
-//            , String selectedColorString) {
-//    }
+
+//        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getApplicationContext()).getColorThresholds();
+
+        ArrayList<WordEntry> dataset = new ArrayList<>();
+        String dataType = "";
+        if (tabNumber == 1) {
+            //Its a mylist fragment
+
+            dataset = InternalDB.getTweetInterfaceInstance(getBaseContext())
+                    .getWordsFromATweetList(listEntry
+                            , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
+                            , selectedColorString
+                            , null
+                            , Integer.parseInt(quizSize));
+            dataType = "Tweet";
+
+        } else if (tabNumber == 2) {
+
+
+            //Its a mylist fragment
+            dataset = InternalDB.getWordInterfaceInstance(getBaseContext())
+                    .getWordsFromAWordList(listEntry
+                            , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
+                            , selectedColorString
+                            , null
+                            , Integer.parseInt(quizSize));
+
+            dataType = "Word";
+        }
+
+        if(dataset.size()>0) {
+            double totalweight = assignWordWeightsAndGetTotalWeight(getBaseContext(),dataset);
+
+
+            Fragment[] fragments = new Fragment[2];
+            fragments[0] = QuizTab1Container.newMultipleChoiceInstance(dataset
+                    ,quizType,quizTimer,quizSize,totalweight,dataType,selectedColorString,mMyListEntry
+//                    ,tabStripHeight
+            );
+
+
+            fragments[1] = PostQuizTab2Container.newInstance(mColorBlockMeasurables,mMyListEntry);
+            showFab(false);
+
+
+//            mTitleStrip.setVisibility(View.GONE);
+
+            // Create the adapter that will return a fragment for each of the primary sections of the activity.
+            mAdapterTitles = new String[1];
+            mAdapterTitles[0] = typeOfQuizThatWasCompleted;
+            updateTabs(mAdapterTitles);
+            ((BaseContainerFragment) findFragmentByPosition(0)).replaceFragment(fragments[0], true, "multipleChoiceFragment");
+
+//            mQuizSectionsPagerAdapter = new QuizSectionsPagerAdapter(getSupportFragmentManager(),mAdapterTitles,fragments);
+
+        } else {
+            Toast.makeText(this, "No words found to quiz on", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    public void goToQuizActivityFillintheBlanks(int tabNumber
+            , MyListEntry listEntry
+            , Integer currentExpandedPosition
+            , String quizSize
+            , String selectedColorString) {
+    }
 
 
     @Override
@@ -750,13 +811,13 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
 
         if(findFragmentByPosition(0) != null
                 && findFragmentByPosition(0) instanceof QuizTab1Container) {
-            getSupportFragmentManager().putFragment(outState, "tab1Container", (QuizTab1Container)findFragmentByPosition(0));
+            getSupportFragmentManager().putFragment(outState, "postQuizTab1Container", (PostQuizTab1Container)findFragmentByPosition(0));
         }
 
-//        if(findFragmentByPosition(1) != null
-//                && findFragmentByPosition(1) instanceof QuizTab2Container) {
-//            getSupportFragmentManager().putFragment(outState, "tab2Container", (QuizTab2Container)findFragmentByPosition(1));
-//        }
+        if(findFragmentByPosition(1) != null
+                && findFragmentByPosition(1) instanceof QuizTab2Container) {
+            getSupportFragmentManager().putFragment(outState, "postQuizTab2Container", (PostQuizTab2Container)findFragmentByPosition(1));
+        }
 
         outState.putStringArray("adapterTitles", mAdapterTitles);
         outState.putString("typeOfQuizThatWasCompleted", typeOfQuizThatWasCompleted);

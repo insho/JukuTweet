@@ -21,6 +21,7 @@ import com.jukuproject.jukutweet.Adapters.StatsTop5Adapter;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
+import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
 import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MyListEntry;
@@ -36,7 +37,7 @@ import rx.functions.Action1;
  * Created by JClassic on 3/31/2017.
  */
 
-public class StatsFragmentProgress extends Fragment {
+public class StatsFragmentProgress extends Fragment implements WordEntryFavoritesChangedListener {
 
     String TAG = "Test-stats2";
     private long mLastClickTime = 0;
@@ -57,6 +58,10 @@ public class StatsFragmentProgress extends Fragment {
     ImageButton imageButton;
     TextView txtBottomFive;
     ListView topFiveList;
+    StatsTop5Adapter adapter_bottom;
+    StatsTop5Adapter adapter_top;
+    ArrayList<WordEntry> mTopFiveDataSet;
+    ArrayList<WordEntry> mBottomFiveDataSet;
 
     public StatsFragmentProgress() {}
 
@@ -102,17 +107,31 @@ public class StatsFragmentProgress extends Fragment {
         textViewColorBlock_yellow.setGravity(Gravity.CENTER);
         textViewColorBlock_green.setGravity(Gravity.CENTER);
 
+        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
+        double topbottomThreshold = .5;
 
 
         if(savedInstanceState != null) {
             mMyListEntry = savedInstanceState.getParcelable("mMyListEntry");
             mTopCountLimit = savedInstanceState.getInt("mTopCountLimit");
             mColorBlockMeasurables = savedInstanceState.getParcelable("mColorBlockMeasurables");
+            mTopFiveDataSet = savedInstanceState.getParcelableArrayList("mTopFiveDataSet");
+            mBottomFiveDataSet = savedInstanceState.getParcelableArrayList("mBottomFiveDataSet");
 
         } else {
             mMyListEntry = getArguments().getParcelable("myListEntry");
             mTopCountLimit = getArguments().getInt("topCountLimit");
             mColorBlockMeasurables = getArguments().getParcelable("colorBlockMeasurables");
+
+            mBottomFiveDataSet = InternalDB.getWordInterfaceInstance(getContext()).getTopFiveWordEntries("Bottom",null,mMyListEntry,colorThresholds,mTopCountLimit,topbottomThreshold);
+            ArrayList<Integer> idsToExclude = new ArrayList<>();
+            for(WordEntry wordEntry : mBottomFiveDataSet) {
+                if(wordEntry.getId() != null) {
+                    idsToExclude.add(wordEntry.getId());
+                }
+            }
+            mTopFiveDataSet = InternalDB.getWordInterfaceInstance(getContext()).getTopFiveWordEntries("Top",idsToExclude,mMyListEntry,colorThresholds,mTopCountLimit,topbottomThreshold);
+
         }
         Log.d(TAG,"HEREEEEE 1");
 
@@ -197,7 +216,6 @@ public class StatsFragmentProgress extends Fragment {
         Log.d(TAG,"HEREEEEE 2");
 
 
-        double topbottomThreshold = .5;
 //        if(greenCount>0){
 //            topbottomThreshold = .6;
 //        } else {
@@ -205,30 +223,18 @@ public class StatsFragmentProgress extends Fragment {
 //        }
 
 
-        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
 
         //THIS IS THE BOTTOM COUNT (ascending by percent)
-        ArrayList<WordEntry> bottomFive = InternalDB.getWordInterfaceInstance(getContext()).getTopFiveWordEntries("Bottom",null,mMyListEntry,colorThresholds,mTopCountLimit,topbottomThreshold);
 
         //THIS ONE IS the BOTTOM 5 Adapter
         RxBus rxBus = new RxBus();
-        final StatsTop5Adapter adapter_bottom = new StatsTop5Adapter(getContext(),bottomFive,colorThresholds,rxBus);
-
+        adapter_bottom = new StatsTop5Adapter(getContext(),mBottomFiveDataSet,colorThresholds,rxBus);
         bottomFiveList.setAdapter(adapter_bottom);
 
 
+        adapter_top = new StatsTop5Adapter(getContext(),mTopFiveDataSet,colorThresholds,rxBus);
 
-        ArrayList<Integer> idsToExclude = new ArrayList<>();
-        for(WordEntry wordEntry : bottomFive) {
-            if(wordEntry.getId() != null) {
-                idsToExclude.add(wordEntry.getId());
-            }
-        }
-
-        ArrayList<WordEntry> topFive = InternalDB.getWordInterfaceInstance(getContext()).getTopFiveWordEntries("Top",idsToExclude,mMyListEntry,colorThresholds,mTopCountLimit,topbottomThreshold);
-        final StatsTop5Adapter adapter_top_desc = new StatsTop5Adapter(getContext(),topFive,colorThresholds,rxBus);
-
-        topFiveList.setAdapter(adapter_top_desc);
+        topFiveList.setAdapter(adapter_top);
 
         rxBus.toClickObserverable()
                 .subscribe(new Action1<Object>() {
@@ -262,6 +268,17 @@ public class StatsFragmentProgress extends Fragment {
         }
     }
 
+    public void updateWordEntryItemFavorites(WordEntry wordEntry) {
+        if(mTopFiveDataSet.contains(wordEntry)) {
+            mTopFiveDataSet.get(mTopFiveDataSet.indexOf(wordEntry)).setItemFavorites(wordEntry.getItemFavorites());
+        }
+        if(mBottomFiveDataSet.contains(wordEntry)) {
+            mBottomFiveDataSet.get(mBottomFiveDataSet.indexOf(wordEntry)).setItemFavorites(wordEntry.getItemFavorites());
+        }
+
+        adapter_bottom.notifyDataSetChanged();
+        adapter_top.notifyDataSetChanged();
+    }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -270,7 +287,8 @@ public class StatsFragmentProgress extends Fragment {
         outState.putParcelable("mMyListEntry", mMyListEntry);
         outState.putParcelable("mColorBlockMeasurables", mColorBlockMeasurables);
         outState.putInt("mTopCountLimit", mTopCountLimit);
-
+        outState.putParcelableArrayList("mTopFiveDataSet",mTopFiveDataSet);
+        outState.putParcelableArrayList("mBottomFiveDataSet",mBottomFiveDataSet);
     }
 
 

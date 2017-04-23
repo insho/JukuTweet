@@ -53,6 +53,7 @@ import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.SearchTweetsContainer;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.TweetUrl;
+import com.jukuproject.jukutweet.Models.UserFollowersListContainer;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.TabContainers.Tab1Container;
@@ -89,7 +90,8 @@ import rx.schedulers.Schedulers;
 public class MainActivity extends AppCompatActivity implements FragmentInteractionListener
         , DialogInteractionListener
         , QuizMenuDialogInteractionListener
-        , DialogRemoveUserInteractionListener {
+        , DialogRemoveUserInteractionListener
+{
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -1359,15 +1361,23 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         userDetailFragment.show(getSupportFragmentManager(),"xxx");
     };
 
- public void runTwitterSearch(final String query) {
+ public void runTwitterSearch(final String query, final String queryOption) {
     if(searchQuerySubscription !=null && !searchQuerySubscription.isUnsubscribed()) {
         searchQuerySubscription.unsubscribe();
     }
 
+
+     String token = getResources().getString(R.string.access_token);
+     String tokenSecret = getResources().getString(R.string.access_token_secret);
+
+
+     if(queryOption.equals("Tweet")) {
+
+
     //If query is in romaji, convert it to a kanji and run the search on that kanji if possible
     String kanjiQuery = query;
     if(isRomaji(query)) {
-        ArrayList<WordEntry> conversionResults = actuallyRuntheSearch(query,true);
+        ArrayList<WordEntry> conversionResults = actuallyRuntheSearch(query,"Romaji");
         if(conversionResults != null && conversionResults.size()>0) {
             kanjiQuery = conversionResults.get(0).getKanji();
         }
@@ -1376,10 +1386,16 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
 
 
-    String token = getResources().getString(R.string.access_token);
-    String tokenSecret = getResources().getString(R.string.access_token_secret);
 
-    searchQuerySubscription = TwitterUserClient.getInstance(token,tokenSecret)
+         /* Holds a list of tweets that have been favorited (in any/all lists). Used to check
+    * whether or not a tweet needs to have favorites assigned to it. This exists
+    * so that we dont' have to make a sql query for each Tweet that gets returned from
+    * the api lookup */
+
+
+
+
+     searchQuerySubscription = TwitterUserClient.getInstance(token,tokenSecret)
             .getSearchTweets(kanjiQuery,"ja",25)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -1398,25 +1414,27 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                                 stringBuilder.append(",");
 
                             }
+
+
+
                             stringBuilder.append(tweet.getUser().getUserId());
                         }
 
                         //Pull a list of favorited tweets for those user ids (if any exist)
                         if(stringBuilder.length()>0) {
+
+
+
                             HashMap<String,ItemFavorites> tweetIdStringsInFavorites = InternalDB.getTweetInterfaceInstance(getBaseContext()).getStarFavoriteDataForAUsersTweets(stringBuilder.toString());
 
-                            if(tweetIdStringsInFavorites.size()>0) {
                                 for(Tweet tweet : mDataSet) {
-
                                     //Attach colorfavorites to tweet, if they exists in db
                                     if(tweet.getIdString()!=null && tweetIdStringsInFavorites.keySet().contains(tweet.getIdString())) {
                                         tweet.setItemFavorites(tweetIdStringsInFavorites.get(tweet.getIdString()));
                                     } else {
                                         tweet.setItemFavorites(new ItemFavorites());
                                     }
-
                                 }
-                            }
                         }
 
                     } catch (Exception e){
@@ -1457,58 +1475,87 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                         }
 //
                     }
+//
+//                    if(mDataSet.size() == 0) {
+//
+//                        for(Tweet tweet : results.getTweets()) {
+//
+//
+////                            Log.d(TAG,"timeline thing: " + tweet.getIdString());
+//                            //Attach colorfavorites to tweet, if they exists in db
+//                            if(tweet.getIdString()!=null && tweetIdStringsInFavorites.keySet().contains(tweet.getIdString())) {
+//                                tweet.setItemFavorites(tweetIdStringsInFavorites.get(tweet.getIdString()));
+//                            } else {
+//                                tweet.setItemFavorites(new ItemFavorites());
+//                            }
+//
+//                            mDataSet.add(tweet);
+//                        }
+//                    }
 
                 }
             });
+     } else if(queryOption.equals("User")){
 
-//    searchQuerySubscription = Observable.fromCallable(new Callable<List<Tweet>>() {
-//        @Override
-//        public List<Tweet> call() throws Exception {
-//
-//            return actuallyRuntheSearch(query.trim(),isRomaji);
-//        }
-//    }).subscribeOn(Schedulers.io())
-//            .observeOn(AndroidSchedulers.mainThread())
-//            .subscribe(new Subscriber<List<Tweet>>() {
-//                List<Tweet> searchResults = new ArrayList<Tweet>();
-//                @Override
-//                public void onCompleted() {
-//                    if(findFragmentByPosition(3) != null) {
-//                        try {
-//
-//                            ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment")).recieveTwitterSearchResults(searchResults);
-//
-//                        } catch (NullPointerException e) {
-//                            Log.e(TAG,"runTwitterSearch onsuccess error updating SearchFragment, null: " + e.toString());
-//                        } catch (Exception e) {
-//                            Log.e(TAG,"runTwitterSearch onsuccess error updating SearchFragment, generic exception: " + e.toString());
-//
-//                        }
-//                    }
-//                }
-//
-//                @Override
-//                public void onError(Throwable e) {
-//                    Log.e(TAG,"IN ON ERROR OF searchQuerySubscription in MAIN ACTIVITY");
-//
-//                    try {
-//                        ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment")).RessBar(false);
-//                    } catch (Exception ee) {
-//                        Log.e(TAG,"runTwitterSearch in MAIN A inerror error hiding progress bar! generic exception: " + e.toString());
-//
-//                    }
-//                }
-//
-//                @Override
-//                public void onNext(List<Tweet> wordEntries) {
-//                    searchResults = wordEntries;
-//                }
-//            });
+
+
+             //TODO make the number of twitter responses an option! not just 10
+             TwitterUserClient.getInstance(token,tokenSecret)
+                     .getSearchUsers(query,10)
+                     .subscribeOn(Schedulers.io())
+                     .observeOn(AndroidSchedulers.mainThread())
+                     .subscribe(new Observer<UserFollowersListContainer>() {
+                         ArrayList<UserInfo> mDataSet = new ArrayList<>();
+                         @Override public void onCompleted() {
+
+                             if(findFragmentByPosition(3) != null) {
+                                 try {
+
+                                     ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment")).recieveTwitterUserSearchResults(mDataSet);
+
+                                 } catch (NullPointerException e) {
+                                     Log.e(TAG,"runTwitterSearch onsuccess error updating SearchFragment, null: " + e.toString());
+                                 } catch (Exception e) {
+                                     Log.e(TAG,"runTwitterSearch onsuccess error updating SearchFragment, generic exception: " + e.toString());
+
+                                 }
+                             }
+
+
+
+
+                         }
+
+                         @Override public void onError(Throwable e) {
+                             e.printStackTrace();
+                             if(BuildConfig.DEBUG){Log.d(TAG, "runTwitterSearch Users In onError()");}
+                         }
+
+                         @Override public void onNext(UserFollowersListContainer followers) {
+                             if(BuildConfig.DEBUG) {
+                                 Log.d(TAG, "In onNext()");
+                                 Log.d(TAG,"FOLLOWERS SIZE: " + followers.getUsers().size());
+                             }
+
+                                 try {
+                                     mDataSet.addAll(followers.getUsers());
+                                 } catch (Exception e) {
+                                     Log.e(TAG,"Exception trying to pull follower data... "  + e.toString());
+                                 }
+
+                         }
+                     });
+
+
+
+
+     }
+
 }
 
 
 
-    public void runDictionarySearch(final String query, final boolean isRomaji) {
+    public void runDictionarySearch(final String query, final String queryOption) {
 
         if(searchQuerySubscription !=null && !searchQuerySubscription.isUnsubscribed()) {
             searchQuerySubscription.unsubscribe();
@@ -1519,7 +1566,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         searchQuerySubscription = Observable.fromCallable(new Callable<ArrayList<WordEntry>>() {
             @Override
             public ArrayList<WordEntry> call() throws Exception {
-                return actuallyRuntheSearch(query.trim(),isRomaji);
+                return actuallyRuntheSearch(query.trim(),queryOption);
             }
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -1609,13 +1656,13 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         return ms.matches();
     }
 
-    public ArrayList<WordEntry> actuallyRuntheSearch(String query, boolean isKanji) {
+    public ArrayList<WordEntry> actuallyRuntheSearch(String query, String queryOption) {
 
         ArrayList<WordEntry> searchResults = new ArrayList<>();
         String idstopasson;
         StringBuilder FinalHiraganaKatakanaPlaceHolders = new StringBuilder();
             /* If the Query is ROMAJI */
-        if(isKanji && isRomaji(query)) {
+        if(queryOption.equals("Kanji") && isRomaji(query)) {
 
             StringBuilder FinalHiraganaKatakanaEntries = new StringBuilder();
 
@@ -1813,7 +1860,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 }
             }
             idstopasson = InternalDB.getWordInterfaceInstance(getBaseContext()).getWordIdsForRomajiMatches(possibleHiraganaSearchQueries,possibleKatakanaSearchQueries);
-        } else if(isKanji && !query.contains(" ")){
+        } else if(queryOption.equals("Kanji") && !query.contains(" ")){
             idstopasson = InternalDB.getWordInterfaceInstance(getBaseContext()).getWordIdsForKanjiMatch(query.trim());
         } else {
             idstopasson = InternalDB.getWordInterfaceInstance(getBaseContext()).getWordIdsForDefinitionMatch(query);
@@ -1831,7 +1878,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
              * If there isn't, we can skip all this and just iterate through the list showing "item not found"s*/
             if(debug) {Log.d(TAG, "ids to pass on: " + idstopasson);}
             ColorThresholds colorThresholds = SharedPrefManager.getInstance(getBaseContext()).getColorThresholds();
-            if(isKanji) {
+            if(queryOption.equals("Kanji")) {
                 searchResults = InternalDB.getWordInterfaceInstance(getBaseContext()).getSearchWordEntriesForRomaji(FinalHiraganaKatakanaPlaceHolders.toString(),idstopasson,colorThresholds);
             } else {
                 searchResults = InternalDB.getWordInterfaceInstance(getBaseContext()).getSearchWordEntriesForDefinition(idstopasson,colorThresholds);

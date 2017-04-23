@@ -16,6 +16,7 @@ import android.util.Log;
  //     */
 public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
+    //TODO consolidate this one with quizsectionpager?
     String[] mCurrentTabs;
     Fragment[] mSavedFragments;
 

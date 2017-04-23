@@ -17,8 +17,8 @@ import android.widget.TextView;
 
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.FavoritesColors;
-import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
+import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
@@ -34,7 +34,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
     private static final boolean debug = false;
 
     //Pass instructions to mainactivity if at least one row is selected, to show icons in action bar
-    private FragmentInteractionListener mCallback;
+    private WordEntryFavoritesChangedListener mCallback;
 
 
     private Context mContext;
@@ -137,6 +137,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                     if(FavoritesColors.onFavoriteStarToggle(mContext,mActiveFavoriteStars,mWords.get(holder.getAdapterPosition()))) {
                         holder.imgStar.setImageResource(R.drawable.ic_star_black);
                         holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
+                        mCallback.updateWordEntryItemFavorites(mWords.get(holder.getAdapterPosition()));
                     } else {
                         //TODO insert an error?
                         Log.e(TAG,"OnFavoriteStarToggle did not work...");
@@ -180,7 +181,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
             public void onDismiss() {
                 holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars));
                 holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
-
+                mCallback.updateWordEntryItemFavorites(mWords.get(holder.getAdapterPosition()));
             }
         });
 
