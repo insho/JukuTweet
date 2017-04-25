@@ -52,7 +52,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         public TextView lstDefinitions;
         public ImageButton imgStar;
         public FrameLayout imgStarLayout;
-        public LinearLayout layout;
+        public LinearLayout mainLayout;
 
         public ViewHolder(View v) {
             super(v);
@@ -61,7 +61,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
             txtFurigana  = (TextView) v.findViewById(R.id.textViewBrowseAdapter_Furigana);
             lstDefinitions = (TextView) v.findViewById(R.id.textViewlstDefinitions);
             imgStar = (ImageButton) v.findViewById(R.id.favorite);
-            layout = (LinearLayout) v.findViewById(R.id.browseitems_layout);
+            mainLayout = (LinearLayout) v.findViewById(R.id.browseitems_layout);
             imgStarLayout = (FrameLayout) v.findViewById(R.id.browseitems_frameLayout);
         }
     }
@@ -95,7 +95,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position ) {
 
-        holder.layout.setSelected(false);
+        holder.mainLayout.setSelected(false);
         holder.imgStar.setVisibility(View.VISIBLE);
         holder.imgStar.setClickable(false);
         holder.imgStarLayout.setClickable(true);
@@ -118,6 +118,14 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
             Log.e(TAG,"Tweetbreakdown adding colorbar exception");
         }
 
+
+        holder.mainLayout.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                mRxBus.sendLongClick(mWords.get(holder.getAdapterPosition()));
+                return false;
+            }
+        });
         holder.lstDefinitions.setText(mWords.get(holder.getAdapterPosition()).getDefinitionMultiLineString(10));
         holder.lstDefinitions.setTypeface(null, Typeface.ITALIC);
         holder.lstDefinitions.setTag(mWords.get(holder.getAdapterPosition()).getId());

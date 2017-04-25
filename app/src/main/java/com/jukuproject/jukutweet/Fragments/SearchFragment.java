@@ -379,7 +379,8 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                     ,mTwitterResults
                     ,mActiveTweetFavoriteStars
                     ,mMetrics
-            ,queryText);
+            ,queryText
+            ,true);
 
             _rxBus.toClickObserverable()
                     .subscribe(new Action1<Object>() {

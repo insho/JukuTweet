@@ -87,7 +87,8 @@ public class TwitterUserClient {
     }
 
     public Observable<SearchTweetsContainer> getSearchTweets(String query, String languageCode, int limit) {
-        return twitterService.getSearchTweets(query, languageCode,limit);
+        String queryStringWithQuotes = "\"" + query + "\"";
+        return twitterService.getSearchTweets(queryStringWithQuotes, languageCode,limit);
     }
 
     public Observable<List<UserInfo>> getSearchUsers(@NonNull String username, int limit) {

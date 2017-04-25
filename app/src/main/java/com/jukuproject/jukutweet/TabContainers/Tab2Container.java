@@ -1,7 +1,6 @@
 package com.jukuproject.jukutweet.TabContainers;
 
 
-import android.app.FragmentManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -63,10 +62,23 @@ public class Tab2Container extends BaseContainerFragment {
 
     public void popAllFragments() {
         try {
-            getChildFragmentManager().popBackStack("savedtweetsallfragment", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+//            getChildFragmentManager().popBackStack("userlistfragment", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+            int count = getChildFragmentManager().getBackStackEntryCount();
+            if(count>1) {
+                for(int i = 1; i < count; ++i) {
+                    getChildFragmentManager().popBackStack();
+                }
+            }
+
         } catch (Exception e) {
-            Log.e("TEST-Tab1Container","popAllFragments failed");
+            Log.e("TEST-Tab2Container","popAllFragments failed");
         }
+
+//        try {
+//            getChildFragmentManager().popBackStack("savedtweetsallfragment", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+//        } catch (Exception e) {
+//            Log.e("TEST-Tab1Container","popAllFragments failed");
+//        }
     }
 //
 //    public String getTopFragmentTag() {

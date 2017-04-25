@@ -60,7 +60,7 @@ public class UserTimeLineFragment extends Fragment {
     private UserTimeLineAdapter mAdapter;
     private TextView mNoLists;
     private UserInfo mUserInfo;
-    private List<Tweet> mTimeLine;
+    private ArrayList<Tweet> mTimeLine;
     private DisplayMetrics mMetrics;
     /* Holds a list of tweets that have been favorited (in any/all lists). Used to check
     * whether or not a tweet needs to have favorites assigned to it. This exists
@@ -93,7 +93,7 @@ public class UserTimeLineFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_timeline, container, false);
-        mUserInfo = getArguments().getParcelable("userInfo");
+
         mRecyclerView = (RecyclerView) view.findViewById(R.id.recyclerTimeLine);
         mNoLists = (TextView) view.findViewById(R.id.notweets);
         mSwipeToRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefreshLayout);
@@ -105,13 +105,23 @@ public class UserTimeLineFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         mMetrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(mMetrics);
-
         //Get active favorite stars for tweets, to pass on to adapter for star-clicking tweet-saving
         mActiveTweetFavoriteStars = SharedPrefManager.getInstance(getContext()).getActiveTweetFavoriteStars();
+
+        if(savedInstanceState==null) {
+            mUserInfo = getArguments().getParcelable("userInfo");
+            mTimeLine = null;
+        } else {
+            mUserInfo = savedInstanceState.getParcelable("mUserInfo");
+            mTimeLine = savedInstanceState.getParcelableArrayList("mTimeLine");
+
+        }
         tweetIdStringsInFavorites = InternalDB.getTweetInterfaceInstance(getContext()).getStarFavoriteDataForAUsersTweets(mUserInfo.getUserId());
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(layoutManager);
 
+
+        mSwipeToRefreshLayout.setEnabled(false);
         mSwipeToRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -128,15 +138,22 @@ public class UserTimeLineFragment extends Fragment {
             }
         });
 
-        if(!mCallback.isOnline()) {
+
+        if(mTimeLine!=null) {
+            Log.d(TAG,"SETTING UP ADAPTER");
+            setUpAdapter();
+        } else if(!mCallback.isOnline()) {
+
             showRecyclerView(false);
             mNoLists.setTextColor(ContextCompat.getColor(getContext(),android.R.color.holo_red_dark));
             mNoLists.setText(getResources().getString(R.string.notimeline_nointernet));
+            mSwipeToRefreshLayout.setEnabled(true);
 
         } else if(mUserInfo != null) {
+            Log.d(TAG,"PULLING DATA");
             pullTimeLineData(mUserInfo);
         } else {
-            //TODO -- put error in place if there is no userinfo
+            Log.d(TAG,"WHAT THE FUFUUUUUUCK");
         }
 
     }
@@ -171,9 +188,11 @@ public class UserTimeLineFragment extends Fragment {
                         .subscribe(new Action1<Long>() {
                             @Override
                             public void call(Long aLong) {
-                                mNoLists.setText("Still working...");
-                                mNoLists.setTextColor(ContextCompat.getColor(getContext(),android.R.color.black));
-                                showRecyclerView(false);
+                                if(mTimeLine==null || mTimeLine.size()==0) {
+                                    showRecyclerView(false);
+                                    mNoLists.setText("Still working...");
+                                    mNoLists.setTextColor(ContextCompat.getColor(getContext(),android.R.color.black));
+                                }
                             }
                         });
             }
@@ -191,68 +210,9 @@ public class UserTimeLineFragment extends Fragment {
                                 timerSubscription.unsubscribe();
                             }
                             mSwipeToRefreshLayout.setRefreshing(false);
-                            mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mTimeLine,mActiveTweetFavoriteStars,mMetrics,null);
 
-                            /* If user info is missing from db, update the user information in db*/
-                            if(mUserInfo.getUserId()==null && mTimeLine.size()>0 && mTimeLine.get(0).getUser() != null) {
-                                InternalDB.getUserInterfaceInstance(getContext()).updateUserInfo(mTimeLine.get(0).getUser());
-                            }
+                            setUpAdapter();
 
-
-                            _rxBus.toClickObserverable()
-                                    .subscribe(new Action1<Object>() {
-                                        @Override
-                                        public void call(Object event) {
-
-                                            if(isUniqueClick(1000) && event instanceof Tweet) {
-
-                                                Tweet tweet = (Tweet) event;
-                                                TweetBreakDownFragment fragment = TweetBreakDownFragment.newInstanceTimeLine(tweet);
-                                                ((BaseContainerFragment)getParentFragment()).addFragment(fragment, true,"tweetbreakdown");
-                                                mCallback.showFab(false,"");
-
-
-                                            }
-
-                                        }
-
-                                    });
-
-                            _rxBus.toSaveTweetObserverable().subscribe(new Action1<Object>() {
-
-                                @Override
-                                public void call(Object event) {
-
-                                    if(isUniqueClick(1000) && event instanceof Tweet) {
-                                        final Tweet tweet = (Tweet) event;
-
-                                        //Try to insert urls
-                                        final TweetListOperationsInterface helperTweetOps = InternalDB.getTweetInterfaceInstance(getContext());
-                                        helperTweetOps.saveTweetUrls(tweet);
-
-                                        //Try to insert Kanji if they do not already exist
-                                        if(helperTweetOps.tweetParsedKanjiExistsInDB(tweet) == 0) {
-                                            Log.d(TAG,"SAVING TWEET KANJI");
-//                                        final WordLoader wordLoader = helper.getWordLists(db);
-                                            mCallback.parseAndSaveTweet(tweet);
-                                        } else {
-                                            mCallback.notifySavedTweetFragmentsChanged();
-                                            Log.e(TAG,"Tweet parsed kanji exists code is funky");
-                                        }
-
-                                    }
-
-
-
-
-                                }
-
-                            });
-
-
-
-
-                            mRecyclerView.setAdapter(mAdapter);
                             mCallback.showProgressBar(false);
                             Log.d(TAG,"show progress FALSE");
                             //TODO Make this its own subscribable that we can chain!
@@ -280,6 +240,9 @@ public class UserTimeLineFragment extends Fragment {
                             mCallback.showProgressBar(false);
                             mSwipeToRefreshLayout.setRefreshing(false);
                             showRecyclerView(false);
+                            if(timerSubscription!=null) {
+                                timerSubscription.unsubscribe();
+                            }
                             mNoLists.setText("Unable to get timeline for @" + userInfo.getScreenName());
                             mNoLists.setTextColor(ContextCompat.getColor(getContext(),android.R.color.holo_red_dark));
                         }
@@ -290,7 +253,9 @@ public class UserTimeLineFragment extends Fragment {
                                 Log.d(TAG,"TIMELINE SIZE: " + timeline.size());
                             }
                             showRecyclerView(true);
-
+                            if(timerSubscription!=null) {
+                                timerSubscription.unsubscribe();
+                            }
                             if(mTimeLine.size() == 0) {
 
                                 for(Tweet tweet : timeline) {
@@ -309,7 +274,7 @@ public class UserTimeLineFragment extends Fragment {
                         }
                     });
         } else {
-            mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mTimeLine,mActiveTweetFavoriteStars,mMetrics,null);
+            mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mTimeLine,mActiveTweetFavoriteStars,mMetrics,null,true);
             mRecyclerView.setAdapter(mAdapter);
 //            mCallback.showProgressBar(false);
         }
@@ -370,10 +335,97 @@ public class UserTimeLineFragment extends Fragment {
         super.onDestroy();
     }
 
+
+
+    public void setUpAdapter() {
+
+        mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mTimeLine,mActiveTweetFavoriteStars,mMetrics,null,true);
+
+                            /* If user info is missing from db, update the user information in db*/
+        if(mUserInfo.getUserId()==null && mTimeLine.size()>0 && mTimeLine.get(0).getUser() != null) {
+            InternalDB.getUserInterfaceInstance(getContext()).updateUserInfo(mTimeLine.get(0).getUser());
+        }
+
+
+        _rxBus.toClickObserverable()
+                .subscribe(new Action1<Object>() {
+                    @Override
+                    public void call(Object event) {
+
+                        if(isUniqueClick(1000) && event instanceof Tweet) {
+
+                            Tweet tweet = (Tweet) event;
+                            TweetBreakDownFragment fragment = TweetBreakDownFragment.newInstanceTimeLine(tweet);
+                            ((BaseContainerFragment)getParentFragment()).addFragment(fragment, true,"tweetbreakdown");
+                            mCallback.showFab(false,"");
+
+
+                        }
+
+                    }
+
+                });
+
+        _rxBus.toSaveTweetObserverable().subscribe(new Action1<Object>() {
+
+            @Override
+            public void call(Object event) {
+
+                if(isUniqueClick(1000) && event instanceof Tweet) {
+                    final Tweet tweet = (Tweet) event;
+
+                    //Try to insert urls
+                    final TweetListOperationsInterface helperTweetOps = InternalDB.getTweetInterfaceInstance(getContext());
+                    helperTweetOps.saveTweetUrls(tweet);
+
+                    //Try to insert Kanji if they do not already exist
+                    if(helperTweetOps.tweetParsedKanjiExistsInDB(tweet) == 0) {
+                        Log.d(TAG,"SAVING TWEET KANJI");
+//                                        final WordLoader wordLoader = helper.getWordLists(db);
+                        mCallback.parseAndSaveTweet(tweet);
+                    } else {
+                        mCallback.notifySavedTweetFragmentsChanged();
+                        Log.e(TAG,"Tweet parsed kanji exists code is funky");
+                    }
+
+                }
+
+
+
+
+            }
+
+        });
+
+
+
+        if(mTimeLine!=null && mTimeLine.size()>0) {
+            mRecyclerView.setAdapter(mAdapter);
+            showRecyclerView(true);
+            mSwipeToRefreshLayout.setEnabled(false);
+
+        } else {
+            showRecyclerView(false);
+            mSwipeToRefreshLayout.setEnabled(true);
+        }
+    }
+
     //    @Override
 //    public void onResume() {
 //        super.onResume();
 //        if()
 //    }
+
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+//        outState.putStringArrayList("mActiveTweetFavoriteStars", mActiveTweetFavoriteStars);
+        outState.putParcelableArrayList("mTimeLine", mTimeLine);
+        outState.putParcelable("mUserInfo", mUserInfo);
+
+
+    }
 }
 

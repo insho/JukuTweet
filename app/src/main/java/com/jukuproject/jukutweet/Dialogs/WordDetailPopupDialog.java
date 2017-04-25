@@ -22,7 +22,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -98,7 +97,8 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
     private ColorThresholds mColorThresholds;
     private UserTimeLineAdapter mAdapter;
     private ScrollView mScrollView;
-    private ImageView imgBanner;
+//    private ImageView imgBanner;
+    private boolean mShowStarInAdapter = false;
     /* keep from constantly recieving button clicks through the RxBus */
     private long mLastClickTime = 0;
     private String mCursorString = "-1";
@@ -110,7 +110,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setStyle(STYLE_NO_FRAME, android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
+        setStyle(STYLE_NO_FRAME, android.R.style.Theme_Translucent_NoTitleBar);
 //        mCallback = (WordEntryFavoritesChangedListener) getTargetFragment();
     }
 
@@ -351,11 +351,18 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
 
                 if(!showSavedTweetsSelected) {
 //                    mDataSet = new ArrayList<Tweet>();
+                    mShowStarInAdapter = false;
                     mCursorString = "-1";
                     showSavedTweetsSelected = true;
                     mDataSet.clear();
+
                     mDataSet.addAll(InternalDB.getTweetInterfaceInstance(getContext()).getTweetsThatIncludeAWord(String.valueOf(mWordEntry.getId()),mColorThresholds));
-                    mAdapter.notifyDataSetChanged();
+//                    mAdapter.showStar(false);
+//                    mAdapter.notifyDataSetChanged();
+                    mAdapter = new UserTimeLineAdapter(getContext(), mRxBus, mDataSet, mActiveTweetFavoriteStars,metrics,mWordEntry.getKanji(),false);
+
+                    mRecyclerView.setAdapter(mAdapter);
+
                 }
 
             }
@@ -364,15 +371,16 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         btnSearchForTweetsToggle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mShowStarInAdapter = true;
                 setButtonActive(btnSearchForTweetsToggle,true);
                 setButtonActive(btnShowSavedTweetsToggle,false);
                 if(showSavedTweetsSelected) {
                     showProgressBar(true);
                     mDataSet.clear();
+                    showSavedTweetsSelected = false;
                     mAdapter.notifyDataSetChanged();
                     mCursorString = "-1";
                     runTwitterSearch(mWordEntry.getKanji());
-                    showSavedTweetsSelected = false;
                 }
             }
 
@@ -390,7 +398,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
 //            Log.e(TAG,"FAILED TO SET CORE KANJI BLOCK, start: " + mWordEntry.getStartIndex() + " = " + mWordEntry.getEndIndex());
 //        }
 
-        mAdapter = new UserTimeLineAdapter(getContext(), mRxBus, mDataSet, mActiveTweetFavoriteStars,metrics,mWordEntry.getKanji());
+        mAdapter = new UserTimeLineAdapter(getContext(), mRxBus, mDataSet, mActiveTweetFavoriteStars,metrics,mWordEntry.getKanji(),false);
 
         if(mDataSet.size()==0) {
             showRecyclerView(false);
@@ -855,10 +863,12 @@ return linecounter;
 
 
                        //TODO add shit to adapter and run it... and save it if necessary...
-//                        mActiveTweetFavoriteStars = SharedPrefManager.getInstance(getContext()).getActiveTweetFavoriteStars();
-//                        mAdapter = new UserTimeLineAdapter(getContext(), mRxBus, mDataSet, mActiveTweetFavoriteStars);
-//                        mRecyclerView.setAdapter(mAdapter)
-                        mAdapter.notifyDataSetChanged();
+                        mActiveTweetFavoriteStars = SharedPrefManager.getInstance(getContext()).getActiveTweetFavoriteStars();
+                        mAdapter = new UserTimeLineAdapter(getContext(), mRxBus, mDataSet, mActiveTweetFavoriteStars,metrics,mWordEntry.getKanji(),true);
+                        mRecyclerView.setAdapter(mAdapter);
+//                        mAdapter.notifyDataSetChanged();
+//                        mAdapter.showStar(true);
+
                     }
 
                     @Override public void onError(Throwable e) {

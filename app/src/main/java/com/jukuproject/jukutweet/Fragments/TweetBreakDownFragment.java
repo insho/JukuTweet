@@ -158,6 +158,8 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+
+
         SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(getContext());
         colorThresholds = sharedPrefManager.getColorThresholds();
         mActiveTweetFavoriteStars = SharedPrefManager.getInstance(getContext()).getActiveTweetFavoriteStars();
@@ -167,12 +169,12 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
             mTweet = savedInstanceState.getParcelable("mTweet");
             mSavedTweet = savedInstanceState.getBoolean("mSavedTweet");
 //            mDisectedTweet = savedInstanceState.getParcelableArrayList("mDisectedTweet");
-
+            Log.d(TAG,"saved instance not null");
         } else {
 
             mTweet = getArguments().getParcelable("tweet");
-            mSavedTweet = getArguments().getBoolean("isSavedTweet");
-
+            mSavedTweet = getArguments().getBoolean("isSavedTweet",false);
+            Log.d(TAG,"saved instance IS null");
         }
 
             txtSentence.setVisibility(View.VISIBLE);
@@ -301,6 +303,9 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
 
 
         //Try to add links
+        if(mTweet.getEntities()!=null && mTweet.getEntities().getUrls()!=null) {
+
+
         try {
             List<TweetUrl> tweetUrls =  mTweet.getEntities().getUrls();
 
@@ -326,11 +331,17 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
         } catch (Exception e) {
             Log.e(TAG,"Error adding url info: " + e);
         }
+    } else {
+            Log.d(TAG,"entities null");
+        }
 
+
+        Log.d(TAG,"SAVED TWEET: " + mSavedTweet);
 
     if(mSavedTweet && mTweet.getWordEntries() != null) {
+        Log.d(TAG,"getWordEntries NOT null - " + mTweet.getWordEntries().size());
 
-        /*If it is a previously saved tweet, the favorite list information for the WordEntries in the
+        /* If it is a previously saved tweet, the favorite list information for the WordEntries in the
          tweet will not have been previously attached. So attach them now: */
 
         for(WordEntry wordEntry : mTweet.getWordEntries()) {
@@ -353,7 +364,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
         showDisectedTweet(mTweet.getWordEntries(),sentence,txtSentence);
 
     } else if(mTweet.getWordEntries()==null) {
-
+            Log.d(TAG,"getwordentries is null");
 //        final ArrayList<ParseSentenceSpecialSpan> specialSpans = new ArrayList<>();
         final ArrayList<String> spansToExclude = new ArrayList<>();
 
@@ -431,7 +442,10 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                 });
 
 
-        }
+        } else {
+        Log.d(TAG,"WHAT THE FUCK");
+        showDisectedTweet(mTweet.getWordEntries(),sentence,txtSentence);
+    }
 
 
     }
@@ -447,7 +461,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                     + " must implement OnHeadlineSelectedListener");
         }
     }
-    
+
 
 
     public void showDisectedTweet(ArrayList<WordEntry> disectedSavedTweet, String entireSentence, TextView txtSentence ) {
@@ -468,7 +482,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
             try {
 
                 final SpannableStringBuilder sb = new SpannableStringBuilder(entireSentence);
-                    sb.setSpan(null, 0, entireSentence.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+//                    sb.setSpan(null, 0, entireSentence.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
                     for(final WordEntry wordEntry : disectedSavedTweet) {
 //                        final ForegroundColorSpan fcs = new ForegroundColorSpan(ContextCompat.getColor(getContext(),color.getColorValue()));
 //                        sb.setSpan(fcs, color.getStartIndex(), color.getEndIndex(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
@@ -519,6 +533,17 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                                                           }
                                                       }
                                                   });
+            mRxBus.toLongClickObserverable().subscribe(new Action1<Object>() {
+                @Override
+                public void call(Object event) {
+                    if (event instanceof WordEntry) {
+                        WordEntry wordEntry = (WordEntry) event;
+                        WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(wordEntry);
+                        wordDetailPopupDialog.setTargetFragment(TweetBreakDownFragment.this, 0);
+                        wordDetailPopupDialog.show(getFragmentManager(),"wordDetailPopup");
+                    }
+                }
+            });
                         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);

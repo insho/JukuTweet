@@ -51,6 +51,8 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
     private DisplayMetrics mMetrics;
     private ArrayList<String> mActiveTweetFavoriteStars;
     private String mFocusedWord; //used only for search adapter, to highight the word that is being searched , otherwise null
+    private Boolean mShowStar;
+
     public class ViewHolder extends RecyclerView.ViewHolder {
 
         public TextView txtTweet;
@@ -81,13 +83,15 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
             , List<Tweet> myDataset
             , ArrayList<String> activeTweetFavoriteStars
                       ,DisplayMetrics metrics
-            , @Nullable String focusedWord) {
+            , @Nullable String focusedWord
+            , Boolean showStar) {
         mContext = context;
         _rxbus = rxBus;
         mDataset = myDataset;
         mFocusedWord = focusedWord;
         mActiveTweetFavoriteStars = activeTweetFavoriteStars;
         mMetrics = metrics;
+        mShowStar = showStar;
     }
 
 
@@ -106,6 +110,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
         holder.txtUserScreenName.setText(mDataset.get(holder.getAdapterPosition()).getUser().getDisplayScreenName());
 
 
+
         /* Insert tweet metadata if it exists*/
         holder.txtCreated.setText(getTweet(position).getDisplayDate());
         holder.txtReTweeted.setText(getTweet(position).getRetweetCountString());
@@ -115,33 +120,48 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
             holder.txtFavorited.setText(getTweet(position).getFavoritesCountString());
         }
 
+        if(mShowStar) {
+            holder.imgStarLayout.setClickable(true);
+            holder.imgStarLayout.setLongClickable(true);
+            holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars));
+            holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, FavoritesColors.assignStarColor(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars)));
 
-        holder.imgStarLayout.setClickable(true);
-        holder.imgStarLayout.setLongClickable(true);
-        holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars));
-        holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, FavoritesColors.assignStarColor(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars)));
+            if(mDataset.get(holder.getAdapterPosition()).getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)
+                    && mDataset.get(holder.getAdapterPosition()).getItemFavorites().systemListCount(mActiveTweetFavoriteStars) >1) {
+                holder.imgStar.setColorFilter(null);
+                holder.imgStar.setImageResource(R.drawable.ic_star_multicolor);
 
-        holder.imgStarLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+            } else {
+                try {
+                    holder.imgStar.setImageResource(R.drawable.ic_star_black);
+                    holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars)));
+                } catch (NullPointerException e) {
+                    Log.e(TAG,"UserTimeLineAdapter setting colorfilter nullpointer 1: " + e.getMessage());
+                }
 
+            }
+
+
+            holder.imgStarLayout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
 
                 /* Check for, and save */
-                Tweet currentTweet = mDataset.get(holder.getAdapterPosition());
-                TweetListOperationsInterface helperTweetOps = InternalDB.getTweetInterfaceInstance(mContext);
+                    Tweet currentTweet = mDataset.get(holder.getAdapterPosition());
+                    TweetListOperationsInterface helperTweetOps = InternalDB.getTweetInterfaceInstance(mContext);
 
 
-                if(mDataset.get(holder.getAdapterPosition()).getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)) {
-                    showTweetFavoriteListPopupWindow(mDataset.get(holder.getAdapterPosition()),holder);
-                } else {
-                    if (FavoritesColors.onFavoriteStarToggleTweet(mContext, mActiveTweetFavoriteStars, mDataset.get(holder.getAdapterPosition()).getUser().getUserId(), mDataset.get(holder.getAdapterPosition()))) {
-                        holder.imgStar.setImageResource(R.drawable.ic_star_black);
-                        holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, FavoritesColors.assignStarColor(mDataset.get(holder.getAdapterPosition()).getItemFavorites(), mActiveTweetFavoriteStars)));
-                        _rxbus.sendSaveTweet(mDataset.get(holder.getAdapterPosition()));
+                    if(mDataset.get(holder.getAdapterPosition()).getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)) {
+                        showTweetFavoriteListPopupWindow(mDataset.get(holder.getAdapterPosition()),holder);
                     } else {
-                        Log.e(TAG, "OnFavoriteStarToggle did not work...");
+                        if (FavoritesColors.onFavoriteStarToggleTweet(mContext, mActiveTweetFavoriteStars, mDataset.get(holder.getAdapterPosition()).getUser().getUserId(), mDataset.get(holder.getAdapterPosition()))) {
+                            holder.imgStar.setImageResource(R.drawable.ic_star_black);
+                            holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, FavoritesColors.assignStarColor(mDataset.get(holder.getAdapterPosition()).getItemFavorites(), mActiveTweetFavoriteStars)));
+                            _rxbus.sendSaveTweet(mDataset.get(holder.getAdapterPosition()));
+                        } else {
+                            Log.e(TAG, "OnFavoriteStarToggle did not work...");
+                        }
                     }
-                }
 //                //Toggle favorite list association for this tweet
 //                if(FavoritesColors.onFavoriteStarToggleTweet(mContext,mActiveTweetFavoriteStars,mDataset.get(holder.getAdapterPosition()).getUser().getUserId(),mDataset.get(holder.getAdapterPosition()))) {
 //                    holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars));
@@ -154,8 +174,8 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
 
 
-                //Check for tweet in db
-                try {
+                    //Check for tweet in db
+                    try {
                         //If tweet doesn't already exist in db, insert it
                         if(helperTweetOps.tweetExistsInDB(currentTweet) == 0){
                             Log.d(TAG,"TWEET Doesn't exist");
@@ -174,28 +194,33 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                         }
 
 
-                } catch (Exception e){
+                    } catch (Exception e){
                         Log.e(TAG,"UserTimeLIneAdapter - star clicked, tweet doesn't exist, but UNABLE to save!");
 
+                    }
+
+
+
+
                 }
+            });
 
 
 
+            holder.imgStarLayout.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
 
-            }
-        });
+                    showTweetFavoriteListPopupWindow(mDataset.get(holder.getAdapterPosition()),holder);
 
+                    return true;
+                }
+            });
+        } else {
+            holder.imgStar.setVisibility(View.INVISIBLE);
+            holder.imgStarLayout.setVisibility(View.INVISIBLE);
+        }
 
-
-        holder.imgStarLayout.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-
-                showTweetFavoriteListPopupWindow(mDataset.get(holder.getAdapterPosition()),holder);
-
-                return true;
-            }
-        });
 
         try {
             SpannableString text = new SpannableString(getTweet(position).getText());
@@ -423,5 +448,6 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
         popupWindow.showAsDropDown(holder.imgStar,-xadjust,-yadjust);
 
     };
+
 
 }
