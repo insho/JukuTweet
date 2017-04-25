@@ -531,7 +531,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
     }
 
 
-
+    //TODO make static? because its shared with timelineadapter....
     public void showTweetFavoriteListPopupWindow() {
 
         RxBus rxBus = new RxBus();

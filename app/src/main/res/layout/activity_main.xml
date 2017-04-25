@@ -19,15 +19,15 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            app:layout_scrollFlags="scroll|enterAlways"
+            app:layout_scrollFlags=""
             app:popupTheme="@style/AppTheme.PopupOverlay">
 
         </android.support.v7.widget.Toolbar>
 
 
 
-    </android.support.design.widget.AppBarLayout>
 
+    </android.support.design.widget.AppBarLayout>
 
     <android.support.v4.view.ViewPager
         android:id="@+id/container"
@@ -60,9 +60,9 @@
         android:indeterminate="true"
         android:visibility="invisible"
         app:spb_sections_count="6"
-        app:spb_color="#FF0000"
+        app:spb_color="@color/colorAccent"
         app:spb_speed="2.0"
-        app:spb_stroke_width="2dp"
+        app:spb_stroke_width="1.5dp"
         app:spb_stroke_separator_length="4dp"
         app:spb_reversed="false"
         app:spb_mirror_mode="false"

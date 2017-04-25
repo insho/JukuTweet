@@ -88,7 +88,7 @@
 
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="wrap_content"
         android:minHeight="80dp"
         android:layout_marginTop="20dp"
         android:layout_alignParentBottom="true"
@@ -98,7 +98,6 @@
         android:layout_gravity="center"
         android:layout_weight="1"
         android:text="Score"
-        android:paddingBottom="40dp"
         android:id="@+id/scoreButton"
         android:textSize="26sp" />
 

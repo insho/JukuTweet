@@ -63,13 +63,16 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
     ArrayList<WordEntry> mTopFiveDataSet;
     ArrayList<WordEntry> mBottomFiveDataSet;
 
+    private boolean mIsTweetList;
     public StatsFragmentProgress() {}
 
     public static StatsFragmentProgress newInstance(MyListEntry myListEntry
             , int topCountLimit
-            , ColorBlockMeasurables colorBlockMeasurables) {
+            , ColorBlockMeasurables colorBlockMeasurables
+            , boolean isTweetList) {
         StatsFragmentProgress fragment = new StatsFragmentProgress();
         Bundle args = new Bundle();
+        args.putBoolean("isTweetList",isTweetList);
         args.putParcelable("myListEntry",myListEntry);
         args.putInt("topCountLimit",topCountLimit);
         args.putParcelable("colorBlockMeasurables",colorBlockMeasurables);
@@ -117,23 +120,32 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
             mColorBlockMeasurables = savedInstanceState.getParcelable("mColorBlockMeasurables");
             mTopFiveDataSet = savedInstanceState.getParcelableArrayList("mTopFiveDataSet");
             mBottomFiveDataSet = savedInstanceState.getParcelableArrayList("mBottomFiveDataSet");
-
+            mIsTweetList = savedInstanceState.getBoolean("mIsTweetList");
         } else {
             mMyListEntry = getArguments().getParcelable("myListEntry");
             mTopCountLimit = getArguments().getInt("topCountLimit");
             mColorBlockMeasurables = getArguments().getParcelable("colorBlockMeasurables");
+            mIsTweetList = getArguments().getBoolean("isTweetList");
 
-            mBottomFiveDataSet = InternalDB.getWordInterfaceInstance(getContext()).getTopFiveWordEntries("Bottom",null,mMyListEntry,colorThresholds,mTopCountLimit,topbottomThreshold);
+            if(mIsTweetList) {
+                mBottomFiveDataSet = InternalDB.getTweetInterfaceInstance(getContext()).getTopFiveTweetWordEntries("Bottom",null,mMyListEntry,colorThresholds,mTopCountLimit,topbottomThreshold);
+
+            } else {
+                mBottomFiveDataSet = InternalDB.getWordInterfaceInstance(getContext()).getTopFiveWordEntries("Bottom",null,mMyListEntry,colorThresholds,mTopCountLimit,topbottomThreshold);
+            }
             ArrayList<Integer> idsToExclude = new ArrayList<>();
             for(WordEntry wordEntry : mBottomFiveDataSet) {
                 if(wordEntry.getId() != null) {
                     idsToExclude.add(wordEntry.getId());
                 }
             }
-            mTopFiveDataSet = InternalDB.getWordInterfaceInstance(getContext()).getTopFiveWordEntries("Top",idsToExclude,mMyListEntry,colorThresholds,mTopCountLimit,topbottomThreshold);
+            if(mIsTweetList) {
+                mTopFiveDataSet = InternalDB.getTweetInterfaceInstance(getContext()).getTopFiveTweetWordEntries("Top",idsToExclude,mMyListEntry,colorThresholds,mTopCountLimit,topbottomThreshold);
 
+            } else {
+                mTopFiveDataSet = InternalDB.getWordInterfaceInstance(getContext()).getTopFiveWordEntries("Top",idsToExclude,mMyListEntry,colorThresholds,mTopCountLimit,topbottomThreshold);
+            }
         }
-        Log.d(TAG,"HEREEEEE 1");
 
         int greenPercent = Math.round(100*((float)mColorBlockMeasurables.getGreenCount()/(float)mColorBlockMeasurables.getTotalCount()));
         txtCompletePercent.setText(greenPercent + "% Complete ");
@@ -143,7 +155,6 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
             //if the list is a system "star" list, show the star next to the title
             if(mMyListEntry.getListsSys()==1) {
                 titleString = mMyListEntry.getListName();
-
 
                 imageButton.setFocusable(false);
                 imageButton.setClickable(false);
@@ -212,9 +223,6 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
                 ,textViewColorBlock_red
                 ,textViewColorBlock_yellow
                 ,textViewColorBlock_green);
-
-        Log.d(TAG,"HEREEEEE 2");
-
 
 //        if(greenCount>0){
 //            topbottomThreshold = .6;
@@ -289,6 +297,7 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
         outState.putInt("mTopCountLimit", mTopCountLimit);
         outState.putParcelableArrayList("mTopFiveDataSet",mTopFiveDataSet);
         outState.putParcelableArrayList("mBottomFiveDataSet",mBottomFiveDataSet);
+        outState.putBoolean("mIsTweetList",mIsTweetList);
     }
 
 

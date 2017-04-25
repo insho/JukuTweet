@@ -53,7 +53,6 @@ import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.SearchTweetsContainer;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.TweetUrl;
-import com.jukuproject.jukutweet.Models.UserFollowersListContainer;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.TabContainers.Tab1Container;
@@ -68,6 +67,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
@@ -192,8 +192,12 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             @Override
             public void onPageSelected(int position) {
                 if(fragmentWasChanged && mSectionsPagerAdapter != null) {
-                    mSectionsPagerAdapter.notifyDataSetChanged();
-                    fragmentWasChanged = false;
+                    try {
+                        mSectionsPagerAdapter.notifyDataSetChanged();
+                        fragmentWasChanged = false;
+                    } catch (NullPointerException e) {
+                        Log.e(TAG,"Nullpointer in onPageSelected! " + e.getCause());
+                    }
                 }
 
                 Log.d(TAG,"ISTOP SHOWING FOR - " + position + ", " + isTopShowing(position));
@@ -226,6 +230,11 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     } else {
                         showMenuMyListBrowse(false,position);
                     }
+
+//                    if(position==1) {
+//                        mSectionsPagerAdapter.notifyDataSetChanged();
+//                        fragmentWasChanged = false;
+//                    }
                 }
 
 
@@ -662,16 +671,33 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
         showMenuMyListBrowse(false,mViewPager.getCurrentItem());
         showProgressBar(false);
+
         /* If the user is in the 2 tab (timeline,saved tweets) section, pop tab container 1 AND tab container 2,
          * as well as changing tabs to the main menu 3 container setting  */
-        if(mAdapterTitles.length == 2 && mAdapterTitles[0].equals("Timeline")) {
-            isPopFragment = (((BaseContainerFragment)findFragmentByPosition(0)).popFragment()  && ((BaseContainerFragment)findFragmentByPosition(1)).popFragment());
-            showActionBarBackButton(false,getString(R.string.app_name));
-            updateTabs(new String[]{"Users","Saved Tweets","Word Lists","Search"});
-        } else {
+//        if(mAdapterTitles.length == 2 && mAdapterTitles[0].equals("Timeline") && mViewPager.getCurrentItem()==1 && mViewPager) {
+////            isPopFragment = (((BaseContainerFragment)findFragmentByPosition(0)).popFragment()  && ((BaseContainerFragment)findFragmentByPosition(1)).popFragment());
+////            showActionBarBackButton(false,getString(R.string.app_name));
+////            updateTabs(new String[]{"Users","Saved Tweets","Word Lists","Search"});
+//        } else {
             isPopFragment = ((BaseContainerFragment)findFragmentByPosition(mViewPager.getCurrentItem())).popFragment();
+        Log.d(TAG,"IS TOP SHOWING: " + isTopShowing(mViewPager.getCurrentItem()));
             try {
-                if(isTopShowing(mViewPager.getCurrentItem())) {
+
+
+
+                if(((BaseContainerFragment)findFragmentByPosition(mViewPager.getCurrentItem())).getChildFragmentManager().getBackStackEntryCount()<=1) {
+
+                    /* The UserTimeline and User SavedTweets fragments work in concert. So when the user backs out
+                    * to the top of */
+//                    Log.d(TAG,"HERE IN IS TOP SHOWING");
+                    if(mAdapterTitles.length == 2 && mAdapterTitles[0].equals("Timeline") && mViewPager.getCurrentItem()==0) {
+//                        Log.d(TAG,"HERE IN ABOUT TO POP FRAGS");
+                            ((Tab2Container)findFragmentByPosition(1)).popAllFragments();
+                    } else if(mAdapterTitles.length == 2 && mAdapterTitles[0].equals("Timeline") && mViewPager.getCurrentItem()==1) {
+//                        Log.d(TAG,"HERE IN ABOUT TO POP FRAGS 2 electric boogaloo");
+                            ((Tab1Container)findFragmentByPosition(0)).popAllFragments();
+                    }
+
                     showActionBarBackButton(false,getString(R.string.app_name));
                     updateTabs(new String[]{"Users","Saved Tweets","Word Lists","Search"});
                     showMenuMyListBrowse(false,mViewPager.getCurrentItem());
@@ -694,10 +720,16 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 Log.e(TAG,"OnBackPressed child entrycount null : " + e);
             }
 
-        }
+//        }
         if(fragmentWasChanged) {
-            mSectionsPagerAdapter.notifyDataSetChanged();
-            fragmentWasChanged = false;
+            try {
+                mSectionsPagerAdapter.notifyDataSetChanged();
+                fragmentWasChanged = false;
+            } catch (NullPointerException e) {
+                Log.e(TAG,"Nullpointer in onPageSelected! " + e.getCause());
+            }
+//            mSectionsPagerAdapter.notifyDataSetChanged();
+//            fragmentWasChanged = false;
         }
 
 
@@ -803,6 +835,20 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             }
         }
     };
+
+    public void refreshFragment(String fragmentTag) {
+
+        try {
+            switch (fragmentTag) {
+                case "savedtweetsallfragment":
+                    ((SavedTweetsListFragment)((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag(fragmentTag)).updateMyListAdapter();
+                   break;
+
+            }
+        } catch (Exception e) {
+            Log.e("TEST-refreshfrag","error in refreshing fragmnet could not find " + fragmentTag);
+        }
+    }
 
 
     /**
@@ -940,24 +986,38 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * @param position position of the viewpager adapter
      * @return bool true if the top fragment is showing, false if not
      */
+
+    //TODO ELIMINATE THIS SHIT
     public boolean isTopShowing(int position) {
 
         switch(position) {
             case 0:
                 try {
-                    return ((Tab1Container)findFragmentByPosition(0)).isTopFragmentShowing();
+
+                    return ((BaseContainerFragment)findFragmentByPosition(0)).isTopFragmentShowing();
                 } catch(NullPointerException e) {
                     return false;
                 }
             case 1:
                 try {
-                    return ((Tab2Container)findFragmentByPosition(1)).isTopFragmentShowing();
+                    Log.d(TAG,"BACKSTACK COUNT OF TAB 2:" + ((Tab2Container)findFragmentByPosition(1)).getChildFragmentManager().getBackStackEntryCount());
+//                Log.d(TAG,"tab2container top: " + ((Tab2Container)findFragmentByPosition(1)).getTopFragmentTag());
+//                    return ((Tab2Container)findFragmentByPosition(1)).getTopFragmentTag().equals("savedtweetsallfragment");
+                    return ((BaseContainerFragment)findFragmentByPosition(1)).isTopFragmentShowing();
                 } catch(NullPointerException e) {
+                    Log.e(TAG,"ERROR IN PULLING TAB 2 container top ");
                     return false;
                 }
             case 2:
                 try {
-                    return  ((Tab3Container)findFragmentByPosition(2)).isTopFragmentShowing();
+                    return  ((BaseContainerFragment)findFragmentByPosition(2)).isTopFragmentShowing();
+
+                } catch(NullPointerException e) {
+                    return false;
+                }
+            case 3:
+                try {
+                    return  ((BaseContainerFragment)findFragmentByPosition(3)).isTopFragmentShowing();
 
                 } catch(NullPointerException e) {
                     return false;
@@ -1375,13 +1435,18 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
 
     //If query is in romaji, convert it to a kanji and run the search on that kanji if possible
-    String kanjiQuery = query;
+    final String kanjiQuery ;
     if(isRomaji(query)) {
         ArrayList<WordEntry> conversionResults = actuallyRuntheSearch(query,"Romaji");
         if(conversionResults != null && conversionResults.size()>0) {
             kanjiQuery = conversionResults.get(0).getKanji();
+        } else {
+            kanjiQuery = query;
+
         }
 
+    } else {
+        kanjiQuery = query;
     };
 
 
@@ -1397,11 +1462,13 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
      searchQuerySubscription = TwitterUserClient.getInstance(token,tokenSecret)
             .getSearchTweets(kanjiQuery,"ja",25)
+
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(new Observer<SearchTweetsContainer>() {
 
                 ArrayList<Tweet> mDataSet = new ArrayList<>();
+
 
                 @Override public void onCompleted() {
                     if(BuildConfig.DEBUG){Log.d(TAG, "runTwitterSearch In onCompleted()");}
@@ -1414,16 +1481,11 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                                 stringBuilder.append(",");
 
                             }
-
-
-
                             stringBuilder.append(tweet.getUser().getUserId());
                         }
 
                         //Pull a list of favorited tweets for those user ids (if any exist)
                         if(stringBuilder.length()>0) {
-
-
 
                             HashMap<String,ItemFavorites> tweetIdStringsInFavorites = InternalDB.getTweetInterfaceInstance(getBaseContext()).getStarFavoriteDataForAUsersTweets(stringBuilder.toString());
 
@@ -1445,7 +1507,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     if(findFragmentByPosition(3) != null) {
                         try {
 
-                            ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment")).recieveTwitterSearchResults(mDataSet);
+                            ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment")).recieveTwitterSearchResults(mDataSet,kanjiQuery);
 
                         } catch (NullPointerException e) {
                             Log.e(TAG,"runTwitterSearch onsuccess error updating SearchFragment, null: " + e.toString());
@@ -1458,8 +1520,21 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 }
 
                 @Override public void onError(Throwable e) {
+                    if(findFragmentByPosition(3) != null) {
+                        try {
+                            ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment")).showRecyclerView(false);
+                        } catch (NullPointerException ee) {
+                            Log.e(TAG,"runTwitterSearch onError error updating SearchFragment, null: " + ee.toString());
+                        } catch (Exception ee) {
+                            Log.e(TAG,"runTwitterSearch onError error updating SearchFragment, generic exception: " + ee.toString());
+
+                        }
+                    }
+
                     e.printStackTrace();
                     if(BuildConfig.DEBUG){Log.d(TAG, "runTwitterSearch In onError()");}
+
+
                 }
 
                 @Override public void onNext(SearchTweetsContainer results) {
@@ -1504,7 +1579,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                      .getSearchUsers(query,10)
                      .subscribeOn(Schedulers.io())
                      .observeOn(AndroidSchedulers.mainThread())
-                     .subscribe(new Observer<UserFollowersListContainer>() {
+                     .subscribe(new Observer<List<UserInfo>>() {
                          ArrayList<UserInfo> mDataSet = new ArrayList<>();
                          @Override public void onCompleted() {
 
@@ -1531,14 +1606,14 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                              if(BuildConfig.DEBUG){Log.d(TAG, "runTwitterSearch Users In onError()");}
                          }
 
-                         @Override public void onNext(UserFollowersListContainer followers) {
+                         @Override public void onNext(List<UserInfo> followers) {
                              if(BuildConfig.DEBUG) {
                                  Log.d(TAG, "In onNext()");
-                                 Log.d(TAG,"FOLLOWERS SIZE: " + followers.getUsers().size());
+//                                 Log.d(TAG,"FOLLOWERS SIZE: " + followers.getUsers().size());
                              }
 
                                  try {
-                                     mDataSet.addAll(followers.getUsers());
+                                     mDataSet.addAll(followers);
                                  } catch (Exception e) {
                                      Log.e(TAG,"Exception trying to pull follower data... "  + e.toString());
                                  }
@@ -1925,6 +2000,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                         //load the parsed kanji ids into the database
                         InternalDB.getTweetInterfaceInstance(getBaseContext()).saveParsedTweetKanji(disectedTweet,tweet.getIdString());
                         notifyFragmentsChanged();
+
                     }
 
                     @Override
@@ -1932,6 +2008,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                         Log.e(TAG,"ERROR IN PARSE KANJI (for saved tweet) OBSERVABLE: " + error);
                     }
                 });
+
+
     }
 
 

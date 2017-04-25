@@ -448,6 +448,11 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
         intent.putExtra("mWordbuilderScore",wordbuilderScore);
         intent.putExtra("mIsHighScore",isHighScore);
         intent.putExtra("mIsWordBuilder",isWordBuilder);
+        if(mTabNumber!=null && mTabNumber==1) {
+            intent.putExtra("isTweetList",true);
+        } else {
+            intent.putExtra("isTweetList",false);
+        }
 
 
         startActivity(intent);
@@ -532,6 +537,12 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
         intent.putExtra("mDataSetMultipleChoice",dataset);
         intent.putExtra("mCorrect",correct);
         intent.putExtra("mTotal",total);
+        if(mTabNumber!=null && mTabNumber==1) {
+            intent.putExtra("isTweetList",true);
+        } else {
+            intent.putExtra("isTweetList",false);
+        }
+
 
 
         startActivity(intent);

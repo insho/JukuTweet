@@ -85,7 +85,7 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
     private Integer mCorrect;
     private Integer mTotal;
     private ArrayList<MultChoiceResult> mDataSetMultipleChoice;
-
+    private boolean mIsTweetListQuiz;
     private ArrayList<Tweet> mDataSetFillintheBlanks;
 
     @Override
@@ -110,7 +110,7 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
             mMyListEntry = savedInstanceState.getParcelable("myListEntry");
             mColorBlockMeasurables = savedInstanceState.getParcelable("colorBlockMeasurables");
             mTabNumber = savedInstanceState.getInt("tabNumber");
-
+            mIsTweetListQuiz = savedInstanceState.getBoolean("mIsTweetListQuiz");
             mQuizSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(),mAdapterTitles,fragments);
 
         } else {
@@ -123,7 +123,7 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
             /*1. get the menu option (Multiple Choice, Fill in the Blanks, etc.) from the quiz activity.
                      This should always exist. */
             typeOfQuizThatWasCompleted = mIntent.getStringExtra("typeOfQuizThatWasCompleted"); //The type of quiz that was chosen inthe menu
-
+            mIsTweetListQuiz = mIntent.getBooleanExtra("mIsTweetListQuiz",false);
                 /* Depending on the menuOption, pull the appropriate set of data from the intent and run the
                 * appropriate fragment */
             String quizType = mIntent.getStringExtra("quizType");
@@ -205,7 +205,7 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
                     break;
             }
 
-            fragments[1] = PostQuizTab2Container.newInstance(mColorBlockMeasurables,mMyListEntry);
+            fragments[1] = PostQuizTab2Container.newInstance(mColorBlockMeasurables,mMyListEntry,mIsTweetListQuiz);
 
 //            mTitleStrip.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
 //                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
@@ -776,7 +776,7 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
             );
 
 
-            fragments[1] = PostQuizTab2Container.newInstance(mColorBlockMeasurables,mMyListEntry);
+            fragments[1] = PostQuizTab2Container.newInstance(mColorBlockMeasurables,mMyListEntry,mIsTweetListQuiz);
             showFab(false);
 
 
@@ -824,6 +824,7 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
         outState.putParcelable("myListEntry",mMyListEntry);
         outState.putParcelable("colorBlockMeasurables",mColorBlockMeasurables);
         outState.putInt("tabNumber",mTabNumber);
+        outState.putBoolean("mIsTweetListQuiz",mIsTweetListQuiz);
 
     }
 

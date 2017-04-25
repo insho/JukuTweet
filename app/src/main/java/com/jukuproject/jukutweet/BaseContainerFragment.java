@@ -31,23 +31,26 @@ public class BaseContainerFragment extends Fragment {
         getChildFragmentManager().executePendingTransactions();
     }
 
-    public void addFragmentX(Fragment fragment, boolean addToBackStack, String tag) {
-        FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
-        if (addToBackStack) {
-            transaction.addToBackStack(null);
+    public boolean isTopFragmentShowing() {
+        try {
+            if(getChildFragmentManager().getBackStackEntryCount() == 0) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (Exception e) {
+            Log.e("TEST","isTopFragmentShowing error");
+            return false;
         }
-        transaction.add(R.id.container_framelayout, fragment, tag);
-        transaction.commit();
-        getChildFragmentManager().executePendingTransactions();
     }
 
     public boolean popFragment() {
-        Log.d("TEST", "pop fragment: " + getChildFragmentManager().getBackStackEntryCount());
         boolean isPop = false;
         if (getChildFragmentManager().getBackStackEntryCount() > 0) {
             isPop = true;
             getChildFragmentManager().popBackStack();
         }
+        Log.d("TEST", "pop fragment NEW BACKSTACK COUNT: " + getChildFragmentManager().getBackStackEntryCount());
         return isPop;
     }
 

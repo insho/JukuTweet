@@ -867,11 +867,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
             }
             c.close();
 
-            //Add dummy word entries if necessary to round out the score
-//            while(wordEntries.size()<totalCountLimit) {
-////                wordEntries.add(new WordEntry());
-////                Log.d(TAG,"ADDING EMPTY ENTRY");
-//            }
         } catch (SQLiteException e){
             Log.e(TAG,"getTopFiveWordEntries Sqlite exception: " + e);
         } catch (Exception e) {

@@ -24,7 +24,7 @@ public interface FragmentInteractionListener {
     void showSavedTweetsTabForIndividualUser(UserInfo userInfo);
     void onBackPressed();
     void showUserDetailFragment(UserInfo userInfo);
-
+void refreshFragment(String fragmentTag);
     void runDictionarySearch(String query, String queryOn);
     void runTwitterSearch(String query, String queryOn);
     void showAddUserCheckDialog(UserInfo userInfo);

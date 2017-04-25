@@ -195,7 +195,8 @@ public class WordListFragment extends Fragment {
 
                         StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newInstance(myListEntry
                                 , 10
-                                ,colorBlockMeasurables);
+                                ,colorBlockMeasurables
+                                ,false);
                         ((BaseContainerFragment)getParentFragment()).replaceFragment(statsFragmentProgress, true,"mylistbrowse");
                         mCallback.showFab(false,"");
                         break;
@@ -370,6 +371,7 @@ public class WordListFragment extends Fragment {
         }
     }
 
+    //TODO GLOBAL with savedtweetslistfragment
     public ColorBlockMeasurables prepareColorBlockDataForList(MyListEntry myListEntry) {
         ColorBlockMeasurables colorBlockMeasurables = new ColorBlockMeasurables();
 

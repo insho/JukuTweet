@@ -10,12 +10,14 @@ import android.text.Spanned;
 import android.text.TextPaint;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.URLSpan;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import com.jukuproject.jukutweet.Database.InternalDB;
@@ -24,13 +26,17 @@ import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface;
 import com.jukuproject.jukutweet.LongClickLinkMovementMethod;
 import com.jukuproject.jukutweet.LongClickableSpan;
+import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
+import com.jukuproject.jukutweet.TestPopupWindow;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import rx.functions.Action1;
 
 /**
  * Recycler adapter for UserTimeLineFragment, displays a list of users tweets
@@ -42,6 +48,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 //    private UserInfo mUserInfo;
     private List<Tweet> mDataset;
     private Context mContext;
+    private DisplayMetrics mMetrics;
     private ArrayList<String> mActiveTweetFavoriteStars;
     private String mFocusedWord; //used only for search adapter, to highight the word that is being searched , otherwise null
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -73,12 +80,14 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 //            , UserInfo userInfo
             , List<Tweet> myDataset
             , ArrayList<String> activeTweetFavoriteStars
+                      ,DisplayMetrics metrics
             , @Nullable String focusedWord) {
         mContext = context;
         _rxbus = rxBus;
         mDataset = myDataset;
         mFocusedWord = focusedWord;
         mActiveTweetFavoriteStars = activeTweetFavoriteStars;
+        mMetrics = metrics;
     }
 
 
@@ -116,20 +125,31 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
             @Override
             public void onClick(View v) {
 
+
                 /* Check for, and save */
                 Tweet currentTweet = mDataset.get(holder.getAdapterPosition());
                 TweetListOperationsInterface helperTweetOps = InternalDB.getTweetInterfaceInstance(mContext);
 
 
-                //Toggle favorite list association for this tweet
-                if(FavoritesColors.onFavoriteStarToggleTweet(mContext,mActiveTweetFavoriteStars,mDataset.get(holder.getAdapterPosition()).getUser().getUserId(),mDataset.get(holder.getAdapterPosition()))) {
-                    holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars));
-                    holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, FavoritesColors.assignStarColor(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars)));
-
+                if(mDataset.get(holder.getAdapterPosition()).getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)) {
+                    showTweetFavoriteListPopupWindow(mDataset.get(holder.getAdapterPosition()),holder);
                 } else {
-                    //TODO insert an error?
-                    Log.e(TAG,"OnFavoriteStarToggle did not work...");
+                    if (FavoritesColors.onFavoriteStarToggleTweet(mContext, mActiveTweetFavoriteStars, mDataset.get(holder.getAdapterPosition()).getUser().getUserId(), mDataset.get(holder.getAdapterPosition()))) {
+                        holder.imgStar.setImageResource(R.drawable.ic_star_black);
+                        holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, FavoritesColors.assignStarColor(mDataset.get(holder.getAdapterPosition()).getItemFavorites(), mActiveTweetFavoriteStars)));
+                    } else {
+                        Log.e(TAG, "OnFavoriteStarToggle did not work...");
+                    }
                 }
+//                //Toggle favorite list association for this tweet
+//                if(FavoritesColors.onFavoriteStarToggleTweet(mContext,mActiveTweetFavoriteStars,mDataset.get(holder.getAdapterPosition()).getUser().getUserId(),mDataset.get(holder.getAdapterPosition()))) {
+//                    holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars));
+//                    holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, FavoritesColors.assignStarColor(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars)));
+//
+//                } else {
+//                    //TODO insert an error?
+//                    Log.e(TAG,"OnFavoriteStarToggle did not work...");
+//                }
 
 
 
@@ -165,23 +185,20 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
         });
 
 
+
+        holder.imgStarLayout.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+
+                showTweetFavoriteListPopupWindow(mDataset.get(holder.getAdapterPosition()),holder);
+
+                return true;
+            }
+        });
+
         try {
             SpannableString text = new SpannableString(getTweet(position).getText());
 
-//            ClickableSpan normalClick = new ClickableSpan() {
-//                @Override
-//                public void onClick(View textView) {
-//                    _rxbus.send(mDataset.get(holder.getAdapterPosition()));
-//                }
-//
-//                @Override
-//                public void updateDrawState(TextPaint ds) {
-//                    super.updateDrawState(ds);
-//                    ds.setColor(ContextCompat.getColor(mContext, android.R.color.black));
-//                    ds.setUnderlineText(false);
-//
-//                }
-//            };
 
             LongClickableSpan longClick = new LongClickableSpan() {
                 @Override
@@ -301,5 +318,109 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
     public Tweet getTweet(int position) {
         return mDataset.get(position);
     }
+
+    public void showTweetFavoriteListPopupWindow(final Tweet mTweet, final ViewHolder holder) {
+
+        RxBus rxBus = new RxBus();
+        ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getTweetInterfaceInstance(mContext).getTweetListsForTweet(mActiveTweetFavoriteStars,mTweet.getIdString(),null);
+
+        PopupWindow popupWindow = TestPopupWindow.createTweetFavoritesPopup(mContext,mMetrics,rxBus,availableFavoriteLists,mTweet.getIdString(), mTweet.getUser().getUserId());
+//        PopupWindow popupWindow =  new TestPopupWindow(getContext(),metrics,rxBus,availableFavoriteLists,mWords.get(holder.getAdapterPosition()).getId()).onCreateView();
+
+        popupWindow.getContentView().measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+
+        int xadjust = popupWindow.getContentView().getMeasuredWidth() + (int) (25 * mMetrics.density + 0.5f);
+        int yadjust = (int)((holder.imgStar.getMeasuredHeight())/2.0f);
+
+        Log.d("TEST","pop width: " + popupWindow.getContentView().getMeasuredWidth() + " height: " + popupWindow.getContentView().getMeasuredHeight());
+        Log.d("TEST","xadjust: " + xadjust + ", yadjust: " + yadjust);
+
+
+        popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
+            @Override
+            public void onDismiss() {
+
+                _rxbus.sendRefreshFragment(true);
+                try {
+                    holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mTweet.getItemFavorites(),mActiveTweetFavoriteStars));
+                    holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mTweet.getItemFavorites(),mActiveTweetFavoriteStars)));
+                } catch (NullPointerException e) {
+                    Log.e(TAG,"UserTimeLineAdapter popupwindow ondismisslistener setting colorfilter nullpointer: " + e.getMessage());
+                }
+
+            }
+        });
+
+
+
+        rxBus.toClickObserverable().subscribe(new Action1<Object>() {
+            @Override
+            public void call(Object event) {
+
+                                    /* Recieve a MyListEntry (containing an updated list entry for this row kanji) from
+                                    * the ChooseFavoritesAdapter in the ChooseFavorites popup window */
+                if(event instanceof MyListEntry) {
+                    MyListEntry myListEntry = (MyListEntry) event;
+
+                                        /* Ascertain the type of list that the kanji was added to (or subtracted from),
+                                        and update that list's count */
+                    if(myListEntry.getListsSys() == 1) {
+                        switch (myListEntry.getListName()) {
+                            case "Blue":
+                                mTweet.getItemFavorites().setSystemBlueCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Green":
+                                mTweet.getItemFavorites().setSystemGreenCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Red":
+                                mTweet.getItemFavorites().setSystemRedCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Yellow":
+                                mTweet.getItemFavorites().setSystemYellowCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Purple":
+                                mTweet.getItemFavorites().setSystemPurpleCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Orange":
+                                mTweet.getItemFavorites().setSystemOrangeCount(myListEntry.getSelectionLevel());
+                                break;
+                            default:
+                                break;
+                        }
+                    } else {
+                        if(myListEntry.getSelectionLevel() == 1) {
+                            mTweet.getItemFavorites().addToUserListCount(1);
+                        } else {
+                            mTweet.getItemFavorites().subtractFromUserListCount(1);
+                        }
+                    }
+
+                    if(mTweet.getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)
+                            && mTweet.getItemFavorites().systemListCount(mActiveTweetFavoriteStars) >1) {
+                        holder.imgStar.setColorFilter(null);
+                        holder.imgStar.setImageResource(R.drawable.ic_star_multicolor);
+
+                    } else {
+                        try {
+                            holder.imgStar.setImageResource(R.drawable.ic_star_black);
+                            holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mTweet.getItemFavorites(),mActiveTweetFavoriteStars)));
+                        } catch (NullPointerException e) {
+                            Log.e(TAG,"UserTimeLineAdapter setting colorfilter nullpointer: " + e.getMessage());
+                        }
+
+                    }
+//                    holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars));
+
+                }
+
+            }
+
+        });
+
+
+        popupWindow.showAsDropDown(holder.imgStar,-xadjust,-yadjust);
+
+    };
 
 }

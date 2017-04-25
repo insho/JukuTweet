@@ -57,6 +57,7 @@ public class TwitterUserClient {
         twitterService = retrofit.create(TwitterService.class);
     }
 
+
     public static TwitterUserClient getInstance(String token, String tokenSecret) {
 
         if (instance == null) {
@@ -89,7 +90,7 @@ public class TwitterUserClient {
         return twitterService.getSearchTweets(query, languageCode,limit);
     }
 
-    public Observable<UserFollowersListContainer> getSearchUsers(@NonNull String username, int limit) {
+    public Observable<List<UserInfo>> getSearchUsers(@NonNull String username, int limit) {
         return twitterService.getSearchUsers(username,limit);
     }
 

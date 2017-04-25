@@ -12,6 +12,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -245,6 +246,17 @@ public class SavedTweetsListFragment extends Fragment {
 
                         break;
                     case "Stats":
+                        MyListEntry myListEntry = new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).getSystemList());
+                        ColorBlockMeasurables colorBlockMeasurables = prepareColorBlockDataForTweetList(myListEntry);
+
+
+                        StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newInstance(myListEntry
+                                , 10
+                                ,colorBlockMeasurables
+                                ,true);
+                        ((BaseContainerFragment)getParentFragment()).replaceFragment(statsFragmentProgress, true,"tweetlistbrowse");
+                        mCallback.showFab(false,"");
+                        break;
 //                        MyListEntry myListEntry = new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).getSystemList());
 //                        ColorBlockMeasurables colorBlockMeasurables = prepareColorBlockDataForList(myListEntry);
 //
@@ -254,7 +266,7 @@ public class SavedTweetsListFragment extends Fragment {
 //                                ,colorBlockMeasurables);
 //                        ((BaseContainerFragment)getParentFragment()).replaceFragment(statsFragmentProgress, true,"mylistbrowse");
 //                        mCallback.showFab(false,"");
-                        break;
+
 
 
                     default:
@@ -347,7 +359,6 @@ public class SavedTweetsListFragment extends Fragment {
                         lastExpandedPosition = mMenuHeader.size();
                     }
 
-
                     colorBlockMeasurables.setGreyMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreyCount())));
                     colorBlockMeasurables.setRedMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getRedCount())));
                     colorBlockMeasurables.setYellowMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getYellowCount())));
@@ -360,11 +371,46 @@ public class SavedTweetsListFragment extends Fragment {
 
                 c.moveToNext();
             }
+        } else if(mUserInfo!=null){
+            mMenuHeader.add(new MenuHeader(mUserInfo.getDisplayScreenName()));
         }
         c.close();
     }
 
 
+    public ColorBlockMeasurables prepareColorBlockDataForTweetList(MyListEntry myListEntry) {
+        ColorBlockMeasurables colorBlockMeasurables = new ColorBlockMeasurables();
+
+        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
+        Cursor c = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListColorBlocksCursor(colorThresholds,myListEntry);
+//        InternalDB.getWordInterfaceInstance(getContext()).supertest(colorThresholds,myListEntry);
+        if(c.getCount()>0) {
+            c.moveToFirst();
+
+                /* We do not want to include favorites star lists that are not active in the user
+                * preferences. So if an inactivated list shows up in the sql query, ignore it (don't add to mMenuHeader)*/
+
+            colorBlockMeasurables.setGreyCount(c.getInt(3));
+            colorBlockMeasurables.setRedCount(c.getInt(4));
+            colorBlockMeasurables.setYellowCount(c.getInt(5));
+            colorBlockMeasurables.setGreenCount(c.getInt(6));
+            colorBlockMeasurables.setEmptyCount(0);
+
+            colorBlockMeasurables.setGreyMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreyCount())));
+            colorBlockMeasurables.setRedMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getRedCount())));
+            colorBlockMeasurables.setYellowMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getYellowCount())));
+            colorBlockMeasurables.setGreenMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreenCount())));
+            colorBlockMeasurables.setEmptyMinWidth(0);
+
+
+
+            c.moveToNext();
+        } else {
+            Log.e(TAG,"no results for query listname: " + myListEntry.getListName() + ", sys: " + myListEntry.getListsSys());
+        }
+        c.close();
+        return  colorBlockMeasurables;
+    }
 
     @Override
     public void onResume() {

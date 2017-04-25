@@ -1,6 +1,7 @@
 package com.jukuproject.jukutweet.TabContainers;
 
 
+import android.app.FragmentManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -53,6 +54,15 @@ public class Tab1Container extends BaseContainerFragment {
         } catch (Exception e) {
             Log.e("Tab1Container","Could not find userListFragment");
             return false;
+        }
+    }
+
+    public void popAllFragments() {
+        try {
+            Log.d("TEST","POPPING ALL FRAGMENTS");
+            getChildFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        } catch (Exception e) {
+            Log.e("TEST-Tab1Container","popAllFragments failed");
         }
     }
 

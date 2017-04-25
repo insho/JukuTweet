@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -55,7 +56,7 @@ public class UserTimeLineFragment extends Fragment {
     private TextView mNoLists;
     private UserInfo mUserInfo;
     private List<Tweet> mTimeLine;
-
+    private DisplayMetrics mMetrics;
     /* Holds a list of tweets that have been favorited (in any/all lists). Used to check
     * whether or not a tweet needs to have favorites assigned to it. This exists
     * so that we dont' have to make a sql query for each Tweet that gets returned from
@@ -95,6 +96,8 @@ public class UserTimeLineFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        mMetrics = new DisplayMetrics();
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics(mMetrics);
 
         //Get active favorite stars for tweets, to pass on to adapter for star-clicking tweet-saving
         mActiveTweetFavoriteStars = SharedPrefManager.getInstance(getContext()).getActiveTweetFavoriteStars();
@@ -147,13 +150,23 @@ public class UserTimeLineFragment extends Fragment {
                         @Override public void onCompleted() {
                             if(BuildConfig.DEBUG){Log.d(TAG, "In onCompleted()");}
 
-                            mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mTimeLine,mActiveTweetFavoriteStars,null);
+                            mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mTimeLine,mActiveTweetFavoriteStars,mMetrics,null);
 
 
                             /* If user info is missing from db, update the user information in db*/
                             if(mUserInfo.getUserId()==null && mTimeLine.size()>0 && mTimeLine.get(0).getUser() != null) {
                                 InternalDB.getUserInterfaceInstance(getContext()).updateUserInfo(mTimeLine.get(0).getUser());
                             }
+
+                            _rxBus.toRefreshFragmentObserverable()
+                                    .subscribe(new Action1<Object>() {
+                                        @Override
+                                        public void call(Object event) {
+                                            mCallback.refreshFragment("savedtweetsallfragment");
+                                        }
+
+                                    });
+
 
                             _rxBus.toClickObserverable()
                                     .subscribe(new Action1<Object>() {
@@ -262,7 +275,7 @@ public class UserTimeLineFragment extends Fragment {
                         }
                     });
         } else {
-            mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mTimeLine,mActiveTweetFavoriteStars,null);
+            mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mTimeLine,mActiveTweetFavoriteStars,mMetrics,null);
             mRecyclerView.setAdapter(mAdapter);
 //            mCallback.showProgressBar(false);
         }

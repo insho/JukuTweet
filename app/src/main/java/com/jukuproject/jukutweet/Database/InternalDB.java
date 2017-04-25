@@ -209,7 +209,7 @@ public class InternalDB extends SQLiteOpenHelper
                                 "%s TEXT, " +
                                 "%s TEXT, " +
                                 "%s TEXT, " +
-                                "%s TEXT)", Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES,
+                                "%s INTEGER)", Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES,
 
                         Columns.COL_ID, //Tweet id!
                         Columns.TSAVEDTWEET_COL0, // User id

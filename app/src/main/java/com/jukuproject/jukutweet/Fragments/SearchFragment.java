@@ -127,7 +127,6 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
         mActiveTweetFavoriteStars = SharedPrefManager.getInstance(getContext()).getActiveTweetFavoriteStars();
         mActiveFavoriteStars = sharedPrefManager.getActiveFavoriteStars();
 
-
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
 
@@ -142,6 +141,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
         checkBoxRomaji.setChecked(true);
         checkBoxDefinition.setChecked(false);
         checkBoxTwitter.setChecked(false);
+
         checkBoxDictionary.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -149,14 +149,13 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                     mDictionarySearchLayout.setVisibility(View.VISIBLE);
                     checkBoxTwitter.setChecked(false);
                     checkBoxRomaji.setText(getResources().getString(R.string.search_romaji));
-                    checkBoxDefinition.setText("Definition");
+                    checkBoxDefinition.setText(getResources().getString(R.string.search_definition));
                 } else if(!checkBoxTwitter.isChecked()){
                     checkBoxDictionary.setChecked(true);
                 }
-
-
             }
         });
+
         checkBoxRomaji.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -168,6 +167,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                 }
             }
         });
+
         checkBoxDefinition.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -180,7 +180,18 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
 
             }
         });
-
+        checkBoxDefinition.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mDictionarySearchLayout.setVisibility(View.VISIBLE);
+            }
+        });
+        checkBoxTwitter.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mDictionarySearchLayout.setVisibility(View.VISIBLE);
+            }
+        });
         checkBoxTwitter.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -199,6 +210,22 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
 
         currentSearchText= null;
 
+        /* Set the sub-criteria checkboxes visible every time the searchview is clicked*/
+//        searchView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                mDictionarySearchLayout.setVisibility(View.VISIBLE);
+//            }
+//        });
+
+        searchView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if(hasFocus) {
+                    mDictionarySearchLayout.setVisibility(View.VISIBLE);
+                }
+            }
+        });
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -210,14 +237,6 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                 } else if (!checkBoxDefinition.isChecked() &&!checkBoxRomaji.isChecked()){
                     Toast.makeText(getContext(), getString(R.string.searchchoosecriteria), Toast.LENGTH_LONG).show();
                 } else {
-
-//                    Pattern ps = Pattern.compile("^[a-zA-Z0-9 ]+$");
-//                    Matcher ms = ps.matcher(query.trim());
-//                    boolean okquery = ms.matches();
-//                    if (!okquery) {
-//                        Toast.makeText(getContext(), getString(R.string.searchalphanumericsonly), Toast.LENGTH_LONG).show();
-//                    } else {
-
                         /* Run the query */
                         showRecyclerView(true);
                         showProgressBar(true);
@@ -228,14 +247,20 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                         } else if(checkBoxDictionary.isChecked() && checkBoxDefinition.isChecked()) {
                             mCallback.runDictionarySearch(query.trim(),"Definition");
                         } else if(checkBoxTwitter.isChecked() && checkBoxRomaji.isChecked()) {
-                            mCallback.runTwitterSearch(query.trim(),"User");
+                            if(mCallback.isOnline()) {
+                                mCallback.runTwitterSearch(query.trim(),"User");
+                            } else {
+                                Toast.makeText(getContext(), "Device is not online", Toast.LENGTH_SHORT).show();
+                            }
                         } else if(checkBoxTwitter.isChecked() && checkBoxDefinition.isChecked()) {
+                            if(mCallback.isOnline()) {
                             mCallback.runTwitterSearch(query.trim(),"Tweet");
+                            } else {
+                                Toast.makeText(getContext(), "Device is not online", Toast.LENGTH_SHORT).show();
+                            }
                         } else {
                             Toast.makeText(getContext(), "Select a search option", Toast.LENGTH_SHORT).show();
                         }
-//                    }
-
                 }
 
                 return false;
@@ -263,7 +288,8 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                 if(mCheckedOption.equals("Twitter")) {
                     Log.e(TAG,"running not null fuckin' twitterresults");
                     mTwitterResults = savedInstanceState.getParcelableArrayList("mTwitterResults");
-                    recieveTwitterSearchResults(mTwitterResults);
+
+                    recieveTwitterSearchResults(mTwitterResults,currentSearchText);
                 } else {
                     Log.e(TAG,"running not null fuckin' dictionary results");
                     mDictionaryResults = savedInstanceState.getParcelableArrayList("mDictionaryResults");
@@ -292,12 +318,13 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
      * and hiding the recycler while showing the "no users found" message if there are not
      * @param show bool True to show recycler, False to hide it
      */
-    private void showRecyclerView(boolean show) {
+    public void showRecyclerView(boolean show) {
         if(show) {
             mRecyclerView.setVisibility(View.VISIBLE);
             mNoLists.setVisibility(View.GONE);
         } else {
             mRecyclerView.setVisibility(View.GONE);
+            progressBar.setVisibility(View.GONE);
             mNoLists.setVisibility(View.VISIBLE);
         }
     }
@@ -330,7 +357,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
         }
     }
 
-    public void recieveTwitterSearchResults(ArrayList<Tweet> results) {
+    public void recieveTwitterSearchResults(ArrayList<Tweet> results,String queryText) {
         showRecyclerView(true);
         showProgressBar(false);
         if(results.size()>0) {
@@ -340,7 +367,8 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                     ,_rxBus
                     ,mTwitterResults
                     ,mActiveTweetFavoriteStars
-            ,currentSearchText);
+                    ,mMetrics
+            ,queryText);
 
             _rxBus.toClickObserverable()
                     .subscribe(new Action1<Object>() {
@@ -365,11 +393,11 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                         @Override
                         public void call(Object event) {
 
-//                            if(isUniqueClick(1000) && event instanceof UserInfo) {
+                            if(isUniqueClick(1000) && event instanceof UserInfo) {
 //                                Log.d(TAG,"LONG CLICK TO CALLBACK")
                                 UserInfo userInfo = (UserInfo) event;
                                 mCallback.showAddUserCheckDialog(userInfo);
-//                            }
+                            }
 
                         }
 
@@ -500,6 +528,8 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
 //        } else {
             outState.putParcelableArrayList("mDictionaryResults", mDictionaryResults);
 //        }
+
+        outState.putParcelableArrayList("mTwitterUserResults",mTwitterUserResults);
 
 
     }

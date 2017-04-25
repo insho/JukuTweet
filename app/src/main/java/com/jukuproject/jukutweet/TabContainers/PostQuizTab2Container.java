@@ -27,11 +27,12 @@ public class PostQuizTab2Container extends BaseContainerFragment {
 
     public PostQuizTab2Container() {}
 
-    public static PostQuizTab2Container newInstance(ColorBlockMeasurables colorBlockMeasurables, MyListEntry myListEntry) {
+    public static PostQuizTab2Container newInstance(ColorBlockMeasurables colorBlockMeasurables, MyListEntry myListEntry,boolean isTweetList) {
         PostQuizTab2Container fragment =  new PostQuizTab2Container();
         Bundle args = new Bundle();
         args.putParcelable("mColorBlockMeasurables",colorBlockMeasurables);
         args.putParcelable("myListEntry", myListEntry);
+        args.putBoolean("isTweetList",isTweetList);
         fragment.setArguments(args);
         return fragment;
     }
@@ -53,7 +54,9 @@ public class PostQuizTab2Container extends BaseContainerFragment {
         try {
             StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newInstance((MyListEntry)getArguments().getParcelable("myListEntry")
                     , 10
-                    ,(ColorBlockMeasurables)getArguments().getParcelable("mColorBlockMeasurables"));
+                    ,(ColorBlockMeasurables)getArguments().getParcelable("mColorBlockMeasurables")
+                    ,getArguments().getBoolean("isTweetList",false)
+            );
 
             replaceFragment(statsFragmentProgress, false,"statsFragmentProgress");
 

@@ -51,7 +51,12 @@ public interface TweetListOperationsInterface {
     Cursor getTweetListColorBlocksCursor(ColorThresholds colorThresholds, @Nullable MyListEntry myListEntry);
     Cursor getTweetListColorBlocksCursorForSingleUser(ColorThresholds colorThresholds, String userId);
 
-
+    ArrayList<WordEntry> getTopFiveTweetWordEntries(String topOrBottom
+            ,@Nullable  ArrayList<Integer> idsToExclude
+            ,MyListEntry myListEntry
+            ,ColorThresholds colorThresholds
+            ,int totalCountLimit
+            ,double topbottomThreshold);
 
 
 }

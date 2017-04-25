@@ -390,7 +390,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
 //            Log.e(TAG,"FAILED TO SET CORE KANJI BLOCK, start: " + mWordEntry.getStartIndex() + " = " + mWordEntry.getEndIndex());
 //        }
 
-        mAdapter = new UserTimeLineAdapter(getContext(), mRxBus, mDataSet, mActiveTweetFavoriteStars,mWordEntry.getKanji());
+        mAdapter = new UserTimeLineAdapter(getContext(), mRxBus, mDataSet, mActiveTweetFavoriteStars,metrics,mWordEntry.getKanji());
 
         if(mDataSet.size()==0) {
             showRecyclerView(false);

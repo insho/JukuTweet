@@ -45,7 +45,7 @@ public interface TwitterService {
                 , @Query("count") int limit);
 
 
-        @GET("users/search.json") Observable<UserFollowersListContainer> getSearchUsers(@Query("q") String query
+        @GET("users/search.json") Observable<List<UserInfo>> getSearchUsers(@Query("q") String query
                 , @Query("count") int limit);
 
 //        GET https://api.twitter.com/1.1/users/search.json?q=Twitter%20API&page=1&count=3

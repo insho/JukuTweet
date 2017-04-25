@@ -605,6 +605,7 @@ public class MultipleChoiceFragment extends Fragment {
 
         if (SharedPrefManager.getInstance(mContext).getmDifficultAnswers() && (!quizType.equals("Kanji to Definition"))) { //If we are choosing comparable answers and the answers are either 1: kanji to furigana, or 2: furigana to kanji
 
+            Log.d("TEST-multchoice","DIFFICULT ANSWER WORD BREAKUP");
             //Determine whether to create incorrect answer set for the WordEntry's kanji, or furigana
             String kanjiToBreak;
             if (quizType.equals("Kanji to Kana") && correctWordEntry.getFurigana().length() > 0) {
@@ -657,13 +658,16 @@ public class MultipleChoiceFragment extends Fragment {
                 }
             }
         } else if (myListType.equals("Tweet")) {
-            incorrectAnswerSet = InternalDB.getTweetInterfaceInstance(mContext).getWordsFromATweetList(myListEntry, colorThresholds, colorString, correctWordEntry.getId(), 6);
+            Log.d("TEST-multchoice","pulling tweet incorrect answers from DB");
+            incorrectAnswerSet = InternalDB.getTweetInterfaceInstance(mContext).getWordsFromATweetList(myListEntry, colorThresholds, colorString, correctWordEntry.getId(), 5);
         } else {
 
-            incorrectAnswerSet = InternalDB.getWordInterfaceInstance(mContext).getWordsFromAWordList(myListEntry, colorThresholds, colorString, correctWordEntry.getId(), 6);
+            Log.d("TEST-multchoice","pulling regular word incorrect answers from DB");
+            incorrectAnswerSet = InternalDB.getWordInterfaceInstance(mContext).getWordsFromAWordList(myListEntry, colorThresholds, colorString, correctWordEntry.getId(), 5);
 
         }
 
+        Log.d("Test-multchoice","Initial pull wrong answer size: "+ incorrectAnswerSet.size());
 
 
         /* Fill in remaining entries if necessary */
@@ -692,6 +696,7 @@ public class MultipleChoiceFragment extends Fragment {
             c.close();
         }
 
+        Log.d("Test-multchoice","FINALL incorrect answer size: "+ incorrectAnswerSet.size());
 
         return incorrectAnswerSet;
     }
