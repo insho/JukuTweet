@@ -297,7 +297,7 @@ public class SavedTweetsListFragment extends Fragment {
             expandTheListViewAtPosition(lastExpandedPosition);
         }
 
-        setRetainInstance(true);
+//        setRetainInstance(true);
     }
 
     public void prepareListData(@Nullable UserInfo userInfo) {
@@ -355,6 +355,7 @@ public class SavedTweetsListFragment extends Fragment {
 
                     /* Set the first available non-empty list to be automatically expanded when
                       fragment is created. This is achieved by making it the "lastexpandedposition" from the get-go */
+                    Log.i(TAG,"lastexpanded on setup: " +  lastExpandedPosition + "c.getInt: " + c.getInt(2) + ", size: " + mMenuHeader.size());
                     if(lastExpandedPosition<0 && c.getInt(2)>0) {
                         lastExpandedPosition = mMenuHeader.size();
                     }
@@ -395,6 +396,7 @@ public class SavedTweetsListFragment extends Fragment {
             colorBlockMeasurables.setYellowCount(c.getInt(5));
             colorBlockMeasurables.setGreenCount(c.getInt(6));
             colorBlockMeasurables.setEmptyCount(0);
+
 
             colorBlockMeasurables.setGreyMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreyCount())));
             colorBlockMeasurables.setRedMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getRedCount())));
@@ -479,6 +481,10 @@ public class SavedTweetsListFragment extends Fragment {
         }
         SavedTweetsFragmentAdapter = new SavedTweetsExpandableAdapter(getContext(),mMenuHeader,getdimenscore(.36f),0);
         expListView.setAdapter(SavedTweetsFragmentAdapter);
+        //Expand the last expanded position (or expand first availalbe non-empty list)
+        if(lastExpandedPosition >=0) {
+            expandTheListViewAtPosition(lastExpandedPosition);
+        }
 //        expListView.invalidateViews();
     }
 

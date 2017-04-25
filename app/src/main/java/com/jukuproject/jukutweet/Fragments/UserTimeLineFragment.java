@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
@@ -13,7 +15,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter;
 import com.jukuproject.jukutweet.BaseContainerFragment;
@@ -32,8 +33,11 @@ import com.jukuproject.jukutweet.TwitterUserClient;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import rx.Observable;
 import rx.Observer;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
@@ -52,6 +56,7 @@ public class UserTimeLineFragment extends Fragment {
     private long mLastClickTime = 0;
     private RxBus _rxBus = new RxBus();
     private RecyclerView mRecyclerView;
+    private SwipeRefreshLayout mSwipeToRefreshLayout;
     private UserTimeLineAdapter mAdapter;
     private TextView mNoLists;
     private UserInfo mUserInfo;
@@ -64,6 +69,8 @@ public class UserTimeLineFragment extends Fragment {
     private HashMap<String,ItemFavorites> tweetIdStringsInFavorites;
 
     private ArrayList<String> mActiveTweetFavoriteStars;
+    private Subscription timeLineSubscription;
+    private Subscription timerSubscription;
 
 //    private TweetBreakDownFragment mTweetBreakDownFragment;
 
@@ -89,7 +96,7 @@ public class UserTimeLineFragment extends Fragment {
         mUserInfo = getArguments().getParcelable("userInfo");
         mRecyclerView = (RecyclerView) view.findViewById(R.id.recyclerTimeLine);
         mNoLists = (TextView) view.findViewById(R.id.notweets);
-
+        mSwipeToRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefreshLayout);
         return view;
     }
 
@@ -105,8 +112,25 @@ public class UserTimeLineFragment extends Fragment {
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(layoutManager);
 
+        mSwipeToRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                if(!mCallback.isOnline()) {
+                    showRecyclerView(false);
+                    mNoLists.setTextColor(ContextCompat.getColor(getContext(),android.R.color.holo_red_dark));
+                    mNoLists.setText(getResources().getString(R.string.notimeline_nointernet));
+
+                } else if(mUserInfo != null) {
+                    pullTimeLineData(mUserInfo);
+                } else {
+                    //TODO -- put error in place if there is no userinfo
+                }
+            }
+        });
+
         if(!mCallback.isOnline()) {
             showRecyclerView(false);
+            mNoLists.setTextColor(ContextCompat.getColor(getContext(),android.R.color.holo_red_dark));
             mNoLists.setText(getResources().getString(R.string.notimeline_nointernet));
 
         } else if(mUserInfo != null) {
@@ -138,34 +162,41 @@ public class UserTimeLineFragment extends Fragment {
             String token = getResources().getString(R.string.access_token);
             String tokenSecret = getResources().getString(R.string.access_token_secret);
 
+            Observable<Long> observable = Observable.timer(5, TimeUnit.SECONDS, Schedulers.io());
+
+            if(!mSwipeToRefreshLayout.isRefreshing()) {
+                timerSubscription =  observable
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Action1<Long>() {
+                            @Override
+                            public void call(Long aLong) {
+                                mNoLists.setText("Still working...");
+                                mNoLists.setTextColor(ContextCompat.getColor(getContext(),android.R.color.black));
+                                showRecyclerView(false);
+                            }
+                        });
+            }
+
             //TODO make the number of twitter responses an option! not just 10
-            TwitterUserClient.getInstance(token,tokenSecret)
+           timeLineSubscription =  TwitterUserClient.getInstance(token,tokenSecret)
                     .getUserTimeline(userInfo.getScreenName(),10)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Observer<List<Tweet>>() {
 
-
-
                         @Override public void onCompleted() {
                             if(BuildConfig.DEBUG){Log.d(TAG, "In onCompleted()");}
-
+                            if(timerSubscription!=null) {
+                                timerSubscription.unsubscribe();
+                            }
+                            mSwipeToRefreshLayout.setRefreshing(false);
                             mAdapter = new UserTimeLineAdapter(getContext(),_rxBus,mTimeLine,mActiveTweetFavoriteStars,mMetrics,null);
-
 
                             /* If user info is missing from db, update the user information in db*/
                             if(mUserInfo.getUserId()==null && mTimeLine.size()>0 && mTimeLine.get(0).getUser() != null) {
                                 InternalDB.getUserInterfaceInstance(getContext()).updateUserInfo(mTimeLine.get(0).getUser());
                             }
-
-                            _rxBus.toRefreshFragmentObserverable()
-                                    .subscribe(new Action1<Object>() {
-                                        @Override
-                                        public void call(Object event) {
-                                            mCallback.refreshFragment("savedtweetsallfragment");
-                                        }
-
-                                    });
 
 
                             _rxBus.toClickObserverable()
@@ -175,7 +206,6 @@ public class UserTimeLineFragment extends Fragment {
 
                                             if(isUniqueClick(1000) && event instanceof Tweet) {
 
-                                                //TODO -- make it so only one instance of breakdown fragment exists
                                                 Tweet tweet = (Tweet) event;
                                                 TweetBreakDownFragment fragment = TweetBreakDownFragment.newInstanceTimeLine(tweet);
                                                 ((BaseContainerFragment)getParentFragment()).addFragment(fragment, true,"tweetbreakdown");
@@ -206,6 +236,7 @@ public class UserTimeLineFragment extends Fragment {
 //                                        final WordLoader wordLoader = helper.getWordLists(db);
                                             mCallback.parseAndSaveTweet(tweet);
                                         } else {
+                                            mCallback.notifySavedTweetFragmentsChanged();
                                             Log.e(TAG,"Tweet parsed kanji exists code is funky");
                                         }
 
@@ -247,7 +278,10 @@ public class UserTimeLineFragment extends Fragment {
                             e.printStackTrace();
                             if(BuildConfig.DEBUG){Log.d(TAG, "In onError()");}
                             mCallback.showProgressBar(false);
-                            Toast.makeText(getContext(), "Unable to get timeline for @" + userInfo.getScreenName(), Toast.LENGTH_SHORT).show();
+                            mSwipeToRefreshLayout.setRefreshing(false);
+                            showRecyclerView(false);
+                            mNoLists.setText("Unable to get timeline for @" + userInfo.getScreenName());
+                            mNoLists.setTextColor(ContextCompat.getColor(getContext(),android.R.color.holo_red_dark));
                         }
 
                         @Override public void onNext(List<Tweet> timeline) {
@@ -325,7 +359,18 @@ public class UserTimeLineFragment extends Fragment {
         }
     }
 
-//    @Override
+    @Override
+    public void onDestroy() {
+        if(timeLineSubscription!=null) {
+            timeLineSubscription.unsubscribe();
+        }
+        if(timerSubscription!=null) {
+            timerSubscription.unsubscribe();
+        }
+        super.onDestroy();
+    }
+
+    //    @Override
 //    public void onResume() {
 //        super.onResume();
 //        if()

@@ -344,12 +344,23 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
         showRecyclerView(true);
         showProgressBar(false);
         if(results.size()>0) {
+            RxBus rxBus = new RxBus();
             mDictionaryResults = results;
             mDictionaryAdapter = new TweetBreakDownAdapter(getContext()
                     ,mMetrics
                     ,mDictionaryResults
 //                    ,mColorThresholds
-                    ,mActiveFavoriteStars);
+                    ,mActiveFavoriteStars
+                    ,rxBus);
+            rxBus.toClickObserverable().subscribe(new Action1<Object>() {
+                @Override
+                public void call(Object event) {
+                    if (event instanceof WordEntry) {
+                        WordEntry wordEntry = (WordEntry) event;
+                        updateWordEntryItemFavorites(wordEntry);
+                    }
+                }
+            });
             mRecyclerView.setAdapter(mDictionaryAdapter);
 //            mRecyclerView.setVerticalScrollBarEnabled(true);
         } else {

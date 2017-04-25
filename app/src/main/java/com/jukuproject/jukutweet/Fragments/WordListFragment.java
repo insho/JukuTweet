@@ -357,6 +357,10 @@ public class WordListFragment extends Fragment {
         prepareListData();
         MyListFragmentAdapter = new MyListExpandableAdapter(getContext(),mMenuHeader,getdimenscore(),0);
         expListView.setAdapter(MyListFragmentAdapter);
+        //Expand the last expanded position (or expand first availalbe non-empty list)
+        if(lastExpandedPosition >=0) {
+            expandTheListViewAtPosition(lastExpandedPosition);
+        }
 //        expListView.invalidateViews();
     }
 

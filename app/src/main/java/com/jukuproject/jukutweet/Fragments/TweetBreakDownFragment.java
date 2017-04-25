@@ -4,6 +4,7 @@ package com.jukuproject.jukutweet.Fragments;
  */
 
 
+import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -32,6 +33,7 @@ import com.jukuproject.jukutweet.Adapters.TweetBreakDownAdapter;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
 import com.jukuproject.jukutweet.FavoritesColors;
+import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
@@ -70,10 +72,10 @@ import rx.schedulers.Schedulers;
 public class TweetBreakDownFragment extends Fragment implements WordEntryFavoritesChangedListener {
 
     String TAG = "TEST-breakdownpop";
-//    private FragmentInteractionListener mCallback;
+    private FragmentInteractionListener mCallback;
 //    private Context mContext;
 //    private View mAnchorView;
-//    private RxBus mRxBusTweetBreak= new RxBus();
+    private RxBus mRxBus= new RxBus();
     private Tweet mTweet;
     private RecyclerView mRecyclerView;
 //    private ArrayList<WordEntry> mDisectedTweet;
@@ -435,18 +437,18 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
     }
 
 
-//    @Override
-//    public void onAttach(Context context) {
-//        super.onAttach(context);
-//        try {
-//            mCallback = (FragmentInteractionListener) context;
-//        } catch (ClassCastException e) {
-//            throw new ClassCastException(context.toString()
-//                    + " must implement OnHeadlineSelectedListener");
-//        }
-//    }
-//
-//
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        try {
+            mCallback = (FragmentInteractionListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()
+                    + " must implement OnHeadlineSelectedListener");
+        }
+    }
+    
+
 
     public void showDisectedTweet(ArrayList<WordEntry> disectedSavedTweet, String entireSentence, TextView txtSentence ) {
 
@@ -507,8 +509,17 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
         * converts the TweetKanjiColor Edic_ids into a single string, passes it
         * */
 //        mDataSet = InternalDB.getInstance(getContext()).convertTweetKanjiColorToWordEntry(disectedSavedTweet);
-        mAdapter = new TweetBreakDownAdapter(getContext(),metrics,disectedSavedTweet,activeFavoriteStars);
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
+        mAdapter = new TweetBreakDownAdapter(getContext(),metrics,disectedSavedTweet,activeFavoriteStars,mRxBus);
+            mRxBus.toClickObserverable().subscribe(new Action1<Object>() {
+                                                      @Override
+                                                      public void call(Object event) {
+                                                          if (event instanceof WordEntry) {
+                                                              WordEntry wordEntry = (WordEntry) event;
+                                                              updateWordEntryItemFavorites(wordEntry);
+                                                          }
+                                                      }
+                                                  });
+                        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.setVerticalScrollBarEnabled(true);
@@ -555,13 +566,12 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
         popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
             @Override
             public void onDismiss() {
-
-                imgStar.setImageResource(FavoritesColors.assignStarResource(mTweet.getItemFavorites(),mActiveTweetFavoriteStars));
-                imgStar.setColorFilter(ContextCompat.getColor(getContext(),FavoritesColors.assignStarColor(mTweet.getItemFavorites(),mActiveTweetFavoriteStars)));
-
+//                imgStar.setImageResource(FavoritesColors.assignStarResource(mTweet.getItemFavorites(),mActiveTweetFavoriteStars));
+//                imgStar.setColorFilter(ContextCompat.getColor(getContext(),FavoritesColors.assignStarColor(mTweet.getItemFavorites(),mActiveTweetFavoriteStars)));
+                mCallback.notifySavedTweetFragmentsChanged();
             }
         });
-
+//asdf
 
 
         rxBus.toClickObserverable().subscribe(new Action1<Object>() {
@@ -636,9 +646,8 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                 count += 1;
         return count;
     }
+
     public void updateWordEntryItemFavorites(WordEntry wordEntry) {
-
-
 
                 if(mTweet.getWordEntries()!=null && countOfAll(wordEntry,mTweet.getWordEntries())>1) {
                     for(WordEntry tweetWordEntry : mTweet.getWordEntries()) {

@@ -59,8 +59,9 @@ public class Tab1Container extends BaseContainerFragment {
 
     public void popAllFragments() {
         try {
-            Log.d("TEST","POPPING ALL FRAGMENTS");
-            getChildFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+            getChildFragmentManager().popBackStack("userlistfragment", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+
+
         } catch (Exception e) {
             Log.e("TEST-Tab1Container","popAllFragments failed");
         }

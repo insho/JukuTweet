@@ -63,21 +63,21 @@ public class Tab2Container extends BaseContainerFragment {
 
     public void popAllFragments() {
         try {
-            getChildFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+            getChildFragmentManager().popBackStack("savedtweetsallfragment", FragmentManager.POP_BACK_STACK_INCLUSIVE);
         } catch (Exception e) {
             Log.e("TEST-Tab1Container","popAllFragments failed");
         }
     }
-
-    public String getTopFragmentTag() {
-        try {
-            return getChildFragmentManager().getBackStackEntryAt(getChildFragmentManager().getBackStackEntryCount() - 1).getName();
-        } catch (Exception e) {
-            Log.e("TEST-Tab1Container","popAllFragments failed");
-            return "";
-
-        }
-    }
+//
+//    public String getTopFragmentTag() {
+//        try {
+//            return getChildFragmentManager().getBackStackEntryAt(getChildFragmentManager().getBackStackEntryCount() - 1).getName();
+//        } catch (Exception e) {
+//            Log.e("TEST-Tab1Container","popAllFragments failed");
+//            return "";
+//
+//        }
+//    }
 
 //    public boolean isTopFragmentShowing() {
 //        try {

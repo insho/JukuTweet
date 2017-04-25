@@ -18,7 +18,6 @@ import android.widget.TextView;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.FavoritesColors;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
-import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
@@ -34,7 +33,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
     private static final boolean debug = false;
 
     //Pass instructions to mainactivity if at least one row is selected, to show icons in action bar
-    private WordEntryFavoritesChangedListener mCallback;
+//    private WordEntryFavoritesChangedListener mCallback;
 
 
     private Context mContext;
@@ -43,7 +42,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
 //    private  ColorThresholds mColorThresholds;
     private ArrayList<String> mActiveFavoriteStars;
 //    private PopupWindow chooseFavoritesPopup = null;
-
+    private RxBus mRxBus;
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
@@ -71,10 +70,12 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
     public TweetBreakDownAdapter(Context context, DisplayMetrics metrics
             , ArrayList<WordEntry> words
 //            , ColorThresholds colorThresholds
-            , ArrayList<String> activeFavoriteStars) {
+            , ArrayList<String> activeFavoriteStars
+            , RxBus rxbus) {
         mContext = context;
         mMetrics = metrics;
         mWords = words;
+        mRxBus = rxbus;
 //        mColorThresholds = colorThresholds;
         this.mActiveFavoriteStars = activeFavoriteStars;
     }
@@ -137,7 +138,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                     if(FavoritesColors.onFavoriteStarToggle(mContext,mActiveFavoriteStars,mWords.get(holder.getAdapterPosition()))) {
                         holder.imgStar.setImageResource(R.drawable.ic_star_black);
                         holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
-                        mCallback.updateWordEntryItemFavorites(mWords.get(holder.getAdapterPosition()));
+                        mRxBus.send(mWords.get(holder.getAdapterPosition()));
                     } else {
                         //TODO insert an error?
                         Log.e(TAG,"OnFavoriteStarToggle did not work...");
@@ -179,12 +180,11 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
             @Override
             public void onDismiss() {
-                holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars));
-                holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
-                mCallback.updateWordEntryItemFavorites(mWords.get(holder.getAdapterPosition()));
+//                holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars));
+//                holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
+                mRxBus.send(mWords.get(holder.getAdapterPosition()));
             }
         });
-
 
 
         rxBus.toClickObserverable().subscribe(new Action1<Object>() {

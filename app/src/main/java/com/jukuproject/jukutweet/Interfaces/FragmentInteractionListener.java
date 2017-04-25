@@ -19,12 +19,14 @@ public interface FragmentInteractionListener {
     boolean isOnline();
     void updateTabs(String[] updatedTabs);
     void showMenuMyListBrowse(boolean show, int tabNumber);
-    void notifyFragmentsChanged();
+
+    void notifySavedTweetFragmentsChanged();
+    void notifySavedWordFragmentsChanged();
 
     void showSavedTweetsTabForIndividualUser(UserInfo userInfo);
     void onBackPressed();
     void showUserDetailFragment(UserInfo userInfo);
-void refreshFragment(String fragmentTag);
+//void refreshFragment(String fragmentTag);
     void runDictionarySearch(String query, String queryOn);
     void runTwitterSearch(String query, String queryOn);
     void showAddUserCheckDialog(UserInfo userInfo);
