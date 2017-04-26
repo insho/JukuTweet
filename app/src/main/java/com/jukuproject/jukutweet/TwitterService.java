@@ -28,6 +28,9 @@ public interface TwitterService {
         @GET("statuses/user_timeline.json")
         Observable<List<Tweet>> getUserTimeline(@Query("screen_name") String screenName, @Query("count") int count);
 
+        @GET("statuses/user_timeline.json")
+        Observable<List<Tweet>> getMoreUserTimeline(@Query("screen_name") String screenName, @Query("count") int count, @Query("max_id") long maxId);
+
         @GET("followers/list.json") Observable<UserFollowersListContainer> getFollowerUserInfo(@Query("screen_name") String username
                 , @Query("cursor") Long cursor
                 , @Query("limit") int limit

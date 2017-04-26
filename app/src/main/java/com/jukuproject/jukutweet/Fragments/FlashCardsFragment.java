@@ -180,7 +180,10 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
             @Override
             public void onLongPress(MotionEvent e) {
                 super.onLongPress(e);
-                WordDetailPopupDialog.newInstance(mDataset.get(currentPosition)).show(getFragmentManager(),"wordDetailPopup");
+                WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(mDataset.get(currentPosition));
+                wordDetailPopupDialog.setTargetFragment(FlashCardsFragment.this, 0);
+                wordDetailPopupDialog.show(getFragmentManager(),"wordDetailPopup");
+//                WordDetailPopupDialog.newInstance(mDataset.get(currentPosition)).show(getFragmentManager(),"wordDetailPopup");
             };
 
             @Override

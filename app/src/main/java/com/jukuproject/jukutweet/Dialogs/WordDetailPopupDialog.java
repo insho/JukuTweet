@@ -2,7 +2,7 @@ package com.jukuproject.jukutweet.Dialogs;
 
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
-import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Point;
 import android.graphics.Typeface;
@@ -954,19 +954,19 @@ return linecounter;
         Log.d("TEST","xadjust: " + xadjust + ", yadjust: " + yadjust);
 
 
-        popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
-            @Override
-            public void onDismiss() {
-                imgStar.setImageResource(FavoritesColors.assignStarResource(wordEntry.getItemFavorites(),activeFavoriteStars));
-
-                try {
-                    imgStar.setColorFilter(ContextCompat.getColor(getContext(),FavoritesColors.assignStarColor(wordEntry.getItemFavorites(),activeFavoriteStars)));
-                } catch (NullPointerException e) {
-                    Log.e(TAG,"showFavoriteListPopupWindow Nullpointer error setting star color filter in word detail popup dialog... Need to assign item favorites to WordEntry(?)" + e.getCause());
-                }
-
-            }
-        });
+//        popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
+//            @Override
+//            public void onDismiss() {
+////                imgStar.setImageResource(FavoritesColors.assignStarResource(wordEntry.getItemFavorites(),activeFavoriteStars));
+//
+//                try {
+//                    imgStar.setColorFilter(ContextCompat.getColor(getContext(),FavoritesColors.assignStarColor(wordEntry.getItemFavorites(),activeFavoriteStars)));
+//                } catch (NullPointerException e) {
+//                    Log.e(TAG,"showFavoriteListPopupWindow Nullpointer error setting star color filter in word detail popup dialog... Need to assign item favorites to WordEntry(?)" + e.getCause());
+//                }
+//
+//            }
+//        });
 
 
 
@@ -1058,13 +1058,24 @@ return linecounter;
 //        }
 //    }
 
+//    @Override
+//    public void onAttach(Activity activity) {
+//        super.onAttach(activity);
+//        try {
+//            mCallback = (WordEntryFavoritesChangedListener) getTargetFragment();
+//        } catch (ClassCastException e) {
+//            throw new ClassCastException(activity.toString() + " must implement WordEntryFavoritesChangedListener");
+//        }
+//    }
+
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onAttach(Context context) {
+        super.onAttach(context);
         try {
             mCallback = (WordEntryFavoritesChangedListener) getTargetFragment();
         } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString() + " must implement WordEntryFavoritesChangedListener");
+            throw new ClassCastException(context.toString()
+                    + " must implement OnHeadlineSelectedListener");
         }
     }
 

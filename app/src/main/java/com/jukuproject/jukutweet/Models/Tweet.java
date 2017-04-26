@@ -51,6 +51,12 @@ public class Tweet  implements Parcelable {
         wordEntries = new ArrayList<>();
     }
 
+    public Tweet(String idString, String userId) {
+        this.id_str = idString;
+        this.user = new UserInfo();
+        this.user.setUserId(userId);
+    }
+
     public Tweet(Boolean favorited, Boolean truncated, String created_at, String id_str, Integer retweet_count, String text) {
         this.favorited = favorited;
         this.truncated = truncated;
@@ -184,39 +190,41 @@ public class Tweet  implements Parcelable {
     }
 
     public String getDisplayDate() {
-        try {
 
-
-//            String strCurrentDate = "Wed, 18 Apr 2012 07:55:29 +0000"; Mon Mar 20 12:09:12 +0000 2017
-            SimpleDateFormat format = new SimpleDateFormat("EEE MMM dd hh:mm:ss Z yyyy",Locale.getDefault());
-            Date newDate;
-            try {
-                newDate = format.parse(created_at);
-            } catch (ParseException e) {
-                Log.e("TEST-Tweet","Tweet object date parse exception: " + e);
-                return "";
-            } catch (NullPointerException e) {
-                Log.e("TEST-Tweet","Tweet object getdisplaydate fail: " + e);
-                return "";
-            } catch (IllegalArgumentException e) {
-                Log.e("TEST-Tweet","Tweet object illegal arg exception: " + e);
-                return "";
-            }
-
-//            format = new SimpleDateFormat("MMM dd,yyyy hh:mm a");
-            SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yy HH:mm", Locale.getDefault());
-//            String date = ;
-
-            return formatter.format(newDate);
-
-
-        } catch (NullPointerException e) {
-            Log.e("TEST-Tweet","Tweet object getdisplaydate fail: " + e);
-            return "";
-        } catch (IllegalArgumentException e) {
-            Log.e("TEST-Tweet","Tweet object illegal arg exception: " + e);
-            return "";
-        }
+        return created_at;
+//        try {
+//
+//
+////            String strCurrentDate = "Wed, 18 Apr 2012 07:55:29 +0000"; Mon Mar 20 12:09:12 +0000 2017
+//            SimpleDateFormat format = new SimpleDateFormat("EEE MMM dd hh:mm:ss Z yyyy",Locale.getDefault());
+//            Date newDate;
+//            try {
+//                newDate = format.parse(created_at);
+//            } catch (ParseException e) {
+//                Log.e("TEST-Tweet","Tweet object date parse exception: " + e);
+//                return "";
+//            } catch (NullPointerException e) {
+//                Log.e("TEST-Tweet","Tweet object getdisplaydate fail: " + e);
+//                return "";
+//            } catch (IllegalArgumentException e) {
+//                Log.e("TEST-Tweet","Tweet object illegal arg exception: " + e);
+//                return "";
+//            }
+//
+////            format = new SimpleDateFormat("MMM dd,yyyy hh:mm a");
+//            SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yy HH:mm", Locale.getDefault());
+////            String date = ;
+//
+//            return formatter.format(newDate);
+//
+//
+//        } catch (NullPointerException e) {
+//            Log.e("TEST-Tweet","Tweet object getdisplaydate fail: " + e);
+//            return "";
+//        } catch (IllegalArgumentException e) {
+//            Log.e("TEST-Tweet","Tweet object illegal arg exception: " + e);
+//            return "";
+//        }
 
     }
 

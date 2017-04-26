@@ -7,9 +7,11 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
 import android.support.annotation.Nullable;
+import android.support.v4.util.Pair;
 import android.util.Log;
 
 import com.jukuproject.jukutweet.BuildConfig;
+import com.jukuproject.jukutweet.Fragments.TweetListBrowseFragment;
 import com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.ItemFavorites;
@@ -124,6 +126,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
             db.close();
             return true;
         } catch(SQLiteException exception) {
+
             return false;
         }
     }
@@ -252,6 +255,9 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
         try {
             db.delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES,
                     InternalDB.Columns.TFAVORITES_COL0 + " = ? and "  + InternalDB.Columns.TFAVORITES_COL1 + " = ? and " + InternalDB.Columns.COL_ID + " = ? ", new String[]{listName,String.valueOf(listSys),tweetId});
+            Log.i(TAG, "ABOUT TO DELETE SINGLE TWEETS");
+            deleteTweetIfNecessary(db,tweetId);
+            Log.i(TAG, "DELETE SUCCESSFUL");
             return true;
         } catch (SQLiteException e) {
             Log.e(TAG, "removeTweetFromTweetList sqlite exception: " + e);
@@ -269,13 +275,22 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      * @param concatenatedTweetIds a string of tweetIds concatenated together with commas (ex: 123,451,6532,23)
      * @param myListEntry MyList Object containing the name and sys variables for a WordList
      *
-     * @see com.jukuproject.jukutweet.Fragments.SavedTweetsBrowseFragment
+     * @see TweetListBrowseFragment
      * @return bool true if successful delete, false if error
      */
     public boolean removeMultipleTweetsFromTweetList(String concatenatedTweetIds, MyListEntry myListEntry) {
         SQLiteDatabase db = sqlOpener.getWritableDatabase();
+
+
+
         try {
-            db.execSQL("DELETE FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " WHERE " + InternalDB.Columns.TFAVORITES_COL0 + " = ? and "  + InternalDB.Columns.TFAVORITES_COL1 + " = ? and " + InternalDB.Columns.COL_ID + " in (" + concatenatedTweetIds + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+
+//            db.execSQL("DELETE FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " WHERE " + InternalDB.Columns.TFAVORITES_COL0 + " = ? and "  + InternalDB.Columns.TFAVORITES_COL1 + " = ? and " + InternalDB.Columns.COL_ID + " in (" + concatenatedTweetIds + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+            db.delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES ,InternalDB.Columns.TFAVORITES_COL0 + " = ? and "  + InternalDB.Columns.TFAVORITES_COL1 + " = ? and " + InternalDB.Columns.COL_ID + " in (" + concatenatedTweetIds + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+//            Log.i(TAG, "ABOUT TO DELETE MULT TWEETS");
+            deleteTweetIfNecessary(db,concatenatedTweetIds);
+//            Log.i(TAG, "DELETE SUCCESSFUL ");
+
             return true;
         } catch (SQLiteException e) {
             Log.e(TAG, "removeMultipleWordsFromWordList sqlite exception: " + e);
@@ -284,8 +299,184 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
         } finally {
             db.close();
         }
-        return  false;
+        return  true;
     }
+
+
+    public ArrayList<Pair<MyListEntry,Tweet>> removeTweetsFromAllTweetLists(String concatenatedTweetIds) {
+        SQLiteDatabase db = sqlOpener.getWritableDatabase();
+        ArrayList<Pair<MyListEntry,Tweet>> undoArray = new ArrayList<>();
+        try {
+
+//            HashMap<MyListEntry,Tweet> undoMap = new HashMap<>();
+
+
+            Cursor c = db.rawQuery("SELECT DISTINCT _id as  Tweet_id " +
+                    ",[Name]" +
+                    ",[Sys]" +
+                    ",[UserId]" +
+                    "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+                    "WHERE _id in (" + concatenatedTweetIds + ")",null);
+
+            if(c.getCount()>0) {
+                c.moveToFirst();
+                while (!c.isAfterLast()) {
+                    undoArray.add(new Pair<MyListEntry, Tweet>(new MyListEntry(c.getString(1),c.getInt(2)),new Tweet(c.getString(0),c.getString(3))));
+                    c.moveToNext();
+                }
+            }
+            c.close();
+
+
+
+            db.delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES ,InternalDB.Columns.COL_ID + " in (" + concatenatedTweetIds + ")",null);
+
+            //TODO ONLY EXECUTE THIS WHEN POPUP IS GONE...
+//            deleteTweetIfNecessary(db,concatenatedTweetIds);
+
+        } catch (SQLiteException e) {
+            Log.e(TAG, "removeTweetsFromAllTweetLists sqlite exception: " + e);
+        } catch (NullPointerException e) {
+            Log.e(TAG, "removeTweetsFromAllTweetLists something was null: " + e);
+        } finally {
+            db.close();
+        }
+            return undoArray;
+    }
+
+    public void deleteTweetIfNecessary(SQLiteDatabase db, String concatenatedTweetIds) {
+        db.delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES," _id in ( " +
+                "SELECT Tweet_id " +
+                "FROM " +
+                "(" +
+                "Select Tweet_id "    +
+                " FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS +
+                " WHERE " + InternalDB.Columns.TSAVEDTWEET_COL2 + " in (" + concatenatedTweetIds + ")" +
+                " ) as x " +
+                " LEFT JOIN " +
+                "(" +
+                "Select _id as Tweet_id "    +
+                " FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES +
+                " WHERE " + InternalDB.Columns.COL_ID + " in (" + concatenatedTweetIds + ")" +
+                " ) as y " +
+                " ON x.Tweet_id = y.Tweet_id " +
+                " WHERE y.Tweet_id is NULL " +
+                " ) ",null);
+
+        db.delete(InternalDB.Tables.TABLE_SAVED_TWEET_KANJI," Tweet_id in ( " +
+                "SELECT Tweet_id " +
+                "FROM " +
+                "(" +
+                "Select Tweet_id "    +
+                " FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS +
+                " WHERE " + InternalDB.Columns.TSAVEDTWEET_COL2 + " in (" + concatenatedTweetIds + ")" +
+                " ) as x " +
+                " LEFT JOIN " +
+                "(" +
+                "Select _id as Tweet_id "    +
+                " FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES +
+                " WHERE " + InternalDB.Columns.COL_ID + " in (" + concatenatedTweetIds + ")" +
+                " ) as y " +
+                " ON x.Tweet_id = y.Tweet_id " +
+                " WHERE y.Tweet_id is NULL " +
+                " ) ",null);
+//
+//        db.execSQL(
+//                "DELETE FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES +
+//                        " WHERE _id in ( " +
+//                            "SELECT Tweet_id" +
+//                            "FROM " +
+//                            "(" +
+//                                "Select Tweet_id "    +
+//                                " FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS +
+//                                " WHERE " + InternalDB.Columns.TSAVEDTWEET_COL2 + " in (" + concatenatedTweetIds + ")" +
+//                            " ) as x " +
+//                            " LEFT JOIN " +
+//                            "(" +
+//                                "Select _id as Tweet_id "    +
+//                                " FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES +
+//                                " WHERE " + InternalDB.Columns.COL_ID + " in (" + concatenatedTweetIds + ")" +
+//                            " ) as y " +
+//                            " ON x.Tweet_id = y.Tweet_id " +
+//                            " WHERE y.Tweet_id is NULL " +
+//                        " ) "
+//
+//                ,null);
+//
+//
+//        db.execSQL(
+//
+//                "DELETE FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI +
+//                        " WHERE Tweet_id in ( " +
+//                        "SELECT Tweet_id" +
+//                        "FROM " +
+//                        "(" +
+//                        "Select Tweet_id "    +
+//                        " FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS +
+//                        " WHERE " + InternalDB.Columns.TSAVEDTWEET_COL2 + " in (" + concatenatedTweetIds + ")" +
+//                        " ) as x " +
+//                        " LEFT JOIN " +
+//                        "(" +
+//                        "Select _id as Tweet_id "    +
+//                        " FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES +
+//                        " WHERE " + InternalDB.Columns.COL_ID + " in (" + concatenatedTweetIds + ")" +
+//                        " ) as y " +
+//                        " ON x.Tweet_id = y.Tweet_id " +
+//                        " WHERE y.Tweet_id is NULL " +
+//                        " ) "
+//
+//                ,null);
+
+    };
+
+    public void deleteTweetIfNecessary(String concatenatedTweetIds) {
+        SQLiteDatabase db = sqlOpener.getWritableDatabase();
+
+        try {
+        db.delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES," _id in ( " +
+                "SELECT Tweet_id " +
+                "FROM " +
+                "(" +
+                "Select Tweet_id "    +
+                " FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS +
+                " WHERE " + InternalDB.Columns.TSAVEDTWEET_COL2 + " in (" + concatenatedTweetIds + ")" +
+                " ) as x " +
+                " LEFT JOIN " +
+                "(" +
+                "Select _id as Tweet_id "    +
+                " FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES +
+                " WHERE " + InternalDB.Columns.COL_ID + " in (" + concatenatedTweetIds + ")" +
+                " ) as y " +
+                " ON x.Tweet_id = y.Tweet_id " +
+                " WHERE y.Tweet_id is NULL " +
+                " ) ",null);
+
+        db.delete(InternalDB.Tables.TABLE_SAVED_TWEET_KANJI," Tweet_id in ( " +
+                "SELECT Tweet_id " +
+                "FROM " +
+                "(" +
+                "Select Tweet_id "    +
+                " FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS +
+                " WHERE " + InternalDB.Columns.TSAVEDTWEET_COL2 + " in (" + concatenatedTweetIds + ")" +
+                " ) as x " +
+                " LEFT JOIN " +
+                "(" +
+                "Select _id as Tweet_id "    +
+                " FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES +
+                " WHERE " + InternalDB.Columns.COL_ID + " in (" + concatenatedTweetIds + ")" +
+                " ) as y " +
+                " ON x.Tweet_id = y.Tweet_id " +
+                " WHERE y.Tweet_id is NULL " +
+                " ) ",null);
+
+    } catch (SQLiteException e) {
+        Log.e(TAG, "deleteTweetIfNecessary sqlite exception: " + e);
+    } catch (NullPointerException e) {
+        Log.e(TAG, "deleteTweetIfNecessary something was null: " + e);
+    } finally {
+        db.close();
+    }
+    };
 
 
 
@@ -344,9 +535,9 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                     " "    +
                     "ON Lists.Name = UserEntries.Name ", null);
 
-            c.moveToFirst();
-            if(c.getCount()>0) {
 
+            if(c.getCount()>0) {
+                c.moveToFirst();
                 while (!c.isAfterLast()) {
                     //Add all user lists (where sys == 0)
                     //Only add system lists (sys==1), but only if the system lists are actived in user preferences
@@ -539,7 +730,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      * Checks if an instance of parsed kanji for a given tweet already exists in the parsed kanji TABLE_SAVED_TWEET_KANJI database.
      * Check is based on Tweet_id. The check is made seperately from {@link #tweetExistsInDB(Tweet)} because the {@link #saveParsedTweetKanji(ArrayList, String)}
      * method occurs separately from {@link #saveTweetToDB(UserInfo, Tweet)}, and a tweet may be saved while the user is not online, in
-     * which case the {@link #saveParsedTweetKanji(ArrayList, String)} part would occur later, when the tweet is clicked in {@link com.jukuproject.jukutweet.Fragments.SavedTweetsBrowseFragment}
+     * which case the {@link #saveParsedTweetKanji(ArrayList, String)} part would occur later, when the tweet is clicked in {@link TweetListBrowseFragment}
      * @param tweet Tweet in question
      * @return resultvalue: -1 for error, otherwise the count of instance of the tweet in the database
      */
@@ -614,8 +805,11 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                     values.put(InternalDB.Columns.TSAVEDTWEET_COL2, tweet.getIdString());
                 }
 
-                if(tweet.getCreatedAt() != null) {
-                    values.put(InternalDB.Columns.TSAVEDTWEET_COL3, tweet.getCreatedAt().trim());
+                if(tweet.getDatabaseInsertDate() != null) {
+                    Log.e(TAG,"INSERTING DB INSERT DATEremoveTweetsFromAllTweetLists:? " + tweet.getDatabaseInsertDate());
+                    values.put(InternalDB.Columns.TSAVEDTWEET_COL3, tweet.getDatabaseInsertDate().trim());
+                } else {
+                    Log.e(TAG,"DB INSERT DATE IS NUL:? " + tweet.getDatabaseInsertDate());
                 }
 
                 values.put(InternalDB.Columns.TSAVEDTWEET_COL4, tweet.getText().trim());
@@ -683,7 +877,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
     public int saveParsedTweetKanji(ArrayList<WordEntry> wordEntries, String tweet_id) {
         SQLiteDatabase db = sqlOpener.getReadableDatabase();
         int resultCode = -1;
-        Log.d(TAG,"HEERRRRRREEEE");
         try {
             if(wordEntries.size()>0) {
                 for(int i=0;i<wordEntries.size();i++) {
@@ -780,7 +973,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 
 
     /**
-     * Retrives all the saved tweets in a Saved Tweets List. Used in {@link com.jukuproject.jukutweet.Fragments.SavedTweetsBrowseFragment}
+     * Retrives all the saved tweets in a Saved Tweets List. Used in {@link TweetListBrowseFragment}
      *
      * @param myListEntry The list whose kanji this method will pull. THe MyListEntry object is really just a container for a listname and sys variable.
      * @param colorThresholds Thresholds designating when a Kanji, or a tweet should be considered part of a color category (Grey, Red, Yellow, Green),
@@ -795,190 +988,190 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      */
 
 
-    public ArrayList<Tweet> getTweetsFoxrSavedTweetsList(MyListEntry myListEntry , ColorThresholds colorThresholds) {
-        ArrayList<Tweet> savedTweets = new ArrayList<>();
-        SQLiteDatabase db = sqlOpener.getReadableDatabase();
-        try {
-            Cursor c = db.rawQuery("SELECT TweetLists.[Name]" +
-                            ",TweetLists.[Sys]" +
-                            ",TweetLists.[UserId] " +
-                            ",(CASE WHEN UserName.ScreenName is null THEN ALLTweets.UserScreenName ELSE UserName.ScreenName end) as [ScreenName] " +
-                            ",UserName.UserName " +
-                            ",TweetLists.[Tweet_id]" +
-                            ",[ALLTweets].[Text] " +
-                            ",TweetKanji.Edict_id " +
-                            ",TweetKanji.Kanji " +
-                            ",(CASE WHEN [TweetKanji].[Furigana] is null  then '' else [TweetKanji].[Furigana] end) as [Furigana] " +
-                            ",TweetKanji.Definition " +
-                            ",TweetKanji.Total " +
-                            ",TweetKanji.Correct " +
-                            ",TweetKanji.Color " +
-                            ",TweetKanji.StartIndex " +
-                            ",TweetKanji.EndIndex " +
-                            ",[ALLTweets].[Date]" +
-
-                            "FROM  " +
-                            " ( " +
-                            "SELECT  DISTINCT [Name]" +
-                            ",[Sys]" +
-                            ",[UserId] " +
-                            ",[_id] as [Tweet_id]" +
-                            "FROM "+ InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
-                            "WHERE [Name] = ? and [Sys] = " + myListEntry.getListsSys() +  " " +
-                            ") as TweetLists " +
-                            " LEFT JOIN " +
-                            " ( " +
-                            "SELECT  DISTINCT [Tweet_id]" +
-                            ",[UserScreenName]" +
-                            ",[Text]" +
-                            ",[CreatedAt]  as [Date] " +
-                            " FROM "+ InternalDB.Tables.TABLE_SAVED_TWEETS + " " +
-                            ") as ALLTweets " +
-                            "ON TweetLists.[Tweet_id] = ALLTweets.[Tweet_id] " +
-                            " LEFT JOIN " +
-                            " ( " +
-                                /* Get a list of  kanji ids and their word scores for each tweet */
-                            "SELECT a.[Tweet_id]" +
-                            ",a.[Edict_id]" +
-                            ",a.[StartIndex]" +
-                            ",a.[EndIndex]" +
-
-                            ",(CASE WHEN [Total] is NULL THEN 'Grey' " +
-                            "WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 'Grey' " +
-                            "WHEN CAST(ifnull(b.[Correct],0)  as float)/b.[Total] < " + colorThresholds.getRedThreshold() + "  THEN 'Red' " +
-                            "WHEN CAST(ifnull(b.[Correct],0)  as float)/b.[Total] <  " + colorThresholds.getYellowThreshold() + " THEN 'Yellow' " +
-                            "ELSE 'Green' END) as [Color]" +
-                            ",c.Furigana as [Furigana]" +
-                            ",c.Definition as [Definition] " +
-                            ",c.Kanji as [Kanji] " +
-                            ",b.[Total] as [Total]" +
-                            ",b.[Correct] as [Correct] " +
-//                            ",CAST(ifnull(b.[Correct],0)  as float)/b.[Total] as [Percent] " +
-
-                            "FROM " +
-                            "( " +
-                            " SELECT DISTINCT Tweet_id" +
-                            ",Edict_id " +
-                            ",[StartIndex]" +
-                            ",[EndIndex]" +
-                            "From " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + " " +
-                            " WHERE [Edict_id] is not NULL and StartIndex is not NULL and EndIndex is not NULL and EndIndex > StartIndex " +
-                            ") as a " +
-                            "LEFT JOIN " +
-                            " (" +
-                            "SELECT [_id] as [Edict_id]" +
-                            ",sum([Correct]) as [Correct]" +
-                            ",sum([Total]) as [Total] " +
-                            "FROM [JScoreboard] " +
-                            "where [_id] in (SELECT DISTINCT [Edict_id] FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + ")" +
-                            " GROUP BY [_id]" +
-                            ") as b " +
-                            "ON a.[Edict_id] = b.[Edict_id] " +
-                            "LEFT JOIN " +
-                            " (" +
-                            "SELECT DISTINCT [_id] as [Edict_id]" +
-                            ",[Kanji]" +
-                            ",[Furigana]" +
-                            ",[Definition]" +
-                            "FROM [Edict] " +
-                            "where [_id] in (SELECT DISTINCT [Edict_id] FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + ")" +
-                            ") as c " +
-                            "ON a.[Edict_id] = c.[Edict_id] " +
-
-                            " ) as TweetKanji " +
-                            "On TweetLists.Tweet_id = TweetKanji.Tweet_id " +
-
-
-                            "LEFT JOIN " +
-                            " (" +
-                            "SELECT DISTINCT [UserId] " +
-                            ", [ScreenName] " +
-                            ", [UserName] " +
-                            " FROM " + InternalDB.Tables.TABLE_USERS +" " +
-                            ") as [UserName] " +
-                            "On TweetLists.UserId = UserName.UserId " +
-
-                            "Order by date(ALLTweets.Date) Desc,TweetLists.[Tweet_id] asc,TweetKanji.StartIndex asc"
-                    , new String[]{myListEntry.getListName()});
-
-
-
-            /* The query pulls a list of tweetdata paired with each parsed-kanji in the tweet, resulting in
-            * multiple duplicate lines of tweetdata. So the cursor ony adds tweet data once, when a new tweetid is found. Meanwhile
-            * the kanji data for each row is added to a TweetKanjiColor object, which is then added to the kanji and the kanji
-            * added to the final "savedTweets" list when a new tweetid appears (or the cursor finishes) */
-
-            if(c.getCount()>0) {
-                c.moveToFirst();
-                String currentTweetId = c.getString(5);
-                Tweet tweet = new Tweet();
-                while (!c.isAfterLast())
-                {
-
-                    if(c.isFirst()) {
-                        tweet.setIdString(c.getString(5));
-                        tweet.setCreatedAt(c.getString(11));
-                        tweet.getUser().setUserId(c.getString(2));
-                        tweet.setText(c.getString(6));
-                        tweet.getUser().setScreen_name(c.getString(3));
-                        tweet.getUser().setName(c.getString(4));
-
-                    }
-
-                    WordEntry wordEntry = new WordEntry(c.getInt(7)
-                            ,c.getString(8)
-                            ,c.getString(9)
-                            ,c.getString(10)
-                            ,c.getInt(11)
-                            ,c.getInt(12)
-                            ,c.getString(13)
-                            ,c.getInt(14)
-                            ,c.getInt(15));
-                    Log.d(TAG,"Adding saved word entry: " + c.getString(7) + " - " + c.getString(8));
-                    /* Decide whether or not to make this word entry a "spinner" entry  in the
-                    * fillintheblanks quiz, based two criteria:
-                    *   1. words chosen at random
-                    *   2. there is a limit for the number of words that can be spinners in the tweet,
-                    *       from 1 - 3, with a 50% chance of 1, 35% chance of 2 and a 15 % chance of 3*/
-
-                    tweet.addWordEntry(wordEntry);
-
-                    //FLush old tweet
-                    if(!currentTweetId.equals(c.getString(5))){
-                        Log.d(TAG,"colorthresholds null = " + (colorThresholds == null));
-                        tweet.assignTweetColorToTweet(colorThresholds);
-                        savedTweets.add(new Tweet(tweet));
-                        currentTweetId = c.getString(5);
-                        tweet = new Tweet();
-
-                        tweet.setIdString(c.getString(5));
-                        tweet.setCreatedAt(c.getString(11));
-                        tweet.getUser().setUserId(c.getString(2));
-                        tweet.setText(c.getString(6));
-                        tweet.getUser().setScreen_name(c.getString(3));
-                        tweet.getUser().setName(c.getString(4));
-                    }
-
-                    if(c.isLast()) {
-                        tweet.assignTweetColorToTweet(colorThresholds);
-                        savedTweets.add(new Tweet(tweet));
-                    }
-                    c.moveToNext();
-                }
-
-
-            } else {if(BuildConfig.DEBUG) {Log.d(TAG,"c.getcount was 0!!");}}
-            c.close();
-
-        } catch (SQLiteException e){
-            Log.e(TAG,"getTweetsForSavedTweetsList Sqlite exception: " + e);
-//        } catch (Exception e) {
-//            Log.e(TAG,"getTweetsForSavedTweetsList generic exception: " + e);
-        } finally {
-            db.close();
-        }
-        return savedTweets;
-    }
+//    public ArrayList<Tweet> getTweetsFoxrSavedTweetsList(MyListEntry myListEntry , ColorThresholds colorThresholds) {
+//        ArrayList<Tweet> savedTweets = new ArrayList<>();
+//        SQLiteDatabase db = sqlOpener.getReadableDatabase();
+//        try {
+//            Cursor c = db.rawQuery("SELECT TweetLists.[Name]" +
+//                            ",TweetLists.[Sys]" +
+//                            ",TweetLists.[UserId] " +
+//                            ",(CASE WHEN UserName.ScreenName is null THEN ALLTweets.UserScreenName ELSE UserName.ScreenName end) as [ScreenName] " +
+//                            ",UserName.UserName " +
+//                            ",TweetLists.[Tweet_id]" +
+//                            ",[ALLTweets].[Text] " +
+//                            ",TweetKanji.Edict_id " +
+//                            ",TweetKanji.Kanji " +
+//                            ",(CASE WHEN [TweetKanji].[Furigana] is null  then '' else [TweetKanji].[Furigana] end) as [Furigana] " +
+//                            ",TweetKanji.Definition " +
+//                            ",TweetKanji.Total " +
+//                            ",TweetKanji.Correct " +
+//                            ",TweetKanji.Color " +
+//                            ",TweetKanji.StartIndex " +
+//                            ",TweetKanji.EndIndex " +
+//                            ",[ALLTweets].[Date]" +
+//
+//                            "FROM  " +
+//                            " ( " +
+//                            "SELECT  DISTINCT [Name]" +
+//                            ",[Sys]" +
+//                            ",[UserId] " +
+//                            ",[_id] as [Tweet_id]" +
+//                            "FROM "+ InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+//                            "WHERE [Name] = ? and [Sys] = " + myListEntry.getListsSys() +  " " +
+//                            ") as TweetLists " +
+//                            " LEFT JOIN " +
+//                            " ( " +
+//                            "SELECT  DISTINCT [Tweet_id]" +
+//                            ",[UserScreenName]" +
+//                            ",[Text]" +
+//                            ",[CreatedAt]  as [Date] " +
+//                            " FROM "+ InternalDB.Tables.TABLE_SAVED_TWEETS + " " +
+//                            ") as ALLTweets " +
+//                            "ON TweetLists.[Tweet_id] = ALLTweets.[Tweet_id] " +
+//                            " LEFT JOIN " +
+//                            " ( " +
+//                                /* Get a list of  kanji ids and their word scores for each tweet */
+//                            "SELECT a.[Tweet_id]" +
+//                            ",a.[Edict_id]" +
+//                            ",a.[StartIndex]" +
+//                            ",a.[EndIndex]" +
+//
+//                            ",(CASE WHEN [Total] is NULL THEN 'Grey' " +
+//                            "WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 'Grey' " +
+//                            "WHEN CAST(ifnull(b.[Correct],0)  as float)/b.[Total] < " + colorThresholds.getRedThreshold() + "  THEN 'Red' " +
+//                            "WHEN CAST(ifnull(b.[Correct],0)  as float)/b.[Total] <  " + colorThresholds.getYellowThreshold() + " THEN 'Yellow' " +
+//                            "ELSE 'Green' END) as [Color]" +
+//                            ",c.Furigana as [Furigana]" +
+//                            ",c.Definition as [Definition] " +
+//                            ",c.Kanji as [Kanji] " +
+//                            ",b.[Total] as [Total]" +
+//                            ",b.[Correct] as [Correct] " +
+////                            ",CAST(ifnull(b.[Correct],0)  as float)/b.[Total] as [Percent] " +
+//
+//                            "FROM " +
+//                            "( " +
+//                            " SELECT DISTINCT Tweet_id" +
+//                            ",Edict_id " +
+//                            ",[StartIndex]" +
+//                            ",[EndIndex]" +
+//                            "From " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + " " +
+//                            " WHERE [Edict_id] is not NULL and StartIndex is not NULL and EndIndex is not NULL and EndIndex > StartIndex " +
+//                            ") as a " +
+//                            "LEFT JOIN " +
+//                            " (" +
+//                            "SELECT [_id] as [Edict_id]" +
+//                            ",sum([Correct]) as [Correct]" +
+//                            ",sum([Total]) as [Total] " +
+//                            "FROM [JScoreboard] " +
+//                            "where [_id] in (SELECT DISTINCT [Edict_id] FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + ")" +
+//                            " GROUP BY [_id]" +
+//                            ") as b " +
+//                            "ON a.[Edict_id] = b.[Edict_id] " +
+//                            "LEFT JOIN " +
+//                            " (" +
+//                            "SELECT DISTINCT [_id] as [Edict_id]" +
+//                            ",[Kanji]" +
+//                            ",[Furigana]" +
+//                            ",[Definition]" +
+//                            "FROM [Edict] " +
+//                            "where [_id] in (SELECT DISTINCT [Edict_id] FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + ")" +
+//                            ") as c " +
+//                            "ON a.[Edict_id] = c.[Edict_id] " +
+//
+//                            " ) as TweetKanji " +
+//                            "On TweetLists.Tweet_id = TweetKanji.Tweet_id " +
+//
+//
+//                            "LEFT JOIN " +
+//                            " (" +
+//                            "SELECT DISTINCT [UserId] " +
+//                            ", [ScreenName] " +
+//                            ", [UserName] " +
+//                            " FROM " + InternalDB.Tables.TABLE_USERS +" " +
+//                            ") as [UserName] " +
+//                            "On TweetLists.UserId = UserName.UserId " +
+//
+//                            "Order by date(ALLTweets.Date) Desc,TweetLists.[Tweet_id] asc,TweetKanji.StartIndex asc"
+//                    , new String[]{myListEntry.getListName()});
+//
+//
+//
+//            /* The query pulls a list of tweetdata paired with each parsed-kanji in the tweet, resulting in
+//            * multiple duplicate lines of tweetdata. So the cursor ony adds tweet data once, when a new tweetid is found. Meanwhile
+//            * the kanji data for each row is added to a TweetKanjiColor object, which is then added to the kanji and the kanji
+//            * added to the final "savedTweets" list when a new tweetid appears (or the cursor finishes) */
+//
+//            if(c.getCount()>0) {
+//                c.moveToFirst();
+//                String currentTweetId = c.getString(5);
+//                Tweet tweet = new Tweet();
+//                while (!c.isAfterLast())
+//                {
+//
+//                    if(c.isFirst()) {
+//                        tweet.setIdString(c.getString(5));
+//                        tweet.setCreatedAt(c.getString(11));
+//                        tweet.getUser().setUserId(c.getString(2));
+//                        tweet.setText(c.getString(6));
+//                        tweet.getUser().setScreen_name(c.getString(3));
+//                        tweet.getUser().setName(c.getString(4));
+//
+//                    }
+//
+//                    WordEntry wordEntry = new WordEntry(c.getInt(7)
+//                            ,c.getString(8)
+//                            ,c.getString(9)
+//                            ,c.getString(10)
+//                            ,c.getInt(11)
+//                            ,c.getInt(12)
+//                            ,c.getString(13)
+//                            ,c.getInt(14)
+//                            ,c.getInt(15));
+//                    Log.d(TAG,"Adding saved word entry: " + c.getString(7) + " - " + c.getString(8));
+//                    /* Decide whether or not to make this word entry a "spinner" entry  in the
+//                    * fillintheblanks quiz, based two criteria:
+//                    *   1. words chosen at random
+//                    *   2. there is a limit for the number of words that can be spinners in the tweet,
+//                    *       from 1 - 3, with a 50% chance of 1, 35% chance of 2 and a 15 % chance of 3*/
+//
+//                    tweet.addWordEntry(wordEntry);
+//
+//                    //FLush old tweet
+//                    if(!currentTweetId.equals(c.getString(5))){
+//                        Log.d(TAG,"colorthresholds null = " + (colorThresholds == null));
+//                        tweet.assignTweetColorToTweet(colorThresholds);
+//                        savedTweets.add(new Tweet(tweet));
+//                        currentTweetId = c.getString(5);
+//                        tweet = new Tweet();
+//
+//                        tweet.setIdString(c.getString(5));
+//                        tweet.setCreatedAt(c.getString(11));
+//                        tweet.getUser().setUserId(c.getString(2));
+//                        tweet.setText(c.getString(6));
+//                        tweet.getUser().setScreen_name(c.getString(3));
+//                        tweet.getUser().setName(c.getString(4));
+//                    }
+//
+//                    if(c.isLast()) {
+//                        tweet.assignTweetColorToTweet(colorThresholds);
+//                        savedTweets.add(new Tweet(tweet));
+//                    }
+//                    c.moveToNext();
+//                }
+//
+//
+//            } else {if(BuildConfig.DEBUG) {Log.d(TAG,"c.getcount was 0!!");}}
+//            c.close();
+//
+//        } catch (SQLiteException e){
+//            Log.e(TAG,"getTweetsForSavedTweetsList Sqlite exception: " + e);
+////        } catch (Exception e) {
+////            Log.e(TAG,"getTweetsForSavedTweetsList generic exception: " + e);
+//        } finally {
+//            db.close();
+//        }
+//        return savedTweets;
+//    }
 
     public ArrayList<Tweet> getTweetsForSavedTweetsList(MyListEntry myListEntry, ColorThresholds colorThresholds) {
         ArrayList<Tweet> savedTweets = new ArrayList<>();
@@ -1351,7 +1544,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
         return savedTweets;
     }
 
-//asdf
+//
 public ArrayList<Tweet> getTweetsThatIncludeAWord(String wordIds,ColorThresholds colorThresholds) {
 
     ArrayList<Tweet> savedTweets = new ArrayList<>();
@@ -1729,9 +1922,12 @@ public ArrayList<Tweet> getTweetsThatIncludeAWord(String wordIds,ColorThresholds
                         ",ifnull(yy.[Yellow],0) as [Yellow]" +
                         ",ifnull(yy.[Green],0) as [Green] " +
 //                        ",ifnull(yy.[Empty],0) as [Empty] " +
-                                ",ifnull(yy.[TweetCount],0) as [TweetCount]" +
+                                ",ifnull(xx.Count,0) as [TweetCount]" +
 
                         "" +
+                        "FROM (" +
+
+                        "SELECT lists.Name,lists.Sys,tweetcounts.Count " +
                         "FROM (" +
                         "Select DISTINCT [Name],[Sys] " +
                         "FROM (" +
@@ -1748,16 +1944,30 @@ public ArrayList<Tweet> getTweetsThatIncludeAWord(String wordIds,ColorThresholds
                         "SELECT 'Green' as [Name]" +
                         ",1 as [Sys] " +
                         "Union " +
-                        "SELECT 'Yellow' as [Name]" +
+                        "SELECT 'Yellow' as [Name] " +
                         ",1 as [Sys]" +
                         "Union " +
-                        "SELECT 'Purple' as [Name]" +
+                        "SELECT 'Purple' as [Name] " +
                         ",1 as [Sys]" +
                         "Union " +
-                        "SELECT 'Orange' as [Name]" +
+                        "SELECT 'Orange' as [Name] "  +
                         ",1 as [Sys]" +
                         ") as [x] " +
                         " WHERE ([Name] = ? AND [Sys] = ?) OR " + ALL_LISTS_FLAG + " = 1 " +
+                ") as lists " +
+                        " LEFT JOIN " +
+                "( " +
+
+                        /* Get A list of each saved tweet and the number of kanji in those tweets */
+                            "SELECT  [Name]" +
+                            ",[Sys]" +
+                            ",count(_id) as Count " +
+                            "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+                            " WHERE ([Name] = ? AND [Sys] = ?) OR " + ALL_LISTS_FLAG + " = 1 " +
+                            " Group by [Name] ,[Sys] " +
+
+                        ") as tweetcounts " +
+                        "ON lists.[Name] = tweetcounts.[Name] and lists.[Sys] = tweetcounts.[Sys] " +
                         ") as [xx] " +
                         "LEFT JOIN " +
                         " (" +
@@ -1774,11 +1984,11 @@ public ArrayList<Tweet> getTweetsThatIncludeAWord(String wordIds,ColorThresholds
 ////                /* Assign each tweet a color based on the percentages of word color scores for kanjis in the tweet */
                         "Select [Name] " +
                         ",[Sys] " +
-                                ",Count([Tweet_id]) as [TweetCount] " +
+//                                ",Count([Tweet_id]) as [TweetCount] " +
                                 ",SUM([Grey]) + SUM([Red]) + SUM([Yellow]) + SUM([Green]) as [Total] " +
                                 ",SUM([Grey]) as [Grey]" +
                                 ",SUM([Red]) as [Red]" +
-                                ",SUM([Yellow]) as [Yellow]" +
+                                ",SUM([Yellow]) as [Yellow] " +
                                 ",SUM([Green]) as [Green] " +
 
 //                        ",(CASE WHEN [Total] = 0 THEN 'Empty' " +
@@ -1796,7 +2006,7 @@ public ArrayList<Tweet> getTweetsThatIncludeAWord(String wordIds,ColorThresholds
                 /* Now to pull together ListName, Tweet and the totals (by color) of the kanji in those tweets */
                         "SELECT  ListsTweetsAndAllKanjis.[Name]" +
                         ",ListsTweetsAndAllKanjis.[Sys]" +
-                        ",ListsTweetsAndAllKanjis.[Tweet_id] "+
+//                        ",ListsTweetsAndAllKanjis.[Tweet_id] "+
 //                        ",Count([Tweet_id]) as [TweetCount] " +
                         ",SUM([Grey]) + SUM([Red]) + SUM([Yellow]) + SUM([Green]) as [Total] " +
                         ",SUM([Grey]) as [Grey]" +
@@ -1807,26 +2017,34 @@ public ArrayList<Tweet> getTweetsThatIncludeAWord(String wordIds,ColorThresholds
 
                         /* Now we have a big collection of list metadata (tweetlists), and all the kanji scores and colors for
                             each kanji (kanjilists) */
-                        " Select TweetLists.[Name] " +
-                        " ,TweetLists.[Sys] " +
-                        ", TweetLists.[Tweet_id] " +
+                        " Select [Name] " +
+                        " ,[Sys] " +
+//                        ", TweetLists.[Tweet_id] " +
 
                         ",(CASE WHEN [Total] is not NULL AND [Total] < " + colorThresholds.getGreyThreshold() + " THEN 1 ELSE 0 END) as [Grey] " +
                         ",(CASE WHEN [Total] is not NULL and [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] < " + colorThresholds.getRedThreshold() + "  THEN 1  ELSE 0 END) as [Red] " +
                         ",(CASE WHEN [Total] is not NULL and [Total] >= " + colorThresholds.getGreyThreshold() + " and ([Percent] >= " + colorThresholds.getRedThreshold() + "  and [Percent] <  " + colorThresholds.getYellowThreshold() + ") THEN 1  ELSE 0 END) as [Yellow] " +
                         ",(CASE WHEN [Total] is not NULL and [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] >= " + colorThresholds.getYellowThreshold() + " THEN 1 ELSE 0 END) as [Green] " +
 
+
+                        " fROM ( " +
+                        " Select DISTINCT TweetLists.[Name] " +
+                        " ,TweetLists.[Sys] " +
+                        " ,TweetKanji.[Edict_id] " +
+                        ",[Total]" +
+                        ",[Percent] " +
                         "FROM " +
                         "(" +
 
                         /* Get A list of each saved tweet and the number of kanji in those tweets */
-                        "SELECT  DISTINCT [Name]" +
+                        "SELECT  [Name]" +
                         ",[Sys]" +
                         ",[UserID] " +
                         ",[_id] as [Tweet_id]" +
                         "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
 //                        "WHERE ([Name] = ? OR " + ALL_LISTS_FLAG + " = 1) AND ([Sys] = ? OR " + ALL_LISTS_FLAG + " = 1) " +
                         " WHERE ([Name] = ? AND [Sys] = ?) OR " + ALL_LISTS_FLAG + " = 1 " +
+
                         ") as TweetLists " +
                         " LEFT JOIN " +
                         " ( " +
@@ -1856,8 +2074,12 @@ public ArrayList<Tweet> getTweetsThatIncludeAWord(String wordIds,ColorThresholds
                         " ) as TweetKanji " +
                         "On TweetLists.Tweet_id = TweetKanji.Tweet_id " +
 
+
+                        ") as x " +
+
                         ") as [ListsTweetsAndAllKanjis] " +
-                        "GROUP BY [Name],[Sys],[Tweet_id] " +
+                        "GROUP BY [Name],[Sys]" +
+//                        ",[Tweet_id] " +
                         ") as [ListandTweets]  " +
                     "GROUP BY [Name],[Sys]" +
 
@@ -1867,60 +2089,38 @@ public ArrayList<Tweet> getTweetsThatIncludeAWord(String wordIds,ColorThresholds
                         "ON xx.[Name] = yy.[Name] and cast(xx.[Sys] as INTEGER)  = cast(yy.[Sys] as INTEGER)  " +
 
                         "Order by xx.[Sys] Desc,xx.[Name]"
-                ,new String[]{name,String.valueOf(sys),name,String.valueOf(sys)});
+                ,new String[]{name,String.valueOf(sys),name,String.valueOf(sys),name,String.valueOf(sys)});
     }
+
 
     public Cursor getTweetListColorBlocksCursorForSingleUser(ColorThresholds colorThresholds, String userId) {
 
         return  sqlOpener.getWritableDatabase().rawQuery(
+                "Select a.[UserId]" +
+                        ",0 as [Sys] " +
+                        ",a.[Total] " +
+                        ",a.[Grey] " +
+                        ",a.[Red] " +
+                        ",a.[Yellow] " +
+                        ",a.[Green] " +
+                        ",ifnull(b.[TweetCount],0) as [TweetCount] " +
+                        "FROM " +
+                        "(" +
 
-//                "SELECT yy.[UserId]" +
+//                        "Select [UserId] " +
 //                        ",0 as [Sys]" +
-//                        ",ifnull(yy.[Total],0) as [Total]" +
-//                        ",ifnull(yy.[Grey],0) as [Grey]" +
-//                        ",ifnull(yy.[Red],0) as [Red]" +
-//                        ",ifnull(yy.[Yellow],0) as [Yellow]" +
-//                        ",ifnull(yy.[Green],0) as [Green] " +
-////                        ",ifnull(yy.[Empty],0) as [Empty] " +
-//                        ",ifnull(yy.[TweetCount],0) as [TweetCount]" +
-//                        "" +
-//                        " FROM " +
-//                        " (" +
-//                        "Select [UserId] " +
-//                        ",COUNT([Category]) as [Total] " +
-//                        ",SUM((CASE WHEN [Category] = 'Empty' THEN 1 else 0 END)) as [Empty] " +
-//                        ",SUM((CASE WHEN [Category] = 'Grey' THEN 1 else 0 END)) as [Grey] " +
-//                        ",SUM((CASE WHEN [Category] = 'Red' THEN 1 else 0 END)) as [Red] " +
-//                        ",SUM((CASE WHEN [Category] = 'Yellow' THEN 1 else 0 END)) as [Yellow] " +
-//                        ",SUM((CASE WHEN [Category] = 'Green' THEN 1 else 0 END)) as [Green] " +
-//                        " FROM (" +
-//
-////                /* Assign each tweet a color based on the percentages of word color scores for kanjis in the tweet */
-//                        "Select [UserId] " +
-//                        ",(CASE WHEN [Total] = 0 THEN 'Empty' " +
-//                        " WHEN CAST(ifnull([Grey],0)  as float)/[Total] > " + colorThresholds.getTweetGreyThreshold() + " THEN 'Grey' " +
-//                        " WHEN CAST(ifnull([Green],0)  as float)/[Total] >= " + colorThresholds.getTweetGreenthreshold() + " THEN 'Green' " +
-//                        " WHEN  CAST(ifnull([Red],0)  as float)/[Total] >= " + colorThresholds.getTweetRedthreshold() + " THEN 'Red' " +
-//                        " WHEN CAST(ifnull([Yellow],0)  as float)/[Total] >= " + colorThresholds.getTweetYellowthreshold() +" THEN 'Yellow' " +
-//                        " WHEN [Grey] > [Green] and [Grey] > [Red] and [Grey] > [Yellow] THEN 'Grey' " +
-//                        " WHEN [Green] > [Grey] and [Green] > [Red] and [Green] > [Yellow] THEN 'Green' " +
-//                        " WHEN [Red] > [Green] and [Red] > [Grey] and [Red] > [Yellow] THEN 'Red' " +
-//                        " WHEN [Yellow] > [Green] and [Yellow] > [Red] and [Yellow] > [Grey] THEN 'Yellow' " +
-//                        " ELSE 'Grey' END) as [Category] " +
-
-                        "Select [UserId] " +
-                        ",0 as [Sys]" +
-                        ",SUM([Grey]) + SUM([Red]) + SUM([Yellow]) + SUM([Green]) as [Total] " +
-                        ",SUM([Grey]) as [Grey]" +
-                        ",SUM([Red]) as [Red]" +
-                        ",SUM([Yellow]) as [Yellow]" +
-                        ",SUM([Green]) as [Green] " +
-                        ",Count([Tweet_id]) as [TweetCount] " +
-                        " FROM ( " +
+//                        ",SUM([Grey]) + SUM([Red]) + SUM([Yellow]) + SUM([Green]) as [Total] " +
+//                        ",SUM([Grey]) as [Grey]" +
+//                        ",SUM([Red]) as [Red]" +
+//                        ",SUM([Yellow]) as [Yellow]" +
+//                        ",SUM([Green]) as [Green] " +
+////                        ",Count([Tweet_id]) as [TweetCount] " +
+//                        " FROM ( " +
 
                 /* Now to pull together ListName, Tweet and the totals (by color) of the kanji in those tweets */
-                        "SELECT  ListsTweetsAndAllKanjis.[UserId]" +
-                        ",ListsTweetsAndAllKanjis.[Tweet_id] "+
+                        "SELECT  ListsTweetsAndAllKanjis.[UserId] " +
+//                        ",ListsTweetsAndAllKanjis.[Tweet_id] "+
+//                                ",ListsTweetsAndAllKanjis.[TweetCount] " +
 
                         ",SUM([Grey]) + SUM([Red]) + SUM([Yellow]) + SUM([Green]) as [Total] " +
                         ",SUM([Grey]) as [Grey]" +
@@ -1931,23 +2131,25 @@ public ArrayList<Tweet> getTweetsThatIncludeAWord(String wordIds,ColorThresholds
 
                         /* Now we have a big collection of list metadata (tweetlists), and all the kanji scores and colors for
                             each kanji (kanjilists) */
-                        " Select TweetLists.[Tweet_id] " +
-                        " ,[UserId] " +
-
+                        " Select DISTINCT TweetLists.[UserId] " +
+//                        " ,TweetLists.[TweetCount]  " +
+                        " ,TweetKanji.Edict_id "   +
                         ",(CASE WHEN [Total] is not NULL AND [Total] < " + colorThresholds.getGreyThreshold() + " THEN 1 ELSE 0 END) as [Grey] " +
                         ",(CASE WHEN [Total] is not NULL and [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] < " + colorThresholds.getRedThreshold() + "  THEN 1  ELSE 0 END) as [Red] " +
                         ",(CASE WHEN [Total] is not NULL and [Total] >= " + colorThresholds.getGreyThreshold() + " and ([Percent] >= " + colorThresholds.getRedThreshold() + "  and [Percent] <  " + colorThresholds.getYellowThreshold() + ") THEN 1  ELSE 0 END) as [Yellow] " +
                         ",(CASE WHEN [Total] is not NULL and [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] >= " + colorThresholds.getYellowThreshold() + " THEN 1 ELSE 0 END) as [Green] " +
 
                         "FROM " +
-                        "(" +
+
+                                "(" +
 
                         /* Get A list of each saved tweet and the number of kanji in those tweets */
-                        "SELECT  DISTINCT [UserId]" +
+                         "SELECT  DISTINCT [UserId]" +
                         ", _id as [Tweet_id]" +
                         "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
                         "WHERE [UserId] = ? " +
-                        ") as TweetLists " +
+
+                                ") as TweetLists " +
                         " LEFT JOIN " +
                         " ( " +
 
@@ -1979,18 +2181,31 @@ public ArrayList<Tweet> getTweetsThatIncludeAWord(String wordIds,ColorThresholds
                         "On TweetLists.Tweet_id = TweetKanji.Tweet_id " +
 
                         ") as [ListsTweetsAndAllKanjis] " +
-                        "GROUP BY [UserId],Tweet_id" +
-                        ") as [ListandTweets]  " +
-                        "GROUP BY [UserId]"
-
+                        "GROUP BY [UserId]" +
 //                        ") as [ListandTweets]  " +
-//                        ") as [Lists] " +
-//                        "GROUP BY [UserId] " +
+//                        "GROUP BY [UserId]" +
 
-//                        ") as yy "
 
-//                        "Order by xx.[Sys] Desc,xx.[Name]"
-                ,new String[]{userId});
+                ") as a " +
+                        "LEFT JOIN " +
+                        "(" +
+
+                        /* Get A list of each saved tweet and the number of kanji in those tweets */
+                        "SELECT [UserId]" +
+                        ",COUNT(_id) as TweetCount " +
+                        "FROM " +
+                        " ( " +
+                        "SELECT  DISTINCT [UserId]" +
+                        ", _id " +
+                        "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+                        "WHERE [UserId] = ? " +
+                        ") as x " +
+                        " Group by [UserId] " +
+                        ")  as b " +
+                        " ON a.[UserId] = b.[UserId] "
+
+
+                ,new String[]{userId,userId});
     }
 
 
@@ -2006,7 +2221,7 @@ public ArrayList<Tweet> getTweetsThatIncludeAWord(String wordIds,ColorThresholds
 
         String topBottomSort;
         if(topOrBottom.equals("Top")) {
-            topBottomSort = "and [ColorSort]>0 ORDER BY [ColorSort] desc, [Percent] desc,[Total] desc ";
+            topBottomSort = "WHERE [ColorSort]>0 ORDER BY [ColorSort] desc, [Percent] desc,[Total] desc ";
         } else {
             topBottomSort = "ORDER BY [ColorSort] asc, [Percent] asc,[Total] desc ";
         }
@@ -2073,7 +2288,9 @@ public ArrayList<Tweet> getTweetsThatIncludeAWord(String wordIds,ColorThresholds
                     "from [JScoreboard]  " +
                     "GROUP BY [_id]" +
                     ") " +
-                    ") Where [Total] >= 1 " + topBottomSort + " LIMIT " + totalCountLimit,new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+                    ") " + topBottomSort + " LIMIT " + totalCountLimit,new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+
+//                    ") Where [Total] >= 1 " + topBottomSort + " LIMIT " + totalCountLimit,new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
 
 
             if(c.getCount() == 0) {
@@ -2087,7 +2304,7 @@ public ArrayList<Tweet> getTweetsThatIncludeAWord(String wordIds,ColorThresholds
                 if(wordEntries.size()<totalCountLimit
                         && ((topOrBottom.equals("Bottom") && c.getFloat(4)<=topbottomThreshold) || (topOrBottom.equals("Top") && c.getFloat(4)>0))) {
 
-                    if(idsToExclude != null && !idsToExclude.contains(c.getInt(0))) {
+                    if(idsToExclude == null || !idsToExclude.contains(c.getInt(0))) {
                         WordEntry wordEntry = new WordEntry();
                         wordEntry.setId(c.getInt(0));
                         wordEntry.setKanji(c.getString(1));

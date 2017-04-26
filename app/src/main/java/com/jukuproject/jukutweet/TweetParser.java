@@ -107,13 +107,14 @@ public class TweetParser {
             if(entireSentence.length()>(i+1)) {
                 char_aNext = String.valueOf(entireSentence.charAt(i+1));
             }
-            if(BuildConfig.DEBUG) {
-                Log.d(TAG, (char_a.equals(System.getProperty("line.separator"))) + "-- char_a:" + char_a + ", charpair: " + (char_a + char_aNext) + "|");
-            }
+//            if(BuildConfig.DEBUG) {
+//                Log.d(TAG, (char_a.equals(System.getProperty("line.separator"))) + "-- char_a:" + char_a + ", charpair: " + (char_a + char_aNext) + "|");
+//            }
             /* If it is an exclude span item (url, etc), ignore it */
             if (IndexPositionsToExclude != null && IndexPositionsToExclude.contains(i)) {
                 addOrReleaseBuilderContents(i,builder,possibleKanjiInSentence);
                 addOrReleaseBuilderContents(i,builder_katakana,possibleKanjiInSentence,true);
+
             } else if (wordLoader.getKatakana().contains(char_a)) {
                 /* Determine if the character is a kanji by process of elimination. If it is not Hiragana, Katakana or a Symbol, it must be a kanji */
                 builder_katakana.append(entireSentence.charAt(i));
@@ -126,14 +127,25 @@ public class TweetParser {
                     && !wordLoader.getHiragana().contains(char_a)
                     && !wordLoader.getSymbols().contains(char_a)) {
                 builder.append(entireSentence.charAt(i));
+
+                Log.d(TAG,"builder appending: " + entireSentence.charAt(i));
+
                 addOrReleaseBuilderContents(i,builder_katakana,possibleKanjiInSentence,true);
             }   else {
+                Log.d(TAG,"NOT RECORDING : " + entireSentence.charAt(i));
+
                 /*Add the contents of any full builder to the possibleKanji list, and do not record this character */
                 addOrReleaseBuilderContents(i,builder,possibleKanjiInSentence);
                 addOrReleaseBuilderContents(i,builder_katakana,possibleKanjiInSentence,true);
             }
             char_aPrev = char_a;
         }
+
+        /*If there are any leftover items in the builder, release them at the end
+         This would occur if there is a kanji that ends the tweet */
+
+        addOrReleaseBuilderContents(entireSentence.length(),builder,possibleKanjiInSentence);
+        addOrReleaseBuilderContents(entireSentence.length(),builder_katakana,possibleKanjiInSentence,true);
 
 // FOR TESTING
 //        for (int i = 0; i<possibleKanjiInSentence.size(); i ++ )
@@ -152,12 +164,11 @@ public class TweetParser {
      */
     public static boolean isAlphaNumericChar(String s) {
         return !s.matches("^.*[^\\\\dA-Za-z0-9].*$");
-
-
     }
 
     public static void addOrReleaseBuilderContents(Integer index, StringBuilder builder, ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence) {
         if (builder.length() > 0) {
+//            Log.d(TAG,"ADDING CONTENTS: " + builder.toString());
             possibleKanjiInSentence.add(new ParseSentencePossibleKanji(index,possibleKanjiInSentence.size(),builder.toString()));
             builder.setLength(0);
         }

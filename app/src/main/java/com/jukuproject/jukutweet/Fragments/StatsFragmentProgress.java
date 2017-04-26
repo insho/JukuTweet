@@ -251,7 +251,12 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
 
                         if(isUniqueClick(100) && event instanceof WordEntry) {
                             WordEntry wordEntry = (WordEntry) event;
-                            WordDetailPopupDialog.newInstance(wordEntry).show(getFragmentManager(),"wordDetailPopup");
+
+                            WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(wordEntry);
+                            wordDetailPopupDialog.setTargetFragment(StatsFragmentProgress.this, 0);
+                            wordDetailPopupDialog.show(getFragmentManager(),"wordDetailPopup");
+
+//                            WordDetailPopupDialog.newInstance(wordEntry).show(getFragmentManager(),"wordDetailPopup");
                         }
 
                     }

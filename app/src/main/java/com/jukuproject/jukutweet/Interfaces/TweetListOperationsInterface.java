@@ -2,6 +2,7 @@ package com.jukuproject.jukutweet.Interfaces;
 
 import android.database.Cursor;
 import android.support.annotation.Nullable;
+import android.support.v4.util.Pair;
 
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.ItemFavorites;
@@ -27,6 +28,8 @@ public interface TweetListOperationsInterface {
     boolean addTweetToTweetList(String tweetId, String userId, String listName, int listSys);
     boolean removeTweetFromTweetList(String tweetId, String listName, int listSys);
     boolean removeMultipleTweetsFromTweetList(String concatenatedTweetIds, MyListEntry myListEntry);
+    //boolean removeTweetsFromAllTweetLists(String concatenatedTweetIds);
+    ArrayList<Pair<MyListEntry,Tweet>> removeTweetsFromAllTweetLists(String concatenatedTweetIds);
     ArrayList<MyListEntry> getTweetListsForTweet(ArrayList<String> activeFavoriteStars
             , String concatenatedTweetIds
             , @Nullable MyListEntry entryToExclude);
@@ -58,5 +61,6 @@ public interface TweetListOperationsInterface {
             ,int totalCountLimit
             ,double topbottomThreshold);
 
+    void deleteTweetIfNecessary(String concatenatedTweetIds);
 
 }

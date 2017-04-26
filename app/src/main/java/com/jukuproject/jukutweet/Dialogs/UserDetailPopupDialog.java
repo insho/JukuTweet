@@ -54,13 +54,10 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
 
     String TAG = "TEST-userdetailpop";
     private DialogInteractionListener mCallback;
-    //    private Context mContext;
-//    private View mAnchorView;
-//    private RxBus mRxBusTweetBreak= new RxBus();
     private RecyclerView mRecyclerView;
 
     private SmoothProgressBar progressBar;
-    private View divider;
+//    private View divider;
 
 
     private boolean showFriendsSelected;
@@ -74,7 +71,7 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
     private ImageView imgProfile;
     private TextView txtDisplayName;
     private TextView txtScreenName;
-    private TextView txtUrl;
+//    private TextView txtUrl;
 
     private View baseLayout;
 //    private View popupView;
@@ -126,7 +123,7 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
         mRecyclerView = (RecyclerView) view.findViewById(R.id.userInfoRecycler);
         baseLayout = view.findViewById(R.id.popuptab_layout);
         progressBar = (SmoothProgressBar) view.findViewById(R.id.progressbar);
-        divider = (View) view.findViewById(R.id.dividerview);
+//        divider = (View) view.findViewById(R.id.dividerview);
         mScrollView = (ScrollView) view.findViewById(R.id.scrollView);
 
         btnShowFriendsToggle = (TextView) view.findViewById(R.id.txtShowFollowingToggle);
@@ -139,7 +136,7 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
         txtDisplayName = (TextView) view.findViewById(R.id.txtName);
         txtScreenName = (TextView) view.findViewById(R.id.txtScreenName);
         btnRemoveUser = (TextView) view.findViewById(R.id.txtRemoveUserButton);
-        txtUrl = (TextView) view.findViewById(R.id.txtUrl);
+//        txtUrl = (TextView) view.findViewById(R.id.txtUrl);
 
         return view;
     }
@@ -167,8 +164,11 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
 //                Toast.makeText(getContext(), "REMOVE USER", Toast.LENGTH_SHORT).show();
                         //mCallback.showRemoveUserDialog(userInfo.getScreenName());
                 if(getFragmentManager().findFragmentByTag("dialogRemove") == null || !getFragmentManager().findFragmentByTag("dialogRemove").isAdded()) {
+                    RemoveUserDialog removeUserDialog = RemoveUserDialog.newInstance(mUserInfo);
                     RemoveUserDialog.newInstance(mUserInfo).show(getFragmentManager(),"dialogRemove");
                 }
+                dismiss();
+                mCallback.showFab(true);
 
             }
         });
@@ -179,20 +179,8 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
         mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-
-//        final RecyclerView.OnScrollListener mScrollListener = new RecyclerView.OnScrollListener() {
-//            @Override
-//            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-//                if (mLayoutManager == null || mDataSet == null || mDataSet.size()==0) {
-//
-//                    return;
-//                } else {
-//                    if(mLayoutManager.findLastCompletelyVisibleItemPosition()==mDataSet.size()-1) {
-//                        Toast.makeText(getContext(), "Pull more shit", Toast.LENGTH_SHORT).show();
-//                    }
-//                }
-//            }
-//        };
+        /* Listen for the user scrolling to the final position in the scrollview. IF it happens, load more
+        * userinfo items into the adapter */
         if (android.os.Build.VERSION.SDK_INT >= 23) {
             mRecyclerView.setOnScrollChangeListener(new View.OnScrollChangeListener() {
                 @Override
@@ -201,8 +189,7 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
 
                         return;
                     } else {
-                        if(mDataSet.size()>0 && mLayoutManager.findLastCompletelyVisibleItemPosition()==mDataSet.size()-1) {
-                            Toast.makeText(getContext(), "Pull more shit", Toast.LENGTH_SHORT).show();
+                        if(mDataSet.size()>0 && mLayoutManager.findFirstCompletelyVisibleItemPosition()>0 && mLayoutManager.findLastCompletelyVisibleItemPosition()==mDataSet.size()-1) {
                             if(showFriendsSelected) {
                                 pullFriendsUserInfoList(mUserInfo,mCursorString,60,mDataSet.size()-1);
                             } else {
@@ -213,7 +200,7 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
                 }
             });
         } else {
-mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
+        mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
     @Override
     public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
         super.onScrolled(recyclerView, dx, dy);
@@ -221,7 +208,7 @@ mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
 
             return;
         } else {
-            if(mDataSet.size()>0 && mLayoutManager.findLastCompletelyVisibleItemPosition()==mDataSet.size()-1) {
+            if(mDataSet.size()>0 && mLayoutManager.findFirstCompletelyVisibleItemPosition()>0  && mLayoutManager.findLastCompletelyVisibleItemPosition()==mDataSet.size()-1) {
                 if(showFriendsSelected) {
                     pullFriendsUserInfoList(mUserInfo,mCursorString,60,mDataSet.size()-1);
                 } else {
@@ -232,10 +219,6 @@ mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
     }
 });
         }
-
-//        if(mUserInfo.getBannerUrl() == null) {
-//            dialogView  = inflater.inflate(R.layout.fragment_dialog_addusercheck_simple, null);
-//        } else {
 
             try {
                 loadBestFitBanner(mUserInfo.getScreenName(),imgBanner);
@@ -325,7 +308,12 @@ mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
         });
 
         if(mDataSet.size() == 0) {
-            pullFollowerUserInfoList(mUserInfo,mCursorString,60,0);
+            mDataSet = new ArrayList<UserInfo>();
+            mCursorString = "-1";
+            pullFriendsUserInfoList(mUserInfo,mCursorString,60,0);
+            showFriendsSelected = true;
+
+//            pullFollowerUserInfoList(mUserInfo,mCursorString,60,0);
         }
     };
 
@@ -566,7 +554,12 @@ mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
 
     public void pullFollowerUserInfoList(final UserInfo userInfo,String cursorString,int limit,final int prevMaxPosition){
 
-        showProgressBar(true);
+
+        if(mCallback.isOnline()) {
+
+
+
+            showProgressBar(true);
 
             String token = getResources().getString(R.string.access_token);
             String tokenSecret = getResources().getString(R.string.access_token_secret);
@@ -588,8 +581,8 @@ mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
                                     mAdapter = new UserListAdapter(getContext(),mDataSet, _rxBus);
                                 } else {
                                     mAdapter.notifyDataSetChanged();
-                                    if(mDataSet.size()>prevMaxPosition) {
-                                        mRecyclerView.smoothScrollToPosition(prevMaxPosition);
+                                    if((mDataSet.size()-1)>prevMaxPosition) {
+                                        mRecyclerView.scrollToPosition(prevMaxPosition);
                                     }
                                 }
 
@@ -600,11 +593,6 @@ mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
 
                                                 if(isUniqueClick(1000) && event instanceof UserInfo) {
                                                     UserInfo userInfo = (UserInfo) event;
-//                                                    Toast.makeText(getContext(), "CLICK: " + userInfo.getScreenName(), Toast.LENGTH_SHORT).show();
-//                                                //TODO -- make it so only one instance of breakdown fragment exists
-//                                                Tweet tweet = (Tweet) event;
-//                                                TweetBreakDownFragment fragment = TweetBreakDownFragment.newInstanceTimeLine(tweet);
-//                                                ((BaseContainerFragment)getParentFragment()).addFragment(fragment, true,"tweetbreakdown");
 
                                                     if(getFragmentManager().findFragmentByTag("dialogAddCheck") == null || !getFragmentManager().findFragmentByTag("dialogAddCheck").isAdded()) {
                                                         AddUserCheckDialog.newInstance(userInfo).show(getFragmentManager(),"dialogAddCheck");
@@ -651,6 +639,12 @@ mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
                         }
                     });
 
+        } else {
+            showProgressBar(false);
+            showRecyclerView(false);
+            txtNoUsers.setTextColor(ContextCompat.getColor(getContext(),android.R.color.holo_red_dark));
+            txtNoUsers.setText(getResources().getString(R.string.nointernet));
+        }
     }
 
 
@@ -658,6 +652,7 @@ mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
 
     public void pullFriendsUserInfoList(final UserInfo userInfo,String cursorString,int limit,final int prevMaxPosition){
 
+        if(mCallback.isOnline()) {
         showProgressBar(true);
 
         String token = getResources().getString(R.string.access_token);
@@ -681,8 +676,8 @@ mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
                                 mAdapter = new UserListAdapter(getContext(),mDataSet, _rxBus);
                             } else {
                                 mAdapter.notifyDataSetChanged();
-                                if(mDataSet.size()>prevMaxPosition) {
-                                    mRecyclerView.smoothScrollToPosition(prevMaxPosition);
+                                if((mDataSet.size()-1)>prevMaxPosition) {
+                                    mRecyclerView.scrollToPosition(prevMaxPosition);
                                 }
 
                             }
@@ -744,7 +739,12 @@ mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
 
                     }
                 });
-
+        } else {
+            showProgressBar(false);
+            showRecyclerView(false);
+            txtNoUsers.setTextColor(ContextCompat.getColor(getContext(),android.R.color.holo_red_dark));
+            txtNoUsers.setText(getResources().getString(R.string.nointernet));
+        }
     }
 
 

@@ -156,6 +156,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         });
 
 
+
         holder.imgStarLayout.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -163,6 +164,14 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                 showFavoriteListPopupWindow(holder);
 
                 return true;
+            }
+        });
+
+        holder.mainLayout.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                mRxBus.send(mWords.get(holder.getAdapterPosition()));
+                return false;
             }
         });
 

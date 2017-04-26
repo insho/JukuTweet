@@ -13,10 +13,11 @@ public class BaseContainerFragment extends Fragment {
         if (addToBackStack) {
             transaction.addToBackStack(null);
         }
-
+        Log.d("TEST","REPLACING FRAGMENT middle");
         transaction.replace(R.id.container_framelayout, fragment, tag);
         transaction.commit();
         getChildFragmentManager().executePendingTransactions();
+        Log.d("TEST","EXECUTED PENDING TRANSACTION...");
 
 
     }

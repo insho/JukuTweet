@@ -7,6 +7,7 @@ import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.util.Pair;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
@@ -47,7 +48,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * Shows last X tweets from a twitter timeline. User can click on a tweet to bring up
  * the WordBreakDown Popup window, save the tweet and/or specific kanji from the tweet
  */
-public class SavedTweetsBrowseFragment extends Fragment {
+public class TweetListBrowseFragment extends Fragment {
     String TAG = "TEST-savetweetbrow";
     private RxBus mRxBus = new RxBus();
     private RecyclerView mRecyclerView;
@@ -62,11 +63,12 @@ public class SavedTweetsBrowseFragment extends Fragment {
     private ArrayList<String> mSelectedEntries = new ArrayList<>(); //Tracks which entries in the adapter are currently selected (tweet_id)
     private Subscription undoSubscription;
     private UserInfo mUserInfo;
+    private ArrayList<Pair<MyListEntry,Tweet>> mSingleUserUndoPairs;
 
-    public SavedTweetsBrowseFragment() {}
+    public TweetListBrowseFragment() {}
 
-    public static SavedTweetsBrowseFragment newInstance(MyListEntry myListEntry) {
-        SavedTweetsBrowseFragment fragment = new SavedTweetsBrowseFragment();
+    public static TweetListBrowseFragment newInstance(MyListEntry myListEntry) {
+        TweetListBrowseFragment fragment = new TweetListBrowseFragment();
 
         Bundle args = new Bundle();
         args.putParcelable("mylistentry", myListEntry);
@@ -80,8 +82,8 @@ public class SavedTweetsBrowseFragment extends Fragment {
      * @param userInfo Info of specific user whose saved tweets will be displayed
      * @return
      */
-    public static SavedTweetsBrowseFragment newInstance(UserInfo userInfo) {
-        SavedTweetsBrowseFragment fragment = new SavedTweetsBrowseFragment();
+    public static TweetListBrowseFragment newInstance(UserInfo userInfo) {
+        TweetListBrowseFragment fragment = new TweetListBrowseFragment();
 
         Bundle args = new Bundle();
         args.putParcelable("userInfo",userInfo);
@@ -112,9 +114,10 @@ public class SavedTweetsBrowseFragment extends Fragment {
             if (getArguments() != null
                     && ((mMyListEntry = getArguments().getParcelable("mylistentry")) != null)) {
                 mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mMyListEntry,mColorThresholds);
+                mUserInfo = null;
             } else if(getArguments() != null && ((mUserInfo = getArguments().getParcelable("userInfo")) != null))  {
                 mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mUserInfo,mColorThresholds);
-
+                mMyListEntry = null;
             } else {
                 //TODO kick user out
 
@@ -155,7 +158,7 @@ public class SavedTweetsBrowseFragment extends Fragment {
                         public void call(Object event) {
 
 
-                        if(isUniqueClick(1000)) {
+                        if(isUniqueClick(500)) {
 
                             if (event instanceof String) {
 
@@ -306,10 +309,10 @@ public class SavedTweetsBrowseFragment extends Fragment {
             mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mMyListEntry,mColorThresholds);
             mAdapter.swapDataSet(mDataset);
         } catch (NullPointerException e) {
-            Log.e(TAG,"Nullpointer in SavedTweetsBrowseFragment removeTweetFromList : " + e);
+            Log.e(TAG,"Nullpointer in TweetListBrowseFragment removeTweetFromList : " + e);
             Toast.makeText(getContext(), "Unable to delete entries", Toast.LENGTH_SHORT).show();
         } catch (SQLiteException e) {
-            Log.e(TAG,"SQLiteException in SavedTweetsBrowseFragment removeTweetFromList : " + e);
+            Log.e(TAG,"SQLiteException in TweetListBrowseFragment removeTweetFromList : " + e);
             Toast.makeText(getContext(), "Unable to delete entries", Toast.LENGTH_SHORT).show();
         }
     }
@@ -318,17 +321,27 @@ public class SavedTweetsBrowseFragment extends Fragment {
 
     public void removeTweetFromList(){
         try {
+//            Log.i(TAG, "BOOzzzzz: " + mMyListEntry.getListName() + ", " + mMyListEntry.getListsSys());
+
             final String tweetIds = joinSelectedStrings(mSelectedEntries);
-            InternalDB.getTweetInterfaceInstance(getContext()).removeMultipleTweetsFromTweetList(tweetIds,mMyListEntry);
-            mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mMyListEntry,mColorThresholds);
+
+            if(mMyListEntry!=null) {
+                InternalDB.getTweetInterfaceInstance(getContext()).removeMultipleTweetsFromTweetList(tweetIds,mMyListEntry);
+                mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mMyListEntry,mColorThresholds);
+            } else if(mUserInfo!=null) {
+                mSingleUserUndoPairs = InternalDB.getTweetInterfaceInstance(getContext()).removeTweetsFromAllTweetLists(tweetIds);
+                mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mUserInfo,mColorThresholds);
+            }
+
             mSelectedEntries.clear();
             mAdapter.swapDataSet(mDataset);
             showUndoPopupTweets(tweetIds,mMyListEntry);
+
         } catch (NullPointerException e) {
-            Log.e(TAG,"Nullpointer in SavedTweetsBrowseFragment removeTweetFromList : " + e);
+            Log.e(TAG,"Nullpointer in TweetListBrowseFragment removeTweetFromList : " + e);
             Toast.makeText(getContext(), "Unable to delete entries", Toast.LENGTH_SHORT).show();
         } catch (SQLiteException e) {
-            Log.e(TAG,"SQLiteException in SavedTweetsBrowseFragment removeTweetFromList : " + e);
+            Log.e(TAG,"SQLiteException in TweetListBrowseFragment removeTweetFromList : " + e);
             Toast.makeText(getContext(), "Unable to delete entries", Toast.LENGTH_SHORT).show();
         }
     }
@@ -375,8 +388,19 @@ public class SavedTweetsBrowseFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 try {
-                    InternalDB.getTweetInterfaceInstance(getContext()).addMultipleTweetsToTweetList(currentList,bulkTweetIds);
-                    mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mMyListEntry,mColorThresholds);
+
+                    if(mMyListEntry!=null) {
+                        InternalDB.getTweetInterfaceInstance(getContext()).addMultipleTweetsToTweetList(currentList,bulkTweetIds);
+                        mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mMyListEntry,mColorThresholds);
+                    } else if(mUserInfo!=null && mSingleUserUndoPairs!=null){
+                        TweetListOperationsInterface tweetOps = InternalDB.getTweetInterfaceInstance(getContext());
+                        for(Pair<MyListEntry,Tweet> pair : mSingleUserUndoPairs ) {
+                            tweetOps.addTweetToTweetList(pair.second.getIdString(),pair.second.getUser().getUserId(),pair.first.getListName(),pair.first.getListsSys());
+                        }
+                        mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mUserInfo,mColorThresholds);
+
+                    }
+
                     mSelectedEntries.clear();
                     mAdapter.swapDataSet(mDataset);
                     try {
@@ -397,6 +421,14 @@ public class SavedTweetsBrowseFragment extends Fragment {
             }
         });
 
+        popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
+            @Override
+            public void onDismiss() {
+                if(mUserInfo!=null) {
+                    InternalDB.getTweetInterfaceInstance(getContext()).deleteTweetIfNecessary(bulkTweetIds);
+                }
+            }
+        });
 
         popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.popup_drawable));
         popupWindow.setContentView(v);

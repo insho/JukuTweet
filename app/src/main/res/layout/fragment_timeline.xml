@@ -4,26 +4,22 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-
+    android:orientation="vertical"
     tools:context="com.jukuproject.jukutweet.MainActivity">
-
-
-    <android.support.v4.widget.SwipeRefreshLayout
-        android:id="@+id/swipeRefreshLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
 
     <android.support.v7.widget.RecyclerView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
         android:id="@+id/recyclerTimeLine"
         />
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
         <TextView
             android:id="@+id/notweets"
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/recyclerTimeLine"
             android:minHeight="30dp"
             android:layout_marginTop="4dp"
             android:text="@string/notweets"
@@ -31,6 +27,8 @@
             android:textStyle="italic"
             android:visibility="gone"
             android:textSize="18sp" />
+
+
     </android.support.v4.widget.SwipeRefreshLayout>
 
 

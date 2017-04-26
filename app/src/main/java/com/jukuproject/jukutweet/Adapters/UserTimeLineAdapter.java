@@ -178,11 +178,10 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                     try {
                         //If tweet doesn't already exist in db, insert it
                         if(helperTweetOps.tweetExistsInDB(currentTweet) == 0){
-                            Log.d(TAG,"TWEET Doesn't exist");
                             //Otherwise enter the tweet into the database and then toggle
-
+                            Log.d(TAG,"createdAt: " + currentTweet.getCreatedAt() + ", db insert: " + currentTweet.getDatabaseInsertDate());
                             int addTweetResultCode = helperTweetOps.saveTweetToDB(mDataset.get(holder.getAdapterPosition()).getUser(),currentTweet);
-                            Log.d(TAG,"addTweetResultCode: " + addTweetResultCode);
+//                            Log.d(TAG,"addTweetResultCode: " + addTweetResultCode);
                             if(addTweetResultCode < 0) {
                                 //TODO handle error -- can't insert tweet
                             } else {
@@ -271,8 +270,8 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
             }
 
-            Log.i(TAG,"focusedword: " + mFocusedWord);
-            Log.i(TAG,"text: " + text.toString());
+//            Log.i(TAG,"focusedword: " + mFocusedWord);
+//            Log.i(TAG,"text: " + text.toString());
             if(getTweet(position).getWordEntries()!=null){
                 BackgroundColorSpan fcs = new BackgroundColorSpan(ContextCompat.getColor(mContext,R.color.colorJukuYellow));
                 for(WordEntry wordEntry : getTweet(position).getWordEntries()) {

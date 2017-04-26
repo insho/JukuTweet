@@ -1,6 +1,7 @@
 package com.jukuproject.jukutweet;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -70,8 +71,12 @@ public class TwitterUserClient {
         return twitterService.getUserInfo(username);
     }
 
-    public Observable<List<Tweet>> getUserTimeline(@NonNull String username, int count) {
-        return twitterService.getUserTimeline(username, count);
+    public Observable<List<Tweet>> getUserTimeline(@NonNull String username, int count, @Nullable Long maxId) {
+        if(maxId==null) {
+            return twitterService.getUserTimeline(username, count);
+        } else {
+            return twitterService.getMoreUserTimeline(username,count,maxId);
+        }
     }
 
     public Observable<UserProfileBanner> getProfileBanner(@NonNull String username) {

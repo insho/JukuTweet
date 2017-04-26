@@ -130,6 +130,7 @@ public class UserListFragment extends Fragment {
                                         }
 
                                     } else {
+                                        Log.d(TAG,"Showing timeline off of button click");
                                         showUserTimelineFragment(userInfo);
                                     }
 
@@ -247,16 +248,18 @@ public class UserListFragment extends Fragment {
 
     public void showUserTimelineFragment(UserInfo userInfo) {
         mCallback.showProgressBar(true);
-        UserTimeLineFragment fragment = new UserTimeLineFragment();
-        Bundle bundle = new Bundle();
-        bundle.putParcelable("userInfo",userInfo);
-        fragment.setArguments(bundle);
-        ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"timeline");
+//        UserTimeLineFragment fragment = new UserTimeLineFragment();
+//        Bundle bundle = new Bundle();
+//        bundle.putParcelable("userInfo",userInfo);
+//        fragment.setArguments(bundle);
+//
+        Log.d(TAG,"NOW ADDING FRAGMENT TO STACK");
         mCallback.showActionBarBackButton(true,userInfo.getDisplayScreenName());
 
 //                                    mCallback.changePagerTitle(0,"Timeline");
         mCallback.showSavedTweetsTabForIndividualUser(userInfo);
         mCallback.updateTabs(new String[]{"Timeline","Saved Tweets"});
+        ((BaseContainerFragment)getParentFragment()).replaceFragment(UserTimeLineFragment.newInstance(userInfo), true,"timeline");
         mCallback.showFab(false);
     };
 

@@ -28,7 +28,7 @@ import java.util.List;
  */
 public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapter.ViewHolder> {
 
-    private static final String TAG = "TEST-timefrag";
+    private static final String TAG = "TEST-browstweetadap";
     private RxBus mRxBus;
     private List<Tweet> mDataset;
     private Context mContext;
@@ -92,6 +92,7 @@ public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapte
 
         holder.txtUserName.setText(tweet.getUser().getName());
         holder.txtUserScreenName.setText(tweet.getUser().getDisplayScreenName());
+        Log.d(TAG,"tweet.getDisplayDate()");
         holder.txtCreated.setText(tweet.getDisplayDate());
 
         /* Set non-essential bits gone*/
@@ -148,7 +149,7 @@ public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapte
                     mRxBus.send(mDataset.get(holder.getAdapterPosition()).getIdString());
                 } else {
                     Log.d(TAG,"click is sent");
-                    /*Send the whole tweet back to the RXReceiver in SavedTweetsBrowseFragment,
+                    /*Send the whole tweet back to the RXReceiver in TweetListBrowseFragment,
                       where it will be passed on to TweetBreakDownFragment */
                     mRxBus.send(mDataset.get(holder.getAdapterPosition()));
 //                    Toast.makeText(mContext, "Send to SavedTweetsBreakdownFragment", Toast.LENGTH_SHORT).show();

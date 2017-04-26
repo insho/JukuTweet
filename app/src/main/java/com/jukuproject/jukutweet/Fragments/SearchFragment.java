@@ -27,6 +27,7 @@ import com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter;
 import com.jukuproject.jukutweet.BaseContainerFragment;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.AddUserCheckDialog;
+import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface;
@@ -180,7 +181,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
 
             }
         });
-        checkBoxDefinition.setOnClickListener(new View.OnClickListener() {
+        checkBoxDictionary.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mDictionarySearchLayout.setVisibility(View.VISIBLE);
@@ -239,22 +240,26 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                 } else {
                         /* Run the query */
                         showRecyclerView(true);
-                        showProgressBar(true);
+
                         searchView.clearFocus();
                         mDictionarySearchLayout.setVisibility(View.GONE);
                         if(checkBoxDictionary.isChecked() && checkBoxRomaji.isChecked()) {
+                            showProgressBar(true);
                             mCallback.runDictionarySearch(query.trim(),"Kanji");
                         } else if(checkBoxDictionary.isChecked() && checkBoxDefinition.isChecked()) {
+                            showProgressBar(true);
                             mCallback.runDictionarySearch(query.trim(),"Definition");
                         } else if(checkBoxTwitter.isChecked() && checkBoxRomaji.isChecked()) {
                             if(mCallback.isOnline()) {
+                                showProgressBar(true);
                                 mCallback.runTwitterSearch(query.trim(),"User");
                             } else {
                                 Toast.makeText(getContext(), "Device is not online", Toast.LENGTH_SHORT).show();
                             }
                         } else if(checkBoxTwitter.isChecked() && checkBoxDefinition.isChecked()) {
                             if(mCallback.isOnline()) {
-                            mCallback.runTwitterSearch(query.trim(),"Tweet");
+                                showProgressBar(true);
+                                mCallback.runTwitterSearch(query.trim(),"Tweet");
                             } else {
                                 Toast.makeText(getContext(), "Device is not online", Toast.LENGTH_SHORT).show();
                             }
@@ -361,6 +366,21 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                     }
                 }
             });
+
+            rxBus.toLongClickObserverable().subscribe(new Action1<Object>() {
+                @Override
+                public void call(Object event) {
+                    if (event instanceof WordEntry) {
+                        WordEntry wordEntry = (WordEntry) event;
+                        WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(wordEntry);
+                        wordDetailPopupDialog.setTargetFragment(SearchFragment.this, 0);
+                        wordDetailPopupDialog.show(getFragmentManager(),"wordDetailPopup");
+                    }
+                }
+            });
+
+
+
             mRecyclerView.setAdapter(mDictionaryAdapter);
 //            mRecyclerView.setVerticalScrollBarEnabled(true);
         } else {

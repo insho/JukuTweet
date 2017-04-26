@@ -22,6 +22,6 @@ public interface DialogInteractionListener {
     void showFab(boolean show);
     void saveAndUpdateMyLists(String kanjiIdString, ArrayList<MyListEntry> listsToCopyTo, boolean move, MyListEntry currentList);
     void saveAndUpdateTweetLists(String tweetIds, ArrayList<MyListEntry> listsToCopyTo, boolean move, MyListEntry currentList);
-
+    boolean isOnline();
     void onBackPressed();
 }

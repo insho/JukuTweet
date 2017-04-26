@@ -149,6 +149,9 @@ public class MenuHeader implements  Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(this.headerTitle);
+        if(this.colorBlockMeasurables==null) {
+            this.colorBlockMeasurables = new ColorBlockMeasurables();
+        }
         dest.writeParcelable(this.colorBlockMeasurables,flags);
         dest.writeStringList(this.childOptions);
         dest.writeByte((byte) (this.showLblHeaderCount ? 1 : 0));

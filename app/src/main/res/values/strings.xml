@@ -16,6 +16,12 @@
     <string name="notweets">no tweets found</string>
     <string name="nousers">no users found</string>
     <string name="notimeline_nointernet">Unable to access timeline. No internet.</string>
+    <string name="nousers_nointernet">Unable to access users. No internet.</string>
+
+    <string name="notimeline_for_user">Unable to get timeline for %1$s?</string>
+
+
+    <string name="nointernet">No internet.</string>
 
 
 

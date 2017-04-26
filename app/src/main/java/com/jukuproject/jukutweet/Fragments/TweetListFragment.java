@@ -43,7 +43,7 @@ import java.util.Arrays;
  * Shows user-created lists of vocabulary
  */
 
-public class SavedTweetsListFragment extends Fragment {
+public class TweetListFragment extends Fragment {
 
     String TAG = "SavedTweetsAll";
     FragmentInteractionListener mCallback;
@@ -54,16 +54,16 @@ public class SavedTweetsListFragment extends Fragment {
     private SharedPrefManager sharedPrefManager;
     private UserInfo mUserInfo;
 
-    public static SavedTweetsListFragment newInstance() {
-//        SavedTweetsListFragment fragment = new SavedTweetsListFragment();
+    public static TweetListFragment newInstance() {
+//        TweetListFragment fragment = new TweetListFragment();
 //        Bundle args = new Bundle();
 //        args.putParcelable("userInfo", null);
 //        fragment.setArguments(args);
-        return new SavedTweetsListFragment();
+        return new TweetListFragment();
     }
 
-    public static SavedTweetsListFragment newInstance(UserInfo userInfo) {
-        SavedTweetsListFragment fragment = new SavedTweetsListFragment();
+    public static TweetListFragment newInstance(UserInfo userInfo) {
+        TweetListFragment fragment = new TweetListFragment();
         Bundle args = new Bundle();
         args.putParcelable("userInfo", userInfo);
         fragment.setArguments(args);
@@ -195,11 +195,11 @@ public class SavedTweetsListFragment extends Fragment {
                 switch (childOption) {
                     case "Browse/Edit":
                         if(mUserInfo != null) {
-                            SavedTweetsBrowseFragment fragment = SavedTweetsBrowseFragment.newInstance(mUserInfo);
+                            TweetListBrowseFragment fragment = TweetListBrowseFragment.newInstance(mUserInfo);
                             ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"savedtweetsbrowse");
                         } else {
 
-                            SavedTweetsBrowseFragment fragment = SavedTweetsBrowseFragment.newInstance(new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle()
+                            TweetListBrowseFragment fragment = TweetListBrowseFragment.newInstance(new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle()
                                                                                                                         ,mMenuHeader.get(groupPosition).getSystemList()));
                             ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"savedtweetsbrowse");
                         }

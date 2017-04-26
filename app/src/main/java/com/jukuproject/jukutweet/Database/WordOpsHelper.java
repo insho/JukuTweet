@@ -788,7 +788,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
 
         String topBottomSort;
         if(topOrBottom.equals("Top")) {
-            topBottomSort = "and [ColorSort]>0 ORDER BY [ColorSort] desc, [Percent] desc,[Total] desc ";
+            topBottomSort = "Where [ColorSort]>0 ORDER BY [ColorSort] desc, [Percent] desc,[Total] desc ";
         } else {
             topBottomSort = "ORDER BY [ColorSort] asc, [Percent] asc,[Total] desc ";
         }
@@ -838,7 +838,8 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     "from [JScoreboard]  " +
                     "GROUP BY [_id]" +
                     ") " +
-                    ") Where [Total] >= 1 " + topBottomSort + " LIMIT " + totalCountLimit,new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+                    ")  " + topBottomSort + " LIMIT " + totalCountLimit,new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+//                    ") Where [Total] >= 1 " + topBottomSort + " LIMIT " + totalCountLimit,new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
 
 
             if(c.getCount() == 0) {
@@ -852,7 +853,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
                 if(wordEntries.size()<totalCountLimit
                         && ((topOrBottom.equals("Bottom") && c.getFloat(4)<=topbottomThreshold) || (topOrBottom.equals("Top") && c.getFloat(4)>0))) {
 
-                    if(idsToExclude != null && !idsToExclude.contains(c.getInt(0))) {
+                    if(idsToExclude == null || !idsToExclude.contains(c.getInt(0))) {
                         WordEntry wordEntry = new WordEntry();
                         wordEntry.setId(c.getInt(0));
                         wordEntry.setKanji(c.getString(1));

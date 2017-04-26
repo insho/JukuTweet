@@ -360,7 +360,6 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
             }
         }
 
-
         showDisectedTweet(mTweet.getWordEntries(),sentence,txtSentence);
 
     } else if(mTweet.getWordEntries()==null) {
