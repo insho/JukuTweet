@@ -33,6 +33,7 @@ import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
 import com.jukuproject.jukutweet.Models.FillinSentencesSpinner;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.Tweet;
+import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
@@ -59,7 +60,10 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
     double mTotalWeight;
     MyListEntry mMyListEntry;
     String mColorString;
+    private UserInfo mUserInfo;
 
+    private boolean mSingleUser; //Designates whether the quiz activity is from a single user saved tweets (true), or a tweet/word list (false)
+    //    private Integer tabStripHeight;
     int currentLineWidth = 0;
     int displayWidth = 0;
     int displayMarginPadding = 30; //How much to pad the edge of the screen by when laying down the sentenceblocks (so the sentence doesn't overlap the screen or get cut up too much)
@@ -91,7 +95,24 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
         return  fragment;
     }
 
+    public static FillInTheBlankFragment newSingleUserInstance(ArrayList<Tweet> tweets
+            , String quizSize
+            , double totalWeight
+            , String colorString
+            , UserInfo userInfo
+    ) {
 
+        FillInTheBlankFragment fragment = new FillInTheBlankFragment();
+        Bundle args = new Bundle();
+        args.putParcelableArrayList("tweets", tweets);
+        args.putString("quizSize",quizSize);
+        args.putDouble("totalWeight",totalWeight);
+        args.putString("colorString",colorString);
+        args.putParcelable("userInfo",userInfo);
+        args.putBoolean("singleUser",true);
+        fragment.setArguments(args);
+        return  fragment;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater,
@@ -122,13 +143,16 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
             currentTotal = savedInstanceState.getInt("currentTotal");
             currentCorrect = savedInstanceState.getInt("currentCorrect");
             currentLineWidth = savedInstanceState.getInt("currentLineWidth");
+            mUserInfo = savedInstanceState.getParcelable("mUserInfo");
+            mSingleUser = savedInstanceState.getBoolean("mSingleUser",false);
         } else {
             mDataset = getArguments().getParcelableArrayList("tweets");
             mQuizSize = Integer.parseInt(getArguments().getString("quizSize"));
             mTotalWeight = getArguments().getDouble("totalWeight");
             mColorString = getArguments().getString("colorString");
             mMyListEntry = getArguments().getParcelable("myListEntry");
-
+            mUserInfo = getArguments().getParcelable("mUserInfo");
+            mSingleUser = getArguments().getBoolean("mSingleUser",false);
         }
 
 
@@ -239,10 +263,20 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
 
                     //Move to stats if we have reached the end of the quiz
                     if(currentTotal>= mQuizSize) {
-                        mCallback.showPostQuizStatsFillintheBlanks(mDataset
-                                ,mMyListEntry
-                                ,currentCorrect
-                                ,currentTotal);
+
+                        if(mSingleUser) {
+                            mCallback.showPostQuizStatsFillintheBlanksForSingleUsersTweets(mDataset
+                                    ,mUserInfo
+                                    ,currentCorrect
+                                    ,currentTotal);
+
+                        } else {
+                            mCallback.showPostQuizStatsFillintheBlanks(mDataset
+                                    ,mMyListEntry
+                                    ,currentCorrect
+                                    ,currentTotal);
+
+                        }
                     } else if(currentDataSetindex >= mDataset.size()) {
                         Collections.shuffle(mDataset);
                         currentDataSetindex = 0;
@@ -687,6 +721,8 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
         outState.putInt("currentTotal", currentTotal);
         outState.putInt("currentCorrect",currentCorrect);
         outState.putInt("currentLineWidth",currentLineWidth);
+        outState.putBoolean("mSingleUser",mSingleUser);
+        outState.putParcelable("mUserInfo",mUserInfo);
     }
 
 

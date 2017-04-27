@@ -36,6 +36,7 @@ import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MultChoiceResult;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.Tweet;
+import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.TabContainers.PostQuizTab1Container;
 import com.jukuproject.jukutweet.TabContainers.PostQuizTab2Container;
@@ -715,12 +716,18 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
     /**
      * Methods pertaining to the fab redo button
      */
-
+        //TODO REMOVE THISN HERE? LIKE MAKE A SEPARATE INTERFACE?
     public void showFlashCardFragment(int tabNumber
             , MyListEntry listEntry
             , String frontValue
             , String backValue
             , String selectedColorString) {};
+    public void showSingleUserFlashCardFragment(int tabNumber
+            , UserInfo userInfo
+            , String frontValue
+            , String backValue
+            , String selectedColorString) {};
+
 
     public void goToQuizActivityMultipleChoice(int tabNumber
             , MyListEntry listEntry

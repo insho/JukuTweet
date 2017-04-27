@@ -256,12 +256,12 @@ public class UserListFragment extends Fragment {
         Log.d(TAG,"NOW ADDING FRAGMENT TO STACK");
         mCallback.showActionBarBackButton(true,userInfo.getDisplayScreenName());
 
-//                                    mCallback.changePagerTitle(0,"Timeline");
+//      mCallback.changePagerTitle(0,"Timeline");
         mCallback.showSavedTweetsTabForIndividualUser(userInfo);
         mCallback.updateTabs(new String[]{"Timeline","Saved Tweets"});
         ((BaseContainerFragment)getParentFragment()).replaceFragment(UserTimeLineFragment.newInstance(userInfo), true,"timeline");
         mCallback.showFab(false);
-    };
+    }
 
     /**
      * Checks how many milliseconds have elapsed since the last time "mLastClickTime" was updated

@@ -63,4 +63,9 @@ public interface TweetListOperationsInterface {
 
     void deleteTweetIfNecessary(String concatenatedTweetIds);
 
+    ArrayList<WordEntry> getWordsFromAUsersSavedTweets(UserInfo userInfo
+            , ColorThresholds colorThresholds
+            , String colorString
+            , @Nullable Integer excludeIdInteger
+            , @Nullable Integer resultLimit);
 }

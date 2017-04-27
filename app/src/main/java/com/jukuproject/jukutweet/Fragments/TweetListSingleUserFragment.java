@@ -30,6 +30,7 @@ import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MenuHeader;
 import com.jukuproject.jukutweet.Models.MyListEntry;
+import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
 
@@ -42,40 +43,29 @@ import java.util.Arrays;
  * Shows user-created lists of vocabulary
  */
 
-public class TweetListFragment extends Fragment {
+public class TweetListSingleUserFragment extends Fragment {
 
-    String TAG = "SavedTweetsAll";
+    String TAG = "TEST-TweetLstSin";
     FragmentInteractionListener mCallback;
     SavedTweetsExpandableAdapter SavedTweetsFragmentAdapter;
     ExpandableListView expListView;
     ArrayList<MenuHeader> mMenuHeader;
     private int lastExpandedPosition = -1;
     private SharedPrefManager sharedPrefManager;
-//    private UserInfo mUserInfo;
+    private UserInfo mUserInfo;
 
-    public static TweetListFragment newInstance() {
-//        TweetListFragment fragment = new TweetListFragment();
-//        Bundle args = new Bundle();
-//        args.putParcelable("userInfo", null);
-//        fragment.setArguments(args);
-        return new TweetListFragment();
+    public static TweetListSingleUserFragment newInstance(UserInfo userInfo) {
+        TweetListSingleUserFragment fragment = new TweetListSingleUserFragment();
+        Bundle args = new Bundle();
+        args.putParcelable("userInfo", userInfo);
+        fragment.setArguments(args);
+        return fragment;
     }
-
-//    public static TweetListFragment newInstance(UserInfo userInfo) {
-//        TweetListFragment fragment = new TweetListFragment();
-//        Bundle args = new Bundle();
-//        args.putParcelable("userInfo", userInfo);
-//        fragment.setArguments(args);
-//        return fragment;
-//    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-
         View v = inflater.inflate(R.layout.fragment_mylists, container, false);
         expListView = (ExpandableListView) v.findViewById(R.id.lvMyListCategory);
-
-
         return v;
     }
 
@@ -87,37 +77,13 @@ public class TweetListFragment extends Fragment {
         expListView.setClickable(true);
 
         if(savedInstanceState == null) {
-//            mUserInfo = null;
-//            if (getArguments() != null && ((mUserInfo = getArguments().getParcelable("userInfo")) != null)) {
-//                // do something with task
-//                prepareListData(mUserInfo);
-//
-//            } else {
-//                prepareListData();
-                mCallback.showProgressBar(false);
-//            }
-
+            mUserInfo = getArguments().getParcelable("userInfo");
+            mCallback.showProgressBar(false);
+            prepareListData(mUserInfo);
         } else {
             mMenuHeader = savedInstanceState.getParcelableArrayList("mMenuHeader");
-
             lastExpandedPosition = savedInstanceState.getInt("lastExpandedPosition");
-
-//            if ((mUserInfo = savedInstanceState.getParcelable("mUserInfo")) != null) {
-//                // do something with task
-//                prepareListData(mUserInfo);
-//            } else {
-//                prepareListData();
-//            }
-
         }
-        prepareListData();
-//        if(mUserInfo != null) {
-//            prepareListData(mUserInfo);
-//        } else {
-//            prepareListData(null);
-//        }
-
-
 
         SavedTweetsFragmentAdapter = new SavedTweetsExpandableAdapter(getContext(),mMenuHeader,getdimenscore(.36f),0);
 
@@ -126,7 +92,6 @@ public class TweetListFragment extends Fragment {
             @Override
             public boolean onGroupClick(ExpandableListView parent, View v,
                                         int groupPosition, long id) {
-
 
                 //If the list being clicked on is empty, show (or hide) the "(empty)" header label
                 if(mMenuHeader.get(groupPosition).getColorBlockMeasurables().getTotalCount() == 0) {
@@ -188,40 +153,31 @@ public class TweetListFragment extends Fragment {
 
                 switch (childOption) {
                     case "Browse/Edit":
-//                        if(mUserInfo != null) {
-//                            TweetListBrowseFragment fragment = TweetListBrowseFragment.newInstance(mUserInfo);
-//                            ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"savedtweetsbrowse");
-//                        } else {
-
-                            TweetListBrowseFragment fragment = TweetListBrowseFragment.newInstance(new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle()
-                                                                                                                        ,mMenuHeader.get(groupPosition).getSystemList()));
+                            TweetListBrowseFragment fragment = TweetListBrowseFragment.newInstance(mUserInfo);
                             ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"savedtweetsbrowse");
-//                        }
                         break;
 
                     case "Flash Cards":
                         if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
-                            QuizMenuDialog.newInstance("flashcards"
+                            QuizMenuDialog.newSingleUserInstance("flashcards"
                                     ,1
                                     ,lastExpandedPosition
-                                    ,mMenuHeader.get(groupPosition).getMyListEntry()
+                                    ,mUserInfo
                                     ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
                                     ,getdimenscore(.5f)).show(getActivity().getSupportFragmentManager()
                                     ,"dialogQuizMenu");
                             mCallback.showFab(false,"");
                         }
-
                         break;
 
                     case "Multiple Choice":
                         if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
-                            QuizMenuDialog.newInstance("multiplechoice"
+                            QuizMenuDialog.newSingleUserInstance("multiplechoice"
                                     ,1
                                     ,lastExpandedPosition
-                                    ,mMenuHeader.get(groupPosition).getMyListEntry()
+                                    ,mUserInfo
                                     ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
                                     ,getdimenscore(.5f)).show(getActivity().getSupportFragmentManager(),"dialogQuizMenu");
-//                            mCallback.showFab(false,"");
                         }
 
 
@@ -229,13 +185,12 @@ public class TweetListFragment extends Fragment {
 
                     case "Fill in the Blanks":
                         if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
-                            QuizMenuDialog.newInstance("fillintheblanks"
+                            QuizMenuDialog.newSingleUserInstance("fillintheblanks"
                                     ,1
                                     ,lastExpandedPosition
-                                    ,mMenuHeader.get(groupPosition).getMyListEntry()
+                                    ,mUserInfo
                                     ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
                                     ,getdimenscore(.5f)).show(getActivity().getSupportFragmentManager(),"dialogQuizMenu");
-//                            mCallback.showFab(false,"");
                         }
 
                         break;
@@ -251,15 +206,6 @@ public class TweetListFragment extends Fragment {
                         ((BaseContainerFragment)getParentFragment()).replaceFragment(statsFragmentProgress, true,"tweetlistbrowse");
                         mCallback.showFab(false,"");
                         break;
-//                        MyListEntry myListEntry = new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).getSystemList());
-//                        ColorBlockMeasurables colorBlockMeasurables = prepareColorBlockDataForList(myListEntry);
-//
-//
-//                        StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newInstance(myListEntry
-//                                , 10
-//                                ,colorBlockMeasurables);
-//                        ((BaseContainerFragment)getParentFragment()).replaceFragment(statsFragmentProgress, true,"mylistbrowse");
-//                        mCallback.showFab(false,"");
 
 
 
@@ -294,7 +240,7 @@ public class TweetListFragment extends Fragment {
 //        setRetainInstance(true);
     }
 
-    public void prepareListData() {
+    public void prepareListData(UserInfo userInfo) {
         mMenuHeader = new ArrayList<>();
 
         ArrayList<String> availableFavoritesStars = sharedPrefManager.getActiveTweetFavoriteStars();
@@ -302,34 +248,19 @@ public class TweetListFragment extends Fragment {
         ArrayList<String> childOptions = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.menu_mylist)));
 
         Cursor c;
-//        if(userInfo != null) {
-//            c = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListColorBlocksCursorForSingleUser(colorThresholds,userInfo.getUserId());
-//        } else {
-
-            c = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListColorBlocksCursor(colorThresholds,null);
-//        }
+            c = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListColorBlocksCursorForSingleUser(colorThresholds,userInfo.getUserId());
         if(c.getCount()>0) {
             c.moveToFirst();
             while (!c.isAfterLast()) {
 
-//                if(BuildConfig.DEBUG){Log.d(TAG,"NAME: ==" + c.getString(0)
-//                        + "==, SYS: " + c.getString(1)
-//                        + ", TOTAL: " + c.getString(2)
-//                        + ", GREY: " + c.getString(3)
-//                        + ", (4): " + c.getString(4)+ ", (5): " + c.getString(5));}
-
                 /* We do not want to include favorites star lists that are not active in the user
                 * preferences. So if an inactivated list shows up in the sql query, ignore it (don't add to mMenuHeader)*/
 
-//                Log.d(TAG,"availableFavoritesStars: " + availableFavoritesStars);
                 if(c.getInt(1) != 1 || (availableFavoritesStars.contains(c.getString(0)))) {
                     MenuHeader menuHeader = new MenuHeader();
-//                    if(userInfo!=null) {
-//                        menuHeader.setHeaderTitle(userInfo.getDisplayScreenName());
-//                    } else {
-                        menuHeader.setHeaderTitle(c.getString(0));
-//                    }
-//                    MenuHeader menuHeader = new MenuHeader(c.getString(0));
+
+                    menuHeader.setHeaderTitle(userInfo.getDisplayScreenName());
+
                     menuHeader.setChildOptions(childOptions);
                     menuHeader.setMyList(false);
 
@@ -366,10 +297,9 @@ public class TweetListFragment extends Fragment {
 
                 c.moveToNext();
             }
+        } else if(mUserInfo!=null){
+            mMenuHeader.add(new MenuHeader(mUserInfo.getDisplayScreenName()));
         }
-//        else if(mUserInfo!=null){
-//            mMenuHeader.add(new MenuHeader(mUserInfo.getDisplayScreenName()));
-//        }
         c.close();
     }
 
@@ -392,14 +322,11 @@ public class TweetListFragment extends Fragment {
             colorBlockMeasurables.setGreenCount(c.getInt(6));
             colorBlockMeasurables.setEmptyCount(0);
 
-
             colorBlockMeasurables.setGreyMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreyCount())));
             colorBlockMeasurables.setRedMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getRedCount())));
             colorBlockMeasurables.setYellowMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getYellowCount())));
             colorBlockMeasurables.setGreenMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreenCount())));
             colorBlockMeasurables.setEmptyMinWidth(0);
-
-
 
             c.moveToNext();
         } else {
@@ -465,22 +392,16 @@ public class TweetListFragment extends Fragment {
             result += padding;
         }
         return result;
-
     }
 
     public void updateMyListAdapter() {
-//        if(mUserInfo!= null && mUserInfo.getScreenName() != null) {
-//            prepareListData(mUserInfo);
-//        } else {
-            prepareListData();
-//        }
+        prepareListData(mUserInfo);
         SavedTweetsFragmentAdapter = new SavedTweetsExpandableAdapter(getContext(),mMenuHeader,getdimenscore(.36f),0);
         expListView.setAdapter(SavedTweetsFragmentAdapter);
         //Expand the last expanded position (or expand first availalbe non-empty list)
         if(lastExpandedPosition >=0) {
             expandTheListViewAtPosition(lastExpandedPosition);
         }
-//        expListView.invalidateViews();
     }
 
     @Override
@@ -500,7 +421,7 @@ public class TweetListFragment extends Fragment {
         super.onSaveInstanceState(outState);
 
         outState.putInt("lastExpandedPosition", lastExpandedPosition);
-//        outState.putParcelable("mUserInfo", mUserInfo);
+        outState.putParcelable("mUserInfo", mUserInfo);
         outState.putParcelableArrayList("mMenuHeader", mMenuHeader);
     }
 

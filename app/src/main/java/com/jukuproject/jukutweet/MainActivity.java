@@ -41,6 +41,7 @@ import com.jukuproject.jukutweet.Fragments.FlashCardsFragment;
 import com.jukuproject.jukutweet.Fragments.SearchFragment;
 import com.jukuproject.jukutweet.Fragments.TweetListBrowseFragment;
 import com.jukuproject.jukutweet.Fragments.TweetListFragment;
+import com.jukuproject.jukutweet.Fragments.TweetListSingleUserFragment;
 import com.jukuproject.jukutweet.Fragments.WordListBrowseFragment;
 import com.jukuproject.jukutweet.Fragments.WordListFragment;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
@@ -1095,12 +1096,11 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     public void showSavedTweetsTabForIndividualUser(UserInfo userInfo){
 
         try {
-            TweetListFragment tweetListFragment = TweetListFragment.newInstance(userInfo);
-            ((BaseContainerFragment)findFragmentByPosition(1)).replaceFragment(tweetListFragment,true,"savedTweetsAllFragmentIndividual");
+            TweetListSingleUserFragment tweetListSingleUserFragment = TweetListSingleUserFragment.newInstance(userInfo);
+            ((BaseContainerFragment)findFragmentByPosition(1)).replaceFragment(tweetListSingleUserFragment,true,"savedTweetsAllFragmentIndividual");
         } catch (Exception e) {
             Log.e("TEST","showSavedTweetsTabForIndividualUser failed");
         }
-
     }
 
     //Traffic control from CopyDialog to BrowseItemsFragment
@@ -1177,6 +1177,31 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
 
     }
+    public void showSingleUserFlashCardFragment(int tabNumber
+            , UserInfo userInfo
+            , String frontValue
+            , String backValue
+            ,String selectedColorString) {
+
+        //Pull data for flashcard fragment
+        if(tabNumber == 1) {
+            //Its a mylist fragment
+            ArrayList<WordEntry> dataset = InternalDB.getTweetInterfaceInstance(getBaseContext())
+                    .getWordsFromAUsersSavedTweets(userInfo
+                            ,SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
+                            ,selectedColorString
+                            ,null
+                            ,null);
+
+            if(findFragmentByPosition(tabNumber) != null
+                    && findFragmentByPosition(tabNumber) instanceof Tab2Container) {
+
+                FlashCardsFragment flashCardsFragment = FlashCardsFragment.newInstance(dataset,frontValue,backValue);
+                ((BaseContainerFragment)findFragmentByPosition(tabNumber)).replaceFragment(flashCardsFragment,true,"flashcards");
+            }
+        }
+
+    }
 
     public void goToQuizActivityMultipleChoice(int tabNumber
             , MyListEntry listEntry
@@ -1196,7 +1221,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         ArrayList<WordEntry> dataset = new ArrayList<>();
         String dataType = "";
         if (tabNumber == 1) {
-            //Its a mylist fragment
+            //Its a tweetlist fragment
 
             dataset = InternalDB.getTweetInterfaceInstance(getBaseContext())
                     .getWordsFromATweetList(listEntry
@@ -1207,7 +1232,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             dataType = "Tweet";
 
         } else if (tabNumber == 2) {
-
 
             //Its a mylist fragment
             dataset = InternalDB.getWordInterfaceInstance(getBaseContext())
@@ -1244,9 +1268,65 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
           } else {
                 Toast.makeText(this, "No words found to quiz on", Toast.LENGTH_SHORT).show();
             }
+    }
+
+
+    public void goToSingleUserQuizActivityMultipleChoice(int tabNumber
+            , UserInfo userInfo
+            ,Integer currentExpandedPosition
+            , String quizType
+            , String quizSize
+            , String quizTimer
+            , String selectedColorString) {
+
+        Integer timer = -1;
+        if (!quizTimer.equals("None")) {
+            timer = Integer.parseInt(quizTimer);
+        }
+
+//        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getApplicationContext()).getColorThresholds();
+
+        ArrayList<WordEntry> dataset = new ArrayList<>();
+        String dataType = "";
+        if (tabNumber == 1) {
+            //Its a mylist fragment
+
+            dataset = InternalDB.getTweetInterfaceInstance(getBaseContext())
+                    .getWordsFromAUsersSavedTweets(userInfo
+                            , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
+                            , selectedColorString
+                            , null
+                            , Integer.parseInt(quizSize));
+            dataType = "Tweet";
+
+        }
+
+        if(dataset.size()>0) {
+            double totalweight = assignWordWeightsAndGetTotalWeight(getBaseContext(),dataset);
+
+
+            Intent intent = new Intent(getBaseContext(), QuizActivity.class);
+
+            intent.putExtra("singleUser",true); //The type of quiz that was chosen inthe menu
+            intent.putExtra("typeOfQuizThatWasCompleted","Multiple Choice"); //The type of quiz that was chosen inthe menu
+            intent.putExtra("quizType",quizType); //Multiple choice quiz option (Kanji to Definition, etc)
+            intent.putExtra("tabNumber", 2);
+            intent.putExtra("userInfo",userInfo);
+            intent.putExtra("quizSize",quizSize);
+            intent.putExtra("colorString",selectedColorString);
+            intent.putExtra("timer",quizTimer); //Timer can be "none" so passing it on raw as string
+            intent.putExtra("totalweight",totalweight);
+            intent.putParcelableArrayListExtra("dataset",dataset);
+            intent.putExtra("dataType",dataType);
+            intent.putExtra("lastExpandedPosition",currentExpandedPosition);
 
 
 
+            Log.d(TAG,"a TIMER: " + quizTimer);
+            startActivity(intent);
+        } else {
+            Toast.makeText(this, "No words found to quiz on", Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void goToQuizActivityFillintheBlanks(int tabNumber
@@ -1291,6 +1371,56 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             intent.putExtra("typeOfQuizThatWasCompleted","Fill in the Blanks"); //The type of quiz that was chosen inthe menu
             intent.putExtra("tabNumber", tabNumber);
             intent.putExtra("myListEntry",myListEntry);
+            intent.putExtra("quizSize",quizSize);
+            intent.putExtra("colorString",selectedColorString);
+            intent.putExtra("totalweight",totalweight);
+            Log.d(TAG,"dataset isspinner: " + dataset.get(0).getWordEntries().get(1).getKanji() + ", spinner: "
+                    + dataset.get(0).getWordEntries().get(1).isSpinner());
+            intent.putParcelableArrayListExtra("dataset",dataset);
+            intent.putExtra("dataType",dataType);
+            intent.putExtra("lastExpandedPosition",currentExpandedPosition);
+
+            showFab(false);
+
+            startActivity(intent);
+
+        } else {
+            Toast.makeText(this, "No tweets found to quiz on", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    public void goToSingleUserQuizActivityFillintheBlanks(int tabNumber
+            , UserInfo userInfo
+            , Integer currentExpandedPosition
+            , String quizSize
+            , String selectedColorString) {
+
+//        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getApplicationContext()).getColorThresholds();
+        ArrayList<Tweet> dataset = new ArrayList<>();
+        String dataType = "";
+
+        if (tabNumber == 1) {
+
+            //The request is coming from the saved tweets fragment
+            dataset = InternalDB.getQuizInterfaceInstance(getBaseContext())
+                    .getFillintheBlanksTweetsForAUser(userInfo
+                            , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
+                            , selectedColorString
+                            , Integer.parseInt(quizSize));
+
+            dataType = "Tweet";
+        }
+
+        if(dataset.size()>0) {
+            double totalweight = assignTweetWeightsAndGetTotalWeight(dataset);
+
+            Intent intent = new Intent(getBaseContext(), QuizActivity.class);
+
+            intent.putExtra("singleUser",true); //The type of quiz that was chosen in the menu
+            intent.putExtra("typeOfQuizThatWasCompleted","Fill in the Blanks"); //The type of quiz that was chosen inthe menu
+            intent.putExtra("tabNumber", tabNumber);
+            intent.putExtra("userInfo",userInfo);
             intent.putExtra("quizSize",quizSize);
             intent.putExtra("colorString",selectedColorString);
             intent.putExtra("totalweight",totalweight);

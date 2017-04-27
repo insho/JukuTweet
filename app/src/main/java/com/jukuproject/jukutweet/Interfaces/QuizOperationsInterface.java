@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.Tweet;
+import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
 
 import java.util.ArrayList;
@@ -46,6 +47,10 @@ public interface QuizOperationsInterface {
     ArrayList<Integer> getIdsForWordList(MyListEntry myListEntry);
     boolean addWordScoreToScoreBoard(int wordId, int total, int correct);
 
+    ArrayList<Tweet> getFillintheBlanksTweetsForAUser(UserInfo userInfo
+            , ColorThresholds colorThresholds
+            , String colorString
+            , @Nullable Integer resultLimit);
 
 //    void superTest(MyListEntry myListEntry
 //            , ColorThresholds colorThresholds

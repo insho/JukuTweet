@@ -28,6 +28,7 @@ import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
 import com.jukuproject.jukutweet.Models.DropDownMenuOption;
 import com.jukuproject.jukutweet.Models.MyListEntry;
+import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.R;
 
 import java.util.ArrayList;
@@ -51,7 +52,8 @@ public class QuizMenuDialog extends DialogFragment {
     private int mTabNumber;
     private int mCurrentExpandedPosition;
     private MyListEntry mMyListEntry;
-
+    private UserInfo mUserInfo;
+    private boolean mSingleUser; // Signifies whether menu is for a normal mylist, or a single users saved tweet list
 
     private ColorBlockMeasurables mColorBlockMeasurables;
     private int mAvailablePopupWidth;
@@ -81,23 +83,43 @@ public class QuizMenuDialog extends DialogFragment {
         args.putParcelable("myListEntry",myListEntry);
         args.putParcelable("colorBlockMeasurables",colorBlockMeasurables);
         args.putInt("availablePopupWidth",availablePopupWidth);
+        args.putBoolean("singleUserFragment",false);
+        frag.setArguments(args);
+        return frag;
+    }
+
+    public static QuizMenuDialog newSingleUserInstance(String quizType
+            , int tabNumber
+            ,int currentExpandedPosition
+            , UserInfo userInfo
+            , ColorBlockMeasurables colorBlockMeasurables
+            , int availablePopupWidth) {
+
+        QuizMenuDialog frag = new QuizMenuDialog();
+        Bundle args = new Bundle();
+        args.putString("quizType", quizType);
+        args.putInt("tabNumber",tabNumber);
+        args.putInt("currentExpandedPosition",currentExpandedPosition);
+        args.putParcelable("userInfo",userInfo);
+        args.putParcelable("colorBlockMeasurables",colorBlockMeasurables);
+        args.putInt("availablePopupWidth",availablePopupWidth);
+        args.putBoolean("singleUserFragment",true);
         frag.setArguments(args);
         return frag;
     }
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-
+        mSingleUser = getArguments().getBoolean("singleUserFragment");
         quizType = getArguments().getString("quizType");
         mMyListEntry = getArguments().getParcelable("myListEntry");
+        mUserInfo = getArguments().getParcelable("userInfo");
         mColorBlockMeasurables = getArguments().getParcelable("colorBlockMeasurables");
         mAvailablePopupWidth = getArguments().getInt("availablePopupWidth");
         mTabNumber = getArguments().getInt("tabNumber");
         mCurrentExpandedPosition = getArguments().getInt("currentExpandedPosition");
 
-        //TODO make this a typed value or resource
         final int yadjustment = 5;
-
         final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         View  view = getActivity().getLayoutInflater().inflate(R.layout.dialogmenupopup, null);
 
@@ -255,31 +277,53 @@ public class QuizMenuDialog extends DialogFragment {
             public void onClick(DialogInterface dialog, int which) {
                 switch(quizType) {
                     case "flashcards":
-                        mCallback.showFlashCardFragment(mTabNumber
-                        , mMyListEntry
-                        , txtView1.getText().toString()
-                        , txtView2.getText().toString()
-                        , mColorBlockMeasurables.getSelectedColorString());
+                        if(mSingleUser) {
+                            mCallback.showSingleUserFlashCardFragment(mTabNumber
+                                    , mUserInfo
+                                    , txtView1.getText().toString()
+                                    , txtView2.getText().toString()
+                                    , mColorBlockMeasurables.getSelectedColorString());
+                        } else {
+                            mCallback.showFlashCardFragment(mTabNumber
+                                    , mMyListEntry
+                                    , txtView1.getText().toString()
+                                    , txtView2.getText().toString()
+                                    , mColorBlockMeasurables.getSelectedColorString());
+                        }
 
                         dialog.dismiss();
                         break;
                     case "multiplechoice":
-                        mCallback.goToQuizActivityMultipleChoice(mTabNumber
-                                , mMyListEntry
-                                , mCurrentExpandedPosition
-                                , txtView1.getText().toString()
-                                , txtView2.getText().toString()
-                                , txtView3.getText().toString()
-                                , mColorBlockMeasurables.getSelectedColorString());
+                        if(mSingleUser) {
+                            mCallback.goToSingleUserQuizActivityMultipleChoice(mTabNumber
+                                    , mUserInfo
+                                    , mCurrentExpandedPosition
+                                    , txtView1.getText().toString()
+                                    , txtView2.getText().toString()
+                                    , txtView3.getText().toString()
+                                    , mColorBlockMeasurables.getSelectedColorString());
+                        } else {
+                            mCallback.goToQuizActivityMultipleChoice(mTabNumber
+                                    , mMyListEntry
+                                    , mCurrentExpandedPosition
+                                    , txtView1.getText().toString()
+                                    , txtView2.getText().toString()
+                                    , txtView3.getText().toString()
+                                    , mColorBlockMeasurables.getSelectedColorString());
+                        }
 
                         dialog.dismiss();
                         break;
                     case "fillintheblanks":
-                        mCallback.goToQuizActivityFillintheBlanks(mTabNumber
-                                , mMyListEntry
-                                , mCurrentExpandedPosition
-                                , txtView2.getText().toString()
-                                , mColorBlockMeasurables.getSelectedColorString());
+                        if(mSingleUser) {
+
+                        } else {
+                            mCallback.goToSingleUserQuizActivityFillintheBlanks(mTabNumber
+                                    , mUserInfo
+                                    , mCurrentExpandedPosition
+                                    , txtView2.getText().toString()
+                                    , mColorBlockMeasurables.getSelectedColorString());
+                        }
 
                         dialog.dismiss();
                         break;

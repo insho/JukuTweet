@@ -30,6 +30,7 @@ import com.jukuproject.jukutweet.Interfaces.QuizFragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MultChoiceResult;
 import com.jukuproject.jukutweet.Models.MyListEntry;
+import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
@@ -55,6 +56,8 @@ public class MultipleChoiceFragment extends Fragment {
     double mTotalWeight;
     String mMyListType; //either "Word" or "Tweet" designating which list is being quizzed
     MyListEntry mMyListEntry;
+    UserInfo mUserInfo;
+    boolean mSingleUser;
     String mColorString;
     WordEntry currentCorrectAnswer;
     ArrayList<WordEntry> questionSet;
@@ -86,11 +89,10 @@ public class MultipleChoiceFragment extends Fragment {
     Integer totalheightofanswergrid; // This designates the individual size of the "answer" rows when the phone is in horizontal mode. It gets passed to the adapter and used there. Ignored if =0;
 
     private ArrayList<MultChoiceResult> questionResults;
-    Double sliderUpperBound = .50;
-    Double sliderLowerBound = .025;
-    int sliderCountMax = 30;
+//    Double sliderUpperBound = .50;
+//    Double sliderLowerBound = .025;
+//    int sliderCountMax = 30;
     int widthofquestionpane = 0;
-//    Integer tabStripHeightAdjustment = 0;
     private TextView txtTimer;
     public MultipleChoiceFragment() {
     }
@@ -115,7 +117,31 @@ public class MultipleChoiceFragment extends Fragment {
         args.putString("myListType", myListType);
         args.putString("colorString", colorString);
         args.putParcelable("myListEntry", myListEntry);
-//        args.putInt("tabStripHeightAdjustment",tabStripHeightAdjustment);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    public static MultipleChoiceFragment newInstanceSingleUser(ArrayList<WordEntry> wordEntries
+            , String quizType
+            , Integer quizTimer
+            , Integer quizSize
+            , double totalWeight
+            , String myListType
+            , String colorString
+            , UserInfo userInfo
+//            , Integer tabStripHeightAdjustment
+    ) {
+        MultipleChoiceFragment fragment = new MultipleChoiceFragment();
+        Bundle args = new Bundle();
+        args.putParcelableArrayList("wordEntries", wordEntries);
+        args.putString("quizType", quizType);
+        args.putInt("quizSize", quizSize);
+        args.putInt("quizTimer", quizTimer);
+        args.putDouble("totalWeight", totalWeight);
+        args.putString("myListType", myListType);
+        args.putString("colorString", colorString);
+        args.putParcelable("mUserInfo", userInfo);
+        args.putBoolean("mSingleUser",true);
         fragment.setArguments(args);
         return fragment;
     }
@@ -125,6 +151,7 @@ public class MultipleChoiceFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
 
         if(savedInstanceState == null) {
+
             //Set input global data
             mDataset = getArguments().getParcelableArrayList("wordEntries");
             mQuizType = getArguments().getString("quizType");
@@ -135,7 +162,8 @@ public class MultipleChoiceFragment extends Fragment {
             mColorString = getArguments().getString("colorString");
             mMyListEntry = getArguments().getParcelable("myListEntry");
 //            tabStripHeightAdjustment = getArguments().getInt("tabStripHeightAdjustment",0);
-
+            mUserInfo = getArguments().getParcelable("mUserInfo");
+            mSingleUser = getArguments().getBoolean("mSingleUser",false);
             questionResults = new ArrayList<>();
 
         } else {
@@ -157,6 +185,8 @@ public class MultipleChoiceFragment extends Fragment {
             questionResults = savedInstanceState.getParcelableArrayList("questionResults");
             millstogo = savedInstanceState.getLong("millstogo");
             currentCorrectAnswer = savedInstanceState.getParcelable("currentCorrectAnswer");
+            mUserInfo = savedInstanceState.getParcelable("mUserInfo");
+            mSingleUser = savedInstanceState.getBoolean("mSingleUser",false);
 //            tabStripHeightAdjustment = savedInstanceState.getInt("tabStripHeightAdjustment",0);
         }
 
@@ -250,7 +280,7 @@ public class MultipleChoiceFragment extends Fragment {
 //        long startTime = System.currentTimeMillis();
             questionSet.addAll(getIncorrectAnswerSet(getContext()
                     , mMyListType
-                    , mMyListEntry
+//                    , mMyListEntry
                     , SharedPrefManager.getInstance(getContext()).getColorThresholds()
                     , mColorString
                     , currentCorrectAnswer
@@ -523,14 +553,26 @@ public class MultipleChoiceFragment extends Fragment {
                 wrongAnswerIds.clear();
 
                 if (mQuizSize <= currentTotal) {
-                    mCallback.showPostQuizStatsMultipleChoice(questionResults
-                            , mQuizType
-                            , mMyListEntry
-                            , false
-                            , false
-                            , 0
-                            , currentCorrect
-                            , currentTotal);
+                    if(mSingleUser) {
+                        mCallback.showPostQuizStatsMultipleChoiceForSingleUsersTweets(questionResults
+                                , mQuizType
+                                , mUserInfo
+                                , false
+                                , false
+                                , 0
+                                , currentCorrect
+                                , currentTotal);
+                    } else {
+                        mCallback.showPostQuizStatsMultipleChoice(questionResults
+                                , mQuizType
+                                , mMyListEntry
+                                , false
+                                , false
+                                , 0
+                                , currentCorrect
+                                , currentTotal);
+
+                    }
 
                 } else {
                     setUpQuestion(true);
@@ -589,9 +631,9 @@ public class MultipleChoiceFragment extends Fragment {
 
 
     //Pull and initialize the other rows (the wrong answers)
-    public static ArrayList<WordEntry> getIncorrectAnswerSet(Context mContext
+    private ArrayList<WordEntry> getIncorrectAnswerSet(Context mContext
             , String myListType
-            , MyListEntry myListEntry
+//            , MyListEntry myListEntry
             , ColorThresholds colorThresholds
             , String colorString
             , WordEntry correctWordEntry
@@ -659,12 +701,15 @@ public class MultipleChoiceFragment extends Fragment {
             }
         } else if (myListType.equals("Tweet")) {
             Log.d("TEST-multchoice","pulling tweet incorrect answers from DB");
-            incorrectAnswerSet = InternalDB.getTweetInterfaceInstance(mContext).getWordsFromATweetList(myListEntry, colorThresholds, colorString, correctWordEntry.getId(), 5);
+            if(mSingleUser) {
+                incorrectAnswerSet = InternalDB.getTweetInterfaceInstance(mContext).getWordsFromAUsersSavedTweets(mUserInfo, colorThresholds, colorString, correctWordEntry.getId(), 5);
+            } else {
+                incorrectAnswerSet = InternalDB.getTweetInterfaceInstance(mContext).getWordsFromATweetList(mMyListEntry, colorThresholds, colorString, correctWordEntry.getId(), 5);
+            }
         } else {
 
             Log.d("TEST-multchoice","pulling regular word incorrect answers from DB");
-            incorrectAnswerSet = InternalDB.getWordInterfaceInstance(mContext).getWordsFromAWordList(myListEntry, colorThresholds, colorString, correctWordEntry.getId(), 5);
-
+                incorrectAnswerSet = InternalDB.getWordInterfaceInstance(mContext).getWordsFromAWordList(mMyListEntry, colorThresholds, colorString, correctWordEntry.getId(), 5);
         }
 
         Log.d("Test-multchoice","Initial pull wrong answer size: "+ incorrectAnswerSet.size());
@@ -746,32 +791,6 @@ public class MultipleChoiceFragment extends Fragment {
     }
 
 
-//    @Override
-//    public void onActivityCreated(Bundle savedInstanceState) {
-//        super.onActivityCreated(savedInstanceState);
-//
-//        if (savedInstanceState != null) {
-//
-//            mDataset = savedInstanceState.getParcelableArrayList("mDataset");
-//            mQuizType = savedInstanceState.getString("mQuizType");
-//            mQuizSize = savedInstanceState.getInt("mQuizSize");
-//            mQuizTimer = savedInstanceState.getInt("mQuizTimer");
-//            mTotalWeight = savedInstanceState.getDouble("mTotalWeight");
-//            mColorString = savedInstanceState.getString("mColorString");
-//            mMyListType = savedInstanceState.getString("mMyListType");
-//            mMyListEntry = savedInstanceState.getParcelable("mMyListEntry");
-//            questionSet = savedInstanceState.getParcelableArrayList("questionSet");
-//            currentTotal = savedInstanceState.getInt("currentTotal");
-//            currentCorrect = savedInstanceState.getInt("currentCorrect");
-//            currentPlusMinus = savedInstanceState.getInt("currentPlusMinus");
-//            wrongAnswerIds = savedInstanceState.getIntegerArrayList("wrongAnswerIds");
-//            previousId = savedInstanceState.getInt("previousId");
-//            isCorrectFirstTry = savedInstanceState.getBoolean("isCorrectFirstTry");
-//            questionResults = savedInstanceState.getParcelableArrayList("questionResults");
-//            millstogo = savedInstanceState.getLong("millstogo");
-//
-//        }
-//    }
 
 
 
@@ -823,7 +842,6 @@ public class MultipleChoiceFragment extends Fragment {
 
         if (coundDownTimer != null) {
             coundDownTimer.cancel();
-//            millstogo = 0;
         }
 
         outState.putParcelableArrayList("mDataset", mDataset);
@@ -844,9 +862,7 @@ public class MultipleChoiceFragment extends Fragment {
         outState.putBoolean("isCorrectFirstTry", isCorrectFirstTry);
         outState.putParcelable("currentCorrectAnswer",currentCorrectAnswer);
         outState.putParcelableArrayList("questionResults", questionResults);
-
-//        outState.putInt("tabStripHeightAdjustment", tabStripHeightAdjustment);
-
-
+        outState.putBoolean("mSingleUser",mSingleUser);
+        outState.putParcelable("mUserInfo",mUserInfo);
     }
 }

@@ -119,8 +119,8 @@ public class TweetListBrowseFragment extends Fragment {
                 mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mUserInfo,mColorThresholds);
                 mMyListEntry = null;
             } else {
-                //TODO kick user out
-
+                Toast.makeText(getContext(), "Unable to access tweets", Toast.LENGTH_SHORT).show();
+                mCallback.onBackPressed();
             }
         }
 
@@ -425,6 +425,7 @@ public class TweetListBrowseFragment extends Fragment {
             @Override
             public void onDismiss() {
                 if(mUserInfo!=null) {
+                    Log.d(TAG,"Dismiss listener is firing!");
                     InternalDB.getTweetInterfaceInstance(getContext()).deleteTweetIfNecessary(bulkTweetIds);
                 }
             }
@@ -433,8 +434,6 @@ public class TweetListBrowseFragment extends Fragment {
         popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.popup_drawable));
         popupWindow.setContentView(v);
         popupWindow.showAtLocation(mRecyclerView, Gravity.BOTTOM, 0, (int)(metrics.heightPixels / (float)9.5));
-        // create a single event in 10 seconds time
-
     }
 
 
