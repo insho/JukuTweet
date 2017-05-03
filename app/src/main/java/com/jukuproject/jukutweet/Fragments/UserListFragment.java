@@ -15,7 +15,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Adapters.UserListAdapter;
-import com.jukuproject.jukutweet.BaseContainerFragment;
 import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.UserDetailPopupDialog;
@@ -23,6 +22,7 @@ import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.R;
+import com.jukuproject.jukutweet.TabContainers.BaseContainerFragment;
 import com.jukuproject.jukutweet.TwitterUserClient;
 
 import java.util.List;

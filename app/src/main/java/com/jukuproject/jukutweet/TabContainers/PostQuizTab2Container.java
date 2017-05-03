@@ -7,7 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.jukuproject.jukutweet.BaseContainerFragment;
 import com.jukuproject.jukutweet.Fragments.StatsFragmentProgress;
 import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
 import com.jukuproject.jukutweet.Models.MyListEntry;

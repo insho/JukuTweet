@@ -17,14 +17,17 @@ import com.jukuproject.jukutweet.R;
 
 import java.util.ArrayList;
 
-
-public class BrowseMyListAdapter extends RecyclerView.Adapter<BrowseMyListAdapter.ViewHolder>  {
+/**
+ * Adapter for Recycler in {@link com.jukuproject.jukutweet.Fragments.WordListBrowseFragment}. Shows word data,
+ * and star for adding the word to a WordList ({@link com.jukuproject.jukutweet.Fragments.WordListFragment})
+ *
+ * @see com.jukuproject.jukutweet.Fragments.WordListBrowseFragment
+ */
+public class BrowseWordsAdapter extends RecyclerView.Adapter<BrowseWordsAdapter.ViewHolder>  {
     private String TAG = "Test-BrowseMyAd";
     private Context mContext;
-//    private DisplayMetrics mMetrics;
     private ArrayList<WordEntry> mWords;
     private  ColorThresholds mColorThresholds;
-//    private ArrayList<String> mActiveFavoriteStars;
     private RxBus mRxBus;
     private ArrayList<Integer> mSelectedEntries;
 
@@ -49,10 +52,10 @@ public class BrowseMyListAdapter extends RecyclerView.Adapter<BrowseMyListAdapte
     }
 
 
-    public BrowseMyListAdapter(Context context, ArrayList<WordEntry> words
-            ,ColorThresholds colorThresholds
-            ,RxBus rxbus
-            ,ArrayList<Integer> selectedEntries) {
+    public BrowseWordsAdapter(Context context, ArrayList<WordEntry> words
+            , ColorThresholds colorThresholds
+            , RxBus rxbus
+            , ArrayList<Integer> selectedEntries) {
         mContext = context;
         mWords = words;
         mColorThresholds = colorThresholds;
@@ -62,14 +65,10 @@ public class BrowseMyListAdapter extends RecyclerView.Adapter<BrowseMyListAdapte
 
 
     @Override
-    public BrowseMyListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public BrowseWordsAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.tweetbreakdown_recycler_row, parent, false);
 
         return new ViewHolder(v);
-    }
-
-    public WordEntry getItem(int position) {
-        return mWords.get(position);
     }
 
     @Override

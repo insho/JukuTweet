@@ -20,7 +20,7 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.jukuproject.jukutweet.Adapters.BrowseMyListAdapter;
+import com.jukuproject.jukutweet.Adapters.BrowseWordsAdapter;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.CopyMyListItemsDialog;
 import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
@@ -59,7 +59,7 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
     * keep from constantly recieving button clicks through the RxBus */
     private long mLastClickTime = 0;
     FragmentInteractionListener mCallback;
-    private BrowseMyListAdapter mAdapter;
+    private BrowseWordsAdapter mAdapter;
     private ArrayList<WordEntry> mWords;
     private MyListEntry mMyListEntry;
     private ColorThresholds mColorThresholds;
@@ -126,7 +126,7 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
 
         //Create UserListAdapter and attach rxBus click listeners to it
         if(mWords != null && mWords.size() > 0) {
-            mAdapter = new BrowseMyListAdapter(getContext(),mWords,mColorThresholds,mRxBus,mSelectedEntries);
+            mAdapter = new BrowseWordsAdapter(getContext(),mWords,mColorThresholds,mRxBus,mSelectedEntries);
 
             mRxBus.toClickObserverable()
                     .subscribe(new Action1<Object>() {

@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -24,7 +23,6 @@ import android.widget.Toast;
 import com.jukuproject.jukutweet.Adapters.TweetBreakDownAdapter;
 import com.jukuproject.jukutweet.Adapters.UserListAdapter;
 import com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter;
-import com.jukuproject.jukutweet.BaseContainerFragment;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.AddUserCheckDialog;
 import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
@@ -38,13 +36,15 @@ import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
+import com.jukuproject.jukutweet.TabContainers.BaseContainerFragment;
 
 import java.util.ArrayList;
 
 import rx.functions.Action1;
 
-import static com.jukuproject.jukutweet.Adapters.ChooseFavoritesAdapter.setAppCompatCheckBoxColors;
 import static com.jukuproject.jukutweet.Fragments.TweetBreakDownFragment.countOfAll;
+
+//import static com.jukuproject.jukutweet.Adapters.ChooseFavoritesAdapter.setAppCompatCheckBoxColors;
 
 
 public class SearchFragment extends Fragment implements WordEntryFavoritesChangedListener {
@@ -131,10 +131,10 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        setAppCompatCheckBoxColors(checkBoxDictionary, ContextCompat.getColor(getContext(), android.R.color.black), ContextCompat.getColor(getContext(), android.R.color.black));
-        setAppCompatCheckBoxColors(checkBoxRomaji, ContextCompat.getColor(getContext(), android.R.color.black), ContextCompat.getColor(getContext(), android.R.color.black));
-        setAppCompatCheckBoxColors(checkBoxDefinition, ContextCompat.getColor(getContext(), android.R.color.black), ContextCompat.getColor(getContext(), android.R.color.black));
-        setAppCompatCheckBoxColors(checkBoxTwitter, ContextCompat.getColor(getContext(), android.R.color.black), ContextCompat.getColor(getContext(), android.R.color.black));
+//        setAppCompatCheckBoxColors(checkBoxDictionary, ContextCompat.getColor(getContext(), android.R.color.black), ContextCompat.getColor(getContext(), android.R.color.black));
+//        setAppCompatCheckBoxColors(checkBoxRomaji, ContextCompat.getColor(getContext(), android.R.color.black), ContextCompat.getColor(getContext(), android.R.color.black));
+//        setAppCompatCheckBoxColors(checkBoxDefinition, ContextCompat.getColor(getContext(), android.R.color.black), ContextCompat.getColor(getContext(), android.R.color.black));
+//        setAppCompatCheckBoxColors(checkBoxTwitter, ContextCompat.getColor(getContext(), android.R.color.black), ContextCompat.getColor(getContext(), android.R.color.black));
 
         mCheckedOption = "Romaji";
         mDictionarySearchLayout.setVisibility(View.VISIBLE);

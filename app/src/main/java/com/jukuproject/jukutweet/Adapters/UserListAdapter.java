@@ -17,7 +17,11 @@ import com.squareup.picasso.Picasso;
 import java.util.List;
 
 /**
- * Recycler Adapter for UserListFragment, shows twitter users saved in the database
+ * Adapter for {@link com.jukuproject.jukutweet.Fragments.UserListFragment}, shows twitter users saved in the local database.
+ * Click on a User to go to that Users Timeline ({@link com.jukuproject.jukutweet.Fragments.UserTimeLineFragment}). Long click on
+ * a user to see the {@link com.jukuproject.jukutweet.Dialogs.UserDetailPopupDialog}.
+ *
+ * @see com.jukuproject.jukutweet.Fragments.UserListFragment
  */
 public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHolder> {
 
@@ -61,7 +65,6 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
 
         /* If the user only contains the username, and everything else is null, it is because the device
         * was offline while saving the user, and this row should be greyed out, and only display the username... */
-
         if(getUser(holder.getAdapterPosition()).getUserId() == null) {
             holder.txtUserName.setText(getUser(holder.getAdapterPosition()).getDisplayScreenName());
             holder.txtUserName.setAlpha(.7f);
@@ -82,7 +85,6 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
 
             holder.txtUserDescription.setText(getUser(position).getDescription());
 
-
             holder.image.setVisibility(View.VISIBLE);
             Picasso picasso = new Picasso.Builder(mContext)
                     .listener(new Picasso.Listener() {
@@ -90,15 +92,12 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
                         public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception) {
                             //Here your log
                             holder.image.setVisibility(View.GONE);
-
                         }
                     })
                     .build();
             picasso.load(getUser(position).getProfileImageUrlBig())
                     .into(holder.image);
             holder.image.setAdjustViewBounds(true);
-
-
         }
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {

@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.jukuproject.jukutweet.BaseContainerFragment;
 import com.jukuproject.jukutweet.Fragments.StatsFragmentFillintheBlanks;
 import com.jukuproject.jukutweet.Fragments.StatsFragmentMultipleChoice;
 import com.jukuproject.jukutweet.Models.MultChoiceResult;
@@ -29,23 +28,23 @@ public class PostQuizTab1Container extends BaseContainerFragment {
 
     public PostQuizTab1Container() {}
 
-    public static QuizTab1Container newInstance()
+    public static PostQuizTab1Container newInstance()
     {
 //        QuizTab1Container fragment = new QuizTab1Container();
 //        Bundle args = new Bundle();
 //        args.putString("mQuiz",mQuiz);
 //        return fragment;
-        return new QuizTab1Container();
+        return new PostQuizTab1Container();
     }
 
-    public static QuizTab1Container newFillintheBlanksStatsInstance(ArrayList<Tweet> tweets
+    public static PostQuizTab1Container newFillintheBlanksStatsInstance(ArrayList<Tweet> tweets
             , String quizSize
             , double totalWeight
             , String colorString
             , MyListEntry myListEntry
     ) {
 
-        QuizTab1Container fragment = new QuizTab1Container();
+        PostQuizTab1Container fragment = new PostQuizTab1Container();
         Bundle args = new Bundle();
         args.putString("mQuiz","FillintheBlanks");
         args.putParcelableArrayList("tweets", tweets);
@@ -58,7 +57,7 @@ public class PostQuizTab1Container extends BaseContainerFragment {
         return  fragment;
     }
 
-    public static QuizTab1Container newMultipleChoiceStatsInstance(ArrayList<MultChoiceResult> dataset
+    public static PostQuizTab1Container newMultipleChoiceStatsInstance(ArrayList<MultChoiceResult> dataset
             , String quizType
             , final MyListEntry myListEntry
             , boolean isWordBuilder
@@ -67,7 +66,7 @@ public class PostQuizTab1Container extends BaseContainerFragment {
             , int correct
             , int total
     ) {
-        QuizTab1Container fragment = new QuizTab1Container();
+        PostQuizTab1Container fragment = new PostQuizTab1Container();
         Bundle args = new Bundle();
         args.putString("mQuiz","MultipleChoice");
         args.putParcelableArrayList("dataset", dataset);

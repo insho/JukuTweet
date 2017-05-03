@@ -1,9 +1,11 @@
-package com.jukuproject.jukutweet;
+package com.jukuproject.jukutweet.TabContainers;
 
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
+
+import com.jukuproject.jukutweet.R;
 
 public class BaseContainerFragment extends Fragment {
 
@@ -13,12 +15,9 @@ public class BaseContainerFragment extends Fragment {
         if (addToBackStack) {
             transaction.addToBackStack(null);
         }
-        Log.d("TEST","REPLACING FRAGMENT middle");
         transaction.replace(R.id.container_framelayout, fragment, tag);
         transaction.commit();
         getChildFragmentManager().executePendingTransactions();
-        Log.d("TEST","EXECUTED PENDING TRANSACTION...");
-
 
     }
 
@@ -51,7 +50,7 @@ public class BaseContainerFragment extends Fragment {
             isPop = true;
             getChildFragmentManager().popBackStack();
         }
-        Log.d("TEST", "pop fragment NEW BACKSTACK COUNT: " + getChildFragmentManager().getBackStackEntryCount());
+//        Log.d("TEST", "pop fragment NEW BACKSTACK COUNT: " + getChildFragmentManager().getBackStackEntryCount());
         return isPop;
     }
 

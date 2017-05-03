@@ -2,10 +2,8 @@ package com.jukuproject.jukutweet.Models;
 
 import android.util.Log;
 
-import java.util.ArrayList;
-
 /**
- * Created by JClassic on 3/26/2017.
+ * Container for User profile banner image sizes and information (pulled from twitter API)
  */
 
 

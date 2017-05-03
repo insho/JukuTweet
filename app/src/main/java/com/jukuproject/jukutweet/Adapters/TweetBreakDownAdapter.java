@@ -15,33 +15,31 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import com.jukuproject.jukutweet.ChooseFavoriteListsPopupWindow;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.FavoritesColors;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
-import com.jukuproject.jukutweet.TestPopupWindow;
 
 import java.util.ArrayList;
 
 import rx.functions.Action1;
 
-
+/**
+ * Adapter displaying WordEntries found within a Tweet that has been broken up by the {@link com.jukuproject.jukutweet.TweetParser}.
+ * User can long click the word to bring up {@link com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog}, as well as clicking on the avorites
+ * star to bring up the {@link ChooseFavoriteListsPopupWindow}, where the word can be added/subtracted from word lists
+ */
 public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAdapter.ViewHolder>  {
     String TAG = "TEST-tweetBreakAdapter";
     private static final boolean debug = false;
 
-    //Pass instructions to mainactivity if at least one row is selected, to show icons in action bar
-//    private WordEntryFavoritesChangedListener mCallback;
-
-
     private Context mContext;
     private DisplayMetrics mMetrics;
     private ArrayList<WordEntry> mWords;
-//    private  ColorThresholds mColorThresholds;
     private ArrayList<String> mActiveFavoriteStars;
-//    private PopupWindow chooseFavoritesPopup = null;
     private RxBus mRxBus;
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -66,17 +64,14 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         }
     }
 
-
     public TweetBreakDownAdapter(Context context, DisplayMetrics metrics
             , ArrayList<WordEntry> words
-//            , ColorThresholds colorThresholds
             , ArrayList<String> activeFavoriteStars
             , RxBus rxbus) {
         mContext = context;
         mMetrics = metrics;
         mWords = words;
         mRxBus = rxbus;
-//        mColorThresholds = colorThresholds;
         this.mActiveFavoriteStars = activeFavoriteStars;
     }
 
@@ -148,7 +143,6 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                         holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
                         mRxBus.send(mWords.get(holder.getAdapterPosition()));
                     } else {
-                        //TODO insert an error?
                         Log.e(TAG,"OnFavoriteStarToggle did not work...");
                     }
                 }
@@ -182,7 +176,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
 
         ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getWordInterfaceInstance(mContext).getWordListsForAWord(mActiveFavoriteStars,String.valueOf(mWords.get(holder.getAdapterPosition()).getId()),null);
 
-        PopupWindow popupWindow =  TestPopupWindow.createWordFavoritesPopup(mContext,mMetrics,rxBus,availableFavoriteLists,mWords.get(holder.getAdapterPosition()).getId());
+        PopupWindow popupWindow =  ChooseFavoriteListsPopupWindow.createWordFavoritesPopup(mContext,mMetrics,rxBus,availableFavoriteLists,mWords.get(holder.getAdapterPosition()).getId());
 
         popupWindow.getContentView().measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
@@ -197,8 +191,6 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
             @Override
             public void onDismiss() {
-//                holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars));
-//                holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
                 mRxBus.send(mWords.get(holder.getAdapterPosition()));
             }
         });
@@ -255,10 +247,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                         holder.imgStar.setImageResource(R.drawable.ic_star_black);
                         holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
                     }
-//                    holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars));
-
                 }
-
             }
 
         });
@@ -267,8 +256,6 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         popupWindow.showAsDropDown(holder.imgStar,-xadjust,-yadjust);
 
 };
-
-
 
 
     // Return the size of your dataset (invoked by the layout manager)

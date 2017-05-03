@@ -21,7 +21,7 @@ import java.util.ArrayList;
  * Created by JClassic on 3/24/2017.
  */
 
-public class TestPopupWindow  {
+public class ChooseFavoriteListsPopupWindow {
 
 //    private Context mContext;
 //    private final DisplayMetrics mMetrics;
@@ -29,7 +29,7 @@ public class TestPopupWindow  {
 //    private RxBus mRxBusTweetBreak;
 //    private ArrayList<MyListEntry> mFavoritesLists;
 
-//    public TestPopupWindow(Context context, DisplayMetrics metrics, RxBus rxBus , ArrayList<MyListEntry> favoritesLists,int kanjiId) {
+//    public ChooseFavoriteListsPopupWindow(Context context, DisplayMetrics metrics, RxBus rxBus , ArrayList<MyListEntry> favoritesLists,int kanjiId) {
 //        mContext = context;
 //        mMetrics = metrics;
 //        mRxBusTweetBreak = rxBus;
@@ -37,7 +37,7 @@ public class TestPopupWindow  {
 //        mKanjiId = kanjiId;
 //    }
 
-    public  TestPopupWindow() {}
+    public ChooseFavoriteListsPopupWindow() {}
 
     public static PopupWindow createWordFavoritesPopup(Context context, DisplayMetrics metrics, RxBus rxBus , ArrayList<MyListEntry> favoritesLists,int kanjiId) {
 

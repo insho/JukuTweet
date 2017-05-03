@@ -20,8 +20,7 @@ import android.widget.AdapterView;
 import android.widget.ExpandableListView;
 import android.widget.TextView;
 
-import com.jukuproject.jukutweet.Adapters.MyListExpandableAdapter;
-import com.jukuproject.jukutweet.BaseContainerFragment;
+import com.jukuproject.jukutweet.Adapters.WordListExpandableAdapter;
 import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.QuizMenuDialog;
@@ -32,11 +31,12 @@ import com.jukuproject.jukutweet.Models.MenuHeader;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
+import com.jukuproject.jukutweet.TabContainers.BaseContainerFragment;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-//import com.jukuproject.jukutweet.BaseContainerFragment;
+//import com.jukuproject.jukutweet.TabContainers.BaseContainerFragment;
 
 /**
  * Shows user-created lists of vocabulary
@@ -46,7 +46,7 @@ public class WordListFragment extends Fragment {
 
     String TAG = "WordListFragment";
     FragmentInteractionListener mCallback;
-    MyListExpandableAdapter MyListFragmentAdapter;
+    WordListExpandableAdapter MyListFragmentAdapter;
     ExpandableListView expListView;
     ArrayList<MenuHeader> mMenuHeader;
     private int lastExpandedPosition = -1;
@@ -81,7 +81,7 @@ public class WordListFragment extends Fragment {
             prepareListData();
         }
 
-        MyListFragmentAdapter = new MyListExpandableAdapter(getContext(),mMenuHeader,getdimenscore(),0);
+        MyListFragmentAdapter = new WordListExpandableAdapter(getContext(),mMenuHeader,getdimenscore(),0);
         expListView.setAdapter(MyListFragmentAdapter);
         expListView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
             @Override
@@ -311,7 +311,7 @@ public class WordListFragment extends Fragment {
      * to half of the screenwidth
      * @return maximum width in pixels of colored bars
      *
-     * @see MyListExpandableAdapter
+     * @see WordListExpandableAdapter
      */
     private int getdimenscore() {
 
@@ -355,7 +355,7 @@ public class WordListFragment extends Fragment {
 
     public void updateMyListAdapter() {
         prepareListData();
-        MyListFragmentAdapter = new MyListExpandableAdapter(getContext(),mMenuHeader,getdimenscore(),0);
+        MyListFragmentAdapter = new WordListExpandableAdapter(getContext(),mMenuHeader,getdimenscore(),0);
         expListView.setAdapter(MyListFragmentAdapter);
         //Expand the last expanded position (or expand first availalbe non-empty list)
         if(lastExpandedPosition >=0) {

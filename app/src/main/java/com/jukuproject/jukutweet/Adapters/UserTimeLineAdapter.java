@@ -20,6 +20,7 @@ import android.widget.ImageButton;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import com.jukuproject.jukutweet.ChooseFavoriteListsPopupWindow;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.FavoritesColors;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
@@ -31,7 +32,6 @@ import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
-import com.jukuproject.jukutweet.TestPopupWindow;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +39,11 @@ import java.util.List;
 import rx.functions.Action1;
 
 /**
- * Recycler adapter for UserTimeLineFragment, displays a list of users tweets
+ *Adapter for UserTimeLineFragment, displays a list of users tweets drawn from the Twitter API {@link com.jukuproject.jukutweet.TwitterUserClient}.
+ * Click on a tweet to be taken to the {@link com.jukuproject.jukutweet.Fragments.TweetBreakDownFragment}. User can also click on the favorites
+ * star in the tweet to save it (via the saveandparsetweet method in {@link com.jukuproject.jukutweet.MainActivity}).
+ *
+ * @see com.jukuproject.jukutweet.Fragments.UserTimeLineFragment
  */
 public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapter.ViewHolder> {
 
@@ -349,8 +353,8 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
         RxBus rxBus = new RxBus();
         ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getTweetInterfaceInstance(mContext).getTweetListsForTweet(mActiveTweetFavoriteStars,mTweet.getIdString(),null);
 
-        PopupWindow popupWindow = TestPopupWindow.createTweetFavoritesPopup(mContext,mMetrics,rxBus,availableFavoriteLists,mTweet.getIdString(), mTweet.getUser().getUserId());
-//        PopupWindow popupWindow =  new TestPopupWindow(getContext(),metrics,rxBus,availableFavoriteLists,mWords.get(holder.getAdapterPosition()).getId()).onCreateView();
+        PopupWindow popupWindow = ChooseFavoriteListsPopupWindow.createTweetFavoritesPopup(mContext,mMetrics,rxBus,availableFavoriteLists,mTweet.getIdString(), mTweet.getUser().getUserId());
+//        PopupWindow popupWindow =  new ChooseFavoriteListsPopupWindow(getContext(),metrics,rxBus,availableFavoriteLists,mWords.get(holder.getAdapterPosition()).getId()).onCreateView();
 
         popupWindow.getContentView().measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));

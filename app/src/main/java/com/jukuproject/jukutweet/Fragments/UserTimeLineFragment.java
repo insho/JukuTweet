@@ -17,7 +17,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter;
-import com.jukuproject.jukutweet.BaseContainerFragment;
 import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
@@ -28,6 +27,7 @@ import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
+import com.jukuproject.jukutweet.TabContainers.BaseContainerFragment;
 import com.jukuproject.jukutweet.TwitterUserClient;
 
 import java.util.ArrayList;

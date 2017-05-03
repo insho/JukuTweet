@@ -12,7 +12,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.jukuproject.jukutweet.Adapters.PostQuizStatsAdapter;
+import com.jukuproject.jukutweet.Adapters.PostQuizStatsMultipleChoiceAdapter;
 import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
@@ -110,7 +110,7 @@ public class StatsFragmentMultipleChoice extends Fragment implements WordEntryFa
         }
 
         RxBus rxBus = new RxBus();
-        resultslistView.setAdapter(new PostQuizStatsAdapter(getContext(), mDataset,mIsWordBuilder,rxBus));
+        resultslistView.setAdapter(new PostQuizStatsMultipleChoiceAdapter(getContext(), mDataset,mIsWordBuilder,rxBus));
 
         rxBus.toClickObserverable()
                 .subscribe(new Action1<Object>() {

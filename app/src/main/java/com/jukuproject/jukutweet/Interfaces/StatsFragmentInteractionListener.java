@@ -5,6 +5,6 @@ package com.jukuproject.jukutweet.Interfaces;
  */
 
 public interface StatsFragmentInteractionListener {
-        void showFab(boolean show, String type);
+//    void showFab(boolean show, String type);
     void showFab(boolean show);
 }

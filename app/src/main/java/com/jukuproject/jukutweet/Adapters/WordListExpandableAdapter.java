@@ -24,11 +24,11 @@ import com.jukuproject.jukutweet.R;
 import java.util.ArrayList;
 
 /**
- * Created by JukuProject on 3/23/2017
- * List adapter with group entries and sub lists of child entries that expand
- * when list is clicked
+ * Adapter for WordList {@link com.jukuproject.jukutweet.Fragments.WordListFragment}, with a parent group for each
+ * Word list, and expandable child entries for the quiz options. The first row of each
+ * child group has the title "Browse/Edit", as well as a colorblock set breaking down the words contained in the list by color.
  */
-public class MyListExpandableAdapter extends BaseExpandableListAdapter {
+public class WordListExpandableAdapter extends BaseExpandableListAdapter {
     private String TAG = "test-Ex_ListAdapter";
     private Context mContext;
     private ArrayList<MenuHeader> mMenuHeader;
@@ -38,10 +38,10 @@ public class MyListExpandableAdapter extends BaseExpandableListAdapter {
     private final int mMaxWidthForColorBlocks;
 
 
-    public MyListExpandableAdapter(Context context
-            ,ArrayList<MenuHeader> menuHeader
-            ,int maxWidthForColorBlocks
-            ,int fontsize
+    public WordListExpandableAdapter(Context context
+            , ArrayList<MenuHeader> menuHeader
+            , int maxWidthForColorBlocks
+            , int fontsize
     ) {
         this.mContext = context;
         this.mMenuHeader = menuHeader;
@@ -95,10 +95,6 @@ public class MyListExpandableAdapter extends BaseExpandableListAdapter {
 
         TextView lblColorBar = (TextView) convertView.findViewById(R.id.lblcolorbar);
         lblColorBar.setVisibility(TextView.GONE);
-
-//        if(BuildConfig.DEBUG) {
-//            Log.d(TAG, "childText: " + childText);
-//        }
 
         /* For the child entries of the adapter, only show the "colorblocks" in the first row of a mylist. This is differentiated
         * here by the string "Browse/Edit" which only appears in the "WordListFragment" fragment */

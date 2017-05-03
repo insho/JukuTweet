@@ -23,11 +23,11 @@ import com.jukuproject.jukutweet.R;
 import java.util.ArrayList;
 
 /**
- * Created by JukuProject on 3/23/2017
- * List adapter with group entries and sub lists of child entries that expand
- * when list is clicked
+ * Adapter for TweetList {@link com.jukuproject.jukutweet.Fragments.TweetListFragment}, with a parent group for each
+ * Tweet list, and expandable child entries for the quiz options. The first row of each
+ * child group has the title "Browse/Edit", as well as a colorblock set breaking down the words contained in the list by color.
  */
-public class SavedTweetsExpandableAdapter extends BaseExpandableListAdapter {
+public class TweetListExpandableAdapter extends BaseExpandableListAdapter {
     private String TAG = "Menu_Ex_ListAdapter";
     private Context mContext;
     private ArrayList<MenuHeader> mMenuHeader;
@@ -37,10 +37,10 @@ public class SavedTweetsExpandableAdapter extends BaseExpandableListAdapter {
     private final int mMaxWidthForColorBlocks;
 
 
-    public SavedTweetsExpandableAdapter(Context context
-            ,ArrayList<MenuHeader> menuHeader
-            ,int maxWidthForColorBlocks
-            ,int fontsize
+    public TweetListExpandableAdapter(Context context
+            , ArrayList<MenuHeader> menuHeader
+            , int maxWidthForColorBlocks
+            , int fontsize
     ) {
         this.mContext = context;
         this.mMenuHeader = menuHeader;
@@ -91,23 +91,11 @@ public class SavedTweetsExpandableAdapter extends BaseExpandableListAdapter {
         tweetIconText.setFocusable(false);
         tweetIconText.setClickable(false);
 
-
-//        ImageButton imageButton = (ImageButton) convertView.findViewById(R.id.favorite_icon);
-//        imageButton.setFocusable(false);
-//        imageButton.setClickable(false);
-
         TextView textViewColorBlock_empty = (TextView) convertView.findViewById(R.id.listitem_colors_0);
         TextView textViewColorBlock_grey = (TextView) convertView.findViewById(R.id.listitem_colors_1);
         TextView textViewColorBlock_red = (TextView) convertView.findViewById(R.id.listitem_colors_2);
         TextView textViewColorBlock_yellow = (TextView) convertView.findViewById(R.id.listitem_colors_3);
         TextView textViewColorBlock_green = (TextView) convertView.findViewById(R.id.listitem_colors_4);
-
-//        TextView lblColorBar = (TextView) convertView.findViewById(R.id.lblcolorbar);
-//        lblColorBar.setVisibility(TextView.GONE);
-
-//        if(BuildConfig.DEBUG) {
-//            Log.d(TAG, "childText: " + childText);
-//        }
 
         /* For the child entries of the adapter, only show the "colorblocks" in the first row of a mylist. This is differentiated
         * here by the string "Browse/Edit" which only appears in the "WordListFragment" fragment */
@@ -116,8 +104,7 @@ public class SavedTweetsExpandableAdapter extends BaseExpandableListAdapter {
             tweetIcon.setVisibility(View.VISIBLE);
             tweetIconText.setVisibility(View.VISIBLE);
 
-//            Log.d(TAG,"XXX: " + mMenuHeader.get(groupPosition).getColorBlockMeasurables().getTweetCount());
-
+            /* Add the count of saved tweets contained within the list */
             try {
                 tweetIconText.setText("x"+String.valueOf(mMenuHeader.get(groupPosition).getColorBlockMeasurables().getTweetCount()));
             } catch (Exception e) {
@@ -183,15 +170,13 @@ public class SavedTweetsExpandableAdapter extends BaseExpandableListAdapter {
 
         TextView lblListHeader = (TextView) convertView.findViewById(R.id.lblListHeader);
         lblListHeader.setAlpha(1.0f);
-//        if(BuildConfig.DEBUG){Log.d(TAG,"headerTitle: --" + mMenuHeader.get(groupPosition).getHeaderTitle() + "--" );}
+
         if(mTextsize >0){
             lblListHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP, mTextsize);
         }
 
-//        LinearLayout background = (LinearLayout) convertView.findViewById(R.id.balls2);
         lblListHeader.setBackgroundColor(ContextCompat.getColor(mContext, android.R.color.white));
         lblListHeader.setTextColor(ContextCompat.getColor(mContext, android.R.color.black));
-//        background.setBackgroundColor(ContextCompat.getColor(mContext, android.R.color.white));
         lblListHeader.setGravity(Gravity.START);
 
         TextView lblColorBar = (TextView) convertView.findViewById(R.id.lblcolorbar);
@@ -200,7 +185,6 @@ public class SavedTweetsExpandableAdapter extends BaseExpandableListAdapter {
         /* If the adapter is handling "color bars" -- used in the "quiz by color" fragment where the user can quiz themselves on
         * kanji grouped by COLOR (grey, red, yellow, green) -- the entire row should be taken up by one big color block
         * drawable, with the count of entries for that color in the middle. No title, no label. */
-
 
         //Hide the big color bar and color blocks
         ((TextView) convertView.findViewById(R.id.lblcolorbar)).setVisibility(TextView.GONE);
@@ -222,7 +206,6 @@ public class SavedTweetsExpandableAdapter extends BaseExpandableListAdapter {
 
             imageButton.setImageResource(R.drawable.ic_star_black);
             imageButton.setVisibility(ImageButton.VISIBLE);
-//            lblListHeader.setText("Favorites");
             lblListHeader.setText("Favorite Tweets");
             final TextView lblListHeaderCount = (TextView) convertView.findViewById(R.id.lblListHeaderCount);
 
@@ -232,9 +215,8 @@ public class SavedTweetsExpandableAdapter extends BaseExpandableListAdapter {
                 lblListHeaderCount.setVisibility(TextView.GONE);
             }
 
-                    /* Set the list name to be greyed out for empty lists */
+            /* Set the list name to be greyed out for empty lists */
             if(measurables.getTotalCount()>0) {
-//                if(BuildConfig.DEBUG){Log.d(TAG,"setting counts...");}
                 lblListHeaderCount.setText("(" + measurables.getTotalCount() + ")");
                 lblListHeader.setAlpha(1.0f);
                 lblListHeaderCount.setAlpha(.8f);
@@ -250,7 +232,7 @@ public class SavedTweetsExpandableAdapter extends BaseExpandableListAdapter {
             }
 
         } else {
-                    /* It is a user-created list, so do not show the colored star */
+            /* It is a user-created list, so do not show the colored star */
             imageButton.setVisibility(ImageButton.GONE);
             lblListHeader.setText(mMenuHeader.get(groupPosition).getHeaderTitle());
             final TextView lblListHeaderCount = (TextView) convertView.findViewById(R.id.lblListHeaderCount);
@@ -276,8 +258,6 @@ public class SavedTweetsExpandableAdapter extends BaseExpandableListAdapter {
 
         }
 
-
-//        if(BuildConfig.DEBUG){Log.d(TAG,"dimenscore at end of group: " + availableWidth);}
         return convertView;
     }
 
@@ -354,12 +334,6 @@ public class SavedTweetsExpandableAdapter extends BaseExpandableListAdapter {
             if(colorBlockMeasurables.getGreyCount()>0){
                 txtGrey.setText(String.valueOf(colorBlockMeasurables.getGreyCount()));
                 int dimenscore = colorBlockMeasurables.getGreyDimenscore(availableWidth);
-//                if(BuildConfig.DEBUG) {
-//                    Log.i(TAG,"dimenscoretotal: " + availableWidth);
-//                    Log.i(TAG,"grey/count: " + colorBlockMeasurables.getGreyCount() + "/" + colorBlockMeasurables.getTotalCount());
-//                    Log.i(TAG,"((float) grey / (float) count): " + ((float) colorBlockMeasurables.getGreyCount() / (float) colorBlockMeasurables.getTotalCount()));
-//                    Log.i(TAG,"Rounded score: " + dimenscore);
-//                }
                 availableWidthRemaining = availableWidth-dimenscore;
                 txtGrey.setMinimumWidth(dimenscore);
                 txtGrey.setVisibility(View.VISIBLE);

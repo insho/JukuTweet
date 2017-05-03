@@ -1,7 +1,6 @@
 package com.jukuproject.jukutweet.Adapters;
 
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -15,13 +14,18 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.DropDownMenuOption;
 import com.jukuproject.jukutweet.R;
 
 import java.util.ArrayList;
 
-
+/**
+ * Adapter for colorblock dropdown menu in {@link com.jukuproject.jukutweet.Dialogs.QuizMenuDialog}. User can select or
+ * de-select the color groups that will be included in a quiz.
+ * @see com.jukuproject.jukutweet.Dialogs.QuizMenuDialog
+ */
 public class MenuDropDownColorsPopupAdapter extends RecyclerView.Adapter<MenuDropDownColorsPopupAdapter.ViewHolder>  {
     private ArrayList<DropDownMenuOption> mOptions;
     private RxBus mRxBus;
@@ -57,17 +61,10 @@ public class MenuDropDownColorsPopupAdapter extends RecyclerView.Adapter<MenuDro
         return new ViewHolder(v);
     }
 
-//    public DropDownMenuOption getItem(int position) {
-//        return mOptions.get(position);
-//    }
-
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
 
         final DropDownMenuOption option = mOptions.get(holder.getAdapterPosition());
-
-
-//        holder.txtOption.setText(option.getChosenOption());
         holder.txtOption.setClickable(false);
         holder.chkBox.setClickable(false);
         if(mInitialSelectedColors.contains(option.getChosenOption())) {
@@ -81,7 +78,6 @@ public class MenuDropDownColorsPopupAdapter extends RecyclerView.Adapter<MenuDro
             @Override
             public void onClick(View v) {
 
-            Log.d("TEST","COLOR " + mOptions.get(holder.getAdapterPosition()).getChosenOption() + " SELECTED: " + mOptions.get(holder.getAdapterPosition()).isColorSelected());
                 if(mOptions.get(holder.getAdapterPosition()).isColorSelected()) {
 
                     /*Only allow user to de-select the colorblock if it is NOT THE LAST colorblock selected.
@@ -99,10 +95,7 @@ public class MenuDropDownColorsPopupAdapter extends RecyclerView.Adapter<MenuDro
             }
         });
 
-
-
         final Drawable drawable = ContextCompat.getDrawable(mContext, R.drawable.colorblock);
-
 
         switch (option.getChosenOption()) {
             case "Grey":
@@ -118,8 +111,6 @@ public class MenuDropDownColorsPopupAdapter extends RecyclerView.Adapter<MenuDro
                 drawable.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuGreen), PorterDuff.Mode.MULTIPLY);
                 break;
         }
-//        Log.d("TEST","COLORCOUNT: "+ option.getChosenOption() + "-" + option.getColorCount());
-
 
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             holder.txtOption.setBackground(drawable);
@@ -127,143 +118,31 @@ public class MenuDropDownColorsPopupAdapter extends RecyclerView.Adapter<MenuDro
             holder.txtOption.setBackgroundDrawable(drawable);
         }
 
-        //TODO MAKE IT WORK
-//        setAppComp
-        setAppCompatCheckBoxColors(holder.chkBox, ContextCompat.getColor(mContext, android.R.color.black), ContextCompat.getColor(mContext, android.R.color.black));
         holder.txtOption.setText(String.valueOf(option.getColorCount()));
-
-
-//        holder.layoutMain.addView(checkbox);
-//        layout.addView(textView);
-
-//        checkbox.measure(0, 0);
 
     }
 
+    /**
+     * Used to ensure that at least 1 of the colorblock groups is always selected. A user must have at least one group selected
+     * before the quiz begins, or there will be no questions to quiz on. So this iterates through the colorblock dropdown dataset and
+     * counts the selected options.
+     * @param dropDownMenuOptions Array of DropDownMenuOptions, one for each colorblock group in the dropdown.
+     * @return count of color groups that are currently selected
+     */
     public static int getTotalSelectedColors(ArrayList<DropDownMenuOption> dropDownMenuOptions) {
         int totalSelectedColors = 0;
         for (DropDownMenuOption dropDownMenuOption : dropDownMenuOptions) {
             if(dropDownMenuOption.isColorSelected()){
                 totalSelectedColors += 1;
-                Log.d("TEST","TOTALSELECTEDCOLORS: " + dropDownMenuOption.getChosenOption() + " selected: " + dropDownMenuOption.isColorSelected() + ", TOTAL COUNT: " + totalSelectedColors);
-            };
+                if(BuildConfig.DEBUG){Log.d("TEST","TOTALSELECTEDCOLORS: " + dropDownMenuOption.getChosenOption() + " selected: " + dropDownMenuOption.isColorSelected() + ", TOTAL COUNT: " + totalSelectedColors);}
+            }
         }
         return totalSelectedColors;
     }
-    //TODO MOVE THIS TO GLOBAL
-    public static void setAppCompatCheckBoxColors(final AppCompatCheckBox _checkbox,
-                                                  final int _uncheckedColor, final int _checkedColor) {
-        int[][] states = new int[][]{new int[]{-android.R.attr.state_checked}, new int[]{android.R.attr.state_checked}};
-        int[] colors = new int[]{_uncheckedColor, _checkedColor};
-        _checkbox.setSupportButtonTintList(new ColorStateList(states, colors));
-    }
-    // Return the size of your dataset (invoked by the layout manager)
+
     @Override
     public int getItemCount() {
         return mOptions.size();
     }
-
-//
-//    public void setColorBlocks(ColorBlockMeasurables colorBlockMeasurables
-//            ,int availableWidth
-//            , TextView txtColorBlock) {
-//
-//        Drawable drawablecolorblock1 = ContextCompat.getDrawable(mContext, R.drawable.colorblock);
-//        Drawable drawablecolorblock2 = ContextCompat.getDrawable(mContext, R.drawable.colorblock);
-//        Drawable drawablecolorblock3 = ContextCompat.getDrawable(mContext, R.drawable.colorblock);
-//        Drawable drawablecolorblock4 = ContextCompat.getDrawable(mContext, R.drawable.colorblock);
-//
-//        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-//            drawablecolorblock1.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuGrey), PorterDuff.Mode.MULTIPLY);
-//            txtGrey.setBackground(drawablecolorblock1);
-//            drawablecolorblock2.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuRed), PorterDuff.Mode.MULTIPLY);
-//            txtRed.setBackground(drawablecolorblock2);
-//            drawablecolorblock3.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuYellow), PorterDuff.Mode.MULTIPLY);
-//            txtYellow.setBackground(drawablecolorblock3);
-//            drawablecolorblock4.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuGreen), PorterDuff.Mode.MULTIPLY);
-//            txtGreen.setBackground(drawablecolorblock4);
-//
-//        } else {
-//            drawablecolorblock1.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuGrey), PorterDuff.Mode.MULTIPLY);
-//            txtGrey.setBackgroundDrawable(drawablecolorblock1);
-//            drawablecolorblock2.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuRed), PorterDuff.Mode.MULTIPLY);
-//            txtRed.setBackgroundDrawable(drawablecolorblock2);
-//            drawablecolorblock3.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuYellow), PorterDuff.Mode.MULTIPLY);
-//            txtYellow.setBackgroundDrawable(drawablecolorblock3);
-//            drawablecolorblock4.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuGreen), PorterDuff.Mode.MULTIPLY);
-//            txtGreen.setBackgroundDrawable(drawablecolorblock4);
-//        }
-//
-//        txtGrey.setVisibility(View.GONE);
-//        txtRed.setVisibility(View.GONE);
-//        txtYellow.setVisibility(View.GONE);
-//        txtGreen.setVisibility(View.GONE);
-//
-//        txtRed.setText(String.valueOf(colorBlockMeasurables.getRedCount()));
-//        txtYellow.setText(String.valueOf(colorBlockMeasurables.getYellowCount()));
-//        txtGreen.setText(String.valueOf(colorBlockMeasurables.getGreenCount()));
-//
-//        if (colorBlockMeasurables.getRedCount()
-//                + colorBlockMeasurables.getYellowCount()
-//                + colorBlockMeasurables.getGreenCount() == 0) {
-//            txtGrey.setText(String.valueOf(colorBlockMeasurables.getTotalCount()));
-//            txtGrey.setVisibility(View.VISIBLE);
-//            txtGrey.setMinimumWidth(availableWidth);
-//
-//        } else {
-//
-//            int availableWidthRemaining = availableWidth;
-//            if(colorBlockMeasurables.getGreyCount()>0){
-//                txtGrey.setText(String.valueOf(colorBlockMeasurables.getGreyCount()));
-//                int dimenscore = colorBlockMeasurables.getGreyDimenscore(availableWidth);
-//
-//                availableWidthRemaining = availableWidth-dimenscore;
-//                txtGrey.setMinimumWidth(dimenscore);
-//                txtGrey.setVisibility(View.VISIBLE);
-//            }
-//
-//            if(colorBlockMeasurables.getRedCount()>0){
-//                txtRed.setText(String.valueOf(colorBlockMeasurables.getRedCount()));
-//                int dimenscore = colorBlockMeasurables.getRedDimenscore(availableWidth,availableWidthRemaining);
-//
-//                availableWidthRemaining = availableWidthRemaining -dimenscore;
-//                txtRed.setMinimumWidth(dimenscore);
-//                txtRed.setVisibility(View.VISIBLE);
-//
-//            }
-//
-//            if(colorBlockMeasurables.getYellowCount()>0){
-//                txtYellow.setText(String.valueOf(colorBlockMeasurables.getYellowCount()));
-//                int dimenscore = colorBlockMeasurables.getYellowDimenscore(availableWidth,availableWidthRemaining);
-//                availableWidthRemaining = availableWidthRemaining -dimenscore;
-//                txtYellow.setMinimumWidth(dimenscore);
-//                txtYellow.setVisibility(View.VISIBLE);
-//
-//            }
-//
-//            if(colorBlockMeasurables.getGreenCount()>0){
-//                txtGreen.setText(String.valueOf(colorBlockMeasurables.getGreenCount()));
-//                int dimenscore = colorBlockMeasurables.getGreenDimenscore(availableWidth,availableWidthRemaining);
-//                txtGreen.setMinimumWidth(dimenscore);
-//                txtGreen.setVisibility(View.VISIBLE);
-//            }
-//        }
-//
-//        if (colorBlockMeasurables.getTotalCount() == 0) {
-//            txtGrey.setVisibility(View.VISIBLE);
-//            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-//                drawablecolorblock1.setColorFilter(ContextCompat.getColor(mContext, android.R.color.white), PorterDuff.Mode.MULTIPLY);
-//                txtGrey.setBackground(drawablecolorblock1);
-//            } else {
-//                drawablecolorblock1.setColorFilter(ContextCompat.getColor(mContext, android.R.color.white), PorterDuff.Mode.MULTIPLY);
-//                txtGrey.setBackgroundDrawable(drawablecolorblock1);
-//            }
-//            txtGrey.setText(mContext.getString(R.string.empty));
-//            txtRed.setVisibility(View.GONE);
-//            txtYellow.setVisibility(View.GONE);
-//            txtGreen.setVisibility(View.GONE);
-//        }
-//
-//    }
 }
 

@@ -16,10 +16,12 @@ import com.jukuproject.jukutweet.R;
 import java.util.ArrayList;
 
 /**
- * Created by JClassic on 4/13/2017.
+ * Adapter for postquiz stats in {@link com.jukuproject.jukutweet.Fragments.StatsFragmentMultipleChoice}. The correct answer
+ * is displayed in each row, and colored Red if incorrect, Green if correct. Click on the word to open up {@link com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog}
+ *
+ * @see com.jukuproject.jukutweet.Fragments.StatsFragmentMultipleChoice
  */
-
-public class PostQuizStatsAdapter extends ArrayAdapter<ArrayList<MultChoiceResult>> {
+public class PostQuizStatsMultipleChoiceAdapter extends ArrayAdapter<ArrayList<MultChoiceResult>> {
 
     private ArrayList<MultChoiceResult> mQuestionResults;
     Context mContext;
@@ -27,7 +29,7 @@ public class PostQuizStatsAdapter extends ArrayAdapter<ArrayList<MultChoiceResul
     private RxBus mRxBus;
 
 
-    public PostQuizStatsAdapter(Context context
+    public PostQuizStatsMultipleChoiceAdapter(Context context
             , ArrayList<MultChoiceResult> questionResults
             , Boolean iswordbuilder
             , RxBus rxBus) {

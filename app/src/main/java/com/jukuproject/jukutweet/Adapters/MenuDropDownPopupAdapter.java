@@ -12,7 +12,11 @@ import com.jukuproject.jukutweet.R;
 
 import java.util.ArrayList;
 
-
+/**
+ * Adapter for regular (i.e. non-colorblock) dropdown menu in {@link com.jukuproject.jukutweet.Dialogs.QuizMenuDialog}.
+ * User can specify quiz criteria (size, timer, quiz type, etc).
+ * @see com.jukuproject.jukutweet.Dialogs.QuizMenuDialog
+ */
 public class MenuDropDownPopupAdapter extends RecyclerView.Adapter<MenuDropDownPopupAdapter.ViewHolder>  {
     private Integer mButtonNumber;
     private ArrayList<String> mOptions;
@@ -43,10 +47,6 @@ public class MenuDropDownPopupAdapter extends RecyclerView.Adapter<MenuDropDownP
         return new ViewHolder(v);
     }
 
-    public String getItem(int position) {
-        return mOptions.get(position);
-    }
-
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
 
@@ -63,7 +63,6 @@ public class MenuDropDownPopupAdapter extends RecyclerView.Adapter<MenuDropDownP
         });
 
     }
-
 
     // Return the size of your dataset (invoked by the layout manager)
     @Override

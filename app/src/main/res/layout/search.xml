@@ -32,6 +32,7 @@
             android:textColorHighlight="@android:color/transparent"
             android:id="@+id/checkBoxDictionary"
             android:textSize="19sp"
+            app:buttonTint="@android:color/black"
             android:layout_gravity="start"
             />
 
@@ -40,7 +41,7 @@
             android:layout_height="match_parent"
             android:layout_marginStart="15dp"
             android:text="@string/search_twitter"
-
+            app:buttonTint="@android:color/black"
             android:layout_marginLeft="15dp"
             android:textSize="19sp"
             android:textColorHighlight="@android:color/transparent"
@@ -74,7 +75,7 @@
             android:layout_marginLeft="10dp"
             android:textColorHighlight="@android:color/transparent"
             android:text="@string/search_romaji"
-
+            app:buttonTint="@android:color/black"
             android:id="@+id/checkBoxRomaji"
             android:textSize="19sp"
             android:layout_gravity="start"
@@ -85,7 +86,7 @@
             android:layout_height="match_parent"
             android:textColorHighlight="@android:color/transparent"
             android:text="@string/search_definition"
-
+            app:buttonTint="@android:color/black"
             android:layout_marginLeft="15dp"
             android:layout_marginStart="15dp"
             android:textSize="19sp"

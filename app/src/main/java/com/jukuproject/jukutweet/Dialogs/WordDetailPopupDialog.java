@@ -28,6 +28,7 @@ import android.widget.TextView;
 
 import com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter;
 import com.jukuproject.jukutweet.BuildConfig;
+import com.jukuproject.jukutweet.ChooseFavoriteListsPopupWindow;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.FavoritesColors;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
@@ -40,7 +41,6 @@ import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
-import com.jukuproject.jukutweet.TestPopupWindow;
 import com.jukuproject.jukutweet.TwitterUserClient;
 
 import java.util.ArrayList;
@@ -942,7 +942,7 @@ return linecounter;
 
         ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getWordInterfaceInstance(getContext()).getWordListsForAWord(activeFavoriteStars,String.valueOf(wordEntry.getId()),null);
 
-        PopupWindow popupWindow =  TestPopupWindow.createWordFavoritesPopup(getContext(),metrics,rxBus,availableFavoriteLists,wordEntry.getId());
+        PopupWindow popupWindow =  ChooseFavoriteListsPopupWindow.createWordFavoritesPopup(getContext(),metrics,rxBus,availableFavoriteLists,wordEntry.getId());
 
         popupWindow.getContentView().measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));

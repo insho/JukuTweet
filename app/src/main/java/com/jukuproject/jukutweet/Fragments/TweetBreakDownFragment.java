@@ -30,6 +30,7 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import com.jukuproject.jukutweet.Adapters.TweetBreakDownAdapter;
+import com.jukuproject.jukutweet.ChooseFavoriteListsPopupWindow;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
 import com.jukuproject.jukutweet.FavoritesColors;
@@ -44,7 +45,6 @@ import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
-import com.jukuproject.jukutweet.TestPopupWindow;
 import com.jukuproject.jukutweet.TweetParser;
 
 import java.util.ArrayList;
@@ -574,8 +574,8 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
-        PopupWindow popupWindow = TestPopupWindow.createTweetFavoritesPopup(getContext(),metrics,rxBus,availableFavoriteLists,mTweet.getIdString(), mTweet.getUser().getUserId());
-//        PopupWindow popupWindow =  new TestPopupWindow(getContext(),metrics,rxBus,availableFavoriteLists,mWords.get(holder.getAdapterPosition()).getId()).onCreateView();
+        PopupWindow popupWindow = ChooseFavoriteListsPopupWindow.createTweetFavoritesPopup(getContext(),metrics,rxBus,availableFavoriteLists,mTweet.getIdString(), mTweet.getUser().getUserId());
+//        PopupWindow popupWindow =  new ChooseFavoriteListsPopupWindow(getContext(),metrics,rxBus,availableFavoriteLists,mWords.get(holder.getAdapterPosition()).getId()).onCreateView();
 
         popupWindow.getContentView().measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));

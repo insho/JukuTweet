@@ -16,8 +16,8 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.jukuproject.jukutweet.Adapters.MyListExpandableAdapter;
-import com.jukuproject.jukutweet.Adapters.StatsTop5Adapter;
+import com.jukuproject.jukutweet.Adapters.StatsTopAndBottomAdapter;
+import com.jukuproject.jukutweet.Adapters.WordListExpandableAdapter;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
@@ -58,8 +58,8 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
     ImageButton imageButton;
     TextView txtBottomFive;
     ListView topFiveList;
-    StatsTop5Adapter adapter_bottom;
-    StatsTop5Adapter adapter_top;
+    StatsTopAndBottomAdapter adapter_bottom;
+    StatsTopAndBottomAdapter adapter_top;
     ArrayList<WordEntry> mTopFiveDataSet;
     ArrayList<WordEntry> mBottomFiveDataSet;
 
@@ -216,7 +216,7 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
-        MyListExpandableAdapter.setColorBlocks(getContext()
+        WordListExpandableAdapter.setColorBlocks(getContext()
                 ,mColorBlockMeasurables
                 ,metrics.widthPixels/2
                 ,textViewColorBlock_grey
@@ -236,11 +236,11 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
 
         //THIS ONE IS the BOTTOM 5 Adapter
         RxBus rxBus = new RxBus();
-        adapter_bottom = new StatsTop5Adapter(getContext(),mBottomFiveDataSet,colorThresholds,rxBus);
+        adapter_bottom = new StatsTopAndBottomAdapter(getContext(),mBottomFiveDataSet,colorThresholds,rxBus);
         bottomFiveList.setAdapter(adapter_bottom);
 
 
-        adapter_top = new StatsTop5Adapter(getContext(),mTopFiveDataSet,colorThresholds,rxBus);
+        adapter_top = new StatsTopAndBottomAdapter(getContext(),mTopFiveDataSet,colorThresholds,rxBus);
 
         topFiveList.setAdapter(adapter_top);
 

@@ -13,7 +13,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-
+/**
+ * Sql helper for importing and updating the external sqlite database "JQuiz". The db contains
+ * the Edit dictionary with info for Japanese words.
+ */
 public class ExternalDB extends SQLiteOpenHelper {
 
     //For copying the DB in the assets file to internal memory

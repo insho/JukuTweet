@@ -7,7 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.jukuproject.jukutweet.BaseContainerFragment;
 import com.jukuproject.jukutweet.Fragments.TweetListFragment;
 import com.jukuproject.jukutweet.R;
 
@@ -18,7 +17,6 @@ public class Tab2Container extends BaseContainerFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-//        Log.e("test", "tab 3 oncreateview");
         return inflater.inflate(R.layout.container_fragment, null);
     }
 
@@ -26,10 +24,6 @@ public class Tab2Container extends BaseContainerFragment {
     }
 
     public static Tab2Container newInstance() {
-//        Tab2Container fragment = new Tab2Container();
-//        Bundle args = new Bundle();
-//        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-//        fragment.setArguments(args);
         return new Tab2Container();
     }
 
@@ -47,22 +41,11 @@ public class Tab2Container extends BaseContainerFragment {
     }
 
     private void initView() {
-//        Log.e("test", "tab 3 init view");
         replaceFragment(new TweetListFragment(), false,"savedtweetsallfragment");
     }
-//    public boolean isTopFragmentShowing() {
-//        try {
-//            (getChildFragmentManager().findFragmentByTag("savedtweetsallfragment")).isVisible();
-//            return true;
-//        } catch (Exception e) {
-//            Log.e("Tab2Container","Could not find userListFragment");
-//            return false;
-//        }
-//    }
 
     public void popAllFragments() {
         try {
-//            getChildFragmentManager().popBackStack("userlistfragment", FragmentManager.POP_BACK_STACK_INCLUSIVE);
             int count = getChildFragmentManager().getBackStackEntryCount();
             if(count>1) {
                 for(int i = 1; i < count; ++i) {
@@ -73,40 +56,8 @@ public class Tab2Container extends BaseContainerFragment {
         } catch (Exception e) {
             Log.e("TEST-Tab2Container","popAllFragments failed");
         }
-
-//        try {
-//            getChildFragmentManager().popBackStack("savedtweetsallfragment", FragmentManager.POP_BACK_STACK_INCLUSIVE);
-//        } catch (Exception e) {
-//            Log.e("TEST-Tab1Container","popAllFragments failed");
-//        }
     }
-//
-//    public String getTopFragmentTag() {
-//        try {
-//            return getChildFragmentManager().getBackStackEntryAt(getChildFragmentManager().getBackStackEntryCount() - 1).getName();
-//        } catch (Exception e) {
-//            Log.e("TEST-Tab1Container","popAllFragments failed");
-//            return "";
-//
-//        }
-//    }
 
-//    public boolean isTopFragmentShowing() {
-//        try {
-//            if(getChildFragmentManager().getBackStackEntryCount() == 0) {
-//                return true;
-//            } else {
-//                return false;
-//            }
-////            (getChildFragmentManager().findFragmentByTag("savedtweetsallfragment")).isVisible();
-////            Log.d("TEST","BACKSTACK ENTRY COUNT: " + getChildFragmentManager().getBackStackEntryCount());
-////            Log.d("TEST","Apparently mylistfragment is on top...");
-////            return true;
-//        } catch (Exception e) {
-//            Log.e("Tab2Container","Could not find userListFragment");
-//            return false;
-//        }
-//    }
     public boolean updateTweetListFragment() {
         try {
             ((TweetListFragment) getChildFragmentManager().findFragmentByTag("savedtweetsallfragment")).updateMyListAdapter();
@@ -119,10 +70,7 @@ public class Tab2Container extends BaseContainerFragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-
         outState.putBoolean("mIsViewInited", mIsViewInited);
-
-
     }
 
 

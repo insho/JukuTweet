@@ -16,6 +16,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.util.Pair;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -56,6 +57,7 @@ import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
+import com.jukuproject.jukutweet.TabContainers.BaseContainerFragment;
 import com.jukuproject.jukutweet.TabContainers.Tab1Container;
 import com.jukuproject.jukutweet.TabContainers.Tab2Container;
 import com.jukuproject.jukutweet.TabContainers.Tab3Container;
@@ -84,6 +86,8 @@ import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
+
+//import com.jukuproject.jukutweet.Models.RomajiConversionResults;
 
 /**
  * Main activity fragment manager
@@ -115,13 +119,10 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     private boolean[] tabsShowingBrowseMenu = new boolean[4];
     private String[] mAdapterTitles;
     private static final String TAG = "TEST-Main";
-    private static final boolean debug = true;
     private Subscription searchQuerySubscription;
     private Subscription userInfoSubscription;
 
     Scheduler parseTweetScheduler = Schedulers.from(Executors.newSingleThreadExecutor());
-
-//    private boolean fragmentWasChanged = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -149,15 +150,12 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
             mAdapterTitles = savedInstanceState.getStringArray("adapterTitles");
             tabsShowingBrowseMenu = savedInstanceState.getBooleanArray("tabsShowingBrowseMenu");
-//            fragmentWasChanged = savedInstanceState.getBoolean("fragmentWasChanged");
-
         } else {
             fragments[0] = Tab1Container.newInstance();
             fragments[1] = Tab2Container.newInstance();
             fragments[2] = Tab3Container.newInstance();
             fragments[3] = Tab4Container.newInstance();
             mAdapterTitles = new String[]{"Users","Saved Tweets","Word Lists","Search"};
-//            fragmentWasChanged = getIntent().getBooleanExtra("fragmentWasChanged",false);
         }
 
 
@@ -191,16 +189,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
              */
             @Override
             public void onPageSelected(int position) {
-//                if(fragmentWasChanged && mSectionsPagerAdapter != null) {
-//                    try {
-//                        mSectionsPagerAdapter.notifyDataSetChanged();
-//                        fragmentWasChanged = false;
-//                    } catch (NullPointerException e) {
-//                        Log.e(TAG,"Nullpointer in onPageSelected! " + e.getCause());
-//                    }
-//                }
 
-                Log.d(TAG,"ISTOP SHOWING FOR - " + position + ", " + isTopShowing(position));
+//                Log.d(TAG,"ISTOP SHOWING FOR - " + position + ", " + isTopShowing(position));
 
                 /* The fab has different functions and appearance depending on which tab is visible */
                 if(isTopShowing(position)) {
@@ -231,13 +221,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                         showMenuMyListBrowse(false,position);
                     }
 
-//                    if(position==1) {
-//                        mSectionsPagerAdapter.notifyDataSetChanged();
-//                        fragmentWasChanged = false;
-//                    }
                 }
-
-
 
             }
 
@@ -418,8 +402,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
 
     /**
-     * Shows FollowUserDialogFragment, where user can input a new twitter handle to follow
-     * Called from the fabAddUser button click
+     * Shows {@link AddUserDialog}, where user can input a twitter handle whom they would like to follow.
+     * This method is called from the fabAddUser button click in Tab0 {@link com.jukuproject.jukutweet.Fragments.UserListFragment}
      */
     public void showAddUserDialog(){
 
@@ -428,7 +412,11 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
     }
 
-
+    /**
+     * Shows {@link AddUserCheckDialog}, with information for the prospective twitter feed. User can decide whether to add that feed
+     * to the UserList or not. This dialog is called after the showAddUserDialog onOkPressed.
+     * @param userInfo userInfo for prospective twitter feed
+     */
     public void showAddUserCheckDialog(UserInfo userInfo){
 
         if(getFragmentManager().findFragmentByTag("dialogAddCheck") == null || !getFragmentManager().findFragmentByTag("dialogAddCheck").isAdded()) {
@@ -536,8 +524,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                         UserInfo userInfoInstance;
 
                         @Override public void onCompleted() {
-                            if(debug){
-                                Log.d(TAG, "In onCompleted()");}
+                            if(BuildConfig.DEBUG){Log.d(TAG, "getInitialUserInfoForAddUserCheck In onCompleted()");}
 
                             /* If the user exists and a UserInfo object has been populated,
                             * save it to the database and update the UserInfoFragment adapter */
@@ -550,7 +537,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
                         @Override public void onError(Throwable e) {
                             e.printStackTrace();
-                            if(debug){Log.d(TAG, "In onError()");}
+                            if(BuildConfig.DEBUG){Log.d(TAG, "getInitialUserInfoForAddUserCheck In onError()");}
                             Toast.makeText(getBaseContext(), "Unable to connect to Twitter API", Toast.LENGTH_SHORT).show();
 
                             /* If process is unable to get userInfo, save the screenName only as a placeholder to be accessed later */
@@ -561,7 +548,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                         }
 
                         @Override public void onNext(UserInfo userInfo) {
-                            if(debug) {
+                            if(BuildConfig.DEBUG) {
                                 Log.d(TAG, "In onNext()");
                                 Log.d(TAG, "userInfo: " + userInfo.getUserId() + ", " + userInfo.getDescription());
                             }
@@ -576,6 +563,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     });
 
     }
+
+
 
 
     public void saveAndUpdateUserInfoList(UserInfo userInfoInstance) {
@@ -1001,7 +990,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 }
             case 1:
                 try {
-                    Log.d(TAG,"BACKSTACK COUNT OF TAB 2:" + ((Tab2Container)findFragmentByPosition(1)).getChildFragmentManager().getBackStackEntryCount());
+//                    Log.d(TAG,"BACKSTACK COUNT OF TAB 2:" + ((Tab2Container)findFragmentByPosition(1)).getChildFragmentManager().getBackStackEntryCount());
 //                Log.d(TAG,"tab2container top: " + ((Tab2Container)findFragmentByPosition(1)).getTopFragmentTag());
 //                    return ((Tab2Container)findFragmentByPosition(1)).getTopFragmentTag().equals("savedtweetsallfragment");
                     return ((BaseContainerFragment)findFragmentByPosition(1)).isTopFragmentShowing();
@@ -1103,45 +1092,106 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
     }
 
-    //Traffic control from CopyDialog to BrowseItemsFragment
-    public void saveAndUpdateMyLists(String kanjiIdString, ArrayList<MyListEntry> listsToCopyTo, boolean move, MyListEntry currentList) {
+
+    /**
+     * Looks for current tweet fragment in tab 1 (either saved tweet lists
+     * or individual users saved tweets) and refreshes the list. Initiated from the onSuccess portion of the parseAndSaveTweet method.
+     * @see #parseAndSaveTweet(Tweet)
+     */
+    public void notifySavedTweetFragmentsChanged() {
+        if(findFragmentByPosition(1) != null
+                && findFragmentByPosition(1) instanceof Tab2Container) {
+            if(((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsallfragment") != null) {
+                ((TweetListFragment) ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsallfragment")).updateMyListAdapter();
+            }
+            if(((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedTweetsAllFragmentIndividual") != null){
+                ((TweetListFragment) ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedTweetsAllFragmentIndividual")).updateMyListAdapter();
+            }
+        }
+    }
+
+    //TODO hook this up to something
+    public void notifySavedWordFragmentsChanged() {
+        if(findFragmentByPosition(2) != null
+                && findFragmentByPosition(2) instanceof Tab3Container) {
+            if(((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistfragment") != null) {
+                ((TweetListFragment) ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistfragment")).updateMyListAdapter();
+            }
+        }
+    }
+
+    /**
+     * Traffic control, passing result of  {@link com.jukuproject.jukutweet.Dialogs.CopyMyListItemsDialog}  to the
+     * {@link WordListBrowseFragment} so the words can be saved and the recycler refreshed
+     *
+     *
+     * @param kanjiIdString concatenated string of kanji ids that will be moved/copied
+     * @param listsToCopyTo MyList object of word lists that the words will be copied to
+     * @param move bool true for MOVE the words, false to only COPY the words
+     * @param currentList The current list from which the copy dialog is called. This is so the list is not included
+     *                    as an option to move/copy to.
+     */
+    public void saveAndUpdateMyLists(String kanjiIdString
+            , ArrayList<MyListEntry> listsToCopyTo
+            , boolean move
+            , MyListEntry currentList) {
         if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
             try {
                 ((WordListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).saveAndUpdateMyLists(kanjiIdString,listsToCopyTo,move,currentList);
-
             } catch (NullPointerException e) {
                 Log.e(TAG,"Tab3Container->WordListBrowseFragment saveAndUpdateMyLists Nullpointer: " + e.toString());
-            } catch (Exception e) {
-                Log.e(TAG,"Tab3Container->WordListBrowseFragment saveAndUpdateMyLists error: " + e.toString());
             }
 
         }
     }
 
-    //Traffic control from CopyDialog to TweetListBrowseFragment
-    public void saveAndUpdateTweetLists(String tweetIds, ArrayList<MyListEntry> listsToCopyTo, boolean move, MyListEntry currentList) {
+
+
+    /**
+     * Traffic control, passing result of  {@link com.jukuproject.jukutweet.Dialogs.CopySavedTweetsDialog}  to the
+     * {@link TweetListBrowseFragment} so the tweets can be saved and the recycler refreshed
+     *
+     *
+     * @param tweetIds tweetIds of tweets to be copied/moved
+     * @param listsToCopyTo Lists that the tweets will be copied to
+     * @param move bool true for MOVE the tweet, false to only COPY the tweet
+     * @param currentList The current list from which the copy dialog is called. This is so the list is not included
+     *                    as an option to move/copy to.
+     */
+    public void saveAndUpdateTweetLists(String tweetIds
+            , ArrayList<MyListEntry> listsToCopyTo
+            , boolean move
+            , MyListEntry currentList) {
+
         if(findFragmentByPosition(1) != null && findFragmentByPosition(1) instanceof Tab2Container) {
             try {
                 ((TweetListBrowseFragment)((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse")).saveAndUpdateTweets(tweetIds,listsToCopyTo,move,currentList);
             } catch (NullPointerException e) {
                 Log.e(TAG,"Tab2Container->TweetListBrowseFragment saveAndUpdateMyLists Nullpointer: " + e.toString());
-            } catch (Exception e) {
-                Log.e(TAG,"Tab2Container->TweetListBrowseFragment saveAndUpdateMyLists error: " + e.toString());
             }
 
         }
     }
 
+    /**
+     * Shows the flashcard fragment (Replacing the current fragment) for specified words in a wordlist or savedtweet list
+     * @see com.jukuproject.jukutweet.Dialogs.QuizMenuDialog
+     * @param tabNumber the number of the tab that was open before the activity was destroyed
+     * @param listEntry Word or Tweet list from which the flashcards will be picked
+     * @param frontValue tag specifying type of text on the front of the flashcard (kanji, furigana, definition)
+     * @param backValue tag specifying type of text on the back of the flashcard (kanji, furigana, definition)
+     * @param selectedColorString concatenated string specifying which word colors (based on the percentage score for that word)
+     *                            will be allowed to be included in the quiz (ex: 'Grey,Red,Green')
+     */
     public void showFlashCardFragment(int tabNumber
             , MyListEntry listEntry
             , String frontValue
             , String backValue
             ,String selectedColorString) {
 
-
-        //Pull data for flashcard fragment
+        //If its a WordList fragment
         if(tabNumber == 1) {
-            //Its a mylist fragment
+
             ArrayList<WordEntry> dataset = InternalDB.getTweetInterfaceInstance(getBaseContext())
                     .getWordsFromATweetList(listEntry
                             ,SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
@@ -1155,8 +1205,9 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 FlashCardsFragment flashCardsFragment = FlashCardsFragment.newInstance(dataset,frontValue,backValue);
                 ((BaseContainerFragment)findFragmentByPosition(tabNumber)).replaceFragment(flashCardsFragment,true,"flashcards");
             }
+
+            //If its a TweetList fragment
         } else if(tabNumber == 2) {
-            //Its a mylist fragment
             ArrayList<WordEntry> dataset = InternalDB.getWordInterfaceInstance(getBaseContext())
                     .getWordsFromAWordList(listEntry
                             ,SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
@@ -1166,26 +1217,29 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
             if(findFragmentByPosition(tabNumber) != null
                     && findFragmentByPosition(tabNumber) instanceof Tab3Container) {
-
-//                Log.d(TAG,"kanji: " + dataset.get(0).getKanji() + ", furigana: " + dataset.get(0).getFurigana());
-                //Initialize Flashcards fragment
                 FlashCardsFragment flashCardsFragment = FlashCardsFragment.newInstance(dataset,frontValue,backValue);
-                //Replace the current fragment bucket with flashcards
                 ((BaseContainerFragment)findFragmentByPosition(tabNumber)).replaceFragment(flashCardsFragment,true,"flashcards");
-
             }
         }
-
     }
+
+    /**
+     * Shows the flashcard fragment (Replacing the current fragment) for specified words in the saved tweets of
+     * a single user (from the {@link TweetListSingleUserFragment})
+     * @see com.jukuproject.jukutweet.Dialogs.QuizMenuDialog
+     * @param tabNumber the number of the tab that was open before the activity was destroyed
+     * @param userInfo UserInfo object for the user whose tweets will be used in the quiz
+     * @param frontValue tag specifying type of text on the front of the flashcard (kanji, furigana, definition)
+     * @param backValue tag specifying type of text on the back of the flashcard (kanji, furigana, definition)
+     * @param selectedColorString concatenated string specifying which word colors (based on the percentage score for that word)
+     *                            will be allowed to be included in the quiz (ex: 'Grey,Red,Green')
+     */
     public void showSingleUserFlashCardFragment(int tabNumber
             , UserInfo userInfo
             , String frontValue
             , String backValue
             ,String selectedColorString) {
 
-        //Pull data for flashcard fragment
-        if(tabNumber == 1) {
-            //Its a mylist fragment
             ArrayList<WordEntry> dataset = InternalDB.getTweetInterfaceInstance(getBaseContext())
                     .getWordsFromAUsersSavedTweets(userInfo
                             ,SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
@@ -1199,10 +1253,21 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 FlashCardsFragment flashCardsFragment = FlashCardsFragment.newInstance(dataset,frontValue,backValue);
                 ((BaseContainerFragment)findFragmentByPosition(tabNumber)).replaceFragment(flashCardsFragment,true,"flashcards");
             }
-        }
-
     }
 
+
+    /**
+     * Sends intent to {@link QuizActivity} to begin the {@link com.jukuproject.jukutweet.Fragments.MultipleChoiceFragment}
+     * multiple choice quiz
+     * @param tabNumber the number of the tab that was open before the activity was destroyed
+     * @param listEntry Word or Tweet list from which the quiz answers will be picked
+     * @param currentExpandedPosition position of word/tweet list entry that was last expanded. In case user
+     *                                goes back to the Main Activity, the correct list can be expanded on activity creation
+     * @param quizType Quiz menu option for multiple choice quiz ("Kanji to Definition" etc)
+     * @param quizSize Quiz menu option, number of questions to ask in the quiz
+     * @param quizTimer Quiz menu option, number of seconds in timer (or can be "None"). IS A STRINg.
+     * @param selectedColorString concatenated string of word colors that are available for this quiz (ex: blue,red,yellow)
+     */
     public void goToQuizActivityMultipleChoice(int tabNumber
             , MyListEntry listEntry
             ,Integer currentExpandedPosition
@@ -1211,18 +1276,11 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             , String quizTimer
             , String selectedColorString) {
 
-        Integer timer = -1;
-        if (!quizTimer.equals("None")) {
-            timer = Integer.parseInt(quizTimer);
-        }
-
-//        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getApplicationContext()).getColorThresholds();
-
         ArrayList<WordEntry> dataset = new ArrayList<>();
         String dataType = "";
         if (tabNumber == 1) {
-            //Its a tweetlist fragment
 
+            //Its a tweetlist fragment
             dataset = InternalDB.getTweetInterfaceInstance(getBaseContext())
                     .getWordsFromATweetList(listEntry
                             , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
@@ -1244,9 +1302,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
 
             if(dataset.size()>0) {
-                double totalweight = assignWordWeightsAndGetTotalWeight(getBaseContext(),dataset);
-
-
+                double totalweight = assignWordWeightsAndGetTotalWeight(getBaseContext(),dataset,.50,.025,30);
                 Intent intent = new Intent(getBaseContext(), QuizActivity.class);
 
                 intent.putExtra("typeOfQuizThatWasCompleted","Multiple Choice"); //The type of quiz that was chosen inthe menu
@@ -1260,10 +1316,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 intent.putParcelableArrayListExtra("dataset",dataset);
                 intent.putExtra("dataType",dataType);
                 intent.putExtra("lastExpandedPosition",currentExpandedPosition);
-
-
-
-                Log.d(TAG,"a TIMER: " + quizTimer);
                 startActivity(intent);
           } else {
                 Toast.makeText(this, "No words found to quiz on", Toast.LENGTH_SHORT).show();
@@ -1271,6 +1323,19 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     }
 
 
+    /**
+     * Sends intent to {@link QuizActivity} to begin the {@link com.jukuproject.jukutweet.Fragments.MultipleChoiceFragment}
+     * multiple choice quiz for a Single User's saved tweets. A different set of sql queries and such must be used to pull
+     * the datasets for savedtweets from a single user, so this is a seperate method
+     * @param tabNumber the number of the tab that was open before the activity was destroyed
+     * @param userInfo UserInfo object for the user whose tweets will be used in the quiz
+     * @param currentExpandedPosition position of word/tweet list entry that was last expanded. In case user
+     *                                goes back to the Main Activity, the correct list can be expanded on activity creation
+     * @param quizType Quiz menu option for multiple choice quiz ("Kanji to Definition" etc)
+     * @param quizSize Quiz menu option, number of questions to ask in the quiz
+     * @param quizTimer Quiz menu option, number of seconds in timer (or can be "None"). IS A STRINg.
+     * @param selectedColorString concatenated string of word colors that are available for this quiz (ex: blue,red,yellow)
+     */
     public void goToSingleUserQuizActivityMultipleChoice(int tabNumber
             , UserInfo userInfo
             ,Integer currentExpandedPosition
@@ -1279,17 +1344,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             , String quizTimer
             , String selectedColorString) {
 
-        Integer timer = -1;
-        if (!quizTimer.equals("None")) {
-            timer = Integer.parseInt(quizTimer);
-        }
-
-//        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getApplicationContext()).getColorThresholds();
-
         ArrayList<WordEntry> dataset = new ArrayList<>();
         String dataType = "";
-        if (tabNumber == 1) {
-            //Its a mylist fragment
 
             dataset = InternalDB.getTweetInterfaceInstance(getBaseContext())
                     .getWordsFromAUsersSavedTweets(userInfo
@@ -1299,11 +1355,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                             , Integer.parseInt(quizSize));
             dataType = "Tweet";
 
-        }
-
         if(dataset.size()>0) {
-            double totalweight = assignWordWeightsAndGetTotalWeight(getBaseContext(),dataset);
-
+            double totalweight = assignWordWeightsAndGetTotalWeight(getBaseContext(),dataset,.50,.025,30);
 
             Intent intent = new Intent(getBaseContext(), QuizActivity.class);
 
@@ -1319,29 +1372,35 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             intent.putParcelableArrayListExtra("dataset",dataset);
             intent.putExtra("dataType",dataType);
             intent.putExtra("lastExpandedPosition",currentExpandedPosition);
-
-
-
-            Log.d(TAG,"a TIMER: " + quizTimer);
             startActivity(intent);
         } else {
             Toast.makeText(this, "No words found to quiz on", Toast.LENGTH_SHORT).show();
         }
     }
 
+
+    /**
+     * Sends intent to {@link QuizActivity} to begin the {@link com.jukuproject.jukutweet.Fragments.MultipleChoiceFragment}
+     * fill in the blanks quiz
+     * @param tabNumber the number of the tab that was open before the activity was destroyed
+     * @param myListEntry Word or Tweet list from which the quiz answers will be picked
+     * @param currentExpandedPosition position of word/tweet list entry that was last expanded. In case user
+     *                                goes back to the Main Activity, the correct list can be expanded on activity creation
+     * @param quizSize Quiz menu option, number of questions to ask in the quiz
+     * @param selectedColorString concatenated string of word colors that are available for this quiz (ex: blue,red,yellow)
+     */
     public void goToQuizActivityFillintheBlanks(int tabNumber
             , MyListEntry myListEntry
             , Integer currentExpandedPosition
             , String quizSize
             , String selectedColorString) {
 
-//        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getApplicationContext()).getColorThresholds();
         ArrayList<Tweet> dataset = new ArrayList<>();
         String dataType = "";
 
+        //The request is coming from the saved tweets fragment
         if (tabNumber == 1) {
 
-            //The request is coming from the saved tweets fragment
             dataset = InternalDB.getQuizInterfaceInstance(getBaseContext())
                     .getFillintheBlanksTweetsForATweetList(myListEntry
                             , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
@@ -1349,22 +1408,22 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                             , Integer.parseInt(quizSize));
 
             dataType = "Tweet";
+
+        //The request is coming from the saved words fragment
         } else if (tabNumber == 2) {
 
-            //The request is coming from the saved words fragment
            dataset = InternalDB.getQuizInterfaceInstance(getBaseContext())
                     .getFillintheBlanksTweetsForAWordList(myListEntry
                             , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
                             , selectedColorString
                             , Integer.parseInt(quizSize));
 
-
             dataType = "Word";
 
         }
 
         if(dataset.size()>0) {
-            double totalweight = assignTweetWeightsAndGetTotalWeight(dataset);
+            double totalweight = assignTweetWeightsAndGetTotalWeight(dataset,SharedPrefManager.getInstance(getBaseContext()).getSliderMultiplier(),.5,.025,30);
 
             Intent intent = new Intent(getBaseContext(), QuizActivity.class);
 
@@ -1374,8 +1433,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             intent.putExtra("quizSize",quizSize);
             intent.putExtra("colorString",selectedColorString);
             intent.putExtra("totalweight",totalweight);
-            Log.d(TAG,"dataset isspinner: " + dataset.get(0).getWordEntries().get(1).getKanji() + ", spinner: "
-                    + dataset.get(0).getWordEntries().get(1).isSpinner());
+//            Log.d(TAG,"dataset isspinner: " + dataset.get(0).getWordEntries().get(1).getKanji() + ", spinner: "
+//                    + dataset.get(0).getWordEntries().get(1).isSpinner());
             intent.putParcelableArrayListExtra("dataset",dataset);
             intent.putExtra("dataType",dataType);
             intent.putExtra("lastExpandedPosition",currentExpandedPosition);
@@ -1390,19 +1449,29 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
     }
 
+
+    /**
+     * Sends intent to {@link QuizActivity} to begin the {@link com.jukuproject.jukutweet.Fragments.FillInTheBlankFragment}
+     * fill in the blank quiz for a Single User's saved tweets. A different set of sql queries and such must be used to pull
+     * the datasets for savedtweets from a single user, so this is a seperate method
+     * @param tabNumber the number of the tab that was open before the activity was destroyed
+     * @param userInfo UserInfo object for the user whose tweets will be used in the quiz
+     * @param currentExpandedPosition position of word/tweet list entry that was last expanded. In case user
+     *                                goes back to the Main Activity, the correct list can be expanded on activity creation
+     * @param quizSize Quiz menu option, number of questions to ask in the quiz
+     * @param selectedColorString concatenated string of word colors that are available for this quiz (ex: blue,red,yellow)
+     */
     public void goToSingleUserQuizActivityFillintheBlanks(int tabNumber
             , UserInfo userInfo
             , Integer currentExpandedPosition
             , String quizSize
             , String selectedColorString) {
 
-//        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getApplicationContext()).getColorThresholds();
         ArrayList<Tweet> dataset = new ArrayList<>();
         String dataType = "";
 
+        //The request is coming from the saved tweets fragment
         if (tabNumber == 1) {
-
-            //The request is coming from the saved tweets fragment
             dataset = InternalDB.getQuizInterfaceInstance(getBaseContext())
                     .getFillintheBlanksTweetsForAUser(userInfo
                             , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
@@ -1413,7 +1482,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
 
         if(dataset.size()>0) {
-            double totalweight = assignTweetWeightsAndGetTotalWeight(dataset);
+            double totalweight = assignTweetWeightsAndGetTotalWeight(dataset,SharedPrefManager.getInstance(getBaseContext()).getSliderMultiplier(),.5,.025,30);
 
             Intent intent = new Intent(getBaseContext(), QuizActivity.class);
 
@@ -1440,10 +1509,23 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
     }
 
-    public static double assignWordWeightsAndGetTotalWeight(Context context, ArrayList<WordEntry> wordEntries) {
-        final Double sliderUpperBound = .50;
-        final Double sliderLowerBound = .025;
-        final int sliderCountMax = 30;
+
+    /**
+     * Assigns percentage weights to the WordEntry objects in the wordEntries list (the higher the weight,
+     * the more likely the word will be chosen as a quiz answer).
+      * @param context Context
+     * @param wordEntries List of WordEntries that will be passed on to the quiz activity
+     * @param sliderUpperBound The highest possible weight for a word (default .5)
+     * @param sliderLowerBound The lower possible weight for a word (default .025)
+     * @param sliderCountMax
+     * @return the total combined weight of all the words in the list.
+     */
+    public static double assignWordWeightsAndGetTotalWeight(Context context
+            , ArrayList<WordEntry> wordEntries
+            , Double sliderUpperBound
+            , Double sliderLowerBound
+            , int sliderCountMax
+    ) {
         final double sliderMultipler = SharedPrefManager.getInstance(context).getSliderMultiplier();
 
         double totalWeight = 0.0d;
@@ -1455,10 +1537,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             /* The slider multiplier is what affects how rapidly a word diverges from the natural weight of .25.
             * The higher the multiplier, the faster it will diverge with an increased count.*/
             double countMultiplier = (double)total/(double)sliderCountMax*(percentage-(double)sliderUpperBound)*(double)sliderMultipler;
-
-            if(total>100) {
-                total = (double)100;
-            }
 
             double a = ((double)sliderUpperBound/(double)2)-(double)sliderUpperBound*(countMultiplier) ;
 
@@ -1478,11 +1556,22 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     }
 
 
-    public double assignTweetWeightsAndGetTotalWeight(ArrayList<Tweet> tweets) {
-        final Double sliderUpperBound = .50;
-        final Double sliderLowerBound = .025;
-        final int sliderCountMax = 30;
-        final double sliderMultipler = SharedPrefManager.getInstance(getBaseContext()).getSliderMultiplier();
+    /**
+     * Assigns percentage weights to the WordEntry objects in a list of Tweets (the higher the weight,
+     * the more likely the WordEntry will be chosen during the quiz).
+     * @param tweets List of Tweets that will be passed on to the quiz activity
+     * @param sliderUpperBound The highest possible weight for a word (default .5)
+     * @param sliderLowerBound The lower possible weight for a word (default .025)
+     * @param sliderCountMax
+     * @return the total combined weight of all the words
+     * contained in all the Tweets in the tweet list.
+     */
+    public static double assignTweetWeightsAndGetTotalWeight(ArrayList<Tweet> tweets
+            , double sliderMultiplier
+            , Double sliderUpperBound
+            , Double sliderLowerBound
+            , int sliderCountMax
+    ) {
 
         double totalWeight = 0.0d;
 
@@ -1499,7 +1588,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             double tweetPercentage = aggregatedTweetCorrect/aggregatedTweetTotal;
             /* The slider multiplier is what affects how rapidly a word diverges from the natural weight of .25.
             * The higher the multiplier, the faster it will diverge with an increased count.*/
-            double countMultiplier = (double)aggregatedTweetTotal/(double)sliderCountMax*(tweetPercentage-(double)sliderUpperBound)*(double)sliderMultipler;
+            double countMultiplier = (double)aggregatedTweetTotal/(double)sliderCountMax*(tweetPercentage-(double)sliderUpperBound)*(double)sliderMultiplier;
 
 
             double a = ((double)sliderUpperBound/(double)2)-(double)sliderUpperBound*(countMultiplier) ;
@@ -1518,59 +1607,46 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         return totalWeight;
     }
 
-    //Changes sss
-//    public void notifyFragmentsChanged() {
-//        fragmentWasChanged = true;
-//    }
-
-    public void notifySavedTweetFragmentsChanged() {
-            if(findFragmentByPosition(1) != null
-                    && findFragmentByPosition(1) instanceof Tab2Container) {
-                   if(((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsallfragment") != null) {
-                       ((TweetListFragment) ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsallfragment")).updateMyListAdapter();
-                   }
-                if(((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedTweetsAllFragmentIndividual") != null){
-                       ((TweetListFragment) ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedTweetsAllFragmentIndividual")).updateMyListAdapter();
-                   }
-            }
-    }
-    public void notifySavedWordFragmentsChanged() {
-        if(findFragmentByPosition(2) != null
-                && findFragmentByPosition(2) instanceof Tab3Container) {
-            if(((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistfragment") != null) {
-                ((TweetListFragment) ((Tab3Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("mylistfragment")).updateMyListAdapter();
-            }
-        }
-    }
 
 
+
+    /**
+     * Called during activity recreation to expand the previously expanded position in the word or tweet list.
+     * @param tabNumber the number of the tab that was open before the activity was destroyed
+     * @param positionToExpand position in the word/tweet list (if the open tab was 1 or 2)
+     */
     public void setPreviousMyListExpanded(int tabNumber,int positionToExpand) {
-        if(findFragmentByPosition(tabNumber) != null && findFragmentByPosition(tabNumber) instanceof Tab2Container) {
 
-            try {
+        try {
+        if(findFragmentByPosition(tabNumber) != null && findFragmentByPosition(tabNumber) instanceof Tab2Container) {
                 Tab2Container container = ((Tab2Container) findFragmentByPosition(tabNumber));
                 ((TweetListFragment) container.getChildFragmentManager().findFragmentByTag("savedtweetsallfragment")).expandTheListViewAtPosition(positionToExpand);
-            } catch (Exception e) {
-                Log.e("TEST","setPreviousMyListExpanded savedtweetsallfragment could not set prev expanded");
-            }
-
         } else if(findFragmentByPosition(tabNumber) != null && findFragmentByPosition(tabNumber) instanceof Tab3Container) {
-            try {
                 Tab3Container container = ((Tab3Container) findFragmentByPosition(tabNumber));
                 ((WordListFragment) container.getChildFragmentManager().findFragmentByTag("mylistfragment")).expandTheListViewAtPosition(positionToExpand);
-            } catch (Exception e) {
-                Log.e("TEST","setPreviousMyListExpanded mylistfragment could not set prev expanded");
-            }
         }
 
-
+        } catch (NullPointerException e) {
+            Log.e(TAG,"setPreviousMyListExpanded could not set prev expanded");
+        }
     }
 
+    //TODO hook this to something
     public void showUserDetailFragment(UserInfo userInfo) {
         UserDetailPopupDialog userDetailFragment = UserDetailPopupDialog.newInstance(userInfo);
         userDetailFragment.show(getSupportFragmentManager(),"userDetailFragment");
     };
 
+
+    /**
+     * Searches twitter for either "User", resulting in a list of possible users, or for a "Tweet",
+     * resulting in a list of tweets that contain the query word. Called from {@link SearchFragment}
+     * @param query query string from searchview
+     * @param queryOption tag designating the search as either "User" or "Tweet". The search client will
+     *                    run different searches depending on the option
+     *
+     * @see SearchFragment
+     */
  public void runTwitterSearch(final String query, final String queryOption) {
     if(searchQuerySubscription !=null && !searchQuerySubscription.isUnsubscribed()) {
         searchQuerySubscription.unsubscribe();
@@ -1581,10 +1657,11 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
      if(queryOption.equals("Tweet")) {
 
-    //If query is in romaji, convert it to a kanji and run the search on that kanji if possible
+    /*If query is in romaji(and we are looking for a matching bit of text within a tweet),
+    convert it to a kanji and run the search on that kanji if possible.  */
     final String kanjiQuery ;
     if(isRomaji(query)) {
-        ArrayList<WordEntry> conversionResults = actuallyRuntheSearch(query,"Romaji");
+        ArrayList<WordEntry> conversionResults = querytheDictionary(query,"Romaji");
         if(conversionResults != null && conversionResults.size()>0) {
             kanjiQuery = conversionResults.get(0).getKanji();
         } else {
@@ -1595,16 +1672,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     } else {
         kanjiQuery = query;
     };
-
-
-
-
-         /* Holds a list of tweets that have been favorited (in any/all lists). Used to check
-    * whether or not a tweet needs to have favorites assigned to it. This exists
-    * so that we dont' have to make a sql query for each Tweet that gets returned from
-    * the api lookup */
-
-
 
 
      searchQuerySubscription = TwitterUserClient.getInstance(token,tokenSecret)
@@ -1636,8 +1703,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
                             HashMap<String,ItemFavorites> tweetIdStringsInFavorites = InternalDB.getTweetInterfaceInstance(getBaseContext()).getStarFavoriteDataForAUsersTweets(stringBuilder.toString());
 
+                                //Attach colorfavorites to tweet, if they exists in db, so that the favorite stars will have the correct color
                                 for(Tweet tweet : mDataSet) {
-                                    //Attach colorfavorites to tweet, if they exists in db
                                     if(tweet.getIdString()!=null && tweetIdStringsInFavorites.keySet().contains(tweet.getIdString())) {
                                         tweet.setItemFavorites(tweetIdStringsInFavorites.get(tweet.getIdString()));
                                     } else {
@@ -1651,18 +1718,15 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     }
 
 
-                    if(findFragmentByPosition(3) != null) {
+                        //Try to refresh the search fragment recyclerview with the updated search results
                         try {
-
                             ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment")).recieveTwitterSearchResults(mDataSet,kanjiQuery);
-
                         } catch (NullPointerException e) {
                             Log.e(TAG,"runTwitterSearch onsuccess error updating SearchFragment, null: " + e.toString());
                         } catch (Exception e) {
                             Log.e(TAG,"runTwitterSearch onsuccess error updating SearchFragment, generic exception: " + e.toString());
 
                         }
-                    }
 
                 }
 
@@ -1687,7 +1751,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 @Override public void onNext(SearchTweetsContainer results) {
                     if(BuildConfig.DEBUG) {
                         Log.d(TAG, "runTwitterSearch In onNext()");
-//                        Log.d(TAG," tweet search results SIZE: " + results.size());
                     }
                     if(mDataSet.size() == 0) {
                         try{
@@ -1695,44 +1758,21 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                         } catch (Exception e){
                             Log.e(TAG,"exception in runTwitterSearch get tweets");
                         }
-//
                     }
-//
-//                    if(mDataSet.size() == 0) {
-//
-//                        for(Tweet tweet : results.getTweets()) {
-//
-//
-////                            Log.d(TAG,"timeline thing: " + tweet.getIdString());
-//                            //Attach colorfavorites to tweet, if they exists in db
-//                            if(tweet.getIdString()!=null && tweetIdStringsInFavorites.keySet().contains(tweet.getIdString())) {
-//                                tweet.setItemFavorites(tweetIdStringsInFavorites.get(tweet.getIdString()));
-//                            } else {
-//                                tweet.setItemFavorites(new ItemFavorites());
-//                            }
-//
-//                            mDataSet.add(tweet);
-//                        }
-//                    }
-
                 }
             });
      } else if(queryOption.equals("User")){
 
-
-
-             //TODO make the number of twitter responses an option! not just 10
              TwitterUserClient.getInstance(token,tokenSecret)
-                     .getSearchUsers(query,10)
+                     .getSearchUsers(query,15)
                      .subscribeOn(Schedulers.io())
                      .observeOn(AndroidSchedulers.mainThread())
                      .subscribe(new Observer<List<UserInfo>>() {
                          ArrayList<UserInfo> mDataSet = new ArrayList<>();
                          @Override public void onCompleted() {
 
-                             if(findFragmentByPosition(3) != null) {
+                             //Try to refresh the search fragment recyclerview with the updated search results
                                  try {
-
                                      ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment")).recieveTwitterUserSearchResults(mDataSet);
 
                                  } catch (NullPointerException e) {
@@ -1741,11 +1781,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                                      Log.e(TAG,"runTwitterSearch onsuccess error updating SearchFragment, generic exception: " + e.toString());
 
                                  }
-                             }
-
-
-
-
                          }
 
                          @Override public void onError(Throwable e) {
@@ -1767,28 +1802,27 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
                          }
                      });
-
-
-
-
      }
 
 }
 
-
-
+    /**
+     * Searches the Edict dictionary database for a Kanji (in japanese text or romanized japanese, which is then
+     *                    translated to japanese text before searching) or Definition (in english)
+     * @param query query string from searchview
+     * @param queryOption tag designating the search as either "Kanji" or "Definition". The search client will
+     *                    run different searches depending on the option
+     */
     public void runDictionarySearch(final String query, final String queryOption) {
 
         if(searchQuerySubscription !=null && !searchQuerySubscription.isUnsubscribed()) {
             searchQuerySubscription.unsubscribe();
         }
 
-//        actuallyRuntheSearch(query.trim(),isRomaji);
-
         searchQuerySubscription = Observable.fromCallable(new Callable<ArrayList<WordEntry>>() {
             @Override
             public ArrayList<WordEntry> call() throws Exception {
-                return actuallyRuntheSearch(query.trim(),queryOption);
+                return querytheDictionary(query.trim(),queryOption);
             }
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -1796,24 +1830,22 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     ArrayList<WordEntry> searchResults = new ArrayList<WordEntry>();
                     @Override
                     public void onCompleted() {
-                        if(findFragmentByPosition(3) != null) {
-                            try {
 
+                            //Update the search fragment recycler with search results
+                            try {
                                 ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment")).recieveDictionarySearchResults(searchResults);
 
                             } catch (NullPointerException e) {
                                 Log.e(TAG,"searchquerysubscription onsuccess error updating SearchFragment, null: " + e.toString());
-                            } catch (Exception e) {
-                                Log.e(TAG,"searchquerysubscription onsuccess error updating SearchFragment, generic exception: " + e.toString());
-
                             }
                         }
-                    }
 
                     @Override
                     public void onError(Throwable e) {
-                        Log.e(TAG,"IN ON ERROR OF searchQuerySubscription in MAIN ACTIVITY");
-
+                        if(BuildConfig.DEBUG) {
+                            Log.e(TAG,"IN ON ERROR OF searchQuerySubscription in MAIN ACTIVITY");
+                        }
+                        //Hide the search bar
                         try {
                             ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment")).showProgressBar(false);
                         } catch (Exception ee) {
@@ -1827,261 +1859,43 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                         searchResults = wordEntries;
                     }
                 });
-//                .subscribe(new SingleSubscriber<ArrayList<WordEntry>>() {
-//
-//                    @Override
-//                    public void onSuccess(ArrayList<WordEntry> searchResults) {
-//
-//                        //Update the search fragment with the search results
-//                        if(findFragmentByPosition(3) != null) {
-//                            try {
-//
-//                                ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment")).recieveDictionarySearchResults(searchResults);
-//
-//                            } catch (NullPointerException e) {
-//                                Log.e(TAG,"searchquerysubscription onsuccess error updating SearchFragment, null: " + e.toString());
-//                            } catch (Exception e) {
-//                                Log.e(TAG,"searchquerysubscription onsuccess error updating SearchFragment, generic exception: " + e.toString());
-//
-//                            }
-//                        }
-//
-//                    }
-//
-//                    @Override
-//                    public void onError(Throwable error) {
-//                        Log.e(TAG,"ERROR IN PARSE SENTENCE OBSERVABLE: " + error);
-//                        showProgressBar(false);
-//
-//                    }
-//                }).cache();
-//
-//        queryDictionary =  Observable.from(actuallyRuntheSearch(query,isRomaji))
-//                .create(new Observable<ArrayList<WordEntry>>.OnSubscribe(new Action1<ArrayList<WordEntry>>() {
-//                      @Override
-//                      public void call(ArrayList<WordEntry>) {
-//                          actuallyRuntheSearch(query,isRomaji);
-//                      }
-//                  })).cache();
+
 
     }
 
-//    public ArrayList<WordEntry> actuallyRuntheSearch(String query, boolean isRomaji) {
-//
-//        return new ArrayList<>();
-//    }
 
+    /**
+     * Checks whether a piece of text uses the roman alphabet.
+     * @param query text to check
+     * @return bool true if text is roman, false if not
+     */
     public boolean isRomaji(String query) {
         Pattern ps = Pattern.compile("^[a-zA-Z0-9 ]+$");
         Matcher ms = ps.matcher(query.trim());
-//        boolean okquery = ms.matches();
         return ms.matches();
     }
 
-    public ArrayList<WordEntry> actuallyRuntheSearch(String query, String queryOption) {
 
+    /**
+     * Queries the Edict dictionary, looking for matches for a query in the {@link SearchFragment} . Search can be
+     * on Kanji, or on Definition. Kanji searches can also be in Japanese kanji or in English Romaji. If they are in Romaji, the
+     * query must first be translated to Japanese before searching.
+     * @param query search query
+     * @param queryOption tag specifying what part of the dictionary to search on: "Kanji" or "Definition"
+     * @return A list of possible matching WordEntries
+     *
+     */
+    public ArrayList<WordEntry> querytheDictionary(String query, String queryOption) {
+        StringBuilder FinalHiraganaKatakanaPlaceHolders = new StringBuilder();
         ArrayList<WordEntry> searchResults = new ArrayList<>();
         String idstopasson;
-        StringBuilder FinalHiraganaKatakanaPlaceHolders = new StringBuilder();
-            /* If the Query is ROMAJI */
+
+
+        /* If the Query is ROMAJI (i.e. romanized Japanese) it muset be converted to
+         * the kanji equivalent of that query string before a search can be conducted */
         if(queryOption.equals("Kanji") && isRomaji(query)) {
-
-            StringBuilder FinalHiraganaKatakanaEntries = new StringBuilder();
-
-            ArrayList<String> possibleHiraganaSearchQueries = new ArrayList<>();
-            ArrayList<String> possibleKatakanaSearchQueries = new ArrayList<>();
-
-
-            final HashMap<String,ArrayList<String>> romajiSearchMap = InternalDB.getInstance(getBaseContext()).getWordLists().getRomajiMap();
-
-            /* First convert the query from Romaji --> Furigana and Katakana */
-
-            if(!query.contains(" ") && query.length()>0) {
-
-                int startposition = 0;
-                int iterator = 3;
-                if(query.length()<iterator){
-                    iterator = 2;
-                }
-                boolean foundone = false;
-                FinalHiraganaKatakanaEntries = new StringBuilder();
-                FinalHiraganaKatakanaPlaceHolders = new StringBuilder();
-
-                while(query.length()>=(startposition+ iterator) && query.length()-startposition >0) {
-
-                    while(iterator>0 && !foundone) {
-                        String querychunk = query.substring(startposition,(startposition+iterator)).toLowerCase();
-                        if(debug){Log.d(TAG,"QUERYCHUNK: " + querychunk);}
-
-                    /*If it's a 3 char double like: ppu --> っぷ , throw in the っ character, unless it's a "nn"*/
-                        if(iterator==2 && String.valueOf(querychunk.charAt(0)).equals(String.valueOf(querychunk.charAt(1))) && !String.valueOf(querychunk.charAt(0)).equals("n")) {
-
-                            //an even number, meaning its a hiragana
-                            StringBuilder matchBuilder = new StringBuilder();
-                            ArrayList<String> newPossibleHiraganaSearchQueries = new ArrayList<String>();
-                            if(possibleHiraganaSearchQueries.size()>0){
-                                for(int ii=0;ii<possibleHiraganaSearchQueries.size();ii++){
-                                    matchBuilder.append(possibleHiraganaSearchQueries.get(ii));
-                                    matchBuilder.append("っ");
-                                    newPossibleHiraganaSearchQueries.add(matchBuilder.toString());
-                                    if(debug){Log.d(TAG,"(1)Appending hiragana chunk: " + possibleHiraganaSearchQueries.get(ii) + " + " + matchBuilder.toString());}
-                                    matchBuilder.setLength(0);
-                                }
-                                possibleHiraganaSearchQueries = new ArrayList<String>(newPossibleHiraganaSearchQueries);
-
-                            } else{
-                                if(debug){Log.d(TAG,"Adding first hiragana chunk: " + "っ");}
-                                possibleHiraganaSearchQueries.add("っ");
-                            }
-
-                            //an odd number, meaning its a Katakana
-                            StringBuilder matchBuilder2 = new StringBuilder();
-                            ArrayList<String> newPossibleKatakanaSearchQueries = new ArrayList<String>();
-                            if(possibleKatakanaSearchQueries.size()>0){
-                                for(int ii=0;ii<possibleKatakanaSearchQueries.size();ii++){
-                                    matchBuilder2.append(possibleKatakanaSearchQueries.get(ii));
-                                    matchBuilder2.append("ッ");
-                                    newPossibleKatakanaSearchQueries.add(matchBuilder2.toString());
-                                    if(debug){Log.d(TAG,"(1)Appending katakana chunk: " + possibleKatakanaSearchQueries.get(ii) + " + " + matchBuilder2.toString());}
-                                    matchBuilder2.setLength(0);
-                                }
-                                possibleKatakanaSearchQueries = new ArrayList<String>(newPossibleKatakanaSearchQueries);
-
-                            } else{
-                                if(debug){Log.d(TAG,"Adding first katakana chunk: ッ");}
-                                possibleKatakanaSearchQueries.add("ッ");
-                            }
-
-
-                            iterator -= 1;
-                            foundone = true;
-                        } else {
-
-                            if(romajiSearchMap.containsKey(querychunk)){
-                                foundone = true;
-                                ArrayList<String> furiganaoptions = romajiSearchMap.get(querychunk);
-                                for(int i=0;i<furiganaoptions.size();i++){
-                                    String currentFuriganaOption = furiganaoptions.get(i);
-                                    if(debug){Log.d(TAG,"Current Furigana Option: " + currentFuriganaOption);}
-                                    if((i%2)==0){
-                                        //an even number, meaning its a hiragana
-                                        StringBuilder matchBuilder = new StringBuilder();
-                                        ArrayList<String> newPossibleHiraganaSearchQueries = new ArrayList<String>();
-                                        if(possibleHiraganaSearchQueries.size()>0){
-                                            for(int ii=0;ii<possibleHiraganaSearchQueries.size();ii++){
-                                                matchBuilder.append(possibleHiraganaSearchQueries.get(ii));
-                                                matchBuilder.append(currentFuriganaOption);
-                                                newPossibleHiraganaSearchQueries.add(matchBuilder.toString());
-                                                if(debug){Log.d(TAG,"Appending hiragana chunk: " + possibleHiraganaSearchQueries.get(ii) + " + " + matchBuilder.toString());}
-                                                matchBuilder.setLength(0);
-                                            }
-                                            possibleHiraganaSearchQueries = new ArrayList<String>(newPossibleHiraganaSearchQueries);
-
-                                        } else{
-                                            if(debug){Log.d(TAG,"Adding first hiragana chunk: " + currentFuriganaOption);}
-                                            possibleHiraganaSearchQueries.add(currentFuriganaOption);
-                                        }
-
-                                    } else {
-                                        //an odd number, meaning its a Katakana
-                                        StringBuilder matchBuilder = new StringBuilder();
-                                        ArrayList<String> newPossibleKatakanaSearchQueries = new ArrayList<String>();
-                                        if(possibleKatakanaSearchQueries.size()>0){
-                                            for(int ii=0;ii<possibleKatakanaSearchQueries.size();ii++){
-                                                matchBuilder.append(possibleKatakanaSearchQueries.get(ii));
-                                                matchBuilder.append(currentFuriganaOption);
-                                                newPossibleKatakanaSearchQueries.add(matchBuilder.toString());
-                                                if(debug){Log.d(TAG, "Appending katakana chunk: " + possibleKatakanaSearchQueries.get(ii) + " + " + matchBuilder.toString());}
-
-                                                if (FinalHiraganaKatakanaEntries.length() > 0) {
-                                                    FinalHiraganaKatakanaEntries.append(",");
-                                                }
-                                                FinalHiraganaKatakanaEntries.append(matchBuilder.toString());
-
-                                                if (FinalHiraganaKatakanaPlaceHolders.length() > 0) {
-                                                    FinalHiraganaKatakanaPlaceHolders.append(", ");
-                                                }
-                                                FinalHiraganaKatakanaPlaceHolders.append("?");
-
-                                                matchBuilder.setLength(0);
-                                            }
-                                            possibleKatakanaSearchQueries = new ArrayList<String>(newPossibleKatakanaSearchQueries);
-
-                                        } else{
-                                            if(debug){Log.d(TAG,"Adding first katakana chunk: " + currentFuriganaOption);}
-                                            possibleKatakanaSearchQueries.add(currentFuriganaOption);
-                                        }
-
-                                    }
-                                }
-
-                            } else {
-                                if(debug){Log.d(TAG,"iterator subtract (1)");}
-                                iterator -= 1;
-
-                            }
-
-                        }
-
-                    }
-
-
-                    if(!foundone) {
-                        if(debug){Log.d(TAG,"nothing found, moving 3 char ahead");}
-                        iterator = 3;
-                        startposition = (startposition + 3);
-
-                    }else {
-                        if(debug){
-                            Log.d(TAG,"Chunk added, moving " + iterator + " chars ahead(2)");
-                            Log.d(TAG,"old start pos: " + startposition);
-                            Log.d(TAG,"new start pos: " + (startposition + iterator));
-                        }
-                        startposition = (startposition + iterator);
-                        iterator = 3;
-                        foundone = false;
-                    }
-
-                    while(iterator>0 && query.length()-startposition >0 && query.length()<(startposition+iterator)){
-                        iterator -=1;
-                    }
-                    if(debug){Log.d(TAG,"iterator at end of loop: " + iterator);}
-                }
-
-                if(debug){
-
-                    if(possibleHiraganaSearchQueries.size()>0 ){
-                        for(int a = 0; a<possibleHiraganaSearchQueries.size();a++) {
-                            Log.d(TAG,"FINAL possible hiragana query: " + possibleHiraganaSearchQueries.get(a));
-                        }
-                    }
-                    if(possibleKatakanaSearchQueries.size()>0 ){
-                        for(int a = 0; a<possibleKatakanaSearchQueries.size();a++) {
-                            Log.d(TAG,"FINAL possible katakana query: " + possibleKatakanaSearchQueries.get(a));
-                        }
-
-                    }
-                }
-            }
-
-
-            /**Adding hiragana entries to the katakana ones, so we can look for hiragana and katakan ones in db all at once baby*/
-            if(possibleHiraganaSearchQueries.size()>0) {
-                for(int a=0;a<possibleHiraganaSearchQueries.size();a++) {
-                    possibleKatakanaSearchQueries.add(possibleHiraganaSearchQueries.get(a));
-                    if (FinalHiraganaKatakanaEntries.length() > 0) {
-                        FinalHiraganaKatakanaEntries.append(",");
-                    }
-                    FinalHiraganaKatakanaEntries.append(possibleHiraganaSearchQueries.get(a));
-
-                    if (FinalHiraganaKatakanaPlaceHolders.length() > 0) {
-                        FinalHiraganaKatakanaPlaceHolders.append(", ");
-                    }
-                    FinalHiraganaKatakanaPlaceHolders.append("?");
-
-                }
-            }
-            idstopasson = InternalDB.getWordInterfaceInstance(getBaseContext()).getWordIdsForRomajiMatches(possibleHiraganaSearchQueries,possibleKatakanaSearchQueries);
+            Pair<ArrayList<String>,ArrayList<String>> possibleJapaneseSearchOptions = convertRomajitoKanjiOptions(query,FinalHiraganaKatakanaPlaceHolders);
+            idstopasson = InternalDB.getWordInterfaceInstance(getBaseContext()).getWordIdsForRomajiMatches(possibleJapaneseSearchOptions.first,possibleJapaneseSearchOptions.second);
         } else if(queryOption.equals("Kanji") && !query.contains(" ")){
             idstopasson = InternalDB.getWordInterfaceInstance(getBaseContext()).getWordIdsForKanjiMatch(query.trim());
         } else {
@@ -2089,19 +1903,15 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
 
 
-        /***
-         *
-         * If we have a match, pull the edict info for those matching ids
-         *
-         * **/
+        /* If we have a match, pull the edict info for those matching ids */
         if(idstopasson!=null && idstopasson.length()>0) {
 
             /* If we have at least on positive match, we pull further edict data from Edict
              * If there isn't, we can skip all this and just iterate through the list showing "item not found"s*/
-            if(debug) {Log.d(TAG, "ids to pass on: " + idstopasson);}
+            if(BuildConfig.DEBUG) {Log.d(TAG, "ids to pass on: " + idstopasson);}
             ColorThresholds colorThresholds = SharedPrefManager.getInstance(getBaseContext()).getColorThresholds();
             if(queryOption.equals("Kanji")) {
-                searchResults = InternalDB.getWordInterfaceInstance(getBaseContext()).getSearchWordEntriesForRomaji(FinalHiraganaKatakanaPlaceHolders.toString(),idstopasson,colorThresholds);
+                searchResults = InternalDB.getWordInterfaceInstance(getBaseContext()).getSearchWordEntriesForKanji(FinalHiraganaKatakanaPlaceHolders.toString(),idstopasson,colorThresholds);
             } else {
                 searchResults = InternalDB.getWordInterfaceInstance(getBaseContext()).getSearchWordEntriesForDefinition(idstopasson,colorThresholds);
             }
@@ -2112,10 +1922,221 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
     }
 
+    /**
+     * Converts Romanized queries in the searchview of the {@link SearchFragment} to Japanese queries so they can
+     * be passed on to the querytheDictionary method. It also does dual duty by filling the FinalHiraganaKatakanaPlaceHolders stringbuilder
+     * with a "?" for each word that will be matched against the dictionary.
+     * @param query Romanji query string
+     * @param FinalHiraganaKatakanaPlaceHolders stringbuilder concatenating a collection of "?", one for each possible word that will be
+     *                                          matched against the database.
+     * @return A pair of arraylists, one for Hiragana translations of the romanji, the other for Katakana translations. Both must
+     * be matched against the dictionary
+     */
+    public Pair<ArrayList<String>, ArrayList<String>> convertRomajitoKanjiOptions(String query, StringBuilder FinalHiraganaKatakanaPlaceHolders) {
+        StringBuilder FinalHiraganaKatakanaEntries = new StringBuilder();
+
+        ArrayList<String> possibleHiraganaSearchQueries = new ArrayList<>();
+        ArrayList<String> possibleKatakanaSearchQueries = new ArrayList<>();
 
 
+        final HashMap<String,ArrayList<String>> romajiSearchMap = InternalDB.getInstance(getBaseContext()).getWordLists().getRomajiMap();
+
+        /* First convert the query from Romaji --> Furigana and Katakana */
+        if(!query.contains(" ") && query.length()>0) {
+
+            int startposition = 0;
+            int iterator = 3;
+            if(query.length()<iterator){
+                iterator = 2;
+            }
+            boolean foundone = false;
+            FinalHiraganaKatakanaEntries = new StringBuilder();
+            FinalHiraganaKatakanaPlaceHolders = new StringBuilder();
+
+            while(query.length()>=(startposition+ iterator) && query.length()-startposition >0) {
+
+                while(iterator>0 && !foundone) {
+                    String querychunk = query.substring(startposition,(startposition+iterator)).toLowerCase();
+                    if(BuildConfig.DEBUG){Log.d(TAG,"QUERYCHUNK: " + querychunk);}
+
+                    /*If it's a 3 char double like: ppu --> っぷ , throw in the っ character, unless it's a "nn"*/
+                    if(iterator==2 && String.valueOf(querychunk.charAt(0)).equals(String.valueOf(querychunk.charAt(1))) && !String.valueOf(querychunk.charAt(0)).equals("n")) {
+
+                        //an even number, meaning its a hiragana
+                        StringBuilder matchBuilder = new StringBuilder();
+                        ArrayList<String> newPossibleHiraganaSearchQueries = new ArrayList<String>();
+                        if(possibleHiraganaSearchQueries.size()>0){
+                            for(int ii=0;ii<possibleHiraganaSearchQueries.size();ii++){
+                                matchBuilder.append(possibleHiraganaSearchQueries.get(ii));
+                                matchBuilder.append("っ");
+                                newPossibleHiraganaSearchQueries.add(matchBuilder.toString());
+                                if(BuildConfig.DEBUG){Log.d(TAG,"(1)Appending hiragana chunk: " + possibleHiraganaSearchQueries.get(ii) + " + " + matchBuilder.toString());}
+                                matchBuilder.setLength(0);
+                            }
+                            possibleHiraganaSearchQueries = new ArrayList<String>(newPossibleHiraganaSearchQueries);
+
+                        } else{
+                            if(BuildConfig.DEBUG){Log.d(TAG,"Adding first hiragana chunk: " + "っ");}
+                            possibleHiraganaSearchQueries.add("っ");
+                        }
+
+                        //an odd number, meaning its a Katakana
+                        StringBuilder matchBuilder2 = new StringBuilder();
+                        ArrayList<String> newPossibleKatakanaSearchQueries = new ArrayList<String>();
+                        if(possibleKatakanaSearchQueries.size()>0){
+                            for(int ii=0;ii<possibleKatakanaSearchQueries.size();ii++){
+                                matchBuilder2.append(possibleKatakanaSearchQueries.get(ii));
+                                matchBuilder2.append("ッ");
+                                newPossibleKatakanaSearchQueries.add(matchBuilder2.toString());
+                                if(BuildConfig.DEBUG){Log.d(TAG,"(1)Appending katakana chunk: " + possibleKatakanaSearchQueries.get(ii) + " + " + matchBuilder2.toString());}
+                                matchBuilder2.setLength(0);
+                            }
+                            possibleKatakanaSearchQueries = new ArrayList<String>(newPossibleKatakanaSearchQueries);
+
+                        } else{
+                            if(BuildConfig.DEBUG){Log.d(TAG,"Adding first katakana chunk: ッ");}
+                            possibleKatakanaSearchQueries.add("ッ");
+                        }
+
+
+                        iterator -= 1;
+                        foundone = true;
+                    } else {
+
+                        if(romajiSearchMap.containsKey(querychunk)){
+                            foundone = true;
+                            ArrayList<String> furiganaoptions = romajiSearchMap.get(querychunk);
+                            for(int i=0;i<furiganaoptions.size();i++){
+                                String currentFuriganaOption = furiganaoptions.get(i);
+                                if(BuildConfig.DEBUG){Log.d(TAG,"Current Furigana Option: " + currentFuriganaOption);}
+                                if((i%2)==0){
+                                    //an even number, meaning its a hiragana
+                                    StringBuilder matchBuilder = new StringBuilder();
+                                    ArrayList<String> newPossibleHiraganaSearchQueries = new ArrayList<String>();
+                                    if(possibleHiraganaSearchQueries.size()>0){
+                                        for(int ii=0;ii<possibleHiraganaSearchQueries.size();ii++){
+                                            matchBuilder.append(possibleHiraganaSearchQueries.get(ii));
+                                            matchBuilder.append(currentFuriganaOption);
+                                            newPossibleHiraganaSearchQueries.add(matchBuilder.toString());
+                                            if(BuildConfig.DEBUG){Log.d(TAG,"Appending hiragana chunk: " + possibleHiraganaSearchQueries.get(ii) + " + " + matchBuilder.toString());}
+                                            matchBuilder.setLength(0);
+                                        }
+                                        possibleHiraganaSearchQueries = new ArrayList<String>(newPossibleHiraganaSearchQueries);
+
+                                    } else{
+                                        if(BuildConfig.DEBUG){Log.d(TAG,"Adding first hiragana chunk: " + currentFuriganaOption);}
+                                        possibleHiraganaSearchQueries.add(currentFuriganaOption);
+                                    }
+
+                                } else {
+                                    //an odd number, meaning its a Katakana
+                                    StringBuilder matchBuilder = new StringBuilder();
+                                    ArrayList<String> newPossibleKatakanaSearchQueries = new ArrayList<String>();
+                                    if(possibleKatakanaSearchQueries.size()>0){
+                                        for(int ii=0;ii<possibleKatakanaSearchQueries.size();ii++){
+                                            matchBuilder.append(possibleKatakanaSearchQueries.get(ii));
+                                            matchBuilder.append(currentFuriganaOption);
+                                            newPossibleKatakanaSearchQueries.add(matchBuilder.toString());
+                                            if(BuildConfig.DEBUG){Log.d(TAG, "Appending katakana chunk: " + possibleKatakanaSearchQueries.get(ii) + " + " + matchBuilder.toString());}
+
+                                            if (FinalHiraganaKatakanaEntries.length() > 0) {
+                                                FinalHiraganaKatakanaEntries.append(",");
+                                            }
+                                            FinalHiraganaKatakanaEntries.append(matchBuilder.toString());
+
+                                            if (FinalHiraganaKatakanaPlaceHolders.length() > 0) {
+                                                FinalHiraganaKatakanaPlaceHolders.append(", ");
+                                            }
+                                            FinalHiraganaKatakanaPlaceHolders.append("?");
+
+                                            matchBuilder.setLength(0);
+                                        }
+                                        possibleKatakanaSearchQueries = new ArrayList<String>(newPossibleKatakanaSearchQueries);
+
+                                    } else{
+                                        if(BuildConfig.DEBUG){Log.d(TAG,"Adding first katakana chunk: " + currentFuriganaOption);}
+                                        possibleKatakanaSearchQueries.add(currentFuriganaOption);
+                                    }
+
+                                }
+                            }
+
+                        } else {
+                            if(BuildConfig.DEBUG){Log.d(TAG,"iterator subtract (1)");}
+                            iterator -= 1;
+
+                        }
+
+                    }
+
+                }
+
+
+                if(!foundone) {
+                    if(BuildConfig.DEBUG){Log.d(TAG,"nothing found, moving 3 char ahead");}
+                    iterator = 3;
+                    startposition = (startposition + 3);
+
+                }else {
+                    if(BuildConfig.DEBUG){
+                        Log.d(TAG,"Chunk added, moving " + iterator + " chars ahead(2)");
+                        Log.d(TAG,"old start pos: " + startposition);
+                        Log.d(TAG,"new start pos: " + (startposition + iterator));
+                    }
+                    startposition = (startposition + iterator);
+                    iterator = 3;
+                    foundone = false;
+                }
+
+                while(iterator>0 && query.length()-startposition >0 && query.length()<(startposition+iterator)){
+                    iterator -=1;
+                }
+                if(BuildConfig.DEBUG){Log.d(TAG,"iterator at end of loop: " + iterator);}
+            }
+
+            if(BuildConfig.DEBUG){
+
+                if(possibleHiraganaSearchQueries.size()>0 ){
+                    for(int a = 0; a<possibleHiraganaSearchQueries.size();a++) {
+                        Log.d(TAG,"FINAL possible hiragana query: " + possibleHiraganaSearchQueries.get(a));
+                    }
+                }
+                if(possibleKatakanaSearchQueries.size()>0 ){
+                    for(int a = 0; a<possibleKatakanaSearchQueries.size();a++) {
+                        Log.d(TAG,"FINAL possible katakana query: " + possibleKatakanaSearchQueries.get(a));
+                    }
+
+                }
+            }
+        }
+
+
+        /*Adding hiragana entries to the katakana ones, so we can look for hiragana and katakan ones in db all at once baby*/
+        if(possibleHiraganaSearchQueries.size()>0) {
+            for(int a=0;a<possibleHiraganaSearchQueries.size();a++) {
+                possibleKatakanaSearchQueries.add(possibleHiraganaSearchQueries.get(a));
+                if (FinalHiraganaKatakanaEntries.length() > 0) {
+                    FinalHiraganaKatakanaEntries.append(",");
+                }
+                FinalHiraganaKatakanaEntries.append(possibleHiraganaSearchQueries.get(a));
+
+                if (FinalHiraganaKatakanaPlaceHolders.length() > 0) {
+                    FinalHiraganaKatakanaPlaceHolders.append(", ");
+                }
+                FinalHiraganaKatakanaPlaceHolders.append("?");
+
+            }
+        }
+
+        return new Pair<>(possibleHiraganaSearchQueries,possibleKatakanaSearchQueries);
+    }
+
+
+    /**
+     * Runs the {@link TweetParser} and saves the resulting tweets into the database
+     * @param tweet Tweet that will be parsed
+     */
     public void parseAndSaveTweet(final Tweet tweet) {
-
 
         Single.fromCallable(new Callable<ArrayList<WordEntry>>() {
             @Override
@@ -2131,7 +2152,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     }
 
                 }
-//                                            Log.d(TAG,"DB OPEN BEFORE: " + db.isOpen());
+
                 ColorThresholds colorThresholds = SharedPrefManager.getInstance(getBaseContext()).getColorThresholds();
                 return TweetParser.getInstance().parseSentence(getBaseContext()
                         ,tweet.getText()
@@ -2146,8 +2167,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     public void onSuccess(ArrayList<WordEntry> disectedTweet) {
                         //load the parsed kanji ids into the database
                         InternalDB.getTweetInterfaceInstance(getBaseContext()).saveParsedTweetKanji(disectedTweet,tweet.getIdString());
-//                        notifyFragmentsChanged();
-
                         notifySavedTweetFragmentsChanged();
                     }
 
@@ -2156,14 +2175,11 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                         Log.e(TAG,"ERROR IN PARSE KANJI (for saved tweet) OBSERVABLE: " + error);
                     }
                 });
-
-
     }
 
 
     @Override
     protected void onDestroy() {
-
 
         if(searchQuerySubscription!=null) {
             searchQuerySubscription.unsubscribe();
@@ -2202,8 +2218,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
 
         outState.putStringArray("adapterTitles", mAdapterTitles);
-//        outState.putInt("tabNumber",mSectionsPagerAdapter.);
         outState.putBooleanArray("tabsShowingBrowseMenu",tabsShowingBrowseMenu);
-//        outState.putBoolean("fragmentWasChanged",fragmentWasChanged);
     }
 }

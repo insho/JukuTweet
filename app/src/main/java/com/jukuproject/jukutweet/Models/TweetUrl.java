@@ -4,7 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 /**
- * Created by JClassic on 3/25/2017.
+ * Container for URL info contained in a Tweet object (pulled from twitter API)
  */
 
 public class TweetUrl implements Parcelable {

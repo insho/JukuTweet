@@ -6,7 +6,6 @@ import android.os.Parcelable;
 import java.util.ArrayList;
 
 /**
- * Created by JClassic on 3/23/2017.
  * Tracks which favorites lists contain a given {@link WordEntry} OR {@link Tweet}
  */
 

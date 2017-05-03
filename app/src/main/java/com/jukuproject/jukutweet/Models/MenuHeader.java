@@ -3,12 +3,19 @@ package com.jukuproject.jukutweet.Models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.jukuproject.jukutweet.Adapters.TweetListExpandableAdapter;
+import com.jukuproject.jukutweet.Adapters.WordListExpandableAdapter;
 import com.jukuproject.jukutweet.R;
 
 import java.util.ArrayList;
 
 /**
- * Created by JClassic on 3/23/2017.
+ * Container with information for a row in a Word or Tweet list
+ *
+ * @see com.jukuproject.jukutweet.Fragments.TweetListFragment
+ * @see TweetListExpandableAdapter
+ * @see com.jukuproject.jukutweet.Fragments.WordListFragment
+ * @see WordListExpandableAdapter
  */
 
 public class MenuHeader implements  Parcelable {

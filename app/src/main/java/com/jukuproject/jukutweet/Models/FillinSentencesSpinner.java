@@ -7,7 +7,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 /**
- * Created by JClassic on 4/4/2017.
+ * Container with information regarding a spinner item in the {@link com.jukuproject.jukutweet.Fragments.FillInTheBlankFragment}.
+ * This is used to track which spinners have been "answered" in a quiz, whether they are correct or not, etc.
  */
 
 public class FillinSentencesSpinner implements Parcelable {
@@ -75,7 +76,6 @@ public class FillinSentencesSpinner implements Parcelable {
     }
 
     //Parcel stuff
-
     private FillinSentencesSpinner(Parcel in) {
         this.isCorrect = in.readByte() != 0;
         this.hasBeenAnswered = in.readByte() != 0;

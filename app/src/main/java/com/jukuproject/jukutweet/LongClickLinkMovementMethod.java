@@ -9,12 +9,27 @@ import android.text.method.MovementMethod;
 import android.view.MotionEvent;
 import android.widget.TextView;
 
-
+/**
+ * Clickable span used in {@link com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter} to allow a long click
+ * on a block of text within the tweet text string for a user's timeline. Long click brings up {@link com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog}
+ */
 public class LongClickLinkMovementMethod extends LinkMovementMethod {
 
     private Handler mLongClickHandler;
     private static int LONG_CLICK_TIME = 700;
     private boolean mIsLongPressed = false;
+
+    private static LongClickLinkMovementMethod sInstance;
+
+
+    public static MovementMethod getInstance() {
+        if (sInstance == null) {
+            sInstance = new LongClickLinkMovementMethod();
+            sInstance.mLongClickHandler = new Handler();
+        }
+
+        return sInstance;
+    }
 
     @Override
     public boolean onTouchEvent(final TextView widget, Spannable buffer,
@@ -73,13 +88,4 @@ public class LongClickLinkMovementMethod extends LinkMovementMethod {
     }
 
 
-    public static MovementMethod getInstance() {
-        if (sInstance == null) {
-            sInstance = new LongClickLinkMovementMethod();
-            sInstance.mLongClickHandler = new Handler();
-        }
-
-        return sInstance;
-    }
-    private static LongClickLinkMovementMethod sInstance;
 }

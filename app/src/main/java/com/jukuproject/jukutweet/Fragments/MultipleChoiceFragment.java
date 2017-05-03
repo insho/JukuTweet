@@ -633,7 +633,6 @@ public class MultipleChoiceFragment extends Fragment {
     //Pull and initialize the other rows (the wrong answers)
     private ArrayList<WordEntry> getIncorrectAnswerSet(Context mContext
             , String myListType
-//            , MyListEntry myListEntry
             , ColorThresholds colorThresholds
             , String colorString
             , WordEntry correctWordEntry

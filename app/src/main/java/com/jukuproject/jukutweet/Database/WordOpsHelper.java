@@ -20,9 +20,13 @@ import com.jukuproject.jukutweet.Models.WordEntry;
 import java.util.ArrayList;
 
 /**
- * Created by JClassic on 4/5/2017.
+ * Collection of internal sqlite database calls related to Word operations.
+ *
+ * @see com.jukuproject.jukutweet.MainActivity
+ * @see com.jukuproject.jukutweet.Fragments.WordListFragment
+ * @see WordListBrowseFragment
+ *
  */
-
 public class WordOpsHelper implements WordListOperationsInterface {
     private SQLiteOpenHelper sqlOpener;
     private static String TAG = "TEST-wordops";
@@ -32,13 +36,12 @@ public class WordOpsHelper implements WordListOperationsInterface {
     }
 
     /**
-     * Checks for duplicate entries for a user-created list in the JFavoritesLists table
-     * @param listName prospective new user-created mylist
+     * Checks for duplicate entries for a user-created word list in the JFavoritesLists table
+     * @param listName prospective new user-created Word List
      * @return true if that list name already exists, false if not
      */
     public boolean duplicateWordList(String listName) {
 
-        /** Before inserting record, check to see if feed already exists */
         SQLiteDatabase db = sqlOpener.getWritableDatabase();
         String queryRecordExists = "Select Name From " + InternalDB.Tables.TABLE_FAVORITES_LISTS + " where " + InternalDB.Columns.TFAVORITES_COL0 + " = ?" ;
         Cursor c = db.rawQuery(queryRecordExists, new String[]{listName});
@@ -59,7 +62,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
 
 
     /**
-     * Adds a new mylist to the JFavoritesLists table in the db
+     * Adds a new Word List to the JFavoritesLists table in the db
      * @param listName list name to add
      * @return boolean true if success, false if not
      */
@@ -129,7 +132,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
 
 
     /**
-     * Changes the name of a user-created list
+     * Changes the name of a user-created Word list
      * @param oldListName current list name in JFavoritesLists and JFavorites tables
      * @param newListName new list name
      * @return boolea true if successful, false if not
@@ -233,8 +236,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
     }
 
 
-
-
     /**
      * Removes a word from a word list (Note: word is not deleted, only the its association with a given favorites list)
      * @param wordId id of word in question
@@ -297,9 +298,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
     public ArrayList<MyListEntry> getWordListsForAWord(ArrayList<String> activeFavoriteStars
             , String concatenatedWordIds
             , @Nullable MyListEntry entryToExclude) {
-        Log.d(TAG,"concatenateids: " + concatenatedWordIds);
-//        Log.d(TAG,"entryToExclude: " + entryToExclude.getListName());
-
         ArrayList<MyListEntry> myListEntries = new ArrayList<>();
         SQLiteDatabase db = sqlOpener.getWritableDatabase();
         try {
@@ -389,7 +387,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
             idToExclude = String.valueOf(excludeIdInteger);
         }
 
-        Log.d(TAG,"ID TO EXCLUDE ENTER: " + excludeIdInteger + ", idto exclude string: " + idToExclude );
+        if(BuildConfig.DEBUG){Log.d(TAG,"ID TO EXCLUDE ENTER: " + excludeIdInteger + ", idto exclude string: " + idToExclude );}
         String limit;
         if(resultLimit == null) {
             limit = "";
@@ -529,7 +527,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
                 }
                 c.close();
             } else {
-                if(BuildConfig.DEBUG) {Log.d(TAG,"getmylistwords c.getcount was 0!!");}
+                if(BuildConfig.DEBUG) {Log.e(TAG,"getmylistwords c.getcount was 0!!");}
             }
         } catch (SQLiteException e){
             Log.e(TAG,"getmylistwords Sqlite exception: " + e);
@@ -565,6 +563,14 @@ public class WordOpsHelper implements WordListOperationsInterface {
         }
     }
 
+    /**
+     * Gets Word data (for the creation of a {@link WordEntry}) for a single KanjiId. Used in the TweetParser
+     * @param kanjiId kanjiId to look up
+     * @param colorThresholds Collection of thresholds which together determine what color to assign to a word/tweet based on its quiz scores
+     * @return Cursor full of word data (including favorites list data ({@link ItemFavorites})for a given id
+     *
+     * @see com.jukuproject.jukutweet.TweetParser
+     */
     public Cursor getWordEntryForWordId(int kanjiId, ColorThresholds colorThresholds) {
         return sqlOpener.getWritableDatabase().rawQuery("SELECT [Kanji]" +
                 ",(CASE WHEN Furigana is null then '' else Furigana  end) as [Furigana]" +
@@ -638,7 +644,13 @@ public class WordOpsHelper implements WordListOperationsInterface {
     }
 
 
-
+    /**
+     * Used to prepare colorblock information in {@link com.jukuproject.jukutweet.Fragments.WordListFragment}
+     * @param colorThresholds Collection of thresholds which together determine what color to assign to a word/tweet based on its quiz scores
+     * @param myListEntry Object containing information about a given favorites list (essentially a container for a listname and sys variables).
+     *
+     * @return Cursor with colorblock details for each saved WordList in the db
+     */
     public Cursor getWordListColorBlockCursor(ColorThresholds colorThresholds, MyListEntry myListEntry) {
         int ALL_LISTS_FLAG = 0;
         int sys = -1;
@@ -648,11 +660,11 @@ public class WordOpsHelper implements WordListOperationsInterface {
         } else {
             sys = myListEntry.getListsSys();
             name = myListEntry.getListName();
-
-
         }
-        Log.d(TAG,"name: " + name);
-        Log.d(TAG,"sys: " + sys);
+        if(BuildConfig.DEBUG) {
+            Log.d(TAG,"name: " + name);
+            Log.d(TAG,"sys: " + sys);
+        }
         return  sqlOpener.getWritableDatabase().rawQuery("SELECT xx.[Name]" +
                 ",xx.[Sys]" +
                 ",ifnull(yy.[Total],0) as [Total]" +
@@ -680,7 +692,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
                 "Union " +
                 "SELECT 'Orange' as [Name] ,1 as [Sys]" +
                 ") as [x] " +
-//                "WHERE ([Name] = ?) AND ([Sys] = ? ) " +
                 "WHERE ([Name] = ? and [Sys] = "+sys+ ") OR " + ALL_LISTS_FLAG + " = 1 " +
                 ") as [xx] " +
                 "LEFT JOIN (" +
@@ -711,9 +722,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
                 ",[Sys]" +
                 ",[_id] " +
                 "FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
-//                "WHERE ([Name] = ?) AND ([Sys] = ? ) " +
                 "WHERE ([Name] = ? and [Sys] = "+sys+ ") OR " + ALL_LISTS_FLAG + " = 1 " +
-//                "WHERE ([Name] = ? OR " + ALL_LISTS_FLAG + " = 1) AND ([Sys] = ? OR " + ALL_LISTS_FLAG + " = 1) " +
                 ") as a " +
                 "LEFT JOIN  (" +
                 "SELECT [_id]" +
@@ -731,52 +740,22 @@ public class WordOpsHelper implements WordListOperationsInterface {
 
     }
 
-//
-//    public void supertest(ColorThresholds colorThresholds, MyListEntry myListEntry) {
-//        int ALL_LISTS_FLAG = 0;
-//        int sys = -1;
-//        String name = "";
-//
-//            sys = myListEntry.getListsSys();
-//            name = myListEntry.getListName();
-//        Log.d(TAG,"name: " + name);
-//        Log.d(TAG,"sys: " + sys);
-//
-//        Cursor c =  sqlOpener.getWritableDatabase().rawQuery(
-//                "Select DISTINCT [Name],[Sys] " +
-//                "FROM (" +
-//                "SELECT [Name]" +
-//                ",0 as [Sys] " +
-//                "From " +  InternalDB.Tables.TABLE_FAVORITES_LISTS + " " +
-//                "UNION " +
-//                "SELECT 'Blue' as [Name] , 1 as [Sys] " +
-//                "Union " +
-//                "SELECT 'Red' as [Name],1 as [Sys] " +
-//                "Union " +
-//                "SELECT 'Green' as [Name],1 as [Sys] " +
-//                "Union " +
-//                "SELECT 'Yellow' as [Name] ,1 as [Sys]" +
-//                "Union " +
-//                "SELECT 'Purple' as [Name] ,1 as [Sys]" +
-//                "Union " +
-//                "SELECT 'Orange' as [Name] ,1 as [Sys]" +
-//                ") as [x] " +
-////                "WHERE ([Name] = ?) AND ([Sys] = ? ) " +
-//                "WHERE ([Name] = ? and [Sys] = ?)",new String[]{name,String.valueOf(sys)});
-//
-//        if(c.getCount()>0) {
-//            c.moveToFirst();
-//            while (!c.isAfterLast()) {
-//                Log.d(TAG,"name: " + c.getString(0) + ", sys: " + c.getString(1));
-//            }
-//        } else {
-//            Log.d(TAG,"FUCKING NULL");
-//        }
-//
-//        c.close();
-//
-//    }
 
+    /**
+     * Pulls words for Top and Bottom in {@link com.jukuproject.jukutweet.Fragments.StatsFragmentProgress} for PostQuizStats
+     * after a quiz (i.e. a quiz that began in {@link com.jukuproject.jukutweet.Fragments.WordListFragment}).
+     *
+     * @param topOrBottom tag designating the list as a "Top" list of words with best scores or "Bottom" list of words with worst scores
+     * @param idsToExclude Word ids to exclude from the results (for example, if they have already been added to the "Top" list, exclude
+     *                     them from the "Bottom" list
+     * @param myListEntry Saved WordList which was quizzed on
+     * @param colorThresholds Collection of thresholds which together determine what color to assign to a word/tweet based on its quiz scores
+     * @param totalCountLimit maximum number of results for the list
+     * @param topbottomThreshold percentage threshold necessary to be deemed a "Top" word
+     * @return Array of word entries for the Top X or Bottom X words in a WordList
+     *
+     * @see com.jukuproject.jukutweet.Fragments.StatsFragmentProgress
+     */
     public ArrayList<WordEntry> getTopFiveWordEntries(String topOrBottom
             ,@Nullable  ArrayList<Integer> idsToExclude
             ,MyListEntry myListEntry
@@ -800,7 +779,17 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     ",[Kanji]" +
                     ",[Correct]" +
                     ",[Total] " +
+                    ",(CASE WHEN Furigana is null then '' else Furigana  end) as [Furigana]" +
+                    ",[Definition]  " +
+                    " ,[Blue]" +
+                    " ,[Red] " +
+                    " ,[Green] " +
+                    " ,[Yellow] " +
+                    " ,[Purple] " +
+                    " ,[Orange] " +
+                    ",[Other] " +
                     ",[Percent] " +
+
                     "FROM " +
                     "(" +
                     "SELECT " +
@@ -810,6 +799,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     "[Definition]," +
                     "ifnull([Total],0) as [Total] " +
 
+
                     ",(CASE WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 1 " +
                     "WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 0  " +
                     "WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and (CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getRedThreshold() + "  and CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + ") THEN 2  " +
@@ -818,6 +808,15 @@ public class WordOpsHelper implements WordListOperationsInterface {
 
                     ",ifnull([Correct],0)  as [Correct]" +
                     ",CAST(ifnull([Correct],0)  as float)/[Total] as [Percent] " +
+
+                    " ,[Blue]" +
+                    " ,[Red] " +
+                    " ,[Green] " +
+                    " ,[Yellow] " +
+                    " ,[Purple] " +
+                    " ,[Orange] " +
+                    ",[Other] " +
+
                     "FROM " +
                     "(" +
                     "SELECT [_id]" +
@@ -837,10 +836,36 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     ",sum([Total]) as [Total] " +
                     "from [JScoreboard]  " +
                     "GROUP BY [_id]" +
-                    ") " +
-                    ")  " + topBottomSort + " LIMIT " + totalCountLimit,new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
-//                    ") Where [Total] >= 1 " + topBottomSort + " LIMIT " + totalCountLimit,new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
 
+                    ") NATURAL LEFT JOIN (" +
+                    "SELECT [_id]" +
+                    ",SUM([Blue]) as [Blue]" +
+                    ",SUM([Red]) as [Red]" +
+                    ",SUM([Green]) as [Green]" +
+                    ",SUM([Yellow]) as [Yellow]" +
+                    ",SUM([Purple]) as [Purple]" +
+                    ",SUM([Orange]) as [Orange]" +
+
+                    ", SUM([Other]) as [Other] " +
+                    "FROM (" +
+                    "SELECT [_id] " +
+                    ",(CASE WHEN ([Sys] = 1 and Name = 'Blue') then 1 else 0 end) as [Blue]" +
+                    ",(CASE WHEN ([Sys] = 1 AND Name = 'Red') then 1 else 0 end) as [Red]" +
+                    ",(CASE WHEN ([Sys] = 1 AND Name = 'Green') then 1 else 0 end) as [Green]" +
+                    ",(CASE WHEN ([Sys] = 1  AND Name = 'Yellow') then 1 else 0 end) as [Yellow]" +
+                    ",(CASE WHEN ([Sys] = 1  AND Name = 'Purple') then 1 else 0 end) as [Purple]" +
+                    ",(CASE WHEN ([Sys] = 1  AND Name = 'Orange') then 1 else 0 end) as [Orange]" +
+                    ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
+                    "FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
+                    "where [_id] in ( " +
+                                        "SELECT [_id] " +
+                                        "FROM [JFavorites] " +
+                                        "WHERE ([Name] = ? and [Sys] = ?)" +
+                                     ")" +
+                    ") as x Group by [_id]" +
+
+                    ")" +
+                ")  " + topBottomSort + " LIMIT " + totalCountLimit,new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys()),myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
 
             if(c.getCount() == 0) {
                 Log.e(TAG,"WordOpsHelper gettopfive c count is 0!");
@@ -851,7 +876,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
             while (!c.isAfterLast()) {
 
                 if(wordEntries.size()<totalCountLimit
-                        && ((topOrBottom.equals("Bottom") && c.getFloat(4)<=topbottomThreshold) || (topOrBottom.equals("Top") && c.getFloat(4)>0))) {
+                        && ((topOrBottom.equals("Bottom") && c.getFloat(13)<=topbottomThreshold) || (topOrBottom.equals("Top") && c.getFloat(13)>0))) {
 
                     if(idsToExclude == null || !idsToExclude.contains(c.getInt(0))) {
                         WordEntry wordEntry = new WordEntry();
@@ -859,10 +884,19 @@ public class WordOpsHelper implements WordListOperationsInterface {
                         wordEntry.setKanji(c.getString(1));
                         wordEntry.setCorrect(c.getInt(2));
                         wordEntry.setTotal(c.getInt(3));
+                        wordEntry.setFurigana(c.getString(4));
+                        wordEntry.setDefinition(c.getString(5));
                         wordEntries.add(wordEntry);
-                        Log.d(TAG,"ADDING KANJI: " + wordEntry.getKanji());
-                    }
+                        if(BuildConfig.DEBUG){Log.d(TAG,"ADDING KANJI: " + wordEntry.getKanji());}
 
+                        wordEntry.setItemFavorites(new ItemFavorites(c.getInt(6)
+                                ,c.getInt(7)
+                                ,c.getInt(8)
+                                ,c.getInt(9)
+                                ,c.getInt(10)
+                                ,c.getInt(11)
+                                ,c.getInt(12)));
+                    }
                 }
                 c.moveToNext();
             }
@@ -875,13 +909,21 @@ public class WordOpsHelper implements WordListOperationsInterface {
         } finally {
             db.close();
         }
-
         return  wordEntries;
     }
 
-    public ArrayList<WordEntry> getSearchWordEntriesForRomaji(String hiraganaKatakanaPlaceholders
-            ,String wordIds
-            ,ColorThresholds colorThresholds) {
+
+    /**
+     * Dictionary search query for a list of wordIds. Used in {@link com.jukuproject.jukutweet.Fragments.SearchFragment} process.
+     * @param hiraganaKatakanaPlaceholders
+     * @param wordIds
+     * @param colorThresholds
+     * @return
+     */
+    //TODO SOMETHING IS WRONGG WITH PLACEHOLDERS...
+    public ArrayList<WordEntry> getSearchWordEntriesForKanji(String hiraganaKatakanaPlaceholders
+            , String wordIds
+            , ColorThresholds colorThresholds) {
 
         ArrayList<WordEntry> wordEntries = new ArrayList<>();
         SQLiteDatabase db = sqlOpener.getWritableDatabase();
@@ -968,7 +1010,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     ") )" +
                     ") " +
                     "ORDER BY [OrderValue],[KanjiLength]", null);
-
+//asdf
             if(c.getCount()>0) {
                 c.moveToFirst();
                 while (!c.isAfterLast())
@@ -1002,9 +1044,9 @@ public class WordOpsHelper implements WordListOperationsInterface {
 
 
         }  catch (SQLiteException e) {
-            Log.e(TAG,"getSearchWordEntriesForRomaji sqlite exception: " + e);
+            Log.e(TAG,"getSearchWordEntriesForKanji sqlite exception: " + e);
         }  catch (NullPointerException e) {
-            Log.e(TAG,"getSearchWordEntriesForRomaji something was null: " + e);
+            Log.e(TAG,"getSearchWordEntriesForKanji something was null: " + e);
         } finally {
             db.close();
         }
@@ -1013,7 +1055,13 @@ public class WordOpsHelper implements WordListOperationsInterface {
     }
 
 
-
+    /**
+     * Searches dictionary for word entries with definitions that match the query string
+     * @param wordIds
+     * @param colorThresholds
+     * @return
+     */
+    //TODO HOW IS THIS DIFFERENT FROM THE ONE ABOVE?
     public ArrayList<WordEntry> getSearchWordEntriesForDefinition(String wordIds, ColorThresholds colorThresholds) {
 
         ArrayList<WordEntry> wordEntries = new ArrayList<>();

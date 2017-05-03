@@ -16,9 +16,13 @@ import java.util.List;
 
 
 /**
- * Created by JClassic on 4/5/2017.
+ * Collection of internal sqlite database calls related to User operations (adding users, removing, etc).
+ *
+ * @see com.jukuproject.jukutweet.MainActivity
+ * @see com.jukuproject.jukutweet.Interfaces.DialogRemoveUserInteractionListener
+ * @see com.jukuproject.jukutweet.Dialogs.AddUserCheckDialog
+ * @see com.jukuproject.jukutweet.Dialogs.RemoveUserDialog
  */
-
 public class UserOpsHelper implements UserOperationsInterface {
     private SQLiteOpenHelper sqlOpener;
     private static String TAG = "TEST-userops";
@@ -33,8 +37,6 @@ public class UserOpsHelper implements UserOperationsInterface {
      * @return boolean True if user already exists, false if user does not exist
      */
     public boolean duplicateUser(String user) {
-
-        /** Before inserting record, check to see if feed already exists */
         SQLiteDatabase db = sqlOpener.getWritableDatabase();
         String queryRecordExists = "Select _id From " + InternalDB.Tables.TABLE_USERS + " where " + InternalDB.Columns.TMAIN_COL0 + " = ?" ;
         Cursor c = db.rawQuery(queryRecordExists, new String[]{user});
@@ -100,54 +102,38 @@ public class UserOpsHelper implements UserOperationsInterface {
         } finally {
             db.close();
         }
-
     }
 
 
-
-
-//TODO redo javadoc
     /**
      * Removes a user from the database
-//     * @param user user screen_name to remove
+     * @param userId user id string to remove
      * @return bool True if operation is succesful, false if an error occurs
      */
     public boolean deleteUser(String userId) {
         SQLiteDatabase db = sqlOpener.getWritableDatabase();
         try{
-
-//
-//
-//            String queryRecordExists = "Select _id From " + InternalDB.Tables.TABLE_USERS + " where " + InternalDB.Columns.TMAIN_COL0 + " = ?" ;
-//            Cursor c = db.rawQuery(queryRecordExists, new String[]{userId});
-
-//                if (c.moveToFirst()) {
-                    db.delete(InternalDB.Tables.TABLE_USERS, InternalDB.Columns.TMAIN_COL0 + "= ? OR " + InternalDB.Columns.TMAIN_COL1 + "= ? ", new String[]{userId,userId});
-//                } else {
-//                    db.delete(InternalDB.Tables.TABLE_USERS, InternalDB.Columns.TMAIN_COL1 + "= ?", new String[]{userId});
-//                }
-
-//            c.close();
+            db.delete(InternalDB.Tables.TABLE_USERS, InternalDB.Columns.TMAIN_COL0 + "= ? OR " + InternalDB.Columns.TMAIN_COL1 + "= ? ", new String[]{userId,userId});
             return true;
         } catch(SQLiteException exception) {
             return false;
         } finally {
             db.close();
         }
-
     }
 
-
-
-    //TODO == hook this to user id? instead of screenname
+    /**
+     * Inserts the URI link to the location in the phone of a twitter user's saved profile image
+     * @param URI URI of saved image
+     * @param screenName screen name of user
+     */
     public void addMediaURItoDB(String URI, String screenName) {
         SQLiteDatabase db = sqlOpener.getWritableDatabase();
         try {
-
         ContentValues values = new ContentValues();
         values.put(InternalDB.Columns.TMAIN_COL6, URI);
         db.update(InternalDB.Tables.TABLE_USERS, values, InternalDB.Columns.TMAIN_COL0 + "= ?", new String[] {screenName});
-        Log.d(TAG,"SUCESSFUL INSERT URI for name: " + screenName);
+        if(BuildConfig.DEBUG){Log.d(TAG,"SUCESSFUL INSERT URI for name: " + screenName);}
         } catch (SQLiteException e) {
             Log.e(TAG,"addMediaURItoDB sqlite problem: " + e);
         } catch (Exception e) {
@@ -157,7 +143,12 @@ public class UserOpsHelper implements UserOperationsInterface {
         }
     }
 
-
+    /**
+     * Updates Twitter User information in the database when a newer version of that user's info is
+     * available (for example, when a user's timeline is clicked, the userInfo is downloaded as part of the package
+     * and can this method will be called)
+     * @param userInfo fresh UserInfo
+     */
     public void updateUserInfo(UserInfo userInfo) {
         SQLiteDatabase db = sqlOpener.getWritableDatabase();
         try {
@@ -184,7 +175,7 @@ public class UserOpsHelper implements UserOperationsInterface {
             }
 
             db.update(InternalDB.Tables.TABLE_USERS, values, InternalDB.Columns.TMAIN_COL0 + "= ?", new String[] {userInfo.getScreenName()});
-            Log.d(TAG,"SUCESSFUL UPDATE OF USER INFO FOR: " + userInfo.getScreenName());
+            if(BuildConfig.DEBUG){Log.d(TAG,"SUCESSFUL UPDATE OF USER INFO FOR: " + userInfo.getScreenName());}
         } catch (SQLiteException e) {
             Log.e(TAG,"updateUserInfo sqlite problem: " + e);
         } catch (Exception e) {
@@ -221,14 +212,6 @@ public class UserOpsHelper implements UserOperationsInterface {
                     UserInfo userInfo = new UserInfo(c.getString(0));
                     userInfo.setDescription(c.getString(1));
 
-//                    try {
-//                        userInfo.setUserId(c.getString(5));
-//                    } catch (SQLiteException e) {
-//                        Log.e(TAG,"getSavedUserInfo adding user ID sqlite problem: " + e);
-//                    } catch (Exception e) {
-//                        Log.e(TAG,"getSavedUserInfo adding user ID other exception... " + e);
-//                    }
-
                     try {
                         if(c.getString(5)!=null) {
                             userInfo.setUserId(c.getString(5));
@@ -243,33 +226,17 @@ public class UserOpsHelper implements UserOperationsInterface {
                         userInfo.setProfile_image_url(c.getString(4));
                     } catch (SQLiteException e) {
                         Log.e(TAG,"getSavedUserInfo adding extra user info sqlite problem: " + e);
-                    } catch (Exception e) {
-                        Log.e(TAG,"getSavedUserInfo adding extra user info exception... " + e);
+                    } catch (NullPointerException e) {
+                        Log.e(TAG,"getSavedUserInfo adding extra user info NullPointerException... " + e);
                     }
-//                    try {
-//
-//                    }  catch (SQLiteException e) {
-//                        Log.e(TAG,"getSavedUserInfo adding setFriendCount sqlite problem: " + e);
-//                    } catch (Exception e) {
-//                        Log.e(TAG,"getSavedUserInfo adding setFriendCount other exception... " + e);
-//                    }
 
                     try {
                         userInfo.setProfileImageFilePath(c.getString(6));
                     }  catch (SQLiteException e) {
                         Log.e(TAG,"getSavedUserInfo adding setProfileImgFilePath sqlite problem: " + e);
-                    } catch (Exception e) {
-                        Log.e(TAG,"getSavedUserInfo adding setProfileImgFilePath other exception... " + e);
+                    } catch (NullPointerException e) {
+                        Log.e(TAG,"getSavedUserInfo adding setProfileImgFilePath other NullPointerException... " + e);
                     }
-
-//                    try {
-//
-//                    }  catch (SQLiteException e) {
-//                        Log.e(TAG,"getSavedUserInfo adding setProfileImgFilePath sqlite problem: " + e);
-//                    } catch (Exception e) {
-//                        Log.e(TAG,"getSavedUserInfo adding setProfileImgFilePath other exception... " + e);
-//                    }
-
 
                     userInfoList.add(userInfo);
                 } while (c.moveToNext());
@@ -283,14 +250,14 @@ public class UserOpsHelper implements UserOperationsInterface {
         return userInfoList;
     }
 
-    //TODO instead use some kind of custom comparator? OR no?
+
     /**
      * Compares two UserInfo objects, and overwrites the old object in the database if values
      * have changed. Used when user timeline info is pulled, to check the user metadata attached to the tweets
      * against the saved data in the db
      * @param oldUserInfo old UserInfo object (saved info in db)
      * @param recentUserInfo new UserInfo object (pulled from tweet metadata)
-     * @return
+     * @return bool true if compare and update was succesful, false if error
      *
      * @see com.jukuproject.jukutweet.Fragments.UserTimeLineFragment#pullTimeLineData(UserInfo)
      */
@@ -334,7 +301,14 @@ public class UserOpsHelper implements UserOperationsInterface {
         return false;
     }
 
-
+    /**
+     * Inputs an entry into the Users table for just a Screen Name. Used when a new screen name is added in
+     * the {@link com.jukuproject.jukutweet.Dialogs.AddUserDialog}, and the device is not able to access the internet
+     * or generally to complete the search necessary to pull up the {@link com.jukuproject.jukutweet.Dialogs.AddUserCheckDialog}. The
+     * potential screen name is added, and can be updated later with {@link #compareUserInfoAndUpdate(UserInfo, UserInfo)}
+     * @param screenName
+     * @return
+     */
     public boolean saveUserWithoutData(String screenName) {
         SQLiteDatabase db = sqlOpener.getWritableDatabase();
         try {
@@ -352,27 +326,5 @@ public class UserOpsHelper implements UserOperationsInterface {
             db.close();
         }
     };
-
-//
-//    public ArrayList<String> getListOfUserIds() {
-//        ArrayList<String> userIds = new ArrayList<>();
-//        SQLiteDatabase db = sqlOpener.getWritableDatabase();
-//            String queryRecordExists = "Select DISTINCT UserId From " + InternalDB.Tables.TABLE_SAVED_TWEETS + " where UserId IS NOT NULL " ;
-//            Cursor c = db.rawQuery(queryRecordExists, null);
-//            try {
-//                if (c.moveToFirst()) {
-//                    while(!c.isAfterLast()) {
-//                        userIds.add(c.getString(0));
-//                    }
-//                }
-//            } catch (SQLiteException e) {
-//                Log.e(TAG,"getListOfUserIds Sqlite exception: " + e);
-//            } finally {
-//                c.close();
-//                db.close();
-//            }
-//
-//            return userIds;
-//    }
 
 }

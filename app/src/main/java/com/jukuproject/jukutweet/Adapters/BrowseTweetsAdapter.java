@@ -25,6 +25,8 @@ import java.util.List;
 
 /**
  * Recycler adapter for UserTimeLineFragment, displays a list of users tweets
+ *
+ * @see com.jukuproject.jukutweet.Fragments.UserTimeLineFragment
  */
 public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapter.ViewHolder> {
 
@@ -152,7 +154,6 @@ public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapte
                     /*Send the whole tweet back to the RXReceiver in TweetListBrowseFragment,
                       where it will be passed on to TweetBreakDownFragment */
                     mRxBus.send(mDataset.get(holder.getAdapterPosition()));
-//                    Toast.makeText(mContext, "Send to SavedTweetsBreakdownFragment", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -181,9 +182,6 @@ public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapte
             final SpannableStringBuilder sb = new SpannableStringBuilder(tweet.getText());
             if(tweet.getWordEntries() != null) {
                 for(WordEntry wordEntry : tweet.getWordEntries()) {
-//                    if(wordEntry.getColor()==null) {
-//                        wordEntry.createColorForWord(mC);
-//                    }
                     final ForegroundColorSpan fcs = new ForegroundColorSpan(ContextCompat.getColor(mContext,wordEntry.getColorValue()));
                     sb.setSpan(fcs, wordEntry.getStartIndex(), wordEntry.getEndIndex(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
                 }

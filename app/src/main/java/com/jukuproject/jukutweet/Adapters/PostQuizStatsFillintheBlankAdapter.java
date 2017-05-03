@@ -26,10 +26,12 @@ import com.jukuproject.jukutweet.R;
 import java.util.ArrayList;
 
 /**
- * Created by JClassic on 4/15/2017.
+ * Adapter for postquiz stats in {@link com.jukuproject.jukutweet.Fragments.StatsFragmentFillintheBlanks}. Each tweet from the quiz is displayed
+ * on the main row, and below it the {@link TweetWordsResultsAdapter} displays a sublist of each Spinner word in the tweet, colored Red
+ * if the word was answered incorrectly, Green if correct. Click on the word to open up {@link com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog}
+ *
+ * @see com.jukuproject.jukutweet.Fragments.StatsFragmentFillintheBlanks
  */
-
-
 public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<PostQuizStatsFillintheBlankAdapter.ViewHolder> {
     String TAG = "TEST-FillSentStatAdap";
 
@@ -44,7 +46,6 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
         public TextView txtRowNumber;
         public TextView txtSentence;
         public ListView lstSentenceWords;
-
 
         public ViewHolder(View v) {
             super(v);
@@ -90,7 +91,6 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
         ArrayList<WordEntry> spinnerWords = new ArrayList<>();
 
         /* Input the tweet and color the spinner words according to whether they were correct or not  */
-
         try {
             final SpannableStringBuilder sb = new SpannableStringBuilder(tweet.getText());
             if(tweet.getWordEntries() != null) {
@@ -122,7 +122,10 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
             Log.e(TAG,"fillblank Postquizstats setting tweet right/wrong word colors generic failure: " + e);
         }
 
-            /* Create list of word results that appears below the tweet  */
+            /* Create list of word results that appears below the tweet. Due to there being an adapter within an adapter
+            * (TweetWordsResultsAdapter within PostQuizStatsFillintheBlankAdapter), the TweetWordsResultsAdapter contents must be measured
+            * and the height specified the TweetWordsResultsAdapter adapter will only show 1 row and not show 2nd or 3rd rows if they exist.
+            */
             ViewGroup.LayoutParams layoutParams = holder.lstSentenceWords.getLayoutParams();
 
             if(superadaptertextviewheightsize>0) {
@@ -141,10 +144,10 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
 
                 layoutParams.height = (bounds.height()+mAdapterRowHeightMultiplier)*spinnerWords.size();
             }
-            if(BuildConfig.DEBUG){Log.d(TAG,"layoutparams.height = " + layoutParams.height );}
 
+        if(BuildConfig.DEBUG){Log.d(TAG,"layoutparams.height = " + layoutParams.height );}
         if(spinnerWords.size()>0) {
-            DefinitionAdapter_FillInSentences defadapter = new DefinitionAdapter_FillInSentences(mContext,spinnerWords);
+            TweetWordsResultsAdapter defadapter = new TweetWordsResultsAdapter(mContext,spinnerWords);
             holder.lstSentenceWords.setAdapter(defadapter);
             if(BuildConfig.DEBUG){Log.d(TAG, "layoutparams.height(2) = " + layoutParams.height);}
 
@@ -155,12 +158,7 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
             holder.lstSentenceWords.setLayoutParams(layoutParams);
         }
 
-
-
-
-
-
-        }
+    }
 
 
     // Return the size of your dataset (invoked by the layout manager)
@@ -170,22 +168,21 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
     }
 
 
-
-
-    private class DefinitionAdapter_FillInSentences extends ArrayAdapter<WordEntry> {
-        public DefinitionAdapter_FillInSentences(Context context
+    /**
+     * Adapter for sub-list of spinner words within each tweet in the quiz, and whether they were
+     * answered correctly or not
+     */
+    private class TweetWordsResultsAdapter extends ArrayAdapter<WordEntry> {
+        public TweetWordsResultsAdapter(Context context
                 , ArrayList<WordEntry> wordEntries
-//                , RxBus rxBus
         ) {
             super(context,0, wordEntries);
             mContext = context;
             mWordEntries = wordEntries;
-//            mRxBus = rxBus;
         }
         private Context mContext;
         private ArrayList<WordEntry> mWordEntries;
         int superadaptertextviewheightsize= 0;
-//        private RxBus mRxBus;
         @Override
         public View getView(final int position, View v, ViewGroup parent) {
 
@@ -197,10 +194,7 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
 
             TextView textWord = (TextView) v.findViewById(R.id.text1);
             String wordstring = "\u2022 " + wordEntry.getKanji();
-//            Log.d(TAG,"WORD: " + wordstring);
             textWord.setText(wordstring);
-//            if(debug){Log.d(TAG, "added word: (" + position + ") " + word);}
-
                 if(wordEntry.getFillinSentencesSpinner().isCorrectFirstTry()) {
                     textWord.setTextColor(ContextCompat.getColor(mContext, R.color.colorJukuGreen));
                 } else {
@@ -223,23 +217,15 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
                 }
             });
 
-
-
             v.measure(ViewGroup.LayoutParams.MATCH_PARENT, View.MeasureSpec.UNSPECIFIED);
-//            if(debug){Log.d(TAG, "adapter height: " + v.getMeasuredHeight());}
             superadaptertextviewheightsize = v.getMeasuredHeight();
-
             return v;
-
-
         }
-
 
         @Override
         public boolean isEnabled(int position) {
             return false;
         }
     }
-
 
 }

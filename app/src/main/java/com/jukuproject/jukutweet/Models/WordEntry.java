@@ -4,9 +4,13 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
+import com.jukuproject.jukutweet.Adapters.BrowseWordsAdapter;
 import com.jukuproject.jukutweet.R;
 
-
+/**
+ * Container for information on a single Japanese Word contained in the Edict database (including
+ * its quiz score contained in JScoreboard table in the database)
+ */
 public class WordEntry implements Parcelable {
 
     private Integer id;
@@ -15,8 +19,6 @@ public class WordEntry implements Parcelable {
     private String definition;
     private Integer correct;
     private Integer total;
-
-
     private ItemFavorites itemFavorites;
 
     //Used when positioning a word in a broken-up sentence, and coloring it
@@ -27,6 +29,43 @@ public class WordEntry implements Parcelable {
     private double quizWeight;
     private boolean isSpinner;
     private FillinSentencesSpinner fillinSentencesSpinner;
+
+
+    public WordEntry() {}
+
+    public WordEntry(Integer id, String kanji, String furigana, String definition,Integer total, Integer correct) {
+        this.id = id;
+        this.kanji = kanji;
+        this.furigana = furigana;
+        this.definition = definition;
+        this.total = total;
+        this.correct = correct;
+        this.itemFavorites = new ItemFavorites();
+        this.isSpinner = false;
+    }
+
+
+    public WordEntry(Integer id
+            , String kanji
+            , String furigana
+            , String definition
+            , Integer total
+            , Integer correct
+            , String color
+            , Integer startIndex
+            , Integer endIndex) {
+        this.id = id;
+        this.kanji = kanji;
+        this.furigana = furigana;
+        this.definition = definition;
+        this.total = total;
+        this.correct = correct;
+        this.itemFavorites = new ItemFavorites();
+        this.color = color;
+        this.startIndex  = startIndex;
+        this.endIndex = endIndex;
+        this.isSpinner = false;
+    }
 
     public FillinSentencesSpinner getFillinSentencesSpinner() {
      if(fillinSentencesSpinner == null) {
@@ -69,21 +108,6 @@ public class WordEntry implements Parcelable {
     }
 
 
-
-    public WordEntry() {}
-
-    public WordEntry(Integer id, String kanji, String furigana, String definition,Integer total, Integer correct) {
-        this.id = id;
-        this.kanji = kanji;
-        this.furigana = furigana;
-        this.definition = definition;
-        this.total = total;
-        this.correct = correct;
-//        this.percentage = percentage;
-        this.itemFavorites = new ItemFavorites();
-        this.isSpinner = false;
-    }
-
     public String getCoreKanjiBlock() {
         return coreKanjiBlock;
     }
@@ -91,29 +115,6 @@ public class WordEntry implements Parcelable {
     public void setCoreKanjiBlock(String coreKanjiBlock) {
         this.coreKanjiBlock = coreKanjiBlock;
     }
-
-    public WordEntry(Integer id
-            , String kanji
-            , String furigana
-            , String definition
-            , Integer total
-            , Integer correct
-            , String color
-            , Integer startIndex
-            , Integer endIndex) {
-        this.id = id;
-        this.kanji = kanji;
-        this.furigana = furigana;
-        this.definition = definition;
-        this.total = total;
-        this.correct = correct;
-        this.itemFavorites = new ItemFavorites();
-        this.color = color;
-        this.startIndex  = startIndex;
-        this.endIndex = endIndex;
-        this.isSpinner = false;
-    }
-
 
     public Integer getId() {
         return id;
@@ -155,15 +156,9 @@ public class WordEntry implements Parcelable {
         } catch (NullPointerException e) {
             Log.e("Test-WordEntry", "Null pointer in Word Entry percentage calculation: " + e);
             return 0;
-        } catch (Exception e) {
-            Log.e("Test-WordEntry", "Other exception in Word Entry percentage calculation: " + e);
-            return 0;
         }
     }
 
-//    public void setPercentage(float percentage) {
-//        this.percentage = percentage;
-//    }
 
     public Integer getTotal() {
         return total;
@@ -181,41 +176,14 @@ public class WordEntry implements Parcelable {
         this.correct = correct;
     }
 
-    //    public ArrayList<String> getDefinitionArray() {
-//        ArrayList<String> definitionArray = new ArrayList<>();
-//
-//        if(definition != null) {
-//            for (int i=1; i<=20; i++) {
-//                String s = "(" + String.valueOf(i) + ")";
-//                String sNext = "(" + String.valueOf(i+1) + ")";
-//                int slength = s.length();
-//                if(definition.contains(s)){
-//                    int endIndex = definition.length();
-//                    if(definition.contains(sNext)){ //If we can find the next "(#)" in the string, we'll use it as this definition's end point
-//                        endIndex =  definition.indexOf(sNext);
-//                    }
-//
-//                    String sentence = definition.substring(definition.indexOf(s)+slength, endIndex);
-//                    //Capitalize it
-//                    if(sentence.length()>1) {
-//                        sentence = sentence.substring(0, 1).toUpperCase() + sentence.substring(1).toLowerCase();
-//                    }
-//                    definitionArray.add(sentence);
-//                } else if (i==1) { //if the thing doesn't contain a "(1)", just print the whole definition in line 1 of the array.
-//                    String sentence = definition;
-//                    if(sentence.length()>1) {
-//                        sentence = definition.substring(0, 1).toUpperCase() + definition.substring(1).toLowerCase();
-//                    }
-//                    definitionArray.add(sentence);
-//                }
-//
-//            }
-//        }
-//
-//        return definitionArray;
-//    }
-
-  //TODO comment this out, and put try catch
+    /**
+     * Splits a definition in the Edict database, which comes in one long string punctuated by
+     * parenthetic numbered chunks (ex: "(1)to go(2)to come") into a multiline string that can be used
+     * in {@link BrowseWordsAdapter} or {@link com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog} definition
+     *  etc etc
+     * @param limit number of definitions to include
+     * @return Multi-line string version of the definition
+     */
     public String getDefinitionMultiLineString(int limit) {
         StringBuilder stringBuilder = new StringBuilder();
 
@@ -245,9 +213,6 @@ public class WordEntry implements Parcelable {
                     if(sentence.length()>1) {
                         sentence = definition.substring(0, 1).toUpperCase() + definition.substring(1).toLowerCase();
                     }
-//                    if(i>1) {
-//                        stringBuilder.append(System.getProperty("line.separator"));
-//                    }
                     stringBuilder.append("\u2022 ");
                     stringBuilder.append(sentence);
                 }
@@ -304,6 +269,10 @@ public class WordEntry implements Parcelable {
         return stringBuilder.toString();
     }
 
+    /**
+     * Assigns a color to the WordEntry based on the percentage of its quiz scores
+     * @param colorThresholds Color Threshold object containing percentage thresholds used to assign the color
+     */
     public void createColorForWord(ColorThresholds colorThresholds) {
         if (total != null && correct != null) {
             if (total < colorThresholds.getTweetGreyThreshold()) {
@@ -325,6 +294,10 @@ public class WordEntry implements Parcelable {
         this.color = color;
     }
 
+    /**
+     * Get the color value for a WordEntry, used to fill in the colorbar in {@link BrowseWordsAdapter} for example
+     * @return color value for WordEntry, or black if the word has no color
+     */
     public int getColorValue() {
         if(color == null) {
             return android.R.color.white;
@@ -342,6 +315,11 @@ public class WordEntry implements Parcelable {
 
     }
 
+    /**
+     * Used in {@link com.jukuproject.jukutweet.Fragments.MultipleChoiceFragment} and {@link com.jukuproject.jukutweet.Fragments.FillInTheBlankFragment}
+     * @param quizType Quiz menu option for multiple choice quiz ("Kanji to Definition" etc)
+     * @return  Returns different parts of the word entry depending on the type of quiz
+     */
     public String getQuizQuestion(String quizType) {
         switch(quizType) {
 
@@ -359,6 +337,11 @@ public class WordEntry implements Parcelable {
         }
     };
 
+    /**
+     * Used in {@link com.jukuproject.jukutweet.Fragments.MultipleChoiceFragment} and {@link com.jukuproject.jukutweet.Fragments.FillInTheBlankFragment}
+     * @param quizType Quiz menu option for multiple choice quiz ("Kanji to Definition" etc)
+     * @return  Returns different parts of the word entry depending on the type of quiz
+     */
     public String getQuizAnswer(String quizType) {
         switch(quizType) {
 

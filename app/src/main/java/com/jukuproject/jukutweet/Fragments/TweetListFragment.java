@@ -21,8 +21,7 @@ import android.widget.ExpandableListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.jukuproject.jukutweet.Adapters.SavedTweetsExpandableAdapter;
-import com.jukuproject.jukutweet.BaseContainerFragment;
+import com.jukuproject.jukutweet.Adapters.TweetListExpandableAdapter;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.QuizMenuDialog;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
@@ -32,11 +31,12 @@ import com.jukuproject.jukutweet.Models.MenuHeader;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
+import com.jukuproject.jukutweet.TabContainers.BaseContainerFragment;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-//import com.jukuproject.jukutweet.BaseContainerFragment;
+//import com.jukuproject.jukutweet.TabContainers.BaseContainerFragment;
 
 /**
  * Shows user-created lists of vocabulary
@@ -46,7 +46,7 @@ public class TweetListFragment extends Fragment {
 
     String TAG = "SavedTweetsAll";
     FragmentInteractionListener mCallback;
-    SavedTweetsExpandableAdapter SavedTweetsFragmentAdapter;
+    TweetListExpandableAdapter SavedTweetsFragmentAdapter;
     ExpandableListView expListView;
     ArrayList<MenuHeader> mMenuHeader;
     private int lastExpandedPosition = -1;
@@ -119,7 +119,7 @@ public class TweetListFragment extends Fragment {
 
 
 
-        SavedTweetsFragmentAdapter = new SavedTweetsExpandableAdapter(getContext(),mMenuHeader,getdimenscore(.36f),0);
+        SavedTweetsFragmentAdapter = new TweetListExpandableAdapter(getContext(),mMenuHeader,getdimenscore(.36f),0);
 
         expListView.setAdapter(SavedTweetsFragmentAdapter);
         expListView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
@@ -419,7 +419,7 @@ public class TweetListFragment extends Fragment {
      * to half of the screenwidth
      * @return maximum width in pixels of colored bars
      *
-     * @see SavedTweetsExpandableAdapter
+     * @see TweetListExpandableAdapter
      */
     private int getdimenscore(float multiplier) {
 
@@ -474,7 +474,7 @@ public class TweetListFragment extends Fragment {
 //        } else {
             prepareListData();
 //        }
-        SavedTweetsFragmentAdapter = new SavedTweetsExpandableAdapter(getContext(),mMenuHeader,getdimenscore(.36f),0);
+        SavedTweetsFragmentAdapter = new TweetListExpandableAdapter(getContext(),mMenuHeader,getdimenscore(.36f),0);
         expListView.setAdapter(SavedTweetsFragmentAdapter);
         //Expand the last expanded position (or expand first availalbe non-empty list)
         if(lastExpandedPosition >=0) {

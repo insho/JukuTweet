@@ -2,7 +2,6 @@ package com.jukuproject.jukutweet;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -19,14 +18,12 @@ import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.jukuproject.jukutweet.Adapters.MyListExpandableAdapter;
+import com.jukuproject.jukutweet.Adapters.WordListExpandableAdapter;
 import com.jukuproject.jukutweet.Database.ExternalDB;
-import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Fragments.FillInTheBlankFragment;
 import com.jukuproject.jukutweet.Fragments.MultipleChoiceFragment;
 import com.jukuproject.jukutweet.Interfaces.QuizFragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
-import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MultChoiceResult;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.Tweet;
@@ -34,8 +31,6 @@ import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
 
 import java.util.ArrayList;
-
-import static com.jukuproject.jukutweet.Fragments.WordListFragment.getExpandableAdapterColorBlockBasicWidths;
 
 //import com.jukuproject.jukutweet.TabContainers.QuizTab1Container;
 
@@ -591,45 +586,45 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
         startActivity(intent);
 
     }
-
-    //TODO combine with same thing in mylistfragment
-    public  ColorBlockMeasurables prepareColorBlockDataForList(MyListEntry myListEntry) {
-        ColorBlockMeasurables colorBlockMeasurables = new ColorBlockMeasurables();
-
-        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getBaseContext()).getColorThresholds();
-        Cursor c = InternalDB.getWordInterfaceInstance(getBaseContext()).getWordListColorBlockCursor(colorThresholds,myListEntry);
-
-        if(c.getCount()>0) {
-            c.moveToFirst();
-
-                /* We do not want to include favorites star lists that are not active in the user
-                * preferences. So if an inactivated list shows up in the sql query, ignore it (don't add to mMenuHeader)*/
-
-            colorBlockMeasurables.setGreyCount(c.getInt(3));
-            colorBlockMeasurables.setRedCount(c.getInt(4));
-            colorBlockMeasurables.setYellowCount(c.getInt(5));
-            colorBlockMeasurables.setGreenCount(c.getInt(6));
-            colorBlockMeasurables.setEmptyCount(0);
-
-            colorBlockMeasurables.setGreyMinWidth(getExpandableAdapterColorBlockBasicWidths(this, String.valueOf(colorBlockMeasurables.getGreyCount())));
-            colorBlockMeasurables.setRedMinWidth(getExpandableAdapterColorBlockBasicWidths(this, String.valueOf(colorBlockMeasurables.getRedCount())));
-            colorBlockMeasurables.setYellowMinWidth(getExpandableAdapterColorBlockBasicWidths(this, String.valueOf(colorBlockMeasurables.getYellowCount())));
-            colorBlockMeasurables.setGreenMinWidth(getExpandableAdapterColorBlockBasicWidths(this, String.valueOf(colorBlockMeasurables.getGreenCount())));
-            colorBlockMeasurables.setEmptyMinWidth(0);
-
-            Log.d(TAG,"doing this");
-        }
-        c.close();
-        return  colorBlockMeasurables;
-    }
-
+//
+//    //TODO combine with same thing in mylistfragment
+//    public  ColorBlockMeasurables prepareColorBlockDataForList(MyListEntry myListEntry) {
+//        ColorBlockMeasurables colorBlockMeasurables = new ColorBlockMeasurables();
+//
+//        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getBaseContext()).getColorThresholds();
+//        Cursor c = InternalDB.getWordInterfaceInstance(getBaseContext()).getWordListColorBlockCursor(colorThresholds,myListEntry);
+//
+//        if(c.getCount()>0) {
+//            c.moveToFirst();
+//
+//                /* We do not want to include favorites star lists that are not active in the user
+//                * preferences. So if an inactivated list shows up in the sql query, ignore it (don't add to mMenuHeader)*/
+//
+//            colorBlockMeasurables.setGreyCount(c.getInt(3));
+//            colorBlockMeasurables.setRedCount(c.getInt(4));
+//            colorBlockMeasurables.setYellowCount(c.getInt(5));
+//            colorBlockMeasurables.setGreenCount(c.getInt(6));
+//            colorBlockMeasurables.setEmptyCount(0);
+//
+//            colorBlockMeasurables.setGreyMinWidth(getExpandableAdapterColorBlockBasicWidths(this, String.valueOf(colorBlockMeasurables.getGreyCount())));
+//            colorBlockMeasurables.setRedMinWidth(getExpandableAdapterColorBlockBasicWidths(this, String.valueOf(colorBlockMeasurables.getRedCount())));
+//            colorBlockMeasurables.setYellowMinWidth(getExpandableAdapterColorBlockBasicWidths(this, String.valueOf(colorBlockMeasurables.getYellowCount())));
+//            colorBlockMeasurables.setGreenMinWidth(getExpandableAdapterColorBlockBasicWidths(this, String.valueOf(colorBlockMeasurables.getGreenCount())));
+//            colorBlockMeasurables.setEmptyMinWidth(0);
+//
+//            Log.d(TAG,"doing this");
+//        }
+//        c.close();
+//        return  colorBlockMeasurables;
+//    }
+//
 
     /**
      * Maximum width of the color bars in the MenuExpandableListAdapter. Right that vlue is set
      * to half of the screenwidth
      * @return maximum width in pixels of colored bars
      *
-     * @see MyListExpandableAdapter
+     * @see WordListExpandableAdapter
      */
     private int getdimenscore() {
 

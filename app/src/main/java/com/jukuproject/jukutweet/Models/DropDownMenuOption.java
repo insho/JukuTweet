@@ -1,16 +1,14 @@
 package com.jukuproject.jukutweet.Models;
 
 /**
- * Created by JClassic on 4/1/2017.
+ * Container with information pretaining to a menu option in the {@link com.jukuproject.jukutweet.Dialogs.QuizMenuDialog}
  */
 
 public class DropDownMenuOption {
 
     private String chosenOption;
     private int buttonNumber;
-
     private int colorCount;
-
     private boolean colorSelected;
 
     public DropDownMenuOption(String chosenOption, int buttonNumber) {
@@ -29,22 +27,13 @@ public class DropDownMenuOption {
         return chosenOption;
     }
 
-    public void setChosenOption(String chosenOption) {
-        this.chosenOption = chosenOption;
-    }
-
     public int getButtonNumber() {
         return buttonNumber;
-    }
-
-    public void setButtonNumber(int buttonNumber) {
-        this.buttonNumber = buttonNumber;
     }
 
     public int getColorCount() {
         return colorCount;
     }
-
 
     public boolean isColorSelected() {
         return colorSelected;

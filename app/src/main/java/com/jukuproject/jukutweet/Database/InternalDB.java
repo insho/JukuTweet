@@ -16,25 +16,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
- * Database helper
+ * Database helper for creation of internal tables, as well as traffic controller for
+ * the other "OpsHelper" classes of sqlite database helpers.
  */
 public class InternalDB extends SQLiteOpenHelper
-//        implements TweetListOperationsInterface
-//        ,WordListOperationsInterface
-//        ,UserOperationsInterface
-//        ,QuizOperationsInterface
+
 {
+    private static String TAG = "TEST-Internal";
 
     public static TweetListOperationsInterface tweetOpsHelper;
     public static UserOperationsInterface userOpsHelper;
     public static QuizOperationsInterface quizOpsHelper;
     public static WordListOperationsInterface wordOpsHelper;
-//    private final PriorityBlockingQueue queue = new PriorityBlockingQueue();
 
-//    private static boolean debug = true;
-    private static String TAG = "TEST-Internal";
     private static InternalDB sInstance;
-
     public static  String DB_NAME =  "JQuiz";
     public static String DATABASE_NAME = DB_NAME + ".db";
     public static final int DB_VERSION = 1;
@@ -79,7 +74,6 @@ public class InternalDB extends SQLiteOpenHelper
         public static final String TSAVEDTWEETITEMS_COL3 = "StartIndex";
         public static final String TSAVEDTWEETITEMS_COL4 = "EndIndex";
         public static final String TSAVEDTWEETITEMS_COL5 = "CoreKanjiBlock";
-
 
         public static final String TSAVEDTWEETURLS_COL1 = "Url";
         public static final String TSAVEDTWEETURLS_COL2 = "StartIndex";
@@ -128,8 +122,6 @@ public class InternalDB extends SQLiteOpenHelper
         super(context, DATABASE_NAME, null, DB_VERSION);
         tweetOpsHelper = new TweetOpsHelper(this);
     }
-
-
 
 
 
@@ -182,7 +174,7 @@ public class InternalDB extends SQLiteOpenHelper
 
         sqlDB.execSQL(sqlQueryJFavoritesLists);
 
-        /* Stores kanji entries with a mylist (either system or user-created) */
+        /* Stores kanji entries with a wordlist (either system or user-created) */
         String sqlQueryJFavoritesListEntries =
                 String.format("CREATE TABLE IF NOT EXISTS  %s (" +
                                 "%s INTEGER, " +
@@ -285,9 +277,6 @@ public class InternalDB extends SQLiteOpenHelper
      * Pulls lists of hiragana/katakana/symbols and verb endings stored in the "Characters" table
      * in the database, and populates a WordLoader object with them.
      *
-     * Note: the nullable input db is used for testing. In test scenario the db has to be passed into the method (?)
-     * @return WordLoader object with array lists and maps of various japanse characters
-     *
      * @see TweetParser
      */
     public WordLoader getWordLists() {
@@ -364,10 +353,6 @@ public class InternalDB extends SQLiteOpenHelper
 
         return new WordLoader(hiragana,katakana,symbols,romajiMap,verbEndingMap,verbEndingsRoot,verbEndingsConjugation);
     }
-
-
-
-
 
 }
 

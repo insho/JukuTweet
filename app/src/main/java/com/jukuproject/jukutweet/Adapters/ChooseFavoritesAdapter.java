@@ -1,7 +1,6 @@
 package com.jukuproject.jukutweet.Adapters;
 
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.RecyclerView;
@@ -15,6 +14,7 @@ import android.widget.GridLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.jukuproject.jukutweet.ChooseFavoriteListsPopupWindow;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.MyListEntry;
@@ -23,7 +23,9 @@ import com.jukuproject.jukutweet.R;
 import java.util.ArrayList;
 
 /**
- * Created by JClassic on 3/24/2017.
+ * Adapter for ChooseFavoriteListsPopupWindow. User can add/subtract a Word from a Word list.
+ *
+ * @see ChooseFavoriteListsPopupWindow
  */
 
 public class ChooseFavoritesAdapter extends RecyclerView.Adapter<ChooseFavoritesAdapter.ViewHolder> {
@@ -86,8 +88,6 @@ public class ChooseFavoritesAdapter extends RecyclerView.Adapter<ChooseFavorites
                 0,
                 (int) (2.0f * mDensity + 0.5f));
 
-
-        setAppCompatCheckBoxColors(holder.checkbox, ContextCompat.getColor(mContext, android.R.color.black), ContextCompat.getColor(mContext, android.R.color.black));
         if(initialMyListEntry.getListsSys() == 1){
 
             switch (initialMyListEntry.getListName()) {
@@ -142,8 +142,6 @@ public class ChooseFavoritesAdapter extends RecyclerView.Adapter<ChooseFavorites
         return mMyListEntries.size();
     }
 
-
-
     private void rowSelected(ViewHolder holder, MyListEntry myListEntry) {
 
         //If initially not selected, set selected
@@ -169,16 +167,6 @@ public class ChooseFavoritesAdapter extends RecyclerView.Adapter<ChooseFavorites
             }
         }
     }
-
-
-    //TODO MOVE THIS TO GLOBAL
-    public static void setAppCompatCheckBoxColors(final AppCompatCheckBox _checkbox,
-                                                  final int _uncheckedColor, final int _checkedColor) {
-        int[][] states = new int[][]{new int[]{-android.R.attr.state_checked}, new int[]{android.R.attr.state_checked}};
-        int[] colors = new int[]{_uncheckedColor, _checkedColor};
-        _checkbox.setSupportButtonTintList(new ColorStateList(states, colors));
-    }
-
 }
 
 
