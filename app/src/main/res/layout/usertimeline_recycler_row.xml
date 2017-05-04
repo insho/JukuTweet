@@ -129,7 +129,7 @@
         android:textSize="20sp" />
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="start"
         android:layout_marginStart="4dp"
@@ -142,6 +142,7 @@
             android:layout_weight="1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="start"
             android:clickable="false"
             android:ellipsize="marquee"
             android:textStyle="italic"
@@ -153,7 +154,7 @@
         <ImageButton  android:id="@+id/retweetImage"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_gravity="center"
+            android:layout_gravity="end"
             android:contentDescription="retweeted"
             android:src="@drawable/ic_twitter_retweet_black_18dp"
             android:alpha=".6"
@@ -168,6 +169,7 @@
         <TextView
             android:id="@+id/retweeted"
             android:layout_weight="1"
+            android:layout_gravity="end"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:clickable="false"
@@ -180,7 +182,7 @@
         <ImageButton  android:id="@+id/heart"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_gravity="center"
+            android:layout_gravity="end"
             android:contentDescription="favorited"
             android:src="@drawable/ic_heart_black_18dp"
             android:background="@android:color/transparent"
@@ -199,6 +201,7 @@
             android:layout_height="wrap_content"
             android:clickable="false"
             android:ellipsize="marquee"
+            android:layout_gravity="end"
             android:textStyle="italic"
             android:layout_marginStart="2dp"
             android:layout_marginLeft="2dp"

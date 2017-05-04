@@ -13,7 +13,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Spannable;
 import android.text.SpannableString;
-import android.text.SpannableStringBuilder;
 import android.text.TextPaint;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
@@ -25,11 +24,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import com.jukuproject.jukutweet.Adapters.TweetBreakDownAdapter;
+import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.ChooseFavoriteListsPopupWindow;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
@@ -42,6 +41,7 @@ import com.jukuproject.jukutweet.Models.ItemFavorites;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.TweetUrl;
+import com.jukuproject.jukutweet.Models.TweetUserMentions;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
@@ -59,10 +59,6 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
-//import com.jukuproject.jukutweet.Models.ParseSentenceItem;
-//import com.jukuproject.jukutweet.Models.ParseSentenceSpecialSpan;
-//import com.jukuproject.jukutweet.Models.TweetKanjiColor;
-//import com.jukuproject.jukutweet.TweetParser;
 
 
 /**
@@ -71,22 +67,15 @@ import rx.schedulers.Schedulers;
 
 public class TweetBreakDownFragment extends Fragment implements WordEntryFavoritesChangedListener {
 
-    String TAG = "TEST-breakdownpop";
+    String TAG = "TEST-breakdownfrag";
     private FragmentInteractionListener mCallback;
-//    private Context mContext;
-//    private View mAnchorView;
     private RxBus mRxBus= new RxBus();
     private Tweet mTweet;
     private RecyclerView mRecyclerView;
-//    private ArrayList<WordEntry> mDisectedTweet;
     private boolean mSavedTweet = false;
     /*This is the main linear layout, that we will fill row by row with horizontal linear layouts, which are
      in turn filled with vertical layouts (with furigana on top and japanese on bottom). A big sandwhich of layouts */
-    private LinearLayout linearLayoutVerticalMain;
-//    private LinearLayout linearLayout;
-    private int linewidth = 0;
-    private  int displaywidth = 0;
-//    private int displaymarginpadding = 30; //How much to pad the edge of the screen by when laying down the sentenceblocks (so the sentence doesn't overlap the screen or get cut up too much)
+//    private LinearLayout linearLayoutVerticalMain;
     private ArrayList<String> mActiveTweetFavoriteStars;
     private Subscription parseSentenceSubscription;
 
@@ -102,11 +91,6 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
     private TextView txtUserScreenName;
     private ImageButton imgStar;
     private FrameLayout imgStarLayout;
-
-
-//    private ScrollView mScrollView;
-    /* keep from constantly recieving button clicks through the RxBus */
-//    private long mLastClickTime = 0;
 
     public TweetBreakDownFragment() {}
 
@@ -137,8 +121,6 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
         mRecyclerView = (RecyclerView) v.findViewById(R.id.parseSentenceRecyclerView);
         txtSentence =  (TextView) v.findViewById(R.id.sentence);
 
-
-
         progressBar = (SmoothProgressBar) v.findViewById(R.id.progressbar);
         divider = (View) v.findViewById(R.id.dividerview);
 
@@ -147,18 +129,13 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
         imgStar = (ImageButton) v.findViewById(R.id.favorite);
         imgStarLayout = (FrameLayout) v.findViewById(R.id.timelineStarLayout);
         txtNoLists = (TextView) v.findViewById(R.id.nolists);
-
-        linearLayoutVerticalMain = (LinearLayout) v.findViewById(R.id.sentence_layout);
-//        linearLayout = new LinearLayout(getActivity());
-//        linearLayout.setOrientation(LinearLayout.HORIZONTAL);
+//        linearLayoutVerticalMain = (LinearLayout) v.findViewById(R.id.sentence_layout);
         return v;
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
-
 
         SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(getContext());
         colorThresholds = sharedPrefManager.getColorThresholds();
@@ -169,12 +146,12 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
             mTweet = savedInstanceState.getParcelable("mTweet");
             mSavedTweet = savedInstanceState.getBoolean("mSavedTweet");
 //            mDisectedTweet = savedInstanceState.getParcelableArrayList("mDisectedTweet");
-            Log.d(TAG,"saved instance not null");
+            if(BuildConfig.DEBUG){Log.d(TAG,"saved instance not null");}
         } else {
 
             mTweet = getArguments().getParcelable("tweet");
             mSavedTweet = getArguments().getBoolean("isSavedTweet",false);
-            Log.d(TAG,"saved instance IS null");
+            if(BuildConfig.DEBUG){Log.d(TAG,"saved instance IS null");}
         }
 
             txtSentence.setVisibility(View.VISIBLE);
@@ -192,10 +169,6 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                 txtUserScreenName.setText(mTweet.getUser().getDisplayScreenName());
             } catch (NullPointerException e) {
                 Log.e(TAG,"TweetBreakDownFragment mTweet doesn't contain user?: " + e);
-                txtUserName.setVisibility(View.INVISIBLE);
-                txtUserScreenName.setVisibility(View.INVISIBLE);
-            } catch (Exception e) {
-                Log.e(TAG,"TweetBreakDownFragment adding user info error: " + e);
                 txtUserName.setVisibility(View.INVISIBLE);
                 txtUserScreenName.setVisibility(View.INVISIBLE);
             }
@@ -224,10 +197,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                 imgStarLayout.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        //TODO favorite words
-
-                        Log.d(TAG,"mActiveFavoriteStars: " + mActiveTweetFavoriteStars);
-//                        Log.d(TAG,"should open: " + mWords.get(holder.getAdapterPosition()).getItemFavorites().shouldOpenFavoritePopup(mActiveFavoriteStars));
+                        if(BuildConfig.DEBUG){Log.d(TAG,"mActiveFavoriteStars: " + mActiveTweetFavoriteStars);}
 
                         if(mTweet.getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)) {
                             showTweetFavoriteListPopupWindow();
@@ -236,7 +206,6 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                                 imgStar.setImageResource(R.drawable.ic_star_black);
                                 imgStar.setColorFilter(ContextCompat.getColor(getContext(),FavoritesColors.assignStarColor(mTweet.getItemFavorites(),mActiveTweetFavoriteStars)));
                             } else {
-                                //TODO insert an error?
                                 Log.e(TAG,"OnFavoriteStarToggle did not work...");
                             }
                         }
@@ -254,92 +223,17 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                     }
                 });
 
-//                imgStarLayout.setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//
-//                    /*  1. Change star color favorites star based previous star color
-//                        2. Check for tweet in db, save if necessary*/
-////                        InternalDB helper = InternalDB.getInstance(getContext());
-//                        TweetListOperationsInterface helperTweetOps = InternalDB.getTweetInterfaceInstance(getContext());
-//                        //Toggle favorite list association for this tweet
-//                        if(FavoritesColors.onFavoriteStarToggleTweet(getContext(),mActiveTweetFavoriteStars,mTweet.getUser().getUserId(),mTweet)) {
-//                            imgStar.setImageResource(FavoritesColors.assignStarResource(mTweet.getItemFavorites(),mActiveTweetFavoriteStars));
-//                            imgStar.setColorFilter(ContextCompat.getColor(getContext(), FavoritesColors.assignStarColor(mTweet.getItemFavorites(),mActiveTweetFavoriteStars)));
-//
-//                        }
-//
-//                        //Check for tweet in db
-//                        try {
-//                            Log.d(TAG,"SAVING TWEETS TO DB...");
-//                            //If tweet doesn't already exist in db, insert it
-//                            if(helperTweetOps.tweetExistsInDB(mTweet) == 0 && mTweet.getUser() != null){
-//
-//                                int addTweetResultCode = helperTweetOps.saveTweetToDB(mTweet.getUser(),mTweet);
-//                                Log.d(TAG,"SAVING TWEETS TO DB2... " + addTweetResultCode);
-//
-//                                if(addTweetResultCode > 0 && mTweet.getWordEntries() != null) {
-//                                /*DB insert successfull, now save tweet urls and parsed kanji into database */
-//                                    helperTweetOps.saveParsedTweetKanji(mTweet.getWordEntries(),mTweet.getIdString());
-//                                    helperTweetOps.saveTweetUrls(mTweet);
-//                                }
-//                            }
-//
-//                        } catch (Exception e){
-//                            Log.e(TAG,"UserTimeLIneAdapter - star clicked, tweet doesn't exist, but UNABLE to save!");
-//
-//                        }
-//
-//                    }
-//                });
             }  catch (NullPointerException e) {
                 Log.e(TAG,"TweetBreakDownFragment setting up imgStar doesn't contain itemfavs??: " + e);
                 imgStar.setVisibility(View.GONE);
-            } catch (Exception e) {
-                Log.e(TAG,"TweetBreakDownFragment setting up imgStar error: " + e);
-                imgStar.setVisibility(View.GONE);
             }
         }
 
-
-        //Try to add links
-        if(mTweet.getEntities()!=null && mTweet.getEntities().getUrls()!=null) {
-
-
-        try {
-            List<TweetUrl> tweetUrls =  mTweet.getEntities().getUrls();
-
-            for(TweetUrl url : tweetUrls) {
-                int[] indices = url.getIndices();
-
-                String urlToLinkify = "";
-
-                if(mTweet.getText().substring(indices[0]).contains(url.getDisplay_url())) {
-                    urlToLinkify = url.getDisplay_url();
-                } else if(mTweet.getText().substring(indices[0]).contains(url.getUrl())) {
-                    urlToLinkify = url.getUrl();
-                }
-                int startingLinkPos = mTweet.getText().indexOf(urlToLinkify,indices[0]);
-                SpannableString text = new SpannableString(mTweet.getText());
-                text.setSpan(new URLSpan(url.getUrl()), startingLinkPos, startingLinkPos + urlToLinkify.length(), 0);
-                txtSentence.setMovementMethod(LinkMovementMethod.getInstance());
-                txtSentence.setText(text, TextView.BufferType.SPANNABLE);
-
-            }
-        } catch (NullPointerException e) {
-            Log.e(TAG,"mTweet urls are null : " + e);
-        } catch (Exception e) {
-            Log.e(TAG,"Error adding url info: " + e);
-        }
-    } else {
-            Log.d(TAG,"entities null");
-        }
-
-
-        Log.d(TAG,"SAVED TWEET: " + mSavedTweet);
+//asdf
+        if(BuildConfig.DEBUG){Log.d(TAG,"SAVED TWEET: " + mSavedTweet);}
 
     if(mSavedTweet && mTweet.getWordEntries() != null) {
-        Log.d(TAG,"getWordEntries NOT null - " + mTweet.getWordEntries().size());
+        if(BuildConfig.DEBUG){ Log.d(TAG,"getWordEntries NOT null - " + mTweet.getWordEntries().size());}
 
         /* If it is a previously saved tweet, the favorite list information for the WordEntries in the
          tweet will not have been previously attached. So attach them now: */
@@ -362,9 +256,8 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
 
         showDisectedTweet(mTweet.getWordEntries(),sentence,txtSentence);
 
-    } else if(mTweet.getWordEntries()==null) {
-            Log.d(TAG,"getwordentries is null");
-//        final ArrayList<ParseSentenceSpecialSpan> specialSpans = new ArrayList<>();
+    } else  {
+        if(BuildConfig.DEBUG){ Log.d(TAG,"getwordentries is null");}
         final ArrayList<String> spansToExclude = new ArrayList<>();
 
         /* Create a list of "SpecialSpan" objects from the urls contained the Tweet. These will be
@@ -372,7 +265,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
         * designated as "url" in the ParseSentenceItems that emerge from the parser. They can then be shown as clickable links when
         * the tweet text is reassembled */
 
-        if(mTweet.getEntities() != null && mTweet.getEntities().getUrls() != null) {
+        if(mTweet.getEntities()!= null && mTweet.getEntities().getUrls() != null) {
             for(TweetUrl url : mTweet.getEntities().getUrls()) {
                 if(url != null) {
                     spansToExclude.add(url.getUrl());
@@ -408,23 +301,15 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                     @Override
                     public void onSuccess(ArrayList<WordEntry> disectedTweet) {
 
-//                        mDisectedTweet = disectedTweet;
                         if(disectedTweet.size()>0) {
-
                         mTweet.setWordEntries(disectedTweet);
-//                            Log.d(TAG,"YYY - " + disectedTweet.get(1).getKanji() + " - " + disectedTweet.get(1).getColor());
-                            /*Hide the filler sentence txtSentenceView, and instead user the items
-//                            in disectedTweet to dynamically fill in the sentence with clickable, highlighted kanji, links etc. */
-//                            loadArray(disectedTweet);
                             showDisectedTweet(disectedTweet,sentence,txtSentence);
+                            InternalDB.getTweetInterfaceInstance(getContext()).saveParsedTweetKanji(disectedTweet,mTweet.getIdString());
                             showProgressBar(false);
-//                            txtSentence.setVisibility(View.GONE);
-
                         } else {
                             /*No results found. Keep the initial sentence in the txtSentence view,
                             and show no sentences found message in place of recyclerview */
                             mRecyclerView.setVisibility(View.GONE);
-//                            txtNoLists.setVisibility(View.VISIBLE);
                         }
                     }
 
@@ -432,7 +317,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                     public void onError(Throwable error) {
                         Log.e(TAG,"ERROR IN PARSE SENTENCE OBSERVABLE: " + error);
                         showProgressBar(false);
-                        linearLayoutVerticalMain.setVisibility(View.GONE);
+//                        linearLayoutVerticalMain.setVisibility(View.GONE);
                         mRecyclerView.setVisibility(View.GONE);
                         txtNoLists.setVisibility(View.VISIBLE);
                         txtNoLists.setText("Unable to parse tweet");
@@ -441,12 +326,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                 });
 
 
-        } else {
-        Log.d(TAG,"WHAT THE FUCK");
-        showDisectedTweet(mTweet.getWordEntries(),sentence,txtSentence);
-    }
-
-
+        }
     }
 
 
@@ -473,50 +353,124 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
 
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        displaywidth = metrics.widthPixels;
 
         /* Set tweet color spans. If the saved Tweet object includes a "colorIndex" object (
         * which comes from the savedTweetKanji table and contains the id, positions and color designation
         * of each kanji in the TWeet), replace the normal Tweet text with colored spans for those kanji */
+
             try {
 
-                final SpannableStringBuilder sb = new SpannableStringBuilder(entireSentence);
-//                    sb.setSpan(null, 0, entireSentence.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-                    for(final WordEntry wordEntry : disectedSavedTweet) {
-//                        final ForegroundColorSpan fcs = new ForegroundColorSpan(ContextCompat.getColor(getContext(),color.getColorValue()));
-//                        sb.setSpan(fcs, color.getStartIndex(), color.getEndIndex(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                SpannableString text = new SpannableString(mTweet.getText());
 
-                        ClickableSpan kanjiClick = new ClickableSpan() {
+                //Try to add links
+                if(mTweet.getEntities().getUrls()!=null) {
+
+
+                    List<TweetUrl> tweetUrls =  mTweet.getEntities().getUrls();
+
+                    for(TweetUrl url : tweetUrls) {
+                        int[] indices = url.getIndices();
+
+                        String urlToLinkify = "";
+
+                        if(mTweet.getText().substring(indices[0]).contains(url.getDisplay_url())) {
+                            urlToLinkify = url.getDisplay_url();
+                        } else if(mTweet.getText().substring(indices[0]).contains(url.getUrl())) {
+                            urlToLinkify = url.getUrl();
+                        }
+                        int startingLinkPos = mTweet.getText().indexOf(urlToLinkify,indices[0]);
+
+                        text.setSpan(new URLSpan(url.getUrl()), startingLinkPos, startingLinkPos + urlToLinkify.length(), 0);
+
+
+                    }
+
+                };
+
+                if(mTweet.getEntities().getUser_mentions()!=null) {
+
+
+                    List<TweetUserMentions> tweetUserMentions =  mTweet.getEntities().getUser_mentions();
+
+                    for(final TweetUserMentions userMention : tweetUserMentions) {
+                        int[] indices = userMention.getIndices();
+
+                        String mentionToLinkify = "";
+
+                        if(mTweet.getText().substring(indices[0]).contains(userMention.getName())) {
+                            mentionToLinkify = userMention.getName();
+                        } else if(mTweet.getText().substring(indices[0]).contains(userMention.getScreen_name())) {
+                            mentionToLinkify = userMention.getScreen_name();
+                        }
+                        int startingLinkPos = mTweet.getText().indexOf(mentionToLinkify,indices[0]);
+                        ClickableSpan userMentionClickableSpan = new ClickableSpan() {
                             @Override
                             public void onClick(View textView) {
-                                WordDetailPopupDialog.newInstance(wordEntry).show(getFragmentManager(),"wordDetailPopup");
+                                mCallback.getInitialUserInfoForAddUserCheck(userMention.getScreen_name());
                             }
 
                             @Override
                             public void updateDrawState(TextPaint ds) {
                                 super.updateDrawState(ds);
-                                ds.setColor(ContextCompat.getColor(getContext(),wordEntry.getColorValue()));
                                 ds.setUnderlineText(false);
-//                                ds.setAlpha(1);
-
                             }
                         };
-
-                        sb.setSpan(kanjiClick, wordEntry.getStartIndex(), wordEntry.getEndIndex(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                        text.setSpan(userMentionClickableSpan, startingLinkPos, startingLinkPos + mentionToLinkify.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
                     }
-                txtSentence.setText(sb);
-//                holder.txtTweet.setText(text, TextView.BufferType.SPANNABLE);
+
+                };
+
+
+
+                for(final WordEntry wordEntry : disectedSavedTweet) {
+
+                    ClickableSpan kanjiClick = new ClickableSpan() {
+                        @Override
+                        public void onClick(View textView) {
+                            WordDetailPopupDialog.newInstance(wordEntry).show(getFragmentManager(),"wordDetailPopup");
+                        }
+
+                        @Override
+                        public void updateDrawState(TextPaint ds) {
+                            super.updateDrawState(ds);
+                            ds.setColor(ContextCompat.getColor(getContext(),wordEntry.getColorValue()));
+                            ds.setUnderlineText(false);
+//                                ds.setAlpha(1);
+
+                        }
+                    };
+
+                    text.setSpan(kanjiClick, wordEntry.getStartIndex(), wordEntry.getEndIndex(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                }
+
                 txtSentence.setMovementMethod(LinkMovementMethod.getInstance());
+                txtSentence.setText(text, TextView.BufferType.SPANNABLE);
 
             } catch (NullPointerException e) {
-                txtSentence.setText(entireSentence);
-                Log.e(TAG,"Tweet color nullpointer failure : " + e);
-            } catch (Exception e) {
-                txtSentence.setText(entireSentence);
-                Log.e(TAG,"Tweet color generic failure: " + e);
+                Log.e(TAG,"mTweet urls are null : " + e);
             }
 
 
+
+
+
+
+
+//            try {
+//
+//                final SpannableStringBuilder sb = new SpannableStringBuilder(entireSentence);
+//
+//
+//                txtSentence.setText(sb);
+////                holder.txtTweet.setText(text, TextView.BufferType.SPANNABLE);
+//                txtSentence.setMovementMethod(LinkMovementMethod.getInstance());
+//
+//            } catch (NullPointerException e) {
+//                txtSentence.setText(entireSentence);
+//                Log.e(TAG,"Tweet color nullpointer failure : " + e);
+//            }
+//
+//
         /* The TweetKanjiColor objects contain Edict_ids for the kanji in the tweet, but they
         * do not contain the kanji, definition or word score values for those kanji. This
         * converts the TweetKanjiColor Edic_ids into a single string, passes it
@@ -575,35 +529,25 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
         PopupWindow popupWindow = ChooseFavoriteListsPopupWindow.createTweetFavoritesPopup(getContext(),metrics,rxBus,availableFavoriteLists,mTweet.getIdString(), mTweet.getUser().getUserId());
-//        PopupWindow popupWindow =  new ChooseFavoriteListsPopupWindow(getContext(),metrics,rxBus,availableFavoriteLists,mWords.get(holder.getAdapterPosition()).getId()).onCreateView();
-
         popupWindow.getContentView().measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
 
         int xadjust = popupWindow.getContentView().getMeasuredWidth() + (int) (25 * metrics.density + 0.5f);
         int yadjust = (int)((imgStar.getMeasuredHeight())/2.0f);
 
-        Log.d("TEST","pop width: " + popupWindow.getContentView().getMeasuredWidth() + " height: " + popupWindow.getContentView().getMeasuredHeight());
-        Log.d("TEST","xadjust: " + xadjust + ", yadjust: " + yadjust);
-
-
         popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
             @Override
             public void onDismiss() {
-//                imgStar.setImageResource(FavoritesColors.assignStarResource(mTweet.getItemFavorites(),mActiveTweetFavoriteStars));
-//                imgStar.setColorFilter(ContextCompat.getColor(getContext(),FavoritesColors.assignStarColor(mTweet.getItemFavorites(),mActiveTweetFavoriteStars)));
                 mCallback.notifySavedTweetFragmentsChanged();
             }
         });
-//asdf
-
 
         rxBus.toClickObserverable().subscribe(new Action1<Object>() {
             @Override
             public void call(Object event) {
 
-                                    /* Recieve a MyListEntry (containing an updated list entry for this row kanji) from
-                                    * the ChooseFavoritesAdapter in the ChooseFavorites popup window */
+                /* Recieve a WordList entry (containing an updated list entry for this row kanji) from
+                 * the ChooseFavoritesAdapter in the ChooseFavorites popup window */
                 if(event instanceof MyListEntry) {
                     MyListEntry myListEntry = (MyListEntry) event;
 
@@ -649,7 +593,6 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                         imgStar.setImageResource(R.drawable.ic_star_black);
                         imgStar.setColorFilter(ContextCompat.getColor(getContext(),FavoritesColors.assignStarColor(mTweet.getItemFavorites(),mActiveTweetFavoriteStars)));
                     }
-//                    holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars));
 
                 }
 
@@ -694,13 +637,8 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-
-//        outState.putStringArrayList("mActiveTweetFavoriteStars", mActiveTweetFavoriteStars);
         outState.putBoolean("mSavedTweet", mSavedTweet);
-//        outState.putParcelableArrayList("mDisectedTweet", mDisectedTweet);
         outState.putParcelable("mTweet", mTweet);
-
-
     }
 
 }

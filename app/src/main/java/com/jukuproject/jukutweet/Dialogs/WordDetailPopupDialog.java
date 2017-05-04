@@ -822,8 +822,6 @@ return linecounter;
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<SearchTweetsContainer>() {
 
-//                    ArrayList<Tweet> mDataSet = new ArrayList<>();
-
                     @Override public void onCompleted() {
                         if(BuildConfig.DEBUG){Log.d(TAG, "runTwitterSearch In onCompleted()");}
                         showProgressBar(false);
@@ -861,11 +859,11 @@ return linecounter;
                             Log.e(TAG,"Adding favorite information to tweets exception: " + e.toString());
                         }
 
-
                        //TODO add shit to adapter and run it... and save it if necessary...
                         mActiveTweetFavoriteStars = SharedPrefManager.getInstance(getContext()).getActiveTweetFavoriteStars();
                         mAdapter = new UserTimeLineAdapter(getContext(), mRxBus, mDataSet, mActiveTweetFavoriteStars,metrics,mWordEntry.getKanji(),true);
                         mRecyclerView.setAdapter(mAdapter);
+                        showRecyclerView(true);
 //                        mAdapter.notifyDataSetChanged();
 //                        mAdapter.showStar(true);
 
@@ -917,7 +915,15 @@ return linecounter;
         super.onDestroy();
     }
 
-//    @Override
+    @Override
+    public void onPause() {
+        if(searchQuerySubscription!=null) {
+            searchQuerySubscription.unsubscribe();
+        }
+        super.onPause();
+    }
+
+    //    @Override
 //    public void onStart()
 //    {
 //        super.onStart();

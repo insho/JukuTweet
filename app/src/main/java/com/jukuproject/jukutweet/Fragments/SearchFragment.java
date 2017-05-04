@@ -370,6 +370,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
             rxBus.toLongClickObserverable().subscribe(new Action1<Object>() {
                 @Override
                 public void call(Object event) {
+
                     if (event instanceof WordEntry) {
                         WordEntry wordEntry = (WordEntry) event;
                         WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(wordEntry);
@@ -449,7 +450,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
 
                         //Try to insert Kanji if they do not already exist
                         if(helperTweetOps.tweetParsedKanjiExistsInDB(tweet) == 0) {
-                            Log.d(TAG,"SAVING TWEET KANJI");
+//                            Log.d(TAG,"SAVING TWEET KANJI");
 //                                        final WordLoader wordLoader = helper.getWordLists(db);
                             mCallback.parseAndSaveTweet(tweet);
                         } else {

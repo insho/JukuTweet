@@ -26,6 +26,7 @@ public class Tweet  implements Parcelable {
     private String text;
     private UserInfo user;
     private ItemFavorites itemFavorites;
+//    private List<TweetUrl> urls;
     private TweetEntities entities;
     private ArrayList<WordEntry> wordEntries;
     private double quizWeight;
@@ -44,6 +45,7 @@ public class Tweet  implements Parcelable {
         this.text= another.text;
         this.user = another.user;
         this.wordEntries = another.wordEntries;
+//        this.urls = another.urls;
     }
 
     public Tweet(String text) {
@@ -90,6 +92,16 @@ public class Tweet  implements Parcelable {
     public TweetEntities getEntities() {
         return entities;
     }
+
+//    public List<TweetUrl> getUrls() {
+//        return urls;
+//    }
+//
+//    public void setUrls(List<TweetUrl> urls) {
+//        this.urls = urls;
+//    }
+
+
 
     /* Each time a saved user's timeline is clicked, pull the user info
     * (if it exists) within the api response, and check it against the userInfo from the db and
@@ -173,7 +185,7 @@ public class Tweet  implements Parcelable {
             }
 
 //            format = new SimpleDateFormat("MMM dd,yyyy hh:mm a");
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
 //            String date = ;
 
             return formatter.format(newDate);
@@ -390,6 +402,7 @@ public class Tweet  implements Parcelable {
         this.text = in.readString();
         this.quizWeight = in.readDouble();
         this.itemFavorites = in.readParcelable(ItemFavorites.class.getClassLoader());
+        this.entities = in.readParcelable(TweetEntities.class.getClassLoader());
         this.wordEntries = in.readArrayList(WordEntry.class.getClassLoader());
 
     }
@@ -422,6 +435,7 @@ public class Tweet  implements Parcelable {
         dest.writeString(this.text);
         dest.writeDouble(this.quizWeight);
         dest.writeParcelable(this.itemFavorites,flags);
+        dest.writeParcelable(this.entities,flags);
         dest.writeList(this.wordEntries);
 
     }

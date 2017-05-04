@@ -24,6 +24,7 @@ import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface;
 import com.jukuproject.jukutweet.Models.ItemFavorites;
 import com.jukuproject.jukutweet.Models.Tweet;
+import com.jukuproject.jukutweet.Models.TweetUserMentions;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
@@ -114,10 +115,16 @@ public class UserTimeLineFragment extends Fragment {
             mUserInfo = getArguments().getParcelable("userInfo");
             mDataSet = null;
             mDataSetMaxId = null;
+
         } else {
             mUserInfo = savedInstanceState.getParcelable("mUserInfo");
             mDataSet = savedInstanceState.getParcelableArrayList("mDataSet");
-            mDataSetMaxId = savedInstanceState.getLong("mDataSetMaxId");
+            if(!savedInstanceState.getBoolean("mDataSetMaxIdisNull",true)) {
+                mDataSetMaxId = savedInstanceState.getLong("mDataSetMaxId");
+            } else  {
+                mDataSetMaxId = null;
+            }
+
 
         }
         tweetIdStringsInFavorites = InternalDB.getTweetInterfaceInstance(getContext()).getStarFavoriteDataForAUsersTweets(mUserInfo.getUserId());
@@ -240,7 +247,7 @@ public class UserTimeLineFragment extends Fragment {
                         .subscribe(new Action1<Long>() {
                             @Override
                             public void call(Long aLong) {
-                                if(mDataSet ==null || mDataSet.size()==0) {
+                                if(mDataSet ==null || mDataSet.size()==0 && isVisible()) {
                                     showRecyclerView(false);
                                     mNoLists.setText("Still working...");
                                     mNoLists.setTextColor(ContextCompat.getColor(getContext(),android.R.color.black));
@@ -312,7 +319,9 @@ public class UserTimeLineFragment extends Fragment {
 //                            if(mDataSet.size() == 0) {
 
                                 for(Tweet tweet : timeline) {
-                                    Log.d(TAG,"timeline thing: " + tweet.getIdString());
+                                    Log.d(TAG,"timeline urls: " + tweet.getEntities().getUrls());
+                                    Log.d(TAG,"timeline mentions: " + tweet.getEntities().getUser_mentions());
+
                                     //Attach colorfavorites to tweet, if they exists in db
                                     if(tweet.getIdString()!=null && tweetIdStringsInFavorites.keySet().contains(tweet.getIdString())) {
                                         tweet.setItemFavorites(tweetIdStringsInFavorites.get(tweet.getIdString()));
@@ -392,7 +401,16 @@ public class UserTimeLineFragment extends Fragment {
         super.onDestroy();
     }
 
-
+    @Override
+    public void onPause() {
+        if(timeLineSubscription!=null) {
+            timeLineSubscription.unsubscribe();
+        }
+        if(timerSubscription!=null) {
+            timerSubscription.unsubscribe();
+        }
+        super.onPause();
+    }
 
     public void setUpAdapter() {
 
@@ -412,9 +430,14 @@ public class UserTimeLineFragment extends Fragment {
 
                             Tweet tweet = (Tweet) event;
                             TweetBreakDownFragment fragment = TweetBreakDownFragment.newInstanceTimeLine(tweet);
-                            ((BaseContainerFragment)getParentFragment()).addFragment(fragment, true,"tweetbreakdown");
+                            ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"tweetbreakdown");
                             mCallback.showFab(false,"");
 
+
+                        } else if(isUniqueClick(1000) && event instanceof TweetUserMentions) {
+
+                            TweetUserMentions userMentions = (TweetUserMentions) event;
+                            mCallback.getInitialUserInfoForAddUserCheck(userMentions.getScreen_name());
 
                         }
 
@@ -445,9 +468,6 @@ public class UserTimeLineFragment extends Fragment {
                     }
 
                 }
-
-
-
 
             }
 
@@ -486,8 +506,14 @@ public class UserTimeLineFragment extends Fragment {
 //        outState.putStringArrayList("mActiveTweetFavoriteStars", mActiveTweetFavoriteStars);
         outState.putParcelableArrayList("mDataSet", mDataSet);
         outState.putParcelable("mUserInfo", mUserInfo);
-        outState.putLong("mDataSetMaxId",mDataSetMaxId);
+
+        if(mDataSetMaxId!=null) {
+            outState.putLong("mDataSetMaxId",mDataSetMaxId);
+            outState.putBoolean("mDataSetMaxIdisNull",false);
+        }
+
 
     }
+
 }
 

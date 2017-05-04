@@ -38,6 +38,7 @@ import com.jukuproject.jukutweet.TweetParser;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Random;
 
 import static com.jukuproject.jukutweet.Fragments.FlashCardsFragment.setTextHeightLoop;
 
@@ -277,7 +278,7 @@ public class MultipleChoiceFragment extends Fragment {
 
 
                     /* Get a set of word entries to fill out the rest of the options in the multiple choice grid */
-//        long startTime = System.currentTimeMillis();
+
             questionSet.addAll(getIncorrectAnswerSet(getContext()
                     , mMyListType
 //                    , mMyListEntry
@@ -699,19 +700,22 @@ public class MultipleChoiceFragment extends Fragment {
                 }
             }
         } else if (myListType.equals("Tweet")) {
-            Log.d("TEST-multchoice","pulling tweet incorrect answers from DB");
+            if(BuildConfig.DEBUG){Log.d("TEST-multchoice","pulling tweet incorrect answers from DB");}
+
+            int randomMaxRelatedEntries = new Random().nextInt(6 - 1) + 1;
+
             if(mSingleUser) {
-                incorrectAnswerSet = InternalDB.getTweetInterfaceInstance(mContext).getWordsFromAUsersSavedTweets(mUserInfo, colorThresholds, colorString, correctWordEntry.getId(), 5);
+                incorrectAnswerSet = InternalDB.getTweetInterfaceInstance(mContext).getWordsFromAUsersSavedTweets(mUserInfo, colorThresholds, colorString, correctWordEntry.getId(), randomMaxRelatedEntries);
             } else {
-                incorrectAnswerSet = InternalDB.getTweetInterfaceInstance(mContext).getWordsFromATweetList(mMyListEntry, colorThresholds, colorString, correctWordEntry.getId(), 5);
+                incorrectAnswerSet = InternalDB.getTweetInterfaceInstance(mContext).getWordsFromATweetList(mMyListEntry, colorThresholds, colorString, correctWordEntry.getId(), randomMaxRelatedEntries);
             }
         } else {
 
-            Log.d("TEST-multchoice","pulling regular word incorrect answers from DB");
+            if(BuildConfig.DEBUG){Log.d("TEST-multchoice","pulling regular word incorrect answers from DB");}
                 incorrectAnswerSet = InternalDB.getWordInterfaceInstance(mContext).getWordsFromAWordList(mMyListEntry, colorThresholds, colorString, correctWordEntry.getId(), 5);
         }
 
-        Log.d("Test-multchoice","Initial pull wrong answer size: "+ incorrectAnswerSet.size());
+        if(BuildConfig.DEBUG){Log.d("Test-multchoice","Initial pull wrong answer size: "+ incorrectAnswerSet.size());}
 
 
         /* Fill in remaining entries if necessary */

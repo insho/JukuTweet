@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 /**
- * Created by JClassic on 3/31/2017.
+ * Displays a deck of flashcards that user can swipe through, corresponding to a list of WordEntry ({@link WordEntry}) objects
  */
 
 public class FlashCardsFragment extends Fragment implements WordEntryFavoritesChangedListener {
@@ -83,7 +83,6 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
         vp=(ViewPager) view.findViewById(R.id.viewPager);
         fab_shuffle = (FloatingActionButton) view.findViewById(R.id.fab);
         page = LayoutInflater.from(getActivity()).inflate(R.layout.flashcard_item, null);
-//        page.setTag(mDataset.get(0).getId());
         return view;
     }
 
@@ -108,11 +107,9 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
 
         totalCardCount = mDataset.size();
 
-
-
         vp.setAdapter(new MyPagesAdapter_Array());
 
-
+        //When shuffle button is clicked, shuffles dataset, animates cards to simulate a "shuffle", and sets card count to 0
         fab_shuffle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -142,8 +139,6 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
                     animator_rightin.setStartDelay(100);
                     animator_rightin.start();
 
-
-
                     String stringcount = cardNumber + "/" + totalCardCount;
                     ((TextView) page.findViewById(R.id.scorecount)).setText(stringcount);
                 }
@@ -154,6 +149,7 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
         final GestureDetector.SimpleOnGestureListener listener = new GestureDetector.SimpleOnGestureListener() {
 
 
+            //Shows the reverse side of the card
             @Override
             public boolean onDoubleTap(MotionEvent e) {
 
@@ -186,6 +182,8 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
 //                WordDetailPopupDialog.newInstance(mDataset.get(currentPosition)).show(getFragmentManager(),"wordDetailPopup");
             };
 
+
+            //If the Kanji entry is showing on the card, a single tap shows the Kana below the kanji
             @Override
             public boolean onSingleTapConfirmed(MotionEvent e) {
                 //toggle the boolean to reflect current flipped state

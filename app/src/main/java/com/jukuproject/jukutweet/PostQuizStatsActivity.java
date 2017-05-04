@@ -27,7 +27,6 @@ import com.jukuproject.jukutweet.Dialogs.QuizMenuDialog;
 import com.jukuproject.jukutweet.Fragments.MultipleChoiceFragment;
 import com.jukuproject.jukutweet.Fragments.StatsFragmentFillintheBlanks;
 import com.jukuproject.jukutweet.Fragments.StatsFragmentMultipleChoice;
-import com.jukuproject.jukutweet.Interfaces.PostQuizMenuDialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.QuizMenuDialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.StatsFragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
@@ -46,11 +45,14 @@ import static com.jukuproject.jukutweet.Fragments.WordListFragment.getExpandable
 import static com.jukuproject.jukutweet.MainActivity.assignTweetWeightsAndGetTotalWeight;
 import static com.jukuproject.jukutweet.MainActivity.assignWordWeightsAndGetTotalWeight;
 
+//import com.jukuproject.jukutweet.Interfaces.PostQuizMenuDialogInteractionListener;
+
 /**
  * Quiz/PostQuiz Stats activity fragment manager
  */
 
-public class PostQuizStatsActivity extends AppCompatActivity implements StatsFragmentInteractionListener, PostQuizMenuDialogInteractionListener {
+public class PostQuizStatsActivity extends AppCompatActivity implements StatsFragmentInteractionListener
+        , QuizMenuDialogInteractionListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide

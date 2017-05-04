@@ -260,9 +260,9 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
         try {
             db.delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES,
                     InternalDB.Columns.TFAVORITES_COL0 + " = ? and "  + InternalDB.Columns.TFAVORITES_COL1 + " = ? and " + InternalDB.Columns.COL_ID + " = ? ", new String[]{listName,String.valueOf(listSys),tweetId});
-            Log.i(TAG, "ABOUT TO DELETE SINGLE TWEETS");
+//            Log.i(TAG, "ABOUT TO DELETE SINGLE TWEETS");
             deleteTweetIfNecessary(db,tweetId);
-            Log.i(TAG, "DELETE SUCCESSFUL");
+//            Log.i(TAG, "DELETE SUCCESSFUL");
             return true;
         } catch (SQLiteException e) {
             Log.e(TAG, "removeTweetFromTweetList sqlite exception: " + e);
@@ -356,7 +356,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      */
     public void deleteTweetIfNecessary(SQLiteDatabase db, String concatenatedTweetIds) {
         db.delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES," _id in ( " +
-                "SELECT Tweet_id " +
+                "SELECT x.Tweet_id " +
                 "FROM " +
                 "(" +
                 "Select Tweet_id "    +
@@ -374,7 +374,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                 " ) ",null);
 
         db.delete(InternalDB.Tables.TABLE_SAVED_TWEET_KANJI," Tweet_id in ( " +
-                "SELECT Tweet_id " +
+                "SELECT x.Tweet_id " +
                 "FROM " +
                 "(" +
                 "Select Tweet_id "    +
@@ -924,7 +924,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                 }
 
                 if(tweet.getDatabaseInsertDate() != null) {
-                    Log.e(TAG,"INSERTING DB INSERT DATEremoveTweetsFromAllTweetLists:? " + tweet.getDatabaseInsertDate());
                     values.put(InternalDB.Columns.TSAVEDTWEET_COL3, tweet.getDatabaseInsertDate().trim());
                 } else {
                     Log.e(TAG,"DB INSERT DATE IS NUL:? " + tweet.getDatabaseInsertDate());
@@ -996,6 +995,11 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
         SQLiteDatabase db = sqlOpener.getReadableDatabase();
         int resultCode = -1;
         try {
+
+            //Remove saved kanji for the tweet, if some already exists
+            db.delete(InternalDB.Tables.TABLE_SAVED_TWEET_KANJI ,InternalDB.Columns.TSAVEDTWEET_COL2 + " = ?" ,new String[]{tweet_id});
+
+            //Add word entries for the tweet to the saved kanji table
             if(wordEntries.size()>0) {
                 for(int i=0;i<wordEntries.size();i++) {
                     Log.d(TAG,"SAVING TWEET: " + wordEntries.get(i).getKanji() + ", core: "
@@ -1126,7 +1130,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                                                     "SELECT DISTINCT UserId " +
                                                         ", _id as Tweet_id " +
                                                             "FROM "+ InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
-                                                            "WHERE [Name] = ? and [Sys] = " + myListEntry.getListsSys() +  " " +
+                                                            "WHERE Tweet_id is not Null and [Name] = ? and [Sys] = " + myListEntry.getListsSys() +  " " +
                             ") as TweetLists " +
                             " LEFT JOIN " +
                             " ( " +
@@ -1199,7 +1203,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             " FROM " + InternalDB.Tables.TABLE_USERS +" " +
                             ") as [UserName] " +
                             "On TweetLists.UserId = UserName.UserId " +
-
+                            " WHERE TweetLists.[Tweet_id] is not NULL and [ALLTweets].[Text] is not NULL and Length([ALLTweets].[Text])>0 " +
                             "Order by date(ALLTweets.Date) Desc,TweetLists.[Tweet_id] asc,TweetKanji.StartIndex asc"
                     , new String[]{myListEntry.getListName()});
 
@@ -1214,12 +1218,12 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                 while (!c.isAfterLast())
                 {
                     if(BuildConfig.DEBUG) {
-                        Log.i(TAG,"tweetId: " + c.getString(3) + ", created: " + c.getString(9)
+                        Log.i(TAG,"tweetId: " + c.getString(3) + ", created: " + c.getString(14)
                                 + ", userId: "  + c.getString(0) +", name: " + c.getString(1) +", KANJI: " + c.getString(6));
                     }
                     if(c.isFirst()) {
                         tweet.setIdString(c.getString(3));
-                        tweet.setCreatedAt(c.getString(9));
+                        tweet.setCreatedAt(c.getString(14));
                         tweet.getUser().setUserId(c.getString(0));
                         tweet.setText(c.getString(4));
                         tweet.getUser().setScreen_name(c.getString(1));
@@ -1235,30 +1239,27 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                         tweet = new Tweet();
 
                         tweet.setIdString(c.getString(3));
-                        tweet.setCreatedAt(c.getString(9));
+                        tweet.setCreatedAt(c.getString(14));
                         tweet.getUser().setUserId(c.getString(0));
                         tweet.setText(c.getString(4));
                         tweet.getUser().setScreen_name(c.getString(1));
                         tweet.getUser().setName(c.getString(2));
                     }
 
-                    WordEntry wordEntry = new WordEntry(c.getInt(5)
-                            ,c.getString(6)
-                            ,c.getString(7)
-                            ,c.getString(8)
-                            ,c.getInt(9)
-                            ,c.getInt(10)
-                            ,c.getString(11)
-                            ,c.getInt(12)
-                            ,c.getInt(13));
+                    if(c.getString(5) != null && c.getString(6) != null) {
+                        WordEntry wordEntry = new WordEntry(c.getInt(5)
+                                ,c.getString(6)
+                                ,c.getString(7)
+                                ,c.getString(8)
+                                ,c.getInt(9)
+                                ,c.getInt(10)
+                                ,c.getString(11)
+                                ,c.getInt(12)
+                                ,c.getInt(13));
 
-                    /* Decide whether or not to make this word entry a "spinner" entry  in the
-                    * fillintheblanks quiz, based two criteria:
-                    *   1. words chosen at random
-                    *   2. there is a limit for the number of words that can be spinners in the tweet,
-                    *       from 1 - 3, with a 50% chance of 1, 35% chance of 2 and a 15 % chance of 3*/
+                        tweet.addWordEntry(wordEntry);
 
-                    tweet.addWordEntry(wordEntry);
+                    }
 
 
 
@@ -1280,9 +1281,57 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
         } finally {
             db.close();
         }
+//        testcase(myListEntry);
         return savedTweets;
     }
+//
 
+//    private void testcase(MyListEntry myListEntry){
+//
+//        SQLiteDatabase db = sqlOpener.getReadableDatabase();
+////            Cursor c = db.rawQuery(
+////        "SELECT x.*,a.Edict_id,a.StartIndex " +
+////        "FROM " +
+////                "( " +
+////                    "SELECT DISTINCT UserId " +
+////                    ", _id as Tweet_id " +
+////                    "FROM "+ InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+////                    "WHERE [Name] = ? and [Sys] = " + myListEntry.getListsSys() +  " " +
+////                ") as x " +
+////                "LEFT JOIN " +
+////                "( " +
+////                "LEFT JOIN " +
+////                "( " +
+////                    " SELECT Tweet_id" +
+////                    ",Edict_id " +
+////                    ",[StartIndex]" +
+////                    ",[EndIndex]" +
+////                    "From " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + " " +
+////                    " WHERE [Edict_id] is not NULL and StartIndex is not NULL and EndIndex is not NULL and EndIndex > StartIndex " +
+////                ") as a " +
+////                "ON x.Tweet_id = a.Tweet_id ",new String[]{myListEntry.getListName()});
+//        Cursor c = db.rawQuery(
+//                "SELECT x.*,a.Edict_id,a.StartIndex " +
+//                        "FROM " +
+//                        "( " +
+//                        "SELECT DISTINCT UserId " +
+//                        ", _id as Tweet_id " +
+//                        "FROM "+ InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+//                        ,null);
+//            if(c.getCount()>0) {
+//                c.moveToFirst();
+//
+//                while (!c.isAfterLast()) {
+//                    Log.d(TAG,"userId: " + c.getString(0) + ", tweet_id: "
+//                            + c.getString(1)  + ", edictid: " + c.getString(2));
+//                    c.moveToNext();
+//                }
+//            }
+//        c.close();
+//
+//        db.close();
+//    };
+//
 
     /**
      * Retrives all the saved tweets in a SINGLE USER'S Saved Tweets. Used in {@link com.jukuproject.jukutweet.Fragments.TweetListSingleUserFragment}
@@ -1414,46 +1463,55 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 
                     if(c.isFirst()) {
                         tweet.setIdString(c.getString(3));
-                        tweet.setCreatedAt(c.getString(9));
+                        tweet.setCreatedAt(c.getString(14));
                         tweet.getUser().setUserId(c.getString(0));
                         tweet.setText(c.getString(4));
                         tweet.getUser().setScreen_name(c.getString(1));
                         tweet.getUser().setName(c.getString(2));
 
+                    } else
+                        //FLush old tweet
+                        if(!currentTweetId.equals(c.getString(3))){
+                            tweet.assignTweetColorToTweet(colorThresholds);
+                            savedTweets.add(new Tweet(tweet));
+                            currentTweetId = c.getString(3);
+                            tweet = new Tweet();
+
+                            tweet.setIdString(c.getString(3));
+                            tweet.setCreatedAt(c.getString(14));
+                            tweet.getUser().setUserId(c.getString(0));
+                            tweet.setText(c.getString(4));
+                            tweet.getUser().setScreen_name(c.getString(1));
+                            tweet.getUser().setName(c.getString(2));
+                        }
+
+
+
+                    if(c.getString(5) != null && c.getString(6) != null) {
+                        WordEntry wordEntry = new WordEntry(c.getInt(5)
+                                ,c.getString(6)
+                                ,c.getString(7)
+                                ,c.getString(8)
+                                ,c.getInt(9)
+                                ,c.getInt(10)
+                                ,c.getString(11)
+                                ,c.getInt(12)
+                                ,c.getInt(13));
+
+                        tweet.addWordEntry(wordEntry);
                     }
+//                    WordEntry wordEntry = new WordEntry(c.getInt(5)
+//                            ,c.getString(6)
+//                            ,c.getString(7)
+//                            ,c.getString(8)
+//                            ,c.getInt(9)
+//                            ,c.getInt(10)
+//                            ,c.getString(11)
+//                            ,c.getInt(12)
+//                            ,c.getInt(13));
 
-                    WordEntry wordEntry = new WordEntry(c.getInt(5)
-                            ,c.getString(6)
-                            ,c.getString(7)
-                            ,c.getString(8)
-                            ,c.getInt(9)
-                            ,c.getInt(10)
-                            ,c.getString(11)
-                            ,c.getInt(12)
-                            ,c.getInt(13));
 
-                    /* Decide whether or not to make this word entry a "spinner" entry  in the
-                    * fillintheblanks quiz, based two criteria:
-                    *   1. words chosen at random
-                    *   2. there is a limit for the number of words that can be spinners in the tweet,
-                    *       from 1 - 3, with a 50% chance of 1, 35% chance of 2 and a 15 % chance of 3*/
 
-                    tweet.addWordEntry(wordEntry);
-
-                    //FLush old tweet
-                    if(!currentTweetId.equals(c.getString(3))){
-                        tweet.assignTweetColorToTweet(colorThresholds);
-                        savedTweets.add(new Tweet(tweet));
-                        currentTweetId = c.getString(3);
-                        tweet = new Tweet();
-
-                        tweet.setIdString(c.getString(3));
-                        tweet.setCreatedAt(c.getString(9));
-                        tweet.getUser().setUserId(c.getString(0));
-                        tweet.setText(c.getString(4));
-                        tweet.getUser().setScreen_name(c.getString(1));
-                        tweet.getUser().setName(c.getString(2));
-                    }
 
                     if(c.isLast()) {
                         tweet.assignTweetColorToTweet(colorThresholds);
@@ -1603,7 +1661,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 
                 if(c.isFirst()) {
                     tweet.setIdString(c.getString(3));
-                    tweet.setCreatedAt(c.getString(9));
+                    tweet.setCreatedAt(c.getString(14));
                     tweet.getUser().setUserId(c.getString(0));
                     tweet.setText(c.getString(4));
                     tweet.getUser().setScreen_name(c.getString(1));
@@ -1611,19 +1669,33 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 
                 }
 
-                WordEntry wordEntry = new WordEntry(c.getInt(5)
-                        ,c.getString(6)
-                        ,c.getString(7)
-                        ,c.getString(8)
-                        ,c.getInt(9)
-                        ,c.getInt(10)
-                        ,c.getString(11)
-                        ,c.getInt(12)
-                        ,c.getInt(13));
+//                WordEntry wordEntry = new WordEntry(c.getInt(5)
+//                        ,c.getString(6)
+//                        ,c.getString(7)
+//                        ,c.getString(8)
+//                        ,c.getInt(9)
+//                        ,c.getInt(10)
+//                        ,c.getString(11)
+//                        ,c.getInt(12)
+//                        ,c.getInt(13));
 
-                Log.e(TAG,"TWEETOPS, start: " + c.getString(6) + ": " + c.getString(12) + " = " + c.getString(13));
+                if(c.getString(5) != null && c.getString(6) != null) {
+                    WordEntry wordEntry = new WordEntry(c.getInt(5)
+                            ,c.getString(6)
+                            ,c.getString(7)
+                            ,c.getString(8)
+                            ,c.getInt(9)
+                            ,c.getInt(10)
+                            ,c.getString(11)
+                            ,c.getInt(12)
+                            ,c.getInt(13));
 
-                tweet.addWordEntry(wordEntry);
+                    tweet.addWordEntry(wordEntry);
+                }
+//
+//                Log.e(TAG,"TWEETOPS, start: " + c.getString(6) + ": " + c.getString(12) + " = " + c.getString(13));
+//
+//                tweet.addWordEntry(wordEntry);
 
                 //FLush old tweet
                 if(!currentTweetId.equals(c.getString(3))){
@@ -1633,7 +1705,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                     tweet = new Tweet();
 
                     tweet.setIdString(c.getString(3));
-                    tweet.setCreatedAt(c.getString(9));
+                    tweet.setCreatedAt(c.getString(14));
                     tweet.getUser().setUserId(c.getString(0));
                     tweet.setText(c.getString(4));
                     tweet.getUser().setScreen_name(c.getString(1));

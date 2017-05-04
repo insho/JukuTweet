@@ -279,7 +279,6 @@ public class TweetListBrowseFragment extends Fragment {
         }
     }
 
-    //TODO add error message to this
     public void saveAndUpdateTweets(String tweetIds,ArrayList<MyListEntry> listsToCopyTo, boolean move,MyListEntry currentList) {
         TweetListOperationsInterface helperTweetOps = InternalDB.getTweetInterfaceInstance(getContext());
         try {
@@ -346,10 +345,7 @@ public class TweetListBrowseFragment extends Fragment {
         }
     }
 
-
-
-    //TODO CONSOLIDATE WITH TWINs (? IN COPYMYLISTITEMSDIALOG AND COPY TWEETS DIALOG
-    public String joinSelectedStrings(ArrayList<String> list ) {
+    public static String joinSelectedStrings(ArrayList<String> list ) {
         StringBuilder sb = new StringBuilder();
 
         for (int i = 0; i < list.size(); ++i) {

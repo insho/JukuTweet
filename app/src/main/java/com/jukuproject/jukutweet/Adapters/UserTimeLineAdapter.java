@@ -9,6 +9,7 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextPaint;
 import android.text.style.BackgroundColorSpan;
+import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -30,6 +31,7 @@ import com.jukuproject.jukutweet.LongClickableSpan;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.TweetUrl;
+import com.jukuproject.jukutweet.Models.TweetUserMentions;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
 
@@ -116,7 +118,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
 
         /* Insert tweet metadata if it exists*/
-        holder.txtCreated.setText(getTweet(position).getDisplayDate());
+        holder.txtCreated.setText(getTweet(position).getDatabaseInsertDate());
         holder.txtReTweeted.setText(getTweet(position).getRetweetCountString());
 
 
@@ -166,17 +168,6 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                             Log.e(TAG, "OnFavoriteStarToggle did not work...");
                         }
                     }
-//                //Toggle favorite list association for this tweet
-//                if(FavoritesColors.onFavoriteStarToggleTweet(mContext,mActiveTweetFavoriteStars,mDataset.get(holder.getAdapterPosition()).getUser().getUserId(),mDataset.get(holder.getAdapterPosition()))) {
-//                    holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars));
-//                    holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, FavoritesColors.assignStarColor(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars)));
-//
-//                } else {
-//                    //TODO insert an error?
-//                    Log.e(TAG,"OnFavoriteStarToggle did not work...");
-//                }
-
-
 
                     //Check for tweet in db
                     try {
@@ -227,25 +218,23 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
         try {
             SpannableString text = new SpannableString(getTweet(position).getText());
-
-
             LongClickableSpan longClick = new LongClickableSpan() {
                 @Override
                 public void onLongClick(View view) {
                     try {
-                        Log.d(TAG,"LOOOONG CLICK!!!!");
                         _rxbus.sendLongClick(mDataset.get(holder.getAdapterPosition()).getUser());
                     } catch (Exception e) {
                         Log.e(TAG,"usertimeline adapter long click error. no user attached to tweet?");
                     }
                 }
+
                 @Override
                 public void updateDrawState(TextPaint ds) {
                     super.updateDrawState(ds);
                     ds.setColor(ContextCompat.getColor(mContext, android.R.color.black));
                     ds.setUnderlineText(false);
-
                 }
+
                 @Override
                 public void onClick(View widget) {
                     _rxbus.send(mDataset.get(holder.getAdapterPosition()));
@@ -255,7 +244,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
             text.setSpan(longClick, 0, text.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
 
-            if(getTweet(position).getEntities() != null && getTweet(position).getEntities().getUrls() != null) {
+            if(getTweet(position).getEntities().getUrls() != null ) {
                 List<TweetUrl> tweetUrls =  getTweet(position).getEntities().getUrls();
                 for(TweetUrl url : tweetUrls) {
                     int[] indices = url.getIndices();
@@ -274,8 +263,41 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
             }
 
-//            Log.i(TAG,"focusedword: " + mFocusedWord);
-//            Log.i(TAG,"text: " + text.toString());
+            if(getTweet(position).getEntities().getUser_mentions() != null ) {
+                List<TweetUserMentions> tweetUserMentionses =  getTweet(position).getEntities().getUser_mentions();
+                for(final TweetUserMentions userMentionses : tweetUserMentionses) {
+                    int[] indices = userMentionses.getIndices();
+
+                    String userMentionToLinkify = "";
+
+                    if(getTweet(position).getText().substring(indices[0]).contains(userMentionses.getScreen_name())) {
+                        userMentionToLinkify = userMentionses.getScreen_name();
+                    } else if(getTweet(position).getText().substring(indices[0]).contains(userMentionses.getName())) {
+                        userMentionToLinkify = userMentionses.getName();
+                    }
+
+                    int startingLinkPos = getTweet(position).getText().indexOf(userMentionToLinkify,indices[0]);
+                    ClickableSpan userMentionClickableSpan = new ClickableSpan() {
+                        @Override
+                        public void onClick(View textView) {
+                            _rxbus.send(userMentionses);
+                        }
+
+                        @Override
+                        public void updateDrawState(TextPaint ds) {
+                            super.updateDrawState(ds);
+                            ds.setColor(ContextCompat.getColor(mContext,R.color.colorAccent));
+                            ds.setAlpha(85);
+                            ds.setUnderlineText(false);
+
+                        }
+                    };
+                    text.setSpan(userMentionClickableSpan, startingLinkPos, startingLinkPos + userMentionToLinkify.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+
+                }
+
+            }
+
             if(getTweet(position).getWordEntries()!=null){
                 BackgroundColorSpan fcs = new BackgroundColorSpan(ContextCompat.getColor(mContext,R.color.colorJukuYellow));
                 for(WordEntry wordEntry : getTweet(position).getWordEntries()) {
@@ -295,25 +317,18 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                     int startIndex = text.toString().substring(0,index).length() + text.toString().substring(index,text.toString().length()).indexOf(mFocusedWord);
                     BackgroundColorSpan fcs = new BackgroundColorSpan(ContextCompat.getColor(mContext,R.color.colorJukuYellow));
                     text.setSpan(fcs, startIndex, startIndex + mFocusedWord.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-                    Log.i(TAG,"index: " + startIndex + " - setting span");
+//                    Log.i(TAG,"index: " + startIndex + " - setting span");
                     index = startIndex + mFocusedWord.length() + 1;
                 }
 
 
             }
 
-
-
-            //TODO remove if this doesn't work
-//            holder.txtTweet.setLongClickable(false);
             holder.txtTweet.setText(text, TextView.BufferType.SPANNABLE);
             holder.txtTweet.setMovementMethod(LongClickLinkMovementMethod.getInstance());
         } catch (NullPointerException e) {
             holder.txtTweet.setText(getTweet(position).getText());
             Log.e(TAG,"mTweet urls are null : " + e);
-        } catch (Exception e) {
-            holder.txtTweet.setText(getTweet(position).getText());
-            Log.e(TAG,"Error adding url info: " + e);
         }
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {

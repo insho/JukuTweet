@@ -7,16 +7,18 @@
     android:focusable="false"
     android:focusableInTouchMode="false"
     android:orientation="vertical"
+    android:id="@+id/layout"
+
     >
 
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:clickable="false"
+        android:clickable="true"
         android:descendantFocusability="blocksDescendants"
-        android:focusable="false"
-        android:focusableInTouchMode="false"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
         android:weightSum="1"
         android:orientation="horizontal"
         android:id="@+id/browseitems_layout"
@@ -42,9 +44,9 @@
             android:orientation="vertical"
             android:layout_weight=".9"
             android:id="@+id/browseitems_layout2"
-            android:clickable="false"
-            android:focusable="false"
-            android:focusableInTouchMode="false"
+            android:clickable="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
             android:background="@drawable/bg_key">
 
             <GridLayout
@@ -129,7 +131,7 @@
             android:id="@+id/browseitems_frameLayout"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:background="@android:color/transparent"
+            android:background="@android:color/white"
             android:layout_weight=".1">
 
             <ImageButton  android:id="@+id/favorite"

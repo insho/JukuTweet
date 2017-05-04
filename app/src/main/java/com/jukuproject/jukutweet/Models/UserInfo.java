@@ -17,14 +17,6 @@ public class UserInfo implements Parcelable  {
 
     private String id_str;
 
-    public String getName() {
-        if(name == null) {
-            return "";
-        } else {
-            return name;
-        }
-    }
-
     private String name;
     private String location;
     private String description;
@@ -37,6 +29,17 @@ public class UserInfo implements Parcelable  {
     private String profile_banner_url;
 
     private  String profileImageFilePath;
+
+
+
+    public String getName() {
+        if(name == null) {
+            return "";
+        } else {
+            return name;
+        }
+    }
+
 
     public String getProfileImageFilePath() {
         return profileImageFilePath;

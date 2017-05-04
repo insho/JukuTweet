@@ -11,6 +11,12 @@ import java.util.List;
 
 public class TweetEntities  implements Parcelable {
 
+
+
+    private List<TweetUrl> urls;
+    private List<TweetUserMentions> user_mentions;
+
+
     public List<TweetUrl> getUrls() {
         return urls;
     }
@@ -20,12 +26,21 @@ public class TweetEntities  implements Parcelable {
         this.urls = urls;
     }
 
-    private List<TweetUrl> urls;
 
+    public List<TweetUserMentions> getUser_mentions() {
+        return user_mentions;
+    }
+
+    public void setUser_mentions(List<TweetUserMentions> user_mentions) {
+        this.user_mentions = user_mentions;
+    }
 
     // Parcelling part
     public TweetEntities(Parcel in){
         urls = in.createTypedArrayList(TweetUrl.CREATOR);
+        user_mentions = in.createTypedArrayList(TweetUserMentions.CREATOR);
+//        this.urls = in.readArrayList(TweetUrl.class.getClassLoader());
+//        this.user_mentions = in.readArrayList(TweetUserMentions.class.getClassLoader());
     }
 
     public int describeContents(){
@@ -35,6 +50,7 @@ public class TweetEntities  implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeTypedList(urls);
+        dest.writeList(this.user_mentions);
     }
 
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {

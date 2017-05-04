@@ -168,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         mViewPager.setOffscreenPageLimit(2);
 
         /*choose a tab to focus on initially. Default to 0. tabNumber is passed
-        to quiz activity when a quiz is chosen, and passed back via intent to mainactivity onBackPressed, and
+        to quiz activity when a quiz is chosen, and passed back via intent to mainactivity on Back Pressed, and
         this tabNumber is used to focus on the last open tab.
          */
 
@@ -428,7 +428,9 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * Recieves input text from add user dialog
      * Checks if the user already exists in database
      * If not, inputs user into db and updates mainFragment recycler
-     * @param inputText
+     * Then uses twitter api to pull "UserInfo" for the user,
+     * and initiates the {@link AddUserCheckDialog} via {@link MainActivity#showAddUserCheckDialog(UserInfo)}
+     * @param inputText twitter user screen name entered into the "add user" dialog box
      */
     @Override
     public void onAddUserDialogPositiveClick(String inputText) {
@@ -1105,7 +1107,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 ((TweetListFragment) ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsallfragment")).updateMyListAdapter();
             }
             if(((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedTweetsAllFragmentIndividual") != null){
-                ((TweetListFragment) ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedTweetsAllFragmentIndividual")).updateMyListAdapter();
+                ((TweetListSingleUserFragment) ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedTweetsAllFragmentIndividual")).updateMyListAdapter();
             }
         }
     }
@@ -2144,7 +2146,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
                 final ArrayList<String> spansToExclude = new ArrayList<>();
 
-                if(tweet.getEntities() != null && tweet.getEntities().getUrls() != null) {
+                if(tweet.getEntities().getUrls() != null) {
                     for(TweetUrl url : tweet.getEntities().getUrls()) {
                         if(url != null) {
                             spansToExclude.add(url.getUrl());

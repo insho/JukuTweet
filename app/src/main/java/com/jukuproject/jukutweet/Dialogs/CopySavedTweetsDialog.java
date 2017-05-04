@@ -29,6 +29,8 @@ import java.util.ArrayList;
 
 import rx.functions.Action1;
 
+import static com.jukuproject.jukutweet.Fragments.TweetListBrowseFragment.joinSelectedStrings;
+
 //import android.app.DialogFragment;
 //import com.jukuproject.jukutweet.Interfaces.MyListCopyDialogListener;
 
@@ -196,18 +198,18 @@ public class CopySavedTweetsDialog extends DialogFragment {
         }
 
     }
-    //TODO CONSOLIDATE WITH TWINs (? IN COPYMYLISTITEMSDIALOG AND COPY TWEETS DIALOG
-    public String joinSelectedStrings(ArrayList<String> list ) {
-        StringBuilder sb = new StringBuilder();
-
-        for (int i = 0; i < list.size(); ++i) {
-            if (i>0) {
-                sb.append(", ");
-            }
-            sb.append(list.get(i));
-        }
-        return sb.toString();
-    }
+//    //TODO CONSOLIDATE WITH TWINs (? IN COPYMYLISTITEMSDIALOG AND COPY TWEETS DIALOG
+//    public String joinSelectedStrings(ArrayList<String> list ) {
+//        StringBuilder sb = new StringBuilder();
+//
+//        for (int i = 0; i < list.size(); ++i) {
+//            if (i>0) {
+//                sb.append(", ");
+//            }
+//            sb.append(list.get(i));
+//        }
+//        return sb.toString();
+//    }
 
     /**
      * Checks how many milliseconds have elapsed since the last time "mLastClickTime" was updated

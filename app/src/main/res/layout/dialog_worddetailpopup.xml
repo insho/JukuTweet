@@ -336,12 +336,13 @@
             android:indeterminate="true"
             android:visibility="gone"
             app:spb_sections_count="6"
-            app:spb_color="#000000"
+            app:spb_color="@color/colorAccent"
             app:spb_speed="2.0"
             app:spb_stroke_width="1.5dp"
             app:spb_stroke_separator_length="4dp"
             app:spb_reversed="false"
             app:spb_mirror_mode="false"
+            android:paddingTop="4dp"
             app:spb_progressiveStart_activated="true"
             app:spb_progressiveStart_speed="3.0"
             app:layout_anchor="@id/linearLayoutFollowerButtons"
@@ -350,7 +351,7 @@
 
             />
 
-    </android.support.design.widget.CoordinatorLayout>
+
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/userInfoRecycler"
@@ -358,7 +359,7 @@
         android:layout_height="wrap_content"
         android:background="@android:color/transparent"
         android:scrollbars="vertical" />
-
+    </android.support.design.widget.CoordinatorLayout>
     <TextView
         android:id="@+id/txtNoUsers"
         android:layout_width="fill_parent"

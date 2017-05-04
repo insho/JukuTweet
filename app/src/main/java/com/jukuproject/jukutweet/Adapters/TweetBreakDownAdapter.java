@@ -15,6 +15,7 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.ChooseFavoriteListsPopupWindow;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.FavoritesColors;
@@ -59,7 +60,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
             txtFurigana  = (TextView) v.findViewById(R.id.textViewBrowseAdapter_Furigana);
             lstDefinitions = (TextView) v.findViewById(R.id.textViewlstDefinitions);
             imgStar = (ImageButton) v.findViewById(R.id.favorite);
-            mainLayout = (LinearLayout) v.findViewById(R.id.browseitems_layout);
+            mainLayout = (LinearLayout) v.findViewById(R.id.browseitems_layout2);
             imgStarLayout = (FrameLayout) v.findViewById(R.id.browseitems_frameLayout);
         }
     }
@@ -98,8 +99,10 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         holder.txtKanji.setText(mWords.get(holder.getAdapterPosition()).getKanji());
         holder.txtFurigana.setText(mWords.get(holder.getAdapterPosition()).getFurigana());
 
-        Log.d(TAG,"favs kanji: " + mWords.get(holder.getAdapterPosition()).getKanji());
-        Log.d(TAG,"favs: " + (mWords.get(holder.getAdapterPosition()).getItemFavorites() == null));
+        if(BuildConfig.DEBUG) {
+            Log.d(TAG,"favs kanji: " + mWords.get(holder.getAdapterPosition()).getKanji());
+            Log.d(TAG,"favs: " + (mWords.get(holder.getAdapterPosition()).getItemFavorites() == null));
+        }
 
         Integer starColorDrawableInt = FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars);
         holder.imgStar.setImageResource(starColorDrawableInt);
@@ -114,27 +117,32 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         }
 
 
-        holder.mainLayout.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                mRxBus.sendLongClick(mWords.get(holder.getAdapterPosition()));
-                return false;
-            }
-        });
+//        holder.mainLayout.setOnLongClickListener(new View.OnLongClickListener() {
+//            @Override
+//            public boolean onLongClick(View v) {
+//                mRxBus.sendLongClick(mWords.get(holder.getAdapterPosition()));
+//                return false;
+//            }
+//        });
         holder.lstDefinitions.setText(mWords.get(holder.getAdapterPosition()).getDefinitionMultiLineString(10));
         holder.lstDefinitions.setTypeface(null, Typeface.ITALIC);
         holder.lstDefinitions.setTag(mWords.get(holder.getAdapterPosition()).getId());
         holder.lstDefinitions.setFocusable(false);
         holder.lstDefinitions.setClickable(false);
 
+//        holder.txtKanji.setFocusable(false);
+//        holder.txtKanji.setClickable(false);
+//        holder.txtFurigana.setFocusable(false);
+//        holder.txtFurigana.setClickable(false);
+
         holder.imgStarLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //TODO favorite words
-
-                Log.d(TAG,"mActiveFavoriteStars: " + mActiveFavoriteStars);
-                Log.d(TAG,"should open: " + mWords.get(holder.getAdapterPosition()).getItemFavorites().shouldOpenFavoritePopup(mActiveFavoriteStars));
-
+                if(BuildConfig.DEBUG) {
+                    Log.d(TAG, "mActiveFavoriteStars: " + mActiveFavoriteStars);
+                    Log.d(TAG, "should open: " + mWords.get(holder.getAdapterPosition()).getItemFavorites().shouldOpenFavoritePopup(mActiveFavoriteStars));
+                }
                 if(mWords.get(holder.getAdapterPosition()).getItemFavorites().shouldOpenFavoritePopup(mActiveFavoriteStars)) {
                     showFavoriteListPopupWindow(holder);
                 } else {
@@ -164,7 +172,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         holder.mainLayout.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                mRxBus.send(mWords.get(holder.getAdapterPosition()));
+                mRxBus.sendLongClick(mWords.get(holder.getAdapterPosition()));
                 return false;
             }
         });
@@ -183,10 +191,10 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
 
         int xadjust = popupWindow.getContentView().getMeasuredWidth() + (int) (25 * mMetrics.density + 0.5f);
         int yadjust = (int)((popupWindow.getContentView().getMeasuredHeight()  + holder.imgStar.getMeasuredHeight())/2.0f);
-
-        Log.d("TEST","pop width: " + popupWindow.getContentView().getMeasuredWidth() + " height: " + popupWindow.getContentView().getMeasuredHeight());
-        Log.d("TEST","xadjust: " + xadjust + ", yadjust: " + yadjust);
-
+        if(BuildConfig.DEBUG) {
+            Log.d("TEST", "pop width: " + popupWindow.getContentView().getMeasuredWidth() + " height: " + popupWindow.getContentView().getMeasuredHeight());
+            Log.d("TEST", "xadjust: " + xadjust + ", yadjust: " + yadjust);
+        }
 
         popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
             @Override
