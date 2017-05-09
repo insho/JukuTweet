@@ -2023,9 +2023,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 
                         ") as [ListsTweetsAndAllKanjis] " +
                         "GROUP BY [UserId]" +
-//                        ") as [ListandTweets]  " +
-//                        "GROUP BY [UserId]" +
-
 
                 ") as a " +
                         "LEFT JOIN " +

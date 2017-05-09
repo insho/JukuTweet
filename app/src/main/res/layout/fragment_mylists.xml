@@ -6,6 +6,7 @@
     android:background="@android:color/white">
     <ExpandableListView
         android:id="@+id/lvMyListCategory"
+        android:groupIndicator="@null"
         android:layout_height="match_parent"
         android:layout_width="match_parent"/>
 </LinearLayout>

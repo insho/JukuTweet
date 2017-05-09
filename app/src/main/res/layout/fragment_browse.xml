@@ -6,19 +6,16 @@
     tools:context="com.jukuproject.jukutweet.MainActivity"
     app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-
     <android.support.v7.widget.RecyclerView
-        android:layout_width="match_parent"
-        android:layout_below="@id/progressbar"
-        android:layout_height="wrap_content"
-        android:id="@+id/recyclerMain"
-        />
+    android:layout_width="match_parent"
+    android:layout_below="@id/progressbar"
+    android:layout_height="wrap_content"
+    android:id="@+id/recyclerMain"
+    />
 
     <!--<ExpandableListView-->
         <!--android:id="@+id/expListView"-->
         <!--android:layout_height="match_parent"-->
-        <!--android:groupIndicator="@null"-->
-        <!--android:listSelector="@android:color/transparent"-->
         <!--android:layout_width="match_parent"/>-->
 
     <TextView

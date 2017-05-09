@@ -78,7 +78,7 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_main, container, false);
+        View v = inflater.inflate(R.layout.fragment_browse, container, false);
 
         mRecyclerView = (RecyclerView) v.findViewById(R.id.recyclerMain);
 

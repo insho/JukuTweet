@@ -143,7 +143,7 @@ public class WordListExpandableAdapter extends BaseExpandableListAdapter {
     public View getGroupView(int groupPosition, boolean isExpanded,
                              View convertView, ViewGroup parent) {
 
-        int availableWidth = mMaxWidthForColorBlocks;
+//        int availableWidth = mMaxWidthForColorBlocks;
 
         if (convertView == null) {
             LayoutInflater infalInflater = (LayoutInflater) this.mContext
@@ -194,12 +194,7 @@ public class WordListExpandableAdapter extends BaseExpandableListAdapter {
 
                     imageButton.setImageResource(R.drawable.ic_star_black);
                     imageButton.setVisibility(ImageButton.VISIBLE);
-//                    if(mMenuHeader.get(groupPosition).isMyList()) {
                         lblListHeader.setText("Favorite Words");
-//                    } else {
-//                        lblListHeader.setText("Favorite Tweets");
-//                    }
-
                     final TextView lblListHeaderCount = (TextView) convertView.findViewById(R.id.lblListHeaderCount);
 
                     if(mMenuHeader.get(groupPosition).isShowLblHeaderCount()) {

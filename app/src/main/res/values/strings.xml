@@ -55,6 +55,8 @@
     <string name="menuchildstats">Stats</string>
     <string name="menuchildbrowseentries">Browse Entries</string>
 
+    <string name="menuchildviewtimeline">Timeline</string>
+    <string name="menuchildviewsavedtweets">Saved Tweets</string>
 
 
     <string name="clickanoption">Click on one of the options to select it</string>
@@ -104,6 +106,12 @@
         <item>Fill in the Blanks</item>
         <item>Stats</item>
     </string-array>
+
+    <string-array name="menu_userslist">
+        <item>Timeline</item>
+        <item>Saved Tweets</item>
+    </string-array>
+
 
     <string-array name="favoriteslistcount_default">
         <item>Blue</item>

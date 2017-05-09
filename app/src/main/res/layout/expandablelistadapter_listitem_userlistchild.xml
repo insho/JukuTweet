@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="5dp"
+    android:paddingBottom="5dp"
+    android:id="@+id/layoutcontainer"
+    android:orientation="horizontal" >
+
+    <TextView
+        android:id="@+id/lblListItem"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:textSize="20sp"
+        android:gravity="center_vertical"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:paddingLeft="2dp"
+        android:focusable="false"
+        android:clickable="false"
+        android:paddingRight="2dp"
+        android:layout_marginStart="73dp"
+        android:layout_marginLeft="73dp"
+        android:layout_marginEnd="6dp"
+        android:layout_marginRight="6dp"
+        />
+
+    <ImageButton  android:id="@+id/tweet_icon"
+        android:src="@drawable/ic_twitter_black_18dp"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:focusable="false"
+        android:clickable="false"
+        android:paddingLeft="2dp"
+        android:contentDescription="tweet"
+        android:background="@android:color/transparent" />
+
+    <TextView
+        android:id="@+id/tweet_title"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:textSize="16sp"
+        android:gravity="center_vertical"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:paddingLeft="1dp"
+        android:focusable="false"
+        android:clickable="false"
+        android:paddingRight="1dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginRight="4dp"
+        />
+
+
+
+</LinearLayout>

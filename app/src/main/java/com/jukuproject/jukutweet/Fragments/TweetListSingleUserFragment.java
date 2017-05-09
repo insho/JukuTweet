@@ -247,8 +247,7 @@ public class TweetListSingleUserFragment extends Fragment {
         ColorThresholds colorThresholds = sharedPrefManager.getColorThresholds();
         ArrayList<String> childOptions = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.menu_mylist)));
 
-        Cursor c;
-            c = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListColorBlocksCursorForSingleUser(colorThresholds,userInfo.getUserId());
+        Cursor c  = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListColorBlocksCursorForSingleUser(colorThresholds,userInfo.getUserId());
         if(c.getCount()>0) {
             c.moveToFirst();
             while (!c.isAfterLast()) {
@@ -368,7 +367,7 @@ public class TweetListSingleUserFragment extends Fragment {
     };
 
 
-    public int getExpandableAdapterColorBlockBasicWidths(Activity activity, String text){
+    public static int getExpandableAdapterColorBlockBasicWidths(Activity activity, String text){
         int result = 0;
         if(!text.equals("0")) {
             View view = activity.getLayoutInflater().inflate(R.layout.expandablelistadapter_listitem, null);

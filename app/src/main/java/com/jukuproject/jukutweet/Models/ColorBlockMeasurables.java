@@ -25,10 +25,19 @@ public class ColorBlockMeasurables implements Parcelable {
     private Integer emptyMinWidth;
     private ArrayList<String> selectedColorOptions;
     private Integer tweetCount;
+//    private String title;
 
 
     public ColorBlockMeasurables() {}
 
+
+//    public String getTitle() {
+//        return title;
+//    }
+//
+//    public void setTitle(String title) {
+//        this.title = title;
+//    }
 
     /**
      * Sets up the selectedColorOptions list for the {@link com.jukuproject.jukutweet.Dialogs.QuizMenuDialog} colorblock dropdown

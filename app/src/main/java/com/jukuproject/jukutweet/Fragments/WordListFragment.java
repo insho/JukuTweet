@@ -218,15 +218,30 @@ public class WordListFragment extends Fragment {
             }
         });
 
+
+
+
         expListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                mCallback.showEditMyListDialog("MyList",mMenuHeader.get(position).getHeaderTitle(),mMenuHeader.get(position).isSystemList());
+                if (ExpandableListView.getPackedPositionType(id) == ExpandableListView.PACKED_POSITION_TYPE_GROUP) {
+                    int groupPosition = ExpandableListView.getPackedPositionGroup(id);
+                    mCallback.showEditMyListDialog("MyList",mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).isSystemList());
+                }
+
                 return false;
             }
         });
 
-        expListView.setGroupIndicator(null);
+//        expListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+//            @Override
+//            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+//                mCallback.showEditMyListDialog("MyList",mMenuHeader.get(position).getHeaderTitle(),mMenuHeader.get(position).isSystemList());
+//                return false;
+//            }
+//        });
+//
+//        expListView.setGroupIndicator(null);
 
 
         //Expand the last expanded position (or expand first availalbe non-empty list)

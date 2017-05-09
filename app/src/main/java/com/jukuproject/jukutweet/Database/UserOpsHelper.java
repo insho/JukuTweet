@@ -9,10 +9,8 @@ import android.util.Log;
 
 import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Interfaces.UserOperationsInterface;
+import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.UserInfo;
-
-import java.util.ArrayList;
-import java.util.List;
 
 
 /**
@@ -185,69 +183,210 @@ public class UserOpsHelper implements UserOperationsInterface {
         }
     }
 
+//    /**
+//     * Pulls user information from db and fills a list of UserInfo objects, to
+//     * be used in the {@link com.jukuproject.jukutweet.Fragments.UserListFragment} recycler
+//     * @return list of UserInfo objects, one for each followed user saved in the db
+//     */
+//    public List<MenuHeader> getSavedUserInfo() {
+//        List<MenuHeader> userInfoList = new ArrayList<MenuHeader>();
+//
+//        String querySelectAll = "Select distinct ScreenName" +
+//                ",IFNULL(Description,'')" +
+//                ",IFNULL(FollowerCount,-1)" +
+//                ", IFNULL(FriendCount,-1)" +
+//                ", IFNULL(ProfileImgUrl,'')" +
+//                ",UserId" +
+//                ", ProfileImgFilePath" +
+//                ", UserName " +
+//                "From " + InternalDB.Tables.TABLE_USERS;
+//        SQLiteDatabase db = sqlOpener.getReadableDatabase();
+//        Cursor c = db.rawQuery(querySelectAll, null);
+//
+//
+//        try {
+//            if (c.moveToFirst()) {
+//                do {
+//
+//                    UserInfo userInfo = new UserInfo(c.getString(0));
+//                    userInfo.setDescription(c.getString(1));
+//
+//                    try {
+//                        if(c.getString(5)!=null) {
+//                            userInfo.setUserId(c.getString(5));
+//                        }
+//                        if(c.getInt(2)>=0) {
+//                            userInfo.setFollowerCount(c.getInt(2));
+//                        }
+//                        if(c.getInt(3)>=0) {
+//                            userInfo.setFriendCount(c.getInt(3));
+//                        }
+//                        userInfo.setName(c.getString(7));
+//                        userInfo.setProfile_image_url(c.getString(4));
+//                    } catch (SQLiteException e) {
+//                        Log.e(TAG,"getSavedUserInfo adding extra user info sqlite problem: " + e);
+//                    } catch (NullPointerException e) {
+//                        Log.e(TAG,"getSavedUserInfo adding extra user info NullPointerException... " + e);
+//                    }
+//
+//                    try {
+//                        userInfo.setProfileImageFilePath(c.getString(6));
+//                    }  catch (SQLiteException e) {
+//                        Log.e(TAG,"getSavedUserInfo adding setProfileImgFilePath sqlite problem: " + e);
+//                    } catch (NullPointerException e) {
+//                        Log.e(TAG,"getSavedUserInfo adding setProfileImgFilePath other NullPointerException... " + e);
+//                    }
+//
+//                    userInfoList.add(userInfo);
+//                } while (c.moveToNext());
+//            }
+//
+//            c.close();
+//        } finally {
+//            db.close();
+//        }
+//
+//        return userInfoList;
+//    }
+
+
     /**
-     * Pulls user information from db and fills a list of UserInfo objects, to
-     * be used in the UserListFragment recycler
-     * @return list of UserInfo objects, one for each followed user saved in the db
+     * Used to prepare colorblock information in {@link com.jukuproject.jukutweet.Fragments.TweetListSingleUserFragment}
+     * @param colorThresholds Collection of thresholds which together determine what color to assign to a word/tweet based on its quiz scores
+     *
+     * @return Cursor with colorblock details for each saved TweetList in the db
+     *
+     * @see com.jukuproject.jukutweet.Fragments.TweetListSingleUserFragment
      */
-    public List<UserInfo> getSavedUserInfo() {
-        List<UserInfo> userInfoList = new ArrayList<UserInfo>();
+    public Cursor getTweetListColorBlocksCursorForUserInfoMenuHeaders(ColorThresholds colorThresholds) {
 
-        String querySelectAll = "Select distinct ScreenName" +
-                ",IFNULL(Description,'')" +
-                ",IFNULL(FollowerCount,-1)" +
-                ", IFNULL(FriendCount,-1)" +
-                ", IFNULL(ProfileImgUrl,'')" +
-                ",UserId" +
-                ", ProfileImgFilePath" +
-                ", UserName " +
-                "From " + InternalDB.Tables.TABLE_USERS;
-        SQLiteDatabase db = sqlOpener.getReadableDatabase();
-        Cursor c = db.rawQuery(querySelectAll, null);
+        return  sqlOpener.getWritableDatabase().rawQuery(
+
+                "Select [UserInformation].ScreenName" +
+                        ",  [UserInformation].Description" +
+                        ",  [UserInformation].FollowerCount" +
+                        ", [UserInformation].FriendCount" +
+                        ", [UserInformation].ProfileImgUrl" +
+                        ",  [UserInformation].UserId" +
+                        ", [UserInformation].ProfileImgFilePath" +
+                        ", [UserInformation].UserName " +
+
+                        ",[Total] " +
+                        ",[Grey] " +
+                        ",[Red] " +
+                        ",[Yellow] " +
+                        ",[Green] " +
+                        ",[TweetCount] " +
 
 
-        try {
-            if (c.moveToFirst()) {
-                do {
-                    UserInfo userInfo = new UserInfo(c.getString(0));
-                    userInfo.setDescription(c.getString(1));
+                        "FROM " +
+                        "(" +
+                        "Select distinct ScreenName" +
+                        ",IFNULL(Description,'') as [Description]" +
+                        ",IFNULL(FollowerCount,-1)  as [FollowerCount]" +
+                        ", IFNULL(FriendCount,-1)  as [FriendCount]" +
+                        ", IFNULL(ProfileImgUrl,'') as [ProfileImgUrl]" +
+                        ",UserId" +
+                        ", ProfileImgFilePath" +
+                        ", UserName " +
+                        "From " + InternalDB.Tables.TABLE_USERS + " " +
+                        ") as [UserInformation] " +
+                        " LEFT JOIN " +
+                        " ( " +
 
-                    try {
-                        if(c.getString(5)!=null) {
-                            userInfo.setUserId(c.getString(5));
-                        }
-                        if(c.getInt(2)>=0) {
-                            userInfo.setFollowerCount(c.getInt(2));
-                        }
-                        if(c.getInt(3)>=0) {
-                            userInfo.setFriendCount(c.getInt(3));
-                        }
-                        userInfo.setName(c.getString(7));
-                        userInfo.setProfile_image_url(c.getString(4));
-                    } catch (SQLiteException e) {
-                        Log.e(TAG,"getSavedUserInfo adding extra user info sqlite problem: " + e);
-                    } catch (NullPointerException e) {
-                        Log.e(TAG,"getSavedUserInfo adding extra user info NullPointerException... " + e);
-                    }
+                "Select DISTINCT a.[UserId]" +
+                        ",a.[Total] " +
+                        ",a.[Grey] " +
+                        ",a.[Red] " +
+                        ",a.[Yellow] " +
+                        ",a.[Green] " +
+                        ",ifnull(b.[TweetCount],0) as [TweetCount] " +
+                        "FROM " +
+                        "(" +
 
-                    try {
-                        userInfo.setProfileImageFilePath(c.getString(6));
-                    }  catch (SQLiteException e) {
-                        Log.e(TAG,"getSavedUserInfo adding setProfileImgFilePath sqlite problem: " + e);
-                    } catch (NullPointerException e) {
-                        Log.e(TAG,"getSavedUserInfo adding setProfileImgFilePath other NullPointerException... " + e);
-                    }
+                /* Now to pull together ListName, Tweet and the totals (by color) of the kanji in those tweets */
+                        "SELECT  ListsTweetsAndAllKanjis.[UserId] " +
+                        ",SUM([Grey]) + SUM([Red]) + SUM([Yellow]) + SUM([Green]) as [Total] " +
+                        ",SUM([Grey]) as [Grey]" +
+                        ",SUM([Red]) as [Red]" +
+                        ",SUM([Yellow]) as [Yellow]" +
+                        ",SUM([Green]) as [Green] " +
+                        "FROM (" +
 
-                    userInfoList.add(userInfo);
-                } while (c.moveToNext());
-            }
+                        /* Now we have a big collection of list metadata (tweetlists), and all the kanji scores and colors for
+                            each kanji (kanjilists) */
+                        " Select DISTINCT TweetLists.[UserId] " +
+//                        " ,TweetLists.[TweetCount]  " +
+                        " ,TweetKanji.Edict_id "   +
+                        ",(CASE WHEN [Total] is not NULL AND [Total] < " + colorThresholds.getGreyThreshold() + " THEN 1 ELSE 0 END) as [Grey] " +
+                        ",(CASE WHEN [Total] is not NULL and [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] < " + colorThresholds.getRedThreshold() + "  THEN 1  ELSE 0 END) as [Red] " +
+                        ",(CASE WHEN [Total] is not NULL and [Total] >= " + colorThresholds.getGreyThreshold() + " and ([Percent] >= " + colorThresholds.getRedThreshold() + "  and [Percent] <  " + colorThresholds.getYellowThreshold() + ") THEN 1  ELSE 0 END) as [Yellow] " +
+                        ",(CASE WHEN [Total] is not NULL and [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] >= " + colorThresholds.getYellowThreshold() + " THEN 1 ELSE 0 END) as [Green] " +
 
-            c.close();
-        } finally {
-            db.close();
-        }
+                        "FROM " +
 
-        return userInfoList;
+                        "(" +
+
+                        /* Get A list of each saved tweet and the number of kanji in those tweets */
+                        "SELECT  DISTINCT [UserId]" +
+                        ", _id as [Tweet_id]" +
+                        "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+                        ") as TweetLists " +
+                        " LEFT JOIN " +
+                        " ( " +
+
+                        /* Get a list of  kanji ids and their word scores for each tweet */
+                        "SELECT a.[Tweet_id]" +
+                        ",a.[Edict_id]" +
+                        ",ifnull(b.[Total],0) as [Total] " +
+                        ",ifnull(b.[Correct],0)  as [Correct]" +
+                        ",CAST(ifnull(b.[Correct],0)  as float)/b.[Total] as [Percent] " +
+                        "FROM " +
+                        "( " +
+                        " SELECT Tweet_id" +
+                        ",Edict_id " +
+                        "From " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + " " +
+                        ") as a " +
+                        "LEFT JOIN " +
+                        " (" +
+                        "SELECT [_id] as [Edict_id]" +
+                        ",sum([Correct]) as [Correct]" +
+                        ",sum([Total]) as [Total] FROM [JScoreboard] " +
+                        "where [_id] in (SELECT DISTINCT [Edict_id] FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + ")" +
+                        " GROUP BY [_id]" +
+                        ") as b " +
+                        "ON a.[Edict_id] = b.[Edict_id] " +
+
+
+
+                        " ) as TweetKanji " +
+                        "On TweetLists.Tweet_id = TweetKanji.Tweet_id " +
+
+                        ") as [ListsTweetsAndAllKanjis] " +
+                        "GROUP BY [UserId]" +
+
+                        ") as a " +
+                        "LEFT JOIN " +
+                        "(" +
+
+                        /* Get A list of each saved tweet and the number of kanji in those tweets */
+                        "SELECT [UserId]" +
+                        ",COUNT(_id) as TweetCount " +
+                        "FROM " +
+                        " ( " +
+                        "SELECT  DISTINCT [UserId]" +
+                        ", _id " +
+                        "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+                        ") as x " +
+                        " Group by [UserId] " +
+                        ")  as b " +
+                        " ON a.[UserId] = b.[UserId] " +
+
+
+                ")  as [UserSavedTweetColorInformation] " +
+                                " ON [UserInformation].[UserId] = [UserSavedTweetColorInformation].[UserId] "
+
+                ,null);
     }
 
 

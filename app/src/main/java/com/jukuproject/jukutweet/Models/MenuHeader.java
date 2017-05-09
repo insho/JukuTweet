@@ -3,11 +3,13 @@ package com.jukuproject.jukutweet.Models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.bignerdranch.expandablerecyclerview.model.Parent;
 import com.jukuproject.jukutweet.Adapters.TweetListExpandableAdapter;
 import com.jukuproject.jukutweet.Adapters.WordListExpandableAdapter;
 import com.jukuproject.jukutweet.R;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Container with information for a row in a Word or Tweet list
@@ -18,15 +20,17 @@ import java.util.ArrayList;
  * @see WordListExpandableAdapter
  */
 
-public class MenuHeader implements  Parcelable {
+public class MenuHeader implements  Parcelable,Parent<MenuChild> {
     private String headerTitle;
     private ColorBlockMeasurables colorBlockMeasurables;
     private ArrayList<String> childOptions;
+    private List<MenuChild> menuChildren;
     private Boolean showLblHeaderCount;
     private Boolean myList;
     private Boolean systemList;
     private MyListEntry myListEntry;
     private Boolean isExpanded;
+    private UserInfo userInfo;
 
     public MyListEntry getMyListEntry() {
         return myListEntry;
@@ -47,6 +51,7 @@ public class MenuHeader implements  Parcelable {
 
     public MenuHeader(){
         this.childOptions =  new ArrayList<>();
+        this.menuChildren = new ArrayList<>();
         this.colorBlockMeasurables = new ColorBlockMeasurables();
 
         this.showLblHeaderCount = false;
@@ -58,13 +63,40 @@ public class MenuHeader implements  Parcelable {
         this.headerTitle = headerTitle;
         this.childOptions =  new ArrayList<>();
         this.colorBlockMeasurables = new ColorBlockMeasurables();
-
+        this.menuChildren = new ArrayList<>();
         this.showLblHeaderCount = false;
         this.myList = false;
         this.systemList = false;
 //        this.colorList = false;
         this.isExpanded = false;
 
+    }
+
+    public UserInfo getUserInfo() {
+        return userInfo;
+    }
+
+    public void setMenuChildren(ArrayList<String> childOptions,ColorBlockMeasurables colorBlockMeasurables,UserInfo userInfo) {
+        if(menuChildren==null) {
+            menuChildren = new ArrayList<>();
+        } else {
+            menuChildren.clear();
+        }
+
+        for(String childOption : childOptions) {
+            MenuChild menuChild = new MenuChild(childOption);
+            menuChild.setUserInfo(userInfo);
+
+            if(childOption.equals("Saved Tweets") || childOption.equals("Browse/Edit")) {
+                menuChild.setColorBlockMeasurables(colorBlockMeasurables);
+            }
+            menuChildren.add(menuChild);
+
+         }
+    }
+
+    public void setUserInfo(UserInfo userInfo) {
+        this.userInfo = userInfo;
     }
 
     public ColorBlockMeasurables getColorBlockMeasurables() {
@@ -81,6 +113,7 @@ public class MenuHeader implements  Parcelable {
 
     public void setChildOptions(ArrayList<String> childOptions) {
         this.childOptions = childOptions;
+
     }
 
     public String getHeaderTitle() {
@@ -135,6 +168,17 @@ public class MenuHeader implements  Parcelable {
         }
     }
 
+    @Override
+    public List<MenuChild> getChildList() {
+        return menuChildren;
+    }
+
+    @Override
+    public boolean isInitiallyExpanded() {
+        return false;
+    }
+
+
     // Parcelling part
     public MenuHeader(Parcel in){
 
@@ -147,6 +191,7 @@ public class MenuHeader implements  Parcelable {
         this.myListEntry = in.readParcelable(MyListEntry.class.getClassLoader());
         this.isExpanded = in.readByte() != 0;
 
+        this.menuChildren = in.readArrayList(MenuChild.class.getClassLoader());
     }
 
     public int describeContents(){
@@ -166,6 +211,8 @@ public class MenuHeader implements  Parcelable {
         dest.writeByte((byte) (this.systemList ? 1 : 0));
         dest.writeParcelable(this.myListEntry,flags);
         dest.writeByte((byte) (this.isExpanded ? 1 : 0));
+
+        dest.writeList(this.menuChildren);
     }
 
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {

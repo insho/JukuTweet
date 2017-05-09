@@ -159,7 +159,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             fragments[1] = Tab2Container.newInstance();
             fragments[2] = Tab3Container.newInstance();
             fragments[3] = Tab4Container.newInstance();
-            mAdapterTitles = new String[]{"Users","Saved Tweets","Word Lists","Search"};
+            mAdapterTitles = new String[]{"Users","Tweet Lists","Word Lists","Search"};
         }
 
 
@@ -690,7 +690,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     }
 
                     showActionBarBackButton(false,getString(R.string.app_name));
-                    updateTabs(new String[]{"Users","Saved Tweets","Word Lists","Search"});
+                    updateTabs(new String[]{"Users","Tweet Lists","Word Lists","Search"});
                     showMenuMyListBrowse(false,mViewPager.getCurrentItem());
                     switch (mViewPager.getCurrentItem()) {
                         case 0:
