@@ -87,10 +87,14 @@ import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-//import com.jukuproject.jukutweet.Models.RomajiConversionResults;
 
 /**
- * Main activity fragment manager
+ * Main activity fragment manager. Also does traffic control for callbacks between fragments and dialogs
+ *
+ * @see FragmentInteractionListener
+ * @see DialogInteractionListener
+ * @see QuizMenuDialogInteractionListener
+ *
  */
 public class MainActivity extends AppCompatActivity implements FragmentInteractionListener
         , DialogInteractionListener
@@ -540,7 +544,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                         @Override public void onError(Throwable e) {
                             e.printStackTrace();
                             if(BuildConfig.DEBUG){Log.d(TAG, "getInitialUserInfoForAddUserCheck In onError()");}
-                            Toast.makeText(getBaseContext(), "Unable to connect to Twitter API", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getBaseContext(), "Unable to connect to Twitter API, or user screen name is incorrect", Toast.LENGTH_LONG).show();
 
                             /* If process is unable to get userInfo, save the screenName only as a placeholder to be accessed later */
                             if(!InternalDB.getUserInterfaceInstance(getBaseContext()).duplicateUser(screenName)) {
@@ -1400,6 +1404,9 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         ArrayList<Tweet> dataset = new ArrayList<>();
         String dataType = "";
 
+
+//        Log.i(TAG,"HERE CHECK I OUT: " + tabNumber);
+
         //The request is coming from the saved tweets fragment
         if (tabNumber == 1) {
 
@@ -1468,6 +1475,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             , Integer currentExpandedPosition
             , String quizSize
             , String selectedColorString) {
+
+//        Log.i(TAG,"HERE CHECK I OUT2: " + tabNumber);
 
         ArrayList<Tweet> dataset = new ArrayList<>();
         String dataType = "";

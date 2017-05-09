@@ -1,8 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
-    <!--android:orientation="vertical" android:layout_width="match_parent"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:background="@android:color/transparent">-->
 
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
@@ -103,90 +99,7 @@
         android:background="@android:color/white"
         android:weightSum="2"
         android:id="@+id/linearlayout1">
-
-
-        <!--<GridLayout-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:id="@+id/gridLayout_popup1"-->
-            <!--android:columnCount="5"-->
-            <!--android:rowCount="2"-->
-            <!--android:layout_marginTop="2dp"-->
-            <!--android:layout_marginBottom="2dp"-->
-            <!--android:background="@android:color/transparent">-->
-
-            <!--&lt;!&ndash;<TextView&ndash;&gt;-->
-                <!--&lt;!&ndash;android:layout_width="wrap_content"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:layout_height="wrap_content"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:layout_gravity="start"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:layout_row="0"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:layout_column="1"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:text="JLPT Level: "&ndash;&gt;-->
-                <!--&lt;!&ndash;android:textColor="@android:color/black"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:textSize="9pt" />&ndash;&gt;-->
-
-
-            <!--&lt;!&ndash;<TextView&ndash;&gt;-->
-                <!--&lt;!&ndash;android:layout_width="wrap_content"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:layout_height="wrap_content"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:layout_gravity="start"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:layout_row="0"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:layout_column="2"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:id="@+id/textViewPopupLevel"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:textColor="@android:color/black"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:textSize="9pt" />&ndash;&gt;-->
-
-            <!--<TextView-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:layout_gravity="start"-->
-                <!--android:layout_row="0"-->
-                <!--android:layout_rowSpan="2"-->
-                <!--android:layout_column="0"-->
-                <!--android:text="Score: "-->
-                <!--android:textColor="@android:color/black"-->
-                <!--android:textSize="9pt" />-->
-
-
-            <!--<TextView-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:layout_gravity="start"-->
-                <!--android:layout_row="0"-->
-                <!--android:layout_rowSpan="2"-->
-                <!--android:layout_column="1"-->
-                <!--android:id="@+id/textViewPopupScore"-->
-                <!--android:textColor="@android:color/black"-->
-                <!--android:textSize="9pt" />-->
-
-
-
-
-
-            <!--<TextView-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:layout_gravity="start"-->
-                <!--android:layout_row="0"-->
-                <!--android:layout_column="3"-->
-                <!--android:layout_rowSpan="2"-->
-                <!--android:layout_columnSpan="2"-->
-                <!--android:id="@+id/textViewPopupPercentage"-->
-                <!--android:textColor="@android:color/black"-->
-                <!--android:textSize="9pt" />-->
-
-
-        <!--</GridLayout>-->
-
-
-<!--<LinearLayout-->
-    <!--android:layout_width="wrap_content"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:layout_weight="1"-->
-    <!--android:orientation="vertical">-->
-    <!---->
-    <!---->
-<!--</LinearLayout>-->
+        
 
         <GridLayout
             android:layout_width="match_parent"
@@ -350,6 +263,7 @@
             app:spb_progressiveStop_speed="3.4"
 
             />
+    </android.support.design.widget.CoordinatorLayout>
 
 
 
@@ -359,7 +273,8 @@
         android:layout_height="wrap_content"
         android:background="@android:color/transparent"
         android:scrollbars="vertical" />
-    </android.support.design.widget.CoordinatorLayout>
+
+
     <TextView
         android:id="@+id/txtNoUsers"
         android:layout_width="fill_parent"

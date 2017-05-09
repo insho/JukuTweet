@@ -316,10 +316,15 @@ public class QuizMenuDialog extends DialogFragment {
                         break;
                     case "fillintheblanks":
                         if(mSingleUser) {
-
-                        } else {
                             mCallback.goToSingleUserQuizActivityFillintheBlanks(mTabNumber
                                     , mUserInfo
+                                    , mCurrentExpandedPosition
+                                    , txtView2.getText().toString()
+                                    , mColorBlockMeasurables.getSelectedColorString());
+
+                        } else {
+                            mCallback.goToQuizActivityFillintheBlanks(mTabNumber
+                                    , mMyListEntry
                                     , mCurrentExpandedPosition
                                     , txtView2.getText().toString()
                                     , mColorBlockMeasurables.getSelectedColorString());

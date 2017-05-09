@@ -36,7 +36,7 @@ public class Tab4Container extends BaseContainerFragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         if(savedInstanceState != null) {
-            mIsViewInited = savedInstanceState.getBoolean("mIsViewInited");
+            mIsViewInited = savedInstanceState.getBoolean("mIsViewInited",false);
         }
 //        Log.e("test", "tab 1 container on activity created");
         if (!mIsViewInited) {

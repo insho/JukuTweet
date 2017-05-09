@@ -49,7 +49,7 @@ import rx.functions.Action1;
  */
 public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapter.ViewHolder> {
 
-    private static final String TAG = "TEST-timefrag";
+    private static final String TAG = "TEST-timeadapter";
     private RxBus _rxbus;
 //    private UserInfo mUserInfo;
     private List<Tweet> mDataset;
@@ -61,14 +61,16 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
-        public TextView txtTweet;
-        public TextView txtCreated;
-        public TextView txtFavorited;
-        public TextView txtReTweeted;
-        public TextView txtUserName;
-        public TextView txtUserScreenName;
-        public ImageButton imgStar;
-        public FrameLayout imgStarLayout;
+        private TextView txtTweet;
+        private TextView txtCreated;
+        private TextView txtFavorited;
+        private TextView txtReTweeted;
+        private TextView txtUserName;
+        private TextView txtUserScreenName;
+        private ImageButton imgStar;
+        private FrameLayout imgStarLayout;
+        private ImageButton imgReTweeted;
+        private ImageButton imgFavorited;
 
         public ViewHolder(View v) {
             super(v);
@@ -76,10 +78,14 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
             txtCreated = (TextView) v.findViewById(R.id.createdAt);
             txtFavorited = (TextView) v.findViewById(R.id.favorited);
             txtReTweeted = (TextView) v.findViewById(R.id.retweeted);
+            imgReTweeted = (ImageButton) v.findViewById(R.id.retweetImage);
+            imgFavorited = (ImageButton) v.findViewById(R.id.heart);
             txtUserName = (TextView) v.findViewById(R.id.timelineName);
             txtUserScreenName = (TextView) v.findViewById(R.id.timelineDisplayScreenName);
             imgStar = (ImageButton) v.findViewById(R.id.favorite);
             imgStarLayout = (FrameLayout) v.findViewById(R.id.timelineStarLayout);
+
+
         }
     }
 
@@ -117,16 +123,23 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
 
 
-        /* Insert tweet metadata if it exists*/
-        holder.txtCreated.setText(getTweet(position).getDatabaseInsertDate());
-        holder.txtReTweeted.setText(getTweet(position).getRetweetCountString());
 
 
-        if(getTweet(position).getFavorited() != null){
-            holder.txtFavorited.setText(getTweet(position).getFavoritesCountString());
-        }
+
 
         if(mShowStar) {
+            /* Insert tweet metadata if it exists*/
+            holder.txtCreated.setText(getTweet(holder.getAdapterPosition()).getDatabaseInsertDate());
+            holder.txtReTweeted.setText(getTweet(holder.getAdapterPosition()).getRetweetCountString());
+            if(getTweet(position).getFavorited() != null){
+                holder.txtFavorited.setText(getTweet(holder.getAdapterPosition()).getFavoritesCountString());
+            }
+
+            holder.imgFavorited.setVisibility(View.VISIBLE);
+            holder.imgReTweeted.setVisibility(View.VISIBLE);
+            holder.txtReTweeted.setVisibility(View.VISIBLE);
+            holder.txtFavorited.setVisibility(View.VISIBLE);
+
             holder.imgStarLayout.setClickable(true);
             holder.imgStarLayout.setLongClickable(true);
             holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars));
@@ -211,8 +224,14 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                 }
             });
         } else {
+            holder.txtCreated.setText(getTweet(position).getDisplayDate());
+
             holder.imgStar.setVisibility(View.INVISIBLE);
             holder.imgStarLayout.setVisibility(View.INVISIBLE);
+            holder.imgFavorited.setVisibility(View.INVISIBLE);
+            holder.imgReTweeted.setVisibility(View.INVISIBLE);
+            holder.txtReTweeted.setVisibility(View.INVISIBLE);
+            holder.txtFavorited.setVisibility(View.INVISIBLE);
         }
 
 
@@ -244,7 +263,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
             text.setSpan(longClick, 0, text.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
 
-            if(getTweet(position).getEntities().getUrls() != null ) {
+            if(getTweet(position).getEntities()!= null && getTweet(position).getEntities().getUrls() != null ) {
                 List<TweetUrl> tweetUrls =  getTweet(position).getEntities().getUrls();
                 for(TweetUrl url : tweetUrls) {
                     int[] indices = url.getIndices();
@@ -263,7 +282,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
             }
 
-            if(getTweet(position).getEntities().getUser_mentions() != null ) {
+            if(getTweet(position).getEntities() != null && getTweet(position).getEntities().getUser_mentions() != null ) {
                 List<TweetUserMentions> tweetUserMentionses =  getTweet(position).getEntities().getUser_mentions();
                 for(final TweetUserMentions userMentionses : tweetUserMentionses) {
                     int[] indices = userMentionses.getIndices();
@@ -298,11 +317,11 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
             }
 
-            if(getTweet(position).getWordEntries()!=null){
-                BackgroundColorSpan fcs = new BackgroundColorSpan(ContextCompat.getColor(mContext,R.color.colorJukuYellow));
-                for(WordEntry wordEntry : getTweet(position).getWordEntries()) {
-                    if(wordEntry.getKanji().equals(mFocusedWord)) {
+            if(getTweet(holder.getAdapterPosition()).getWordEntries()!=null){
+                for(WordEntry wordEntry : getTweet(holder.getAdapterPosition()).getWordEntries()) {
+                    if(wordEntry.getKanji().equals(mFocusedWord) ) {
                         try {
+                            BackgroundColorSpan fcs = new BackgroundColorSpan(ContextCompat.getColor(mContext,R.color.colorJukuYellow));
                             text.setSpan(fcs, wordEntry.getStartIndex(), wordEntry.getEndIndex(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
                         } catch (Exception e) {
                             Log.e(TAG,"FAILED to set background of highlighted kanji");
@@ -317,11 +336,12 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                     int startIndex = text.toString().substring(0,index).length() + text.toString().substring(index,text.toString().length()).indexOf(mFocusedWord);
                     BackgroundColorSpan fcs = new BackgroundColorSpan(ContextCompat.getColor(mContext,R.color.colorJukuYellow));
                     text.setSpan(fcs, startIndex, startIndex + mFocusedWord.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-//                    Log.i(TAG,"index: " + startIndex + " - setting span");
                     index = startIndex + mFocusedWord.length() + 1;
                 }
 
 
+            } else {
+                Log.e(TAG,"Is mfocused word null? "  + mFocusedWord);
             }
 
             holder.txtTweet.setText(text, TextView.BufferType.SPANNABLE);
@@ -375,7 +395,15 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
 
         int xadjust = popupWindow.getContentView().getMeasuredWidth() + (int) (25 * mMetrics.density + 0.5f);
-        int yadjust = (int)((holder.imgStar.getMeasuredHeight())/2.0f);
+//        int yadjust = (int)((holder.imgStar.getMeasuredHeight())/2.0f);
+
+        int yadjust;
+        if(availableFavoriteLists.size()<4) {
+            yadjust = (int)((popupWindow.getContentView().getMeasuredHeight()  + holder.imgStar.getMeasuredHeight())/2.0f);
+        } else {
+            yadjust = getYAdjustmentForPopupWindowBigTweetList(availableFavoriteLists.size(),holder.getAdapterPosition(),mMetrics.scaledDensity,holder.itemView.getMeasuredHeight());
+        }
+
 
         Log.d("TEST","pop width: " + popupWindow.getContentView().getMeasuredWidth() + " height: " + popupWindow.getContentView().getMeasuredHeight());
         Log.d("TEST","xadjust: " + xadjust + ", yadjust: " + yadjust);
@@ -386,12 +414,6 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
             public void onDismiss() {
 
                 _rxbus.sendSaveTweet(mTweet);
-                try {
-                    holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mTweet.getItemFavorites(),mActiveTweetFavoriteStars));
-                    holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mTweet.getItemFavorites(),mActiveTweetFavoriteStars)));
-                } catch (NullPointerException e) {
-                    Log.e(TAG,"UserTimeLineAdapter popupwindow ondismisslistener setting colorfilter nullpointer: " + e.getMessage());
-                }
 
             }
         });
@@ -467,5 +489,78 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
     };
 
+
+    public int getYAdjustmentForPopupWindowBigTweetList(int totalActiveLists
+            , int adapterPosition
+            ,float scale
+            ,float heightOfView) {
+
+        final int yadjustment;
+
+
+
+        if(totalActiveLists>10) {
+            totalActiveLists = 10;
+        }
+
+        int estimatedheightofpopup =  (int) ((totalActiveLists*35) * scale + 0.5f);
+        int multiplier = -(mDataset.size()-adapterPosition-1);
+
+        if((adapterPosition>(mDataset.size()-5) && adapterPosition>((float)mDataset.size()/2.0f))){
+
+            if(totalActiveLists < 5){
+                multiplier = 1;
+            }
+
+            yadjustment = estimatedheightofpopup + (int) (multiplier* ((int) ((35) * scale + 0.5f)));
+
+//            if(BuildConfig.DEBUG){
+//                Log.d(TAG,"rowsize: " + totalActiveLists);
+//                Log.d(TAG,"estimatedheightofpopup: " + estimatedheightofpopup);
+//                Log.d(TAG,"multiplier: " + multiplier);
+//            }
+
+        } else {
+
+            float defmult = heightOfView;
+//            if(definition.contains("(9)")){
+//                defmult= 80.0f;
+//            } else if(definition.contains("(6)")){
+//                defmult= 50.0f;
+//            } else if(definition.contains("(3)")){
+//                defmult= 30.0f;
+//            }
+
+            float listizemultiplier = 0;
+            switch (totalActiveLists) {
+                case 0:
+                    listizemultiplier = 35.0f+defmult;
+                    break;
+                case 1:
+                    listizemultiplier = 35.0f+defmult;
+                    break;
+                case 2:
+                    listizemultiplier = 35.0f+defmult;
+                    break;
+                case 3:
+                    listizemultiplier = 40.0f+defmult;
+                    break;
+                case 4:
+                    listizemultiplier = 45.0f+defmult;
+                    break;
+
+                default:
+                    listizemultiplier = 95.0f+defmult;
+                    break;
+            }
+
+            yadjustment =(int) ((float)listizemultiplier * scale + 0.5f);
+//            if(BuildConfig.DEBUG){
+//                Log.d(TAG,"listsizemultiplier: " +  listizemultiplier);
+//            }
+        }
+
+        return yadjustment;
+    }
 
 }

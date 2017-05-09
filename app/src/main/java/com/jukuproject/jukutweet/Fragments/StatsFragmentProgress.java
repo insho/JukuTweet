@@ -209,9 +209,6 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
         content_BottomFive.setSpan(new UnderlineSpan(), 0, content_BottomFive.length(), 0);
         txtBottomFive.setText(content_BottomFive);
 
-
-
-
         /* Get width of screen */
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
@@ -224,24 +221,11 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
                 ,textViewColorBlock_yellow
                 ,textViewColorBlock_green);
 
-//        if(greenCount>0){
-//            topbottomThreshold = .6;
-//        } else {
-//            topbottomThreshold = .5;
-//        }
-
-
-
-        //THIS IS THE BOTTOM COUNT (ascending by percent)
-
-        //THIS ONE IS the BOTTOM 5 Adapter
         RxBus rxBus = new RxBus();
         adapter_bottom = new StatsTopAndBottomAdapter(getContext(),mBottomFiveDataSet,colorThresholds,rxBus);
         bottomFiveList.setAdapter(adapter_bottom);
 
-
         adapter_top = new StatsTopAndBottomAdapter(getContext(),mTopFiveDataSet,colorThresholds,rxBus);
-
         topFiveList.setAdapter(adapter_top);
 
         rxBus.toClickObserverable()

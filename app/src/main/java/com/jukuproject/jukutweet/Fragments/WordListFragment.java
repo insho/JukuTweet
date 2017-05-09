@@ -143,6 +143,16 @@ public class WordListFragment extends Fragment {
 
                 switch (childOption) {
                     case "Browse/Edit":
+//                        ColorThresholds colorThresholds = sharedPrefManager.getColorThresholds();
+//                        ArrayList<WordEntry>  supertext =   InternalDB.getWordInterfaceInstance(getContext()).getWordsFromAWordList(new MyListEntry("Red",1)
+//                                ,colorThresholds
+//                                ,"'Grey','Red','Yellow','Green'"
+//                                ,null
+//                                ,null);
+//
+//                            for(WordEntry wordEntry : supertext) {
+//                                Log.i(TAG,"word: " + wordEntry.getKanji());
+//                            }
 
                         WordListBrowseFragment fragment = WordListBrowseFragment.newInstance(new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).getSystemList()));
                         ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"mylistbrowse");
@@ -250,8 +260,10 @@ public class WordListFragment extends Fragment {
             c.moveToFirst();
             while (!c.isAfterLast()) {
 
-                if(BuildConfig.DEBUG){Log.d(TAG,"PULLING NAME: " + c.getString(0) + ", SYS: " + c.getString(1) + ", TOTAL: " + c.getString(2) + ", GREY: " + c.getString(3));}
-                if(BuildConfig.DEBUG){Log.d("yes", "pulling list: " + c.getString(0) + ", sys: " + c.getString(1));}
+                if(BuildConfig.DEBUG){Log.d(TAG,"PULLING NAME: " + c.getString(0) + ", SYS: " + c.getString(1) + ", TOTAL: " + c.getString(2)
+                        + ", GREY: " + c.getString(3)
+                        + ", YELLOW: " + c.getString(5));}
+//                if(BuildConfig.DEBUG){Log.d("yes", "pulling list: " + c.getString(0) + ", sys: " + c.getString(1));}
 
                 /* We do not want to include favorites star lists that are not active in the user
                 * preferences. So if an inactivated list shows up in the sql query, ignore it (don't add to mMenuHeader)*/

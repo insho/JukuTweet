@@ -45,8 +45,6 @@ import static com.jukuproject.jukutweet.Fragments.WordListFragment.getExpandable
 import static com.jukuproject.jukutweet.MainActivity.assignTweetWeightsAndGetTotalWeight;
 import static com.jukuproject.jukutweet.MainActivity.assignWordWeightsAndGetTotalWeight;
 
-//import com.jukuproject.jukutweet.Interfaces.PostQuizMenuDialogInteractionListener;
-
 /**
  * Quiz/PostQuiz Stats activity fragment manager
  */
@@ -177,7 +175,7 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
 
                         @Override
                         public void onClick(View view) {
-                            QuizMenuDialog.newInstance("multiplechoice"
+                            QuizMenuDialog.newInstance("fillintheblanks"
                                     ,mTabNumber
                                     ,mLastExpandedPosition
                                     ,mMyListEntry

@@ -59,7 +59,14 @@ public class ChooseFavoriteListsPopupWindow {
         popupWindow.setClippingEnabled(false);
 
         popupWindow.setWidth(ViewGroup.LayoutParams.WRAP_CONTENT);
-        popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+//        popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+
+        if(favoritesLists.size()>12) {
+            popupWindow.setHeight((int)((float)metrics.heightPixels/2.0f));
+        } else {
+            popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+
         popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(context, R.drawable.popup_drawable));
         return popupWindow;
     }
@@ -89,7 +96,12 @@ public class ChooseFavoriteListsPopupWindow {
         popupWindow.setClippingEnabled(false);
 
         popupWindow.setWidth(ViewGroup.LayoutParams.WRAP_CONTENT);
-        popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+//        popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+        if(favoritesLists.size()>12) {
+            popupWindow.setHeight((int)((float)metrics.heightPixels/2.0f));
+        } else {
+            popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
         popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(context, R.drawable.popup_drawable));
         return popupWindow;
     }

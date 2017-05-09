@@ -54,6 +54,7 @@ public class StatsFragmentFillintheBlanks extends Fragment implements WordEntryF
         StatsFragmentFillintheBlanks fragment = new StatsFragmentFillintheBlanks();
         Bundle args = new Bundle();
         args.putParcelableArrayList("dataset", dataset);
+        Log.i("TEST","datasetsize: " + dataset.size());
         args.putInt("correct",correct);
         args.putInt("total",total);
         fragment.setArguments(args);
@@ -85,6 +86,7 @@ public class StatsFragmentFillintheBlanks extends Fragment implements WordEntryF
 
         } else {
             mDataset = getArguments().getParcelableArrayList("dataset");
+            Log.i("TEST","datasetsize2: " + mDataset.size());
             mCorrect = getArguments().getInt("correct");
             mTotal = getArguments().getInt("total");
         }
@@ -109,7 +111,9 @@ public class StatsFragmentFillintheBlanks extends Fragment implements WordEntryF
 
                         if(isUniqueClick(100) && event instanceof WordEntry) {
                             WordEntry wordEntry = (WordEntry) event;
-                            WordDetailPopupDialog.newInstance(wordEntry).show(getFragmentManager(),"wordDetailPopup");
+                            WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(wordEntry);
+                            wordDetailPopupDialog.setTargetFragment(StatsFragmentFillintheBlanks.this, 0);
+                            wordDetailPopupDialog.show(getFragmentManager(),"wordDetailPopup");
                         }
 
                     }

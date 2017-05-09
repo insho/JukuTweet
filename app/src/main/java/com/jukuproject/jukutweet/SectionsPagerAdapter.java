@@ -12,10 +12,9 @@ import android.support.v4.app.FragmentPagerAdapter;
 /**
  * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
  * one of the sections/tabs/pages.
- //     */
+ */
 public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
-    //TODO consolidate this one with quizsectionpager?
     String[] mCurrentTabs;
     Fragment[] mSavedFragments;
 
@@ -27,10 +26,7 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
     @Override
     public Fragment getItem(int position) {
-
-
         return mSavedFragments[position];
-
     }
 
 

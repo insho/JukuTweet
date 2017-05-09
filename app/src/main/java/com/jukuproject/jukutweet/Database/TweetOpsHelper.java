@@ -1549,7 +1549,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
     SQLiteDatabase db = sqlOpener.getReadableDatabase();
     try {
         Cursor c = db.rawQuery("SELECT TweetLists.[UserId] " +
-                        ",UserName.ScreenName " +
+                        ",TweetLists.ScreenName " +
                         ",UserName.UserName " +
                         ",TweetLists.[Tweet_id] " +
                         ",[TweetLists].[Text] " +
@@ -1570,6 +1570,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                         "SELECT  DISTINCT [UserId]" +
 
                         ",[Tweet_id]" +
+                        ",[UserScreenName] as [ScreenName] " +
                         ",[Text]" +
                         ",[CreatedAt]  as [Date] " +
                         " FROM "+ InternalDB.Tables.TABLE_SAVED_TWEETS + " " +
@@ -1627,7 +1628,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                         ",[Furigana]" +
                         ",[Definition]" +
                         "FROM [Edict] " +
-                        "where [_id] in (SELECT DISTINCT [Edict_id] FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + ")" +
+                        "where [_id] in (SELECT DISTINCT [Eedict_id] FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + ")" +
                         ") as c " +
                         "ON a.[Edict_id] = c.[Edict_id] " +
 
@@ -1669,6 +1670,32 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 
                 }
 
+                //FLush old tweet
+                else if(!currentTweetId.equals(c.getString(3))){
+                    tweet.assignTweetColorToTweet(colorThresholds);
+                    savedTweets.add(new Tweet(tweet));
+                    currentTweetId = c.getString(3);
+                    tweet = new Tweet();
+
+                    tweet.setIdString(c.getString(3));
+                    tweet.setCreatedAt(c.getString(14));
+                    tweet.getUser().setUserId(c.getString(0));
+                    tweet.setText(c.getString(4));
+                    tweet.getUser().setScreen_name(c.getString(1));
+
+                    tweet.getUser().setName(c.getString(2));
+                }
+//
+//                if(c.isFirst()) {
+//                    tweet.setIdString(c.getString(3));
+//                    tweet.setCreatedAt(c.getString(14));
+//                    tweet.getUser().setUserId(c.getString(0));
+//                    tweet.setText(c.getString(4));
+//                    tweet.getUser().setScreen_name(c.getString(1));
+//                    tweet.getUser().setName(c.getString(2));
+//
+//                }
+
 //                WordEntry wordEntry = new WordEntry(c.getInt(5)
 //                        ,c.getString(6)
 //                        ,c.getString(7)
@@ -1698,19 +1725,19 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 //                tweet.addWordEntry(wordEntry);
 
                 //FLush old tweet
-                if(!currentTweetId.equals(c.getString(3))){
-                    tweet.assignTweetColorToTweet(colorThresholds);
-                    savedTweets.add(new Tweet(tweet));
-                    currentTweetId = c.getString(3);
-                    tweet = new Tweet();
-
-                    tweet.setIdString(c.getString(3));
-                    tweet.setCreatedAt(c.getString(14));
-                    tweet.getUser().setUserId(c.getString(0));
-                    tweet.setText(c.getString(4));
-                    tweet.getUser().setScreen_name(c.getString(1));
-                    tweet.getUser().setName(c.getString(2));
-                }
+//                if(!currentTweetId.equals(c.getString(3))){
+//                    tweet.assignTweetColorToTweet(colorThresholds);
+//                    savedTweets.add(new Tweet(tweet));
+//                    currentTweetId = c.getString(3);
+//                    tweet = new Tweet();
+//
+//                    tweet.setIdString(c.getString(3));
+//                    tweet.setCreatedAt(c.getString(14));
+//                    tweet.getUser().setUserId(c.getString(0));
+//                    tweet.setText(c.getString(4));
+//                    tweet.getUser().setScreen_name(c.getString(1));
+//                    tweet.getUser().setName(c.getString(2));
+//                }
 
                 if(c.isLast()) {
                     tweet.assignTweetColorToTweet(colorThresholds);
@@ -1794,7 +1821,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                         "SELECT 'Orange' as [Name] "  +
                         ",1 as [Sys]" +
                         ") as [x] " +
-                        " WHERE ([Name] = ? AND [Sys] = ?) OR " + ALL_LISTS_FLAG + " = 1 " +
+                        " WHERE ([Name] = ? AND [Sys] = " + sys + ") OR " + ALL_LISTS_FLAG + " = 1 " +
                 ") as lists " +
                         " LEFT JOIN " +
                 "( " +
@@ -1804,7 +1831,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             ",[Sys]" +
                             ",count(_id) as Count " +
                             "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
-                            " WHERE ([Name] = ? AND [Sys] = ?) OR " + ALL_LISTS_FLAG + " = 1 " +
+                            " WHERE ([Name] = ? AND [Sys] = " + sys +") OR " + ALL_LISTS_FLAG + " = 1 " +
                             " Group by [Name] ,[Sys] " +
 
                         ") as tweetcounts " +
@@ -1861,8 +1888,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                         ",[UserID] " +
                         ",[_id] as [Tweet_id]" +
                         "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
-//                        "WHERE ([Name] = ? OR " + ALL_LISTS_FLAG + " = 1) AND ([Sys] = ? OR " + ALL_LISTS_FLAG + " = 1) " +
-                        " WHERE ([Name] = ? AND [Sys] = ?) OR " + ALL_LISTS_FLAG + " = 1 " +
+                        " WHERE ([Name] = ? AND [Sys] = " + sys + ") OR " + ALL_LISTS_FLAG + " = 1 " +
 
                         ") as TweetLists " +
                         " LEFT JOIN " +
@@ -1908,7 +1934,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                         "ON xx.[Name] = yy.[Name] and cast(xx.[Sys] as INTEGER)  = cast(yy.[Sys] as INTEGER)  " +
 
                         "Order by xx.[Sys] Desc,xx.[Name]"
-                ,new String[]{name,String.valueOf(sys),name,String.valueOf(sys),name,String.valueOf(sys)});
+                ,new String[]{name,name,name});
     }
 
 
@@ -2084,10 +2110,10 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                     "[Definition]," +
                     "ifnull([Total],0) as [Total] " +
 
-                    ",(CASE WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 1 " +
-                    "WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 0  " +
-                    "WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and (CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getRedThreshold() + "  and CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + ") THEN 2  " +
-                    "WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getYellowThreshold() + " THEN 3 " +
+                    ",(CASE WHEN ifnull([Total],0) < " + colorThresholds.getGreyThreshold() + " THEN 1 " +
+                    "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 0  " +
+                    "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and (CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getRedThreshold() + "  and CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + ") THEN 2  " +
+                    "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getYellowThreshold() + " THEN 3 " +
                     "ELSE 0 END) as [ColorSort] " +
 
                     ",ifnull([Correct],0)  as [Correct]" +
@@ -2111,61 +2137,86 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                     "FROM [Edict] " +
                     "where [_id] in (" +
 
-                    "Select Edict_id " +
-                    "FROM " +
-                    "(" +
-                    "Select _id as Tweet_Id " +
-                    "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES +
-                    " WHERE ([Name] = ? and [Sys] = ?)" +
-                    ") as a " +
-                    "Left JOIN " +
-                    "(" +
-                    "Select DISTINCT Tweet_id" +
-                    ",[Edict_id] " +
-                    "FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI +
-                    " WHERE [Edict_id] is not NULL " +
-                    ") as b " +
-                    "ON a.[Tweet_Id] = b.[Tweet_Id] " +
-                    ")" +
+                                "Select Edict_id " +
+                                "FROM " +
+                                "(" +
+                                    "Select _id as Tweet_Id " +
+                                    "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES +
+                                    " WHERE ([Name] = ? and [Sys] = " + myListEntry.getListsSys()  + ")" +
+                                ") as a " +
+                                "Left JOIN " +
+                                "(" +
+                                    "Select DISTINCT Tweet_id" +
+                                    ",[Edict_id] " +
+                                    "FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI +
+                                    " WHERE [Edict_id] is not NULL " +
+                                ") as b " +
+                                "ON a.[Tweet_Id] = b.[Tweet_Id] " +
+                             ")" +
                     ") " +
-                    "NATURAL LEFT JOIN (" +
-                    "SELECT [_id]" +
-                    ",sum([Correct]) as [Correct]" +
-                    ",sum([Total]) as [Total] " +
-                    "from [JScoreboard]  " +
-                    "GROUP BY [_id]" +
-//                    ") " +
-                    ") NATURAL LEFT JOIN (" +
-                    "SELECT [_id]" +
-                    ",SUM([Blue]) as [Blue]" +
-                    ",SUM([Red]) as [Red]" +
-                    ",SUM([Green]) as [Green]" +
-                    ",SUM([Yellow]) as [Yellow]" +
-                    ",SUM([Purple]) as [Purple]" +
-                    ",SUM([Orange]) as [Orange]" +
+                    "NATURAL LEFT JOIN " +
+                    "(" +
+                            "SELECT [_id]" +
+                            ",sum([Correct]) as [Correct]" +
+                            ",sum([Total]) as [Total] " +
+                            "from [JScoreboard]  " +
+                            "GROUP BY [_id]" +
+                    ") " +
+                    "NATURAL LEFT JOIN " +
+                    "(" +
+                            "SELECT [_id]" +
+                            ",SUM([Blue]) as [Blue]" +
+                            ",SUM([Red]) as [Red]" +
+                            ",SUM([Green]) as [Green]" +
+                            ",SUM([Yellow]) as [Yellow]" +
+                            ",SUM([Purple]) as [Purple]" +
+                            ",SUM([Orange]) as [Orange]" +
 
-                    ", SUM([Other]) as [Other] " +
-                    "FROM (" +
-                    "SELECT [_id] " +
-                    ",(CASE WHEN ([Sys] = 1 and Name = 'Blue') then 1 else 0 end) as [Blue]" +
-                    ",(CASE WHEN ([Sys] = 1 AND Name = 'Red') then 1 else 0 end) as [Red]" +
-                    ",(CASE WHEN ([Sys] = 1 AND Name = 'Green') then 1 else 0 end) as [Green]" +
-                    ",(CASE WHEN ([Sys] = 1  AND Name = 'Yellow') then 1 else 0 end) as [Yellow]" +
-                    ",(CASE WHEN ([Sys] = 1  AND Name = 'Purple') then 1 else 0 end) as [Purple]" +
-                    ",(CASE WHEN ([Sys] = 1  AND Name = 'Orange') then 1 else 0 end) as [Orange]" +
-                    ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
-                    "FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
-//                    "WHERE [_id] = ?" +
-                    "where [_id] in ( " +
-                    "SELECT [_id] " +
-                    "FROM [JFavorites] " +
-                    "WHERE ([Name] = ? and [Sys] = ?)" +
-                    ")" +
-                    ") as x Group by [_id]" +
-                    ")" +
-                    ") " + topBottomSort + " LIMIT " + totalCountLimit,new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys()),myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+                            ", SUM([Other]) as [Other] " +
+                            "FROM (" +
+                            "SELECT [_id] " +
+                            ",(CASE WHEN ([Sys] = 1 and Name = 'Blue') then 1 else 0 end) as [Blue]" +
+                            ",(CASE WHEN ([Sys] = 1 AND Name = 'Red') then 1 else 0 end) as [Red]" +
+                            ",(CASE WHEN ([Sys] = 1 AND Name = 'Green') then 1 else 0 end) as [Green]" +
+                            ",(CASE WHEN ([Sys] = 1  AND Name = 'Yellow') then 1 else 0 end) as [Yellow]" +
+                            ",(CASE WHEN ([Sys] = 1  AND Name = 'Purple') then 1 else 0 end) as [Purple]" +
+                            ",(CASE WHEN ([Sys] = 1  AND Name = 'Orange') then 1 else 0 end) as [Orange]" +
+                            ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
 
-//                    ") Where [Total] >= 1 " + topBottomSort + " LIMIT " + totalCountLimit,new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+                            "From (" +
+                            "SELECT DISTINCT [Name]" +
+                            ",[Sys]" +
+                            ",Edict_id as [_id] " +
+                            "FROM "+
+                            "( " +
+
+                                "SELECT DISTINCT _id as  Tweet_id" +
+                                ",[Name]" +
+                                ",[Sys] " +
+                                "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+                                " WHERE [Tweet_id] in (" +
+                                        "SELECT DISTINCT _id as  Tweet_id " +
+                                        "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+                                        " WHERE [Name] = ? and [Sys] = " + myListEntry.getListsSys()  + " " +
+                                        ")" +
+                            ") as a " +
+                            "LEFT JOIN "  +
+                            "( " +
+                                "SELECT DISTINCT Tweet_id,Edict_id " +
+                                "FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI + " " +
+                                    " WHERE [Tweet_id] in (" +
+                                    "SELECT DISTINCT _id as  Tweet_id " +
+                                    "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+                                    " WHERE [Name] = ? and [Sys] = " + myListEntry.getListsSys()  + " " +
+                                    ")" +
+                            ")  as b " +
+                            " ON a.Tweet_id = b.Tweet_id " +
+
+                    ")" +
+                            ") as x " +
+                            "Group by [_id]" +
+                    ")" +
+                    ") " + topBottomSort + " LIMIT " + totalCountLimit,new String[]{myListEntry.getListName(),myListEntry.getListName(),myListEntry.getListName()});
 
 
             if(c.getCount() == 0) {

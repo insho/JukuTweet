@@ -179,6 +179,11 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
 
     }
 
+    /**
+     * Displays the {@link ChooseFavoriteListsPopupWindow} when the "favorites star" is clicked for a
+     * word in one of the TweetBreakDown recycler rows
+     * @param holder ViewHolder for the row
+     */
     public void showFavoriteListPopupWindow(final ViewHolder holder) {
         RxBus rxBus = new RxBus();
 
@@ -190,7 +195,15 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
 
         int xadjust = popupWindow.getContentView().getMeasuredWidth() + (int) (25 * mMetrics.density + 0.5f);
-        int yadjust = (int)((popupWindow.getContentView().getMeasuredHeight()  + holder.imgStar.getMeasuredHeight())/2.0f);
+
+        int yadjust;
+        if(availableFavoriteLists.size()<4) {
+            yadjust = (int)((popupWindow.getContentView().getMeasuredHeight()  + holder.imgStar.getMeasuredHeight())/2.0f);
+        } else {
+            yadjust = getYAdjustmentForPopupWindowBigList(availableFavoriteLists.size(),holder.getAdapterPosition(),mMetrics.scaledDensity,holder.itemView.getMeasuredHeight());
+        }
+
+
         if(BuildConfig.DEBUG) {
             Log.d("TEST", "pop width: " + popupWindow.getContentView().getMeasuredWidth() + " height: " + popupWindow.getContentView().getMeasuredHeight());
             Log.d("TEST", "xadjust: " + xadjust + ", yadjust: " + yadjust);
@@ -264,6 +277,80 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         popupWindow.showAsDropDown(holder.imgStar,-xadjust,-yadjust);
 
 };
+
+    /**
+     * Used to adjust the positioning of the {@link ChooseFavoriteListsPopupWindow} when {@link TweetBreakDownAdapter#showFavoriteListPopupWindow(ViewHolder)} appears
+     * and there are a large number of available lists to display. We don't want the popup window to overflow the bounds of the screen.
+     * @param totalActiveLists number of available lists that a word can be saved to (i.e. number of rows to be displayed in the ChooseFavorites popup)
+     * @param adapterPosition position of row in adapter. If the row is at the bottom of the screen, the list must be adjusted upwards, and visa versa
+     * @param scale metrics scale in pixels
+     * @param heightOfView measured height of the view that was clicked (to better center the list. The views can be of variable height)
+     * @return Int specifying how far the list must be adjusted from its default position as a dropdown below the favorites star
+     */
+    public int getYAdjustmentForPopupWindowBigList(int totalActiveLists
+            , int adapterPosition
+            ,float scale
+            ,float heightOfView) {
+
+        final int yadjustment;
+
+
+
+        if(totalActiveLists>10) {
+            totalActiveLists = 10;
+        }
+
+        int estimatedheightofpopup =  (int) ((totalActiveLists*35) * scale + 0.5f);
+        int multiplier = -(mWords.size()-adapterPosition-1);
+
+        if((adapterPosition>(mWords.size()-5) && adapterPosition>((float)mWords.size()/2.0f))){
+
+            if(totalActiveLists < 5){
+                multiplier = 1;
+            }
+
+            yadjustment = estimatedheightofpopup + (int) (multiplier* ((int) ((35) * scale + 0.5f)));
+
+            if(BuildConfig.DEBUG){
+                Log.d(TAG,"rowsize: " + totalActiveLists);
+                Log.d(TAG,"estimatedheightofpopup: " + estimatedheightofpopup);
+                Log.d(TAG,"multiplier: " + multiplier);
+            }
+
+        } else {
+
+            float defmult = heightOfView*.8f;
+            float listizemultiplier;
+            switch (totalActiveLists) {
+                case 0:
+                    listizemultiplier = 35.0f+defmult;
+                    break;
+                case 1:
+                    listizemultiplier = 35.0f+defmult;
+                    break;
+                case 2:
+                    listizemultiplier = 35.0f+defmult;
+                    break;
+                case 3:
+                    listizemultiplier = 40.0f+defmult;
+                    break;
+                case 4:
+                    listizemultiplier = 45.0f+defmult;
+                    break;
+
+                default:
+                    listizemultiplier = 95.0f+defmult;
+                    break;
+            }
+
+            yadjustment =(int) ((float)listizemultiplier * scale + 0.5f);
+            if(BuildConfig.DEBUG){
+                Log.d(TAG,"listsizemultiplier: " +  listizemultiplier);
+            }
+        }
+
+        return yadjustment;
+    }
 
 
     // Return the size of your dataset (invoked by the layout manager)

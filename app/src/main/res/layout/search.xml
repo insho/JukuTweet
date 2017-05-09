@@ -10,6 +10,7 @@
         android:orientation="horizontal" android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/searchtoplayout"
+        android:layout_marginLeft="2dp"
         android:layout_marginBottom="4dp">
 
         <TextView
@@ -56,6 +57,7 @@
         android:orientation="horizontal" android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/searchOnOptionLayout"
+        android:layout_marginLeft="2dp"
         android:layout_marginBottom="4dp">
         <TextView
             android:layout_gravity="start|center_vertical"

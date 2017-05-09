@@ -60,7 +60,7 @@ import rx.schedulers.Schedulers;
 
 public class WordDetailPopupDialog extends DialogFragment implements View.OnTouchListener {
 
-    String TAG = "TEST-userdetailpop";
+    String TAG = "TEST-worddetailpop";
     private WordEntryFavoritesChangedListener mCallback;
     private boolean favoriteStarHasBeenChanged = false; // if fav star changes, call back to refresh dialog (like for browse words, the word may no longer be contained in that list..)
     //    private Context mContext;
@@ -98,7 +98,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
     private UserTimeLineAdapter mAdapter;
     private ScrollView mScrollView;
 //    private ImageView imgBanner;
-    private boolean mShowStarInAdapter = false;
+//    private boolean mShowStarInAdapter = false;
     /* keep from constantly recieving button clicks through the RxBus */
     private long mLastClickTime = 0;
     private String mCursorString = "-1";
@@ -257,8 +257,11 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
             public void onClick(View v) {
                 //TODO favorite words
                 favoriteStarHasBeenChanged = true;
-                Log.d(TAG,"mActiveFavoriteStars: " + activeFavoriteWordStars);
-                Log.d(TAG,"should open: " + mWordEntry.getItemFavorites().shouldOpenFavoritePopup(activeFavoriteWordStars));
+
+                if(BuildConfig.DEBUG) {
+                    Log.d(TAG,"mActiveFavoriteStars: " + activeFavoriteWordStars);
+                    Log.d(TAG,"should open: " + mWordEntry.getItemFavorites().shouldOpenFavoritePopup(activeFavoriteWordStars));
+                }
 
                 if(mWordEntry.getItemFavorites().shouldOpenFavoritePopup(activeFavoriteWordStars)) {
                     showFavoriteListPopupWindow(mWordEntry,activeFavoriteWordStars,metrics);
@@ -292,54 +295,6 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         });
 
 
-
-
-//        if (android.os.Build.VERSION.SDK_INT >= 23) {
-//            mRecyclerView.setOnScrollChangeListener(new View.OnScrollChangeListener() {
-//                @Override
-//                public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-//                    if (mLayoutManager == null || mDataSet == null || mDataSet.size()==0) {
-//
-//                        return;
-//                    } else {
-//                        if(mDataSet.size()>0 && mLayoutManager.findLastCompletelyVisibleItemPosition()==mDataSet.size()-1) {
-//                            Toast.makeText(getContext(), "Pull more shit", Toast.LENGTH_SHORT).show();
-//                            if(!showSavedTweetsSelected) {
-//                                searchForTweetsWithWord(mUserInfo,mCursorString,60,mDataSet.size()-1);
-//                            } else {
-//                                pullFollowerUserInfoList(mUserInfo,mCursorString,60,mDataSet.size()-1);
-//                            }
-//                        }
-//                    }
-//                }
-//            });
-//        } else {
-//            mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
-//                @Override
-//                public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-//                    super.onScrolled(recyclerView, dx, dy);
-//                    if (mLayoutManager == null || mDataSet == null || mDataSet.size()==0) {
-//
-//                        return;
-//                    } else {
-//                        if(mDataSet.size()>0 && mLayoutManager.findLastCompletelyVisibleItemPosition()==mDataSet.size()-1) {
-//                            if(!showSavedTweetsSelected) {
-//                                searchForTweetsWithWord(mUserInfo,mCursorString,60,mDataSet.size()-1);
-//                            } else {
-//                                pullFollowerUserInfoList(mUserInfo,mCursorString,60,mDataSet.size()-1);
-//                            }
-//                        }
-//                    }
-//                }
-//            });
-//        }
-
-
-
-
-
-
-        //TODO clean this up
         btnShowSavedTweetsToggle.setText("Saved Tweets");
         btnSearchForTweetsToggle.setText("Search Twitter");
 
@@ -351,14 +306,12 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
 
                 if(!showSavedTweetsSelected) {
 //                    mDataSet = new ArrayList<Tweet>();
-                    mShowStarInAdapter = false;
+//                    mShowStarInAdapter = false;
                     mCursorString = "-1";
                     showSavedTweetsSelected = true;
                     mDataSet.clear();
 
                     mDataSet.addAll(InternalDB.getTweetInterfaceInstance(getContext()).getTweetsThatIncludeAWord(String.valueOf(mWordEntry.getId()),mColorThresholds));
-//                    mAdapter.showStar(false);
-//                    mAdapter.notifyDataSetChanged();
                     mAdapter = new UserTimeLineAdapter(getContext(), mRxBus, mDataSet, mActiveTweetFavoriteStars,metrics,mWordEntry.getKanji(),false);
 
                     mRecyclerView.setAdapter(mAdapter);
@@ -371,7 +324,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         btnSearchForTweetsToggle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mShowStarInAdapter = true;
+//                mShowStarInAdapter = true;
                 setButtonActive(btnSearchForTweetsToggle,true);
                 setButtonActive(btnShowSavedTweetsToggle,false);
                 if(showSavedTweetsSelected) {
@@ -388,15 +341,6 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
 
         mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
-
-//        String coreKanjiBlock;
-//        try {
-//            Log.e(TAG,"BULLSHIT, start: " +mWordEntry.getKanji() + ": " + mWordEntry.getStartIndex() + " = " + mWordEntry.getEndIndex());
-//            coreKanjiBlock = mWordEntry.getKanji().substring(0,mWordEntry.getEndIndex()-mWordEntry.getStartIndex());
-//        } catch (Exception e) {
-//            coreKanjiBlock = mWordEntry.getKanji();
-//            Log.e(TAG,"FAILED TO SET CORE KANJI BLOCK, start: " + mWordEntry.getStartIndex() + " = " + mWordEntry.getEndIndex());
-//        }
 
         mAdapter = new UserTimeLineAdapter(getContext(), mRxBus, mDataSet, mActiveTweetFavoriteStars,metrics,mWordEntry.getKanji(),false);
 
@@ -639,97 +583,6 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
 
 
 
-
-//
-//    public void searchForTweetsWithWord(final UserInfo userInfo, String cursorString, int limit, final int prevMaxPosition){
-//
-//        showProgressBar(true);
-//
-//        String token = getResources().getString(R.string.access_token);
-//        String tokenSecret = getResources().getString(R.string.access_token_secret);
-//
-//        //TODO make the number of twitter responses an option! not just 10
-//        TwitterUserClient.getInstance(token,tokenSecret)
-//                .getFriendsUserInfo(userInfo.getScreenName(),Long.parseLong(cursorString),limit)
-//                .subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(new Observer<UserFollowersListContainer>() {
-//                    //                        List<UserInfo> mDataSet;
-//                    @Override public void onCompleted() {
-//                        if(BuildConfig.DEBUG){Log.d(TAG, "In getFriendsUserInfo onCompleted()");}
-//                        showProgressBar(false);
-//                        if(mDataSet.size()==0) {
-//                            showRecyclerView(false);
-//                        } else {
-////                            mAdapter = new UserListAdapter(getContext(),mDataSet, _rxBus);
-//                            if(mAdapter==null) {
-//                                mAdapter = new UserListAdapter(getContext(),mDataSet, _rxBus);
-//                            } else {
-//                                mAdapter.notifyDataSetChanged();
-//                                if(mDataSet.size()>prevMaxPosition) {
-//                                    mRecyclerView.smoothScrollToPosition(prevMaxPosition);
-//                                }
-//
-//                            }
-//
-//                            _rxBus.toClickObserverable()
-//                                    .subscribe(new Action1<Object>() {
-//                                        @Override
-//                                        public void call(Object event) {
-//
-//                                            if(isUniqueClick(1000) && event instanceof UserInfo) {
-//                                                UserInfo userInfo = (UserInfo) event;
-//                                                if(getFragmentManager().findFragmentByTag("dialogAddCheck") == null || !getFragmentManager().findFragmentByTag("dialogAddCheck").isAdded()) {
-//                                                    AddUserCheckDialog.newInstance(userInfo).show(getFragmentManager(),"dialogAddCheck");
-//                                                }
-//                                            }
-//
-//                                        }
-//
-//                                    });
-//
-//                            mRecyclerView.setAdapter(mAdapter);
-//                            Log.d(TAG,"show progress FALSE");
-//                        }
-//
-//
-//
-//                    }
-//
-//                    @Override public void onError(Throwable e) {
-//                        e.printStackTrace();
-//                        if(BuildConfig.DEBUG){Log.d(TAG, "In onError()");}
-//                        showProgressBar(false);
-//                        showRecyclerView(false);
-//                        Toast.makeText(getContext(), "Unable to get users for @" + userInfo.getScreenName(), Toast.LENGTH_SHORT).show();
-//                    }
-//
-//                    @Override public void onNext(UserFollowersListContainer followers) {
-//                        if(BuildConfig.DEBUG) {
-//                            Log.d(TAG, "In onNext()");
-//                            Log.d(TAG,"FOLLOWERS SIZE: " + followers.getUsers().size());
-//                        }
-//
-//                        if(!mCursorString.equals(followers.getNextCursorString())) {
-//                            try {
-//                                mDataSet.addAll(followers.getUsers());
-//                                mCursorString = followers.getNextCursorString();
-//                                showRecyclerView(true);
-//                            } catch (Exception e) {
-//                                Log.e(TAG,"Exception trying to pull follower data... "  + e.toString());
-//                                showRecyclerView(false);
-//                            }
-//                        }
-//
-//                    }
-//                });
-//
-//    }
-
-
-
-
-
     /**
      * Toggles between showing recycler (if there are followed users in the database)
      * and hiding the recycler while showing the "no users found" message if there are not
@@ -939,7 +792,12 @@ return linecounter;
 //
 
 
-
+    /**
+     * Displays the {@link ChooseFavoriteListsPopupWindow} when the "favorites star" is clicked in the WordDetailPopupDialog
+     * @param wordEntry WordEntry that is currently showing in the WordDetailPopupDialog
+     * @param activeFavoriteStars list of system lists that the word can be saved to. Used to assign correct color to word after popupwindow is dismissed
+     * @param metrics display metrics
+     */
     public void showFavoriteListPopupWindow(final WordEntry wordEntry
             ,final ArrayList<String> activeFavoriteStars
             ,DisplayMetrics metrics
@@ -954,39 +812,33 @@ return linecounter;
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
 
         int xadjust = popupWindow.getContentView().getMeasuredWidth() + (int) (25 * metrics.density + 0.5f);
-        int yadjust = (int)((popupWindow.getContentView().getMeasuredHeight()  + imgStar.getMeasuredHeight())/2.0f);
 
-        Log.d("TEST","pop width: " + popupWindow.getContentView().getMeasuredWidth() + " height: " + popupWindow.getContentView().getMeasuredHeight());
-        Log.d("TEST","xadjust: " + xadjust + ", yadjust: " + yadjust);
+        /* Depending on the size of the popup window, the window's y-coordinates must be adjusted so the window
+        * stays on the screen. */
+        int yadjust;
 
+        if(availableFavoriteLists.size()<4) {
+            yadjust = (int)((popupWindow.getContentView().getMeasuredHeight()  + imgStar.getMeasuredHeight())/2.0f);
+        } else {
+            yadjust = (int)((popupWindow.getContentView().getMeasuredHeight()*.25f + imgStar.getMeasuredHeight())/2.0f);
+        }
 
-//        popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
-//            @Override
-//            public void onDismiss() {
-////                imgStar.setImageResource(FavoritesColors.assignStarResource(wordEntry.getItemFavorites(),activeFavoriteStars));
-//
-//                try {
-//                    imgStar.setColorFilter(ContextCompat.getColor(getContext(),FavoritesColors.assignStarColor(wordEntry.getItemFavorites(),activeFavoriteStars)));
-//                } catch (NullPointerException e) {
-//                    Log.e(TAG,"showFavoriteListPopupWindow Nullpointer error setting star color filter in word detail popup dialog... Need to assign item favorites to WordEntry(?)" + e.getCause());
-//                }
-//
-//            }
-//        });
-
-
+        if(BuildConfig.DEBUG) {
+            Log.d("TEST","pop width: " + popupWindow.getContentView().getMeasuredWidth() + " height: " + popupWindow.getContentView().getMeasuredHeight());
+            Log.d("TEST","xadjust: " + xadjust + ", yadjust: " + yadjust);
+        }
 
         rxBus.toClickObserverable().subscribe(new Action1<Object>() {
             @Override
             public void call(Object event) {
 
-                                    /* Recieve a MyListEntry (containing an updated list entry for this row kanji) from
-                                    * the ChooseFavoritesAdapter in the ChooseFavorites popup window */
+                /* Recieve a MyListEntry (containing an updated list entry for this row kanji) from
+                * the ChooseFavoritesAdapter in the ChooseFavorites popup window */
                 if(event instanceof MyListEntry) {
                     MyListEntry myListEntry = (MyListEntry) event;
 
-                                        /* Ascertain the type of list that the kanji was added to (or subtracted from),
-                                        and update that list's count */
+                    /* Ascertain the type of list that the kanji was added to (or subtracted from),
+                    and update that list's count */
                     if(myListEntry.getListsSys() == 1) {
                         switch (myListEntry.getListName()) {
                             case "Blue":
@@ -1042,37 +894,6 @@ return linecounter;
         popupWindow.showAsDropDown(imgStar,-xadjust,-yadjust);
 
     };
-
-//    @Override
-//    public void onAttach(Activity activity) {
-//        super.onAttach(activity);
-//        try {
-//            mCallback = (WordEntryFavoritesChangedListener) activity;
-//        } catch (ClassCastException e) {
-//            throw new ClassCastException(activity.toString() + " must implement WordEntryFavoritesChangedListener");
-//        }
-//    }
-
-//    @Override
-//    public void onAttach(Context context) {
-//        super.onAttach(context);
-//        try {
-//            mCallback = (WordEntryFavoritesChangedListener) context;
-//        } catch (ClassCastException e) {
-//            throw new ClassCastException(context.toString()
-//                    + " must implement WordEntryFavoritesChangedListener");
-//        }
-//    }
-
-//    @Override
-//    public void onAttach(Activity activity) {
-//        super.onAttach(activity);
-//        try {
-//            mCallback = (WordEntryFavoritesChangedListener) getTargetFragment();
-//        } catch (ClassCastException e) {
-//            throw new ClassCastException(activity.toString() + " must implement WordEntryFavoritesChangedListener");
-//        }
-//    }
 
     @Override
     public void onAttach(Context context) {

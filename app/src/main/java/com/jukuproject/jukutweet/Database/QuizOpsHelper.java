@@ -1039,7 +1039,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                                 "WHERE [Edict_id] in (" +
                                             "SELECT DISTINCT [_id]" +
                                             " FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
-                                            " WHERE [Name] = ?  and [Sys] = ? " +
+                                            " WHERE [Name] = ?  and [Sys] = " + myListEntry.getListsSys() +" " +
                                                 ") " +
                                 ") as TweetLists " +
                             " LEFT JOIN " +
@@ -1063,7 +1063,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                                     "WHERE [Edict_id] in (" +
                                          "SELECT DISTINCT [_id]" +
                                         " FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
-                                        " WHERE [Name] = ? and  [Sys] = ?   " +
+                                        " WHERE [Name] = ? and  [Sys] = "+ myListEntry.getListsSys() +"  " +
                                              ") " +
                                         ") " +
                             ") as a " +
@@ -1155,7 +1155,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             " WHERE [Edict_id] in (" +
                             "SELECT DISTINCT [_id]" +
                             " FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
-                            " WHERE [Name] = ? and  [Sys] = ?   " +
+                            " WHERE [Name] = ? and  [Sys] = " + myListEntry.getListsSys() +"   " +
                             ") " +
                             ") " +
                             ") as a " +
@@ -1194,11 +1194,12 @@ public class QuizOpsHelper implements QuizOperationsInterface {
 
                             "Order by date(MetaData.Date) Desc,TweetIds.[Tweet_id] asc,TweetKanjiData.StartIndex asc"
                     ,  new String[]{myListEntry.getListName()
-                            ,String.valueOf(myListEntry.getListsSys())
+//                            ,String.valueOf(myListEntry.getListsSys())
                             ,myListEntry.getListName()
-                            ,String.valueOf(myListEntry.getListsSys())
+//                            ,String.valueOf(myListEntry.getListsSys())
                             ,myListEntry.getListName()
-                            ,String.valueOf(myListEntry.getListsSys())});
+//                            ,String.valueOf(myListEntry.getListsSys())
+ });
 
 
             /* The query pulls a list of tweetdata paired with each parsed-kanji in the tweet, resulting in

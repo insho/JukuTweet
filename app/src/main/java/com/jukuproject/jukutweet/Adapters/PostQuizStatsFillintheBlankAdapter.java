@@ -128,9 +128,7 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
             */
             ViewGroup.LayoutParams layoutParams = holder.lstSentenceWords.getLayoutParams();
 
-            if(superadaptertextviewheightsize>0) {
-                layoutParams.height = superadaptertextviewheightsize* spinnerWords.size();
-            } else {
+            if(superadaptertextviewheightsize==0) {
                 Rect bounds = new Rect();
                 TextView textView_Test =new TextView(mContext);
                 String text = "\u2022 猫";
@@ -141,9 +139,10 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
                 textPaint.getTextBounds(text, 0, text.length(), bounds);
 
                 if(BuildConfig.DEBUG){Log.d(TAG,"bounds.height(): " + bounds.height());}
-
-                layoutParams.height = (bounds.height()+mAdapterRowHeightMultiplier)*spinnerWords.size();
+                superadaptertextviewheightsize = (bounds.height()+mAdapterRowHeightMultiplier);
             }
+        layoutParams.height = superadaptertextviewheightsize* spinnerWords.size();
+
 
         if(BuildConfig.DEBUG){Log.d(TAG,"layoutparams.height = " + layoutParams.height );}
         if(spinnerWords.size()>0) {

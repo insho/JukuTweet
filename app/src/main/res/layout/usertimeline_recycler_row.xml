@@ -191,8 +191,8 @@
             android:alpha=".6"
             android:focusable="false"
             android:focusableInTouchMode="false"
-            android:layout_marginStart="15dp"
-            android:layout_marginLeft="15dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
             />
         <TextView
             android:id="@+id/favorited"

@@ -550,7 +550,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
     public boolean addMultipleWordsToWordList(MyListEntry myListEntry, String concatenatedWordIds) {
         SQLiteDatabase db = sqlOpener.getReadableDatabase();
         try {
-            db.execSQL("INSERT OR REPLACE INTO " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES +" SELECT DISTINCT [_id],? as [Name], ? as [Sys] FROM [Edict] WHERE [_id] in (" + concatenatedWordIds + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+            db.execSQL("INSERT OR REPLACE INTO " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES +" SELECT DISTINCT [_id],? as [Name], ? as [Sys] FROM [Edict] WHERE [_id] > 0 and [_id] in (" + concatenatedWordIds + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
             return true;
         } catch (SQLiteException e){
             Log.e(TAG,"copyKanjiToList Sqlite exception: " + e);
@@ -651,7 +651,8 @@ public class WordOpsHelper implements WordListOperationsInterface {
      *
      * @return Cursor with colorblock details for each saved WordList in the db
      */
-    public Cursor getWordListColorBlockCursor(ColorThresholds colorThresholds, MyListEntry myListEntry) {
+    public Cursor getWordListColorBlockCursor(ColorThresholds colorThresholds, @Nullable MyListEntry myListEntry) {
+
         int ALL_LISTS_FLAG = 0;
         int sys = -1;
         String name = "";
@@ -665,7 +666,11 @@ public class WordOpsHelper implements WordListOperationsInterface {
             Log.d(TAG,"name: " + name);
             Log.d(TAG,"sys: " + sys);
         }
-        return  sqlOpener.getWritableDatabase().rawQuery("SELECT xx.[Name]" +
+
+        supertest();
+
+        return  sqlOpener.getWritableDatabase().rawQuery(
+                "SELECT xx.[Name]" +
                 ",xx.[Sys]" +
                 ",ifnull(yy.[Total],0) as [Total]" +
                 ",ifnull(yy.[Grey],0) as [Grey]" +
@@ -718,27 +723,71 @@ public class WordOpsHelper implements WordListOperationsInterface {
                 ",ifnull(b.[Correct],0)  as [Correct]" +
                 ",CAST(ifnull(b.[Correct],0)  as float)/b.[Total] as [Percent] " +
                 "FROM (" +
-                "SELECT  DISTINCT [Name]" +
-                ",[Sys]" +
-                ",[_id] " +
-                "FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
-                "WHERE ([Name] = ? and [Sys] = "+sys+ ") OR " + ALL_LISTS_FLAG + " = 1 " +
+                    "SELECT  DISTINCT [Name]" +
+                    ",[Sys]" +
+                    ",[_id] " +
+                    "FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
+                "WHERE ([Name] is not NULL and [_id] is not NULL and [_id] >0) and (([Name] = ? and [Sys] = "+sys+ ") OR " + ALL_LISTS_FLAG + " = 1) " +
                 ") as a " +
                 "LEFT JOIN  (" +
-                "SELECT [_id]" +
-                ",sum([Correct]) as [Correct]" +
-                ",sum([Total]) as [Total] FROM [JScoreboard] " +
-                "where [_id] in (SELECT DISTINCT [_id] FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + ")" +
-                " GROUP BY [_id]" +
+                    "SELECT [_id]" +
+                    ",sum([Correct]) as [Correct]" +
+                    ",sum([Total]) as [Total] " +
+                    "FROM [JScoreboard] " +
+                    "where  [_id] >0 and [_id] in (SELECT DISTINCT [_id] FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + ")" +
+                    " GROUP BY [_id]" +
                 ") as b " +
                 "ON a.[_id] = b.[_id]) " +
-                " as x) as y " +
+                " as x" +
+                        ")" +
+                        " as y " +
                 "GROUP BY [Name],[Sys]" +
                 ") as yy  " +
                 "ON xx.[Name] = yy.[Name] and xx.[sys] = yy.[sys]  " +
                 "Order by xx.[Sys] Desc,xx.[Name]",new String[]{name,name});
 
     }
+
+    public void supertest() {
+        SQLiteDatabase db = sqlOpener.getReadableDatabase();
+
+            Cursor c = db.rawQuery("SELECT a.[Name]" +
+                ",a.[Sys]" +
+                ",a.[_id]" +
+                ",ifnull(b.[Total],0) as [Total] " +
+                ",ifnull(b.[Correct],0)  as [Correct]" +
+                ",CAST(ifnull(b.[Correct],0)  as float)/b.[Total] as [Percent] " +
+                "FROM (" +
+                "SELECT  DISTINCT [Name]" +
+                ",[Sys]" +
+                ",[_id] " +
+                "FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
+//                "WHERE [Name] is not NULL and [_id] is not NULL and ([Name] = ? and [Sys] = "+sys+ ") OR " + ALL_LISTS_FLAG + " = 1 " +
+                ") as a " +
+                "LEFT JOIN  (" +
+                "SELECT [_id]" +
+                ",sum([Correct]) as [Correct]" +
+                ",sum([Total]) as [Total] " +
+                "FROM [JScoreboard] " +
+                "where [_id] in (SELECT DISTINCT [_id] FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + ")" +
+                " GROUP BY [_id]" +
+                ") as b " +
+                "ON a.[_id] = b.[_id] "
+                ,null);
+
+        if(c.getCount()>0) {
+            c.moveToFirst();
+            while (!c.isAfterLast()) {
+                    Log.d(TAG,"SuperTESt NAME:  "  + c.getString(0) + ", sys: " + c.getString(1)
+                            + ", id: " + c.getString(2)
+                            + ", correct/total: " + c.getString(4) + "/" + c.getString(3) );
+
+                    c.moveToNext();
+
+                }
+            }
+
+    };
 
 
     /**
@@ -789,7 +838,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     " ,[Orange] " +
                     ",[Other] " +
                     ",[Percent] " +
-
+                    ",[ColorSort] " +
                     "FROM " +
                     "(" +
                     "SELECT " +
@@ -800,10 +849,10 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     "ifnull([Total],0) as [Total] " +
 
 
-                    ",(CASE WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 1 " +
-                    "WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 0  " +
-                    "WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and (CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getRedThreshold() + "  and CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + ") THEN 2  " +
-                    "WHEN [Total] >= " + colorThresholds.getGreyThreshold() + " and CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getYellowThreshold() + " THEN 3 " +
+                    ",(CASE WHEN ifnull([Total],0) < " + colorThresholds.getGreyThreshold() + " THEN 1 " +
+                    "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 0  " +
+                    "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and (CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getRedThreshold() + "  and CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + ") THEN 2  " +
+                    "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getYellowThreshold() + " THEN 3 " +
                     "ELSE 0 END) as [ColorSort] " +
 
                     ",ifnull([Correct],0)  as [Correct]" +
@@ -872,6 +921,9 @@ public class WordOpsHelper implements WordListOperationsInterface {
                 return wordEntries;
             }
 
+            Log.d(TAG,"greythresh: " + colorThresholds.getGreyThreshold());
+            Log.d(TAG,"redthresh: " + colorThresholds.getRedThreshold());
+
             c.moveToFirst();
             while (!c.isAfterLast()) {
 
@@ -887,7 +939,10 @@ public class WordOpsHelper implements WordListOperationsInterface {
                         wordEntry.setFurigana(c.getString(4));
                         wordEntry.setDefinition(c.getString(5));
                         wordEntries.add(wordEntry);
-                        if(BuildConfig.DEBUG){Log.d(TAG,"ADDING KANJI: " + wordEntry.getKanji());}
+                        if(BuildConfig.DEBUG){Log.d(TAG,"ADDING KANJI: " + wordEntry.getKanji()
+                                + ", colorsort: " + c.getString(14)
+                                + ", total: " + c.getInt(3)
+                                + ", correct: " + c.getInt(2));}
 
                         wordEntry.setItemFavorites(new ItemFavorites(c.getInt(6)
                                 ,c.getInt(7)
@@ -1010,7 +1065,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     ") )" +
                     ") " +
                     "ORDER BY [OrderValue],[KanjiLength]", null);
-//asdf
+
             if(c.getCount()>0) {
                 c.moveToFirst();
                 while (!c.isAfterLast())

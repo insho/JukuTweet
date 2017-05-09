@@ -42,8 +42,6 @@ import java.util.ArrayList;
 
 import rx.functions.Action1;
 
-import static com.jukuproject.jukutweet.Fragments.TweetBreakDownFragment.countOfAll;
-
 //import static com.jukuproject.jukutweet.Adapters.ChooseFavoritesAdapter.setAppCompatCheckBoxColors;
 
 
@@ -427,7 +425,6 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                         public void call(Object event) {
 
                             if(isUniqueClick(1000) && event instanceof UserInfo) {
-//                                Log.d(TAG,"LONG CLICK TO CALLBACK")
                                 UserInfo userInfo = (UserInfo) event;
                                 mCallback.showAddUserCheckDialog(userInfo);
                             }
@@ -450,8 +447,6 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
 
                         //Try to insert Kanji if they do not already exist
                         if(helperTweetOps.tweetParsedKanjiExistsInDB(tweet) == 0) {
-//                            Log.d(TAG,"SAVING TWEET KANJI");
-//                                        final WordLoader wordLoader = helper.getWordLists(db);
                             mCallback.parseAndSaveTweet(tweet);
                         } else {
                             Log.e(TAG,"Tweet parsed kanji exists code is funky");
@@ -539,10 +534,17 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
         }
     }
 
+    /**
+     * Updates WordEntries in the dataset of dictionary results when the user has changed the
+     * favorites for a word in the {@link WordDetailPopupDialog} via the {@link WordEntryFavoritesChangedListener}
+     * @param wordEntry WordEntry for the word that has new itemfavorites info
+     */
     public void updateWordEntryItemFavorites(WordEntry wordEntry) {
-        if(mDictionaryResults!=null && countOfAll(wordEntry,mDictionaryResults)>1) {
+
+        if(mDictionaryResults!=null ) {
             for(WordEntry tweetWordEntry : mDictionaryResults) {
                 if(tweetWordEntry.getId()==wordEntry.getId()) {
+
                     wordEntry.setItemFavorites(wordEntry.getItemFavorites());
                 }
             }

@@ -130,7 +130,7 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
             mSingleUser = mIntent.getBooleanExtra("singleUser",false);
             mUserInfo = mIntent.getParcelableExtra("mUserInfo");
             Integer timerInteger;
-            if(timer.equals("None")) {
+            if(timer == null || timer.equals("None")) {
                 timerInteger = -1;
             } else {
                 timerInteger = Integer.parseInt(timer);
@@ -518,7 +518,7 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
         intent.putExtra("typeOfQuizThatWasCompleted","Multiple Choice"); //The type of quiz that was chosen inthe menu
         intent.putExtra("quizType",quizType);
         intent.putExtra("tabNumber", 1);
-        intent.putParcelableArrayListExtra("dataset",dataset);
+//        intent.putParcelableArrayListExtra("dataset",dataset);
         intent.putExtra("mTabNumber",mTabNumber);
         intent.putExtra("lastExpandedPosition",mLastExpandedPosition);
         intent.putExtra("mDataSetMultipleChoice",dataset);
@@ -540,10 +540,10 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
         intent.putExtra("typeOfQuizThatWasCompleted","Fill in the Blanks"); //The type of quiz that was chosen inthe menu
         intent.putExtra("tabNumber", 2);
         intent.putExtra("myListEntry",myListEntry);
-        intent.putParcelableArrayListExtra("dataset",dataset);
+//        intent.putParcelableArrayListExtra("mDataSetFillintheBlanks",dataset);
         intent.putExtra("mTabNumber",mTabNumber);
         intent.putExtra("lastExpandedPosition",mLastExpandedPosition);
-        intent.putExtra("mDataSetMultipleChoice",dataset);
+        intent.putExtra("mDataSetFillintheBlanks",dataset);
         intent.putExtra("mCorrect",correct);
         intent.putExtra("mTotal",total);
         if(mTabNumber!=null && mTabNumber==1) {
