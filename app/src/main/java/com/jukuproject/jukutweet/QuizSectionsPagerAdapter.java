@@ -29,7 +29,7 @@ public class QuizSectionsPagerAdapter extends FragmentPagerAdapter {
     @Override
     public Fragment getItem(int position) {
 //            if(position == 1) {
-//                return  QuizTab2Container.newInstance();
+//                return  QuizTab2Container.newWordListInstance();
 //            } else {
                 return mSavedFragments[position];
 //            }

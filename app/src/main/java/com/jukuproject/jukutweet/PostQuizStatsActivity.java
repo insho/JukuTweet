@@ -84,7 +84,7 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
     private boolean mIsTweetListQuiz;
     private ArrayList<Tweet> mDataSetFillintheBlanks;
     private UserInfo mUserInfo;
-    private boolean mSingleUser;
+    private boolean mSingleUser;  //If quiz activiy was initiated from the SingleUserTweetListFragment
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,6 +119,7 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
 
             typeOfQuizThatWasCompleted = mIntent.getStringExtra("typeOfQuizThatWasCompleted"); //The type of quiz that was chosen inthe menu
             mIsTweetListQuiz = mIntent.getBooleanExtra("mIsTweetListQuiz",false);
+
                 /* Depending on the menuOption, pull the appropriate set of data from the intent and run the
                 * appropriate fragment */
             String quizType = mIntent.getStringExtra("quizType");
@@ -189,7 +190,12 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
                     break;
             }
 
-            fragments[1] = PostQuizTab2Container.newInstance(mColorBlockMeasurables,mMyListEntry,mIsTweetListQuiz);
+            if(mSingleUser) {
+                fragments[1] = PostQuizTab2Container.newSingleUserTweetsInstance(mColorBlockMeasurables,mUserInfo);
+            } else {
+                fragments[1] = PostQuizTab2Container.newInstance(mColorBlockMeasurables,mMyListEntry,mIsTweetListQuiz);
+            }
+
 
             // Create the adapter that will return a fragment for each of the primary sections of the activity.
             mAdapterTitles = new String[2];
@@ -437,12 +443,12 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
 //
 ////            Log.d(TAG,"Creating statsfragment -- correct: " + correct + ", total: " + total);
 ////
-//////            StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newInstance(myListEntry
+//////            StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newWordListInstance(myListEntry
 //////                    , 10
 //////                    ,mColorBlockMeasurables);
 ////Log.d(TAG,"XXX HERE");
 //////            ((BaseContainerFragment) findFragmentByPosition(0)).replaceFragment(statsFragmentProgress, true, "statsFragmentProgressx");
-////            StatsFragmentMultipleChoice statsFragmentMultipleChoice = StatsFragmentMultipleChoice.newInstance(dataset
+////            StatsFragmentMultipleChoice statsFragmentMultipleChoice = StatsFragmentMultipleChoice.newWordListInstance(dataset
 ////                            ,quizType
 ////                            , isWordBuilder
 ////                    , isHighScore
@@ -452,7 +458,7 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
 ////
 ////                ((BaseContainerFragment) findFragmentByPosition(0)).replaceFragment(statsFragmentMultipleChoice, true, "statsFragmentMultipleChoice");
 ////
-////            StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newInstance(myListEntry
+////            StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newWordListInstance(myListEntry
 ////                        , 10
 ////                        ,mColorBlockMeasurables);
 ////
@@ -460,7 +466,7 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
 ////            Log.d(TAG,"XXX HERE2");
 //            if (findFragmentByPosition(0) != null
 //                    && findFragmentByPosition(0) instanceof QuizTab1Container) {
-//                StatsFragmentMultipleChoice statsFragmentMultipleChoice = StatsFragmentMultipleChoice.newInstance(dataset
+//                StatsFragmentMultipleChoice statsFragmentMultipleChoice = StatsFragmentMultipleChoice.newWordListInstance(dataset
 //                        ,quizType
 //                        , isWordBuilder
 //                        , isHighScore
@@ -476,7 +482,7 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
 //                    && findFragmentByPosition(1) instanceof QuizTab2Container) {
 //
 //
-//                StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newInstance(myListEntry
+//                StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newWordListInstance(myListEntry
 //                        , 10
 //                        ,mColorBlockMeasurables);
 //
@@ -522,7 +528,7 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
 //            if (findFragmentByPosition(0) != null
 //                    && findFragmentByPosition(0) instanceof QuizTab1Container) {
 //
-//                StatsFragmentFillintheBlanks statsFragmentFillintheBlanks = StatsFragmentFillintheBlanks.newInstance(dataset
+//                StatsFragmentFillintheBlanks statsFragmentFillintheBlanks = StatsFragmentFillintheBlanks.newWordListInstance(dataset
 //                        , correct
 //                        , total);
 //                ((BaseContainerFragment) findFragmentByPosition(0)).replaceFragment(statsFragmentFillintheBlanks, true, "statsFragmentFillintheBlanks");
@@ -531,7 +537,7 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
 //            if (findFragmentByPosition(1) != null
 //                    && findFragmentByPosition(1) instanceof QuizTab2Container) {
 //
-//                StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newInstance(myListEntry
+//                StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newWordListInstance(myListEntry
 //                        , 10
 //                        ,mColorBlockMeasurables);
 //                ((BaseContainerFragment) findFragmentByPosition(1)).replaceFragment(statsFragmentProgress, true, "statsFragmentProgress");
@@ -558,7 +564,7 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
 //            public void onClick(View view) {
 //
 //
-//                QuizMenuDialog.newInstance("fillintheblanks"
+//                QuizMenuDialog.newWordListInstance("fillintheblanks"
 //                        ,mTabNumber
 //                        ,mLastExpandedPosition
 //                        ,mMyListEntry

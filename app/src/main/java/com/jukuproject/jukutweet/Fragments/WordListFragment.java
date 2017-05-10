@@ -203,10 +203,9 @@ public class WordListFragment extends Fragment {
                         ColorBlockMeasurables colorBlockMeasurables = prepareColorBlockDataForList(myListEntry);
 
 
-                        StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newInstance(myListEntry
+                        StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newWordListInstance(myListEntry
                                 , 10
-                                ,colorBlockMeasurables
-                                ,false);
+                                ,colorBlockMeasurables);
                         ((BaseContainerFragment)getParentFragment()).replaceFragment(statsFragmentProgress, true,"mylistbrowse");
                         mCallback.showFab(false,"");
                         break;
@@ -220,10 +219,10 @@ public class WordListFragment extends Fragment {
 
 
 
-
-        expListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        expListView.setOnItemLongClickListener(new ExpandableListView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+
                 if (ExpandableListView.getPackedPositionType(id) == ExpandableListView.PACKED_POSITION_TYPE_GROUP) {
                     int groupPosition = ExpandableListView.getPackedPositionGroup(id);
                     mCallback.showEditMyListDialog("MyList",mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).isSystemList());

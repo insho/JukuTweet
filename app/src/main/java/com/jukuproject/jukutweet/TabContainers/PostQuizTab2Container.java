@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import com.jukuproject.jukutweet.Fragments.StatsFragmentProgress;
 import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
 import com.jukuproject.jukutweet.Models.MyListEntry;
+import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.R;
 
 //TODO -- possibly consolidate these into one?
@@ -26,12 +27,26 @@ public class PostQuizTab2Container extends BaseContainerFragment {
 
     public PostQuizTab2Container() {}
 
-    public static PostQuizTab2Container newInstance(ColorBlockMeasurables colorBlockMeasurables, MyListEntry myListEntry,boolean isTweetList) {
+    public static PostQuizTab2Container newInstance(ColorBlockMeasurables colorBlockMeasurables
+            , MyListEntry myListEntry
+            ,boolean isTweetList) {
         PostQuizTab2Container fragment =  new PostQuizTab2Container();
         Bundle args = new Bundle();
         args.putParcelable("mColorBlockMeasurables",colorBlockMeasurables);
         args.putParcelable("myListEntry", myListEntry);
         args.putBoolean("isTweetList",isTweetList);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    public static PostQuizTab2Container newSingleUserTweetsInstance(ColorBlockMeasurables colorBlockMeasurables
+            , UserInfo userInfo) {
+        PostQuizTab2Container fragment =  new PostQuizTab2Container();
+        Bundle args = new Bundle();
+        args.putParcelable("mColorBlockMeasurables",colorBlockMeasurables);
+        args.putParcelable("userInfo", userInfo);
+        args.putBoolean("isTweetList",true);
+        args.putBoolean("isSingleUserTweetList",true);
         fragment.setArguments(args);
         return fragment;
     }
@@ -51,11 +66,25 @@ public class PostQuizTab2Container extends BaseContainerFragment {
     private void initView() {
 
         try {
-            StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newInstance((MyListEntry)getArguments().getParcelable("myListEntry")
-                    , 10
-                    ,(ColorBlockMeasurables)getArguments().getParcelable("mColorBlockMeasurables")
-                    ,getArguments().getBoolean("isTweetList",false)
-            );
+            StatsFragmentProgress statsFragmentProgress;
+
+            if(getArguments().getBoolean("isSingleUserTweetList",false)) {
+                statsFragmentProgress = StatsFragmentProgress.newSingleUserTweetsInstance((UserInfo)getArguments().getParcelable("userInfo")
+                        , 10
+                        ,(ColorBlockMeasurables)getArguments().getParcelable("mColorBlockMeasurables")
+                );
+            } else if(getArguments().getBoolean("isTweetList",false)) {
+                statsFragmentProgress = StatsFragmentProgress.newTweetsInstance((MyListEntry)getArguments().getParcelable("myListEntry")
+                        , 10
+                        ,(ColorBlockMeasurables)getArguments().getParcelable("mColorBlockMeasurables")
+                );
+            } else {
+                statsFragmentProgress = StatsFragmentProgress.newWordListInstance((MyListEntry)getArguments().getParcelable("myListEntry")
+                        , 10
+                        ,(ColorBlockMeasurables)getArguments().getParcelable("mColorBlockMeasurables")
+                );
+            }
+
 
             replaceFragment(statsFragmentProgress, false,"statsFragmentProgress");
 

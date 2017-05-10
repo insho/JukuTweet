@@ -250,7 +250,7 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
                     ClickableSpan kanjiClick = new ClickableSpan() {
                         @Override
                         public void onClick(View textView) {
-//                            WordDetailPopupDialog.newInstance(wordEntry).show(getFragmentManager(),"wordDetailPopup");
+//                            WordDetailPopupDialog.newWordListInstance(wordEntry).show(getFragmentManager(),"wordDetailPopup");
                             WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(wordEntry);
                             wordDetailPopupDialog.setTargetFragment(FillInTheBlankFragment.this, 0);
                             wordDetailPopupDialog.show(getFragmentManager(),"wordDetailPopup");

@@ -71,6 +71,7 @@
     <string name="list_favoriteslistcount_tweet"># of Tweet Favorites Lists to Include</string>
     <string name="dialog_title_list_favoritescount_tweet">Tweet Favorites Lists</string>
 
+    <string name="statsComplete">%1$d%% Complete</string>
 
     <string name="actionicon_cancel">Cancel</string>
     <string name="actionicon_delete">Remove</string>

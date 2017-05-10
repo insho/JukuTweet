@@ -286,7 +286,7 @@ public class UserListFragment extends Fragment {
 //                                    mCallback.showRemoveUserDialog(mMenuHeader.get(groupPosition).getUserInfo());
 //                                } else {
 //                                    mCallback.showFab(false);
-//                                    UserDetailPopupDialog.newInstance(mMenuHeader.get(groupPosition).getUserInfo()).show(getFragmentManager(),"userDetailPopup");
+//                                    UserDetailPopupDialog.newWordListInstance(mMenuHeader.get(groupPosition).getUserInfo()).show(getFragmentManager(),"userDetailPopup");
 //                                }
 //
 //                    }
@@ -314,7 +314,7 @@ public class UserListFragment extends Fragment {
 //
 //                    switch (childOption) {
 //                        case "View Timeline":
-////                            TweetListBrowseFragment fragment = TweetListBrowseFragment.newInstance(mMenuHeader.get(groupPosition).getUserInfo());
+////                            TweetListBrowseFragment fragment = TweetListBrowseFragment.newWordListInstance(mMenuHeader.get(groupPosition).getUserInfo());
 ////                            ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"savedtweetsbrowse");
 //
 //                            if(mMenuHeader.get(groupPosition).getUserInfo()!=null && mMenuHeader.get(groupPosition).getUserInfo().getUserId()==null) {
@@ -338,7 +338,7 @@ public class UserListFragment extends Fragment {
 //                        case "Saved Tweets":
 //
 ////                            try {
-////                                TweetListSingleUserFragment tweetListSingleUserFragment = TweetListSingleUserFragment.newInstance(userInfo);
+////                                TweetListSingleUserFragment tweetListSingleUserFragment = TweetListSingleUserFragment.newWordListInstance(userInfo);
 ////                                ((BaseContainerFragment)findFragmentByPosition(1)).replaceFragment(tweetListSingleUserFragment,true,"savedTweetsAllFragmentIndividual");
 ////                            } catch (Exception e) {
 ////                                Log.e("TEST","showSavedTweetsTabForIndividualUser failed");
@@ -350,9 +350,9 @@ public class UserListFragment extends Fragment {
 ////                            mCallback.showSavedTweetsTabForIndividualUser(userInfo);
 ////        mCallback.updateTabs(new String[]{"Timeline","Saved Tweets"});
 ////                            mCallback.updateTabs(new String[]{"Timeline","Saved Tweets","Word Lists","Search"});
-////                            ((BaseContainerFragment)getParentFragment()).replaceFragment(UserTimeLineFragment.newInstance(mMenuHeader.get(groupPosition).getUserInfo()), true,"timeline");
+////                            ((BaseContainerFragment)getParentFragment()).replaceFragment(UserTimeLineFragment.newWordListInstance(mMenuHeader.get(groupPosition).getUserInfo()), true,"timeline");
 //
-//                            TweetListSingleUserFragment tweetListSingleUserFragment = TweetListSingleUserFragment.newInstance(mMenuHeader.get(groupPosition).getUserInfo());
+//                            TweetListSingleUserFragment tweetListSingleUserFragment = TweetListSingleUserFragment.newWordListInstance(mMenuHeader.get(groupPosition).getUserInfo());
 //                            ((BaseContainerFragment)getParentFragment()).replaceFragment(tweetListSingleUserFragment,true,"savedTweetsAllFragmentIndividual");
 //
 ////                            if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
@@ -412,7 +412,7 @@ public class UserListFragment extends Fragment {
                         case "Saved Tweets":
 
 //                            try {
-//                                TweetListSingleUserFragment tweetListSingleUserFragment = TweetListSingleUserFragment.newInstance(userInfo);
+//                                TweetListSingleUserFragment tweetListSingleUserFragment = TweetListSingleUserFragment.newWordListInstance(userInfo);
 //                                ((BaseContainerFragment)findFragmentByPosition(1)).replaceFragment(tweetListSingleUserFragment,true,"savedTweetsAllFragmentIndividual");
 //                            } catch (Exception e) {
 //                                Log.e("TEST","showSavedTweetsTabForIndividualUser failed");
@@ -424,7 +424,7 @@ public class UserListFragment extends Fragment {
 //                            mCallback.showSavedTweetsTabForIndividualUser(userInfo);
 //        mCallback.updateTabs(new String[]{"Timeline","Saved Tweets"});
 //                            mCallback.updateTabs(new String[]{"Timeline","Saved Tweets","Word Lists","Search"});
-//                            ((BaseContainerFragment)getParentFragment()).replaceFragment(UserTimeLineFragment.newInstance(mMenuHeader.get(groupPosition).getUserInfo()), true,"timeline");
+//                            ((BaseContainerFragment)getParentFragment()).replaceFragment(UserTimeLineFragment.newWordListInstance(mMenuHeader.get(groupPosition).getUserInfo()), true,"timeline");
 
                                 TweetListSingleUserFragment tweetListSingleUserFragment = TweetListSingleUserFragment.newInstance(menuChild.getUserInfo());
                                 ((BaseContainerFragment)getParentFragment()).replaceFragment(tweetListSingleUserFragment,true,"savedTweetsAllFragmentIndividual");

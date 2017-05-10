@@ -588,6 +588,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             if(findFragmentByPosition(0) != null && findFragmentByPosition(0) instanceof Tab1Container) {
                 ((Tab1Container) findFragmentByPosition(0)).updateUserListFragment();
             }
+        } else {
+            Log.e(TAG,"saveAndUpdateUserInfoList saving user failed ");
         }
     }
 
@@ -598,10 +600,15 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      */
     public File checkForImagePath(String title) {
         ContextWrapper cw = new ContextWrapper(getApplicationContext());
-        File directory = cw.getDir("JukuTweetUserIcons", Context.MODE_PRIVATE);
+        File directory = cw.getDir("icons", Context.MODE_PRIVATE);
+
+//        context.getApplicationContext().getFilesDir()
+
+//        File directory_icons = cw.getDir("icons", Context.MODE_PRIVATE);
         if (!directory.exists()) {
             directory.mkdir();
         }
+        Log.i(TAG,"URI directory: " + directory.getAbsolutePath() + ", FILE: " + title +".png" );
         return new File(directory, title + ".png");
     }
 
@@ -612,6 +619,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * @param imageUrl Url of icon image
      * @param screenName user screenname which will become the file name of the icon
      */
+
+
     public void downloadUserIcon(String imageUrl, final String screenName) {
 
         Picasso.with(getBaseContext()).load(imageUrl).into(new Target() {
@@ -630,6 +639,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                                 ostream.close();
 
                                 //TODO == clearer way of saving this image to a file...
+
                                 Uri uri = Uri.fromFile(file);
                                 InternalDB.getUserInterfaceInstance(getBaseContext()).addMediaURItoDB(uri.toString(),screenName);
                             }
@@ -795,7 +805,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      *                       the final "are you sure" dialog will be simpler than the one for a user-created list
      */
     public void showEditMyListDialog(String listType, String currentListName, Boolean isStarFavorite){
-        if(getFragmentManager().findFragmentByTag("dialogEditMyList") != null && !getFragmentManager().findFragmentByTag("dialogEditMyList").isAdded()) {
+
+        if(getFragmentManager().findFragmentByTag("dialogEditMyList") == null || !getFragmentManager().findFragmentByTag("dialogEditMyList").isAdded()) {
             EditMyListDialog.newInstance(listType,currentListName, isStarFavorite).show(getSupportFragmentManager(),"dialogEditMyList");
         }
     }

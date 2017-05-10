@@ -178,7 +178,7 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
                     break;
             }
 
-//            fragments[1] = QuizTab2Container.newInstance();
+//            fragments[1] = QuizTab2Container.newWordListInstance();
 
 //            mTitleStrip.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
 //                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
@@ -704,7 +704,7 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
 //            );
 //
 ////
-////            fragments[1] = QuizTab2Container.newInstance();
+////            fragments[1] = QuizTab2Container.newWordListInstance();
 ////            showFab(false);
 //
 //

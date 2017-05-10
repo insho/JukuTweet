@@ -68,4 +68,11 @@ public interface TweetListOperationsInterface {
             , String colorString
             , @Nullable Integer excludeIdInteger
             , @Nullable Integer resultLimit);
+
+    ArrayList<WordEntry> getTopFiveTweetSingleUserEntries(String topOrBottom
+            ,@Nullable  ArrayList<Integer> idsToExclude
+            ,UserInfo userInfo
+            ,ColorThresholds colorThresholds
+            ,int totalCountLimit
+            ,double topbottomThreshold);
 }

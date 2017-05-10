@@ -25,6 +25,7 @@ import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
 import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MyListEntry;
+import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
@@ -45,6 +46,9 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
     private MyListEntry mMyListEntry;
     private ColorBlockMeasurables mColorBlockMeasurables;
     int mTopCountLimit;
+    private boolean mIsTweetList;
+    private boolean mIsSingleUserTweetList;
+    private UserInfo mUserInfo;
 
     ListView bottomFiveList;
     TextView txtTopFive;
@@ -63,16 +67,42 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
     ArrayList<WordEntry> mTopFiveDataSet;
     ArrayList<WordEntry> mBottomFiveDataSet;
 
-    private boolean mIsTweetList;
+
     public StatsFragmentProgress() {}
 
-    public static StatsFragmentProgress newInstance(MyListEntry myListEntry
+    public static StatsFragmentProgress newWordListInstance(MyListEntry myListEntry
             , int topCountLimit
-            , ColorBlockMeasurables colorBlockMeasurables
-            , boolean isTweetList) {
+            , ColorBlockMeasurables colorBlockMeasurables) {
         StatsFragmentProgress fragment = new StatsFragmentProgress();
         Bundle args = new Bundle();
-        args.putBoolean("isTweetList",isTweetList);
+        args.putParcelable("myListEntry",myListEntry);
+        args.putInt("topCountLimit",topCountLimit);
+        args.putParcelable("colorBlockMeasurables",colorBlockMeasurables);
+        fragment.setArguments(args);
+        return  fragment;
+    }
+
+    public static StatsFragmentProgress newSingleUserTweetsInstance(UserInfo userInfo
+            , int topCountLimit
+            , ColorBlockMeasurables colorBlockMeasurables) {
+        StatsFragmentProgress fragment = new StatsFragmentProgress();
+        Bundle args = new Bundle();
+        args.putBoolean("isTweetList",true);
+        args.putBoolean("isSingleUserTweetList",true);
+        args.putParcelable("userInfo",userInfo);
+        args.putInt("topCountLimit",topCountLimit);
+        args.putParcelable("colorBlockMeasurables",colorBlockMeasurables);
+        fragment.setArguments(args);
+        return  fragment;
+    }
+
+    public static StatsFragmentProgress newTweetsInstance(MyListEntry myListEntry
+            , int topCountLimit
+            , ColorBlockMeasurables colorBlockMeasurables) {
+        StatsFragmentProgress fragment = new StatsFragmentProgress();
+        Bundle args = new Bundle();
+        args.putBoolean("isTweetList",true);
+        args.putBoolean("isSingleUserTweetList",false);
         args.putParcelable("myListEntry",myListEntry);
         args.putInt("topCountLimit",topCountLimit);
         args.putParcelable("colorBlockMeasurables",colorBlockMeasurables);
@@ -113,47 +143,52 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
         ColorThresholds colorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
         double topbottomThreshold = .5;
 
-
         if(savedInstanceState != null) {
-            mMyListEntry = savedInstanceState.getParcelable("mMyListEntry");
+            mIsTweetList = savedInstanceState.getBoolean("mIsTweetList",false);
+            mIsSingleUserTweetList =   savedInstanceState.getBoolean("mIsSingleUserTweetList",false);
+            if(mIsSingleUserTweetList) {
+                mUserInfo = savedInstanceState.getParcelable("mUserInfo");
+            } else {
+                mMyListEntry = savedInstanceState.getParcelable("mMyListEntry");
+            }
             mTopCountLimit = savedInstanceState.getInt("mTopCountLimit");
             mColorBlockMeasurables = savedInstanceState.getParcelable("mColorBlockMeasurables");
             mTopFiveDataSet = savedInstanceState.getParcelableArrayList("mTopFiveDataSet");
             mBottomFiveDataSet = savedInstanceState.getParcelableArrayList("mBottomFiveDataSet");
-            mIsTweetList = savedInstanceState.getBoolean("mIsTweetList");
         } else {
-            mMyListEntry = getArguments().getParcelable("myListEntry");
+            mIsTweetList = getArguments().getBoolean("isTweetList",false);
+            mIsSingleUserTweetList = getArguments().getBoolean("isSingleUserTweetList",false);
+            if(mIsSingleUserTweetList) {
+                mUserInfo = getArguments().getParcelable("userInfo");
+            } else {
+                mMyListEntry = getArguments().getParcelable("myListEntry");
+            }
             mTopCountLimit = getArguments().getInt("topCountLimit");
             mColorBlockMeasurables = getArguments().getParcelable("colorBlockMeasurables");
-            mIsTweetList = getArguments().getBoolean("isTweetList");
 
-            if(mIsTweetList) {
+
+            if(mIsSingleUserTweetList) {
+                mBottomFiveDataSet = InternalDB.getTweetInterfaceInstance(getContext()).getTopFiveTweetSingleUserEntries("Bottom",null,mUserInfo,colorThresholds,mTopCountLimit,topbottomThreshold);
+                mTopFiveDataSet = InternalDB.getTweetInterfaceInstance(getContext()).getTopFiveTweetSingleUserEntries("Top",getIdsToExclude(mBottomFiveDataSet),mUserInfo,colorThresholds,mTopCountLimit,topbottomThreshold);
+            } else if(mIsTweetList) {
                 mBottomFiveDataSet = InternalDB.getTweetInterfaceInstance(getContext()).getTopFiveTweetWordEntries("Bottom",null,mMyListEntry,colorThresholds,mTopCountLimit,topbottomThreshold);
-
+                mTopFiveDataSet = InternalDB.getTweetInterfaceInstance(getContext()).getTopFiveTweetWordEntries("Top",getIdsToExclude(mBottomFiveDataSet),mMyListEntry,colorThresholds,mTopCountLimit,topbottomThreshold);
             } else {
                 mBottomFiveDataSet = InternalDB.getWordInterfaceInstance(getContext()).getTopFiveWordEntries("Bottom",null,mMyListEntry,colorThresholds,mTopCountLimit,topbottomThreshold);
-            }
-            ArrayList<Integer> idsToExclude = new ArrayList<>();
-            for(WordEntry wordEntry : mBottomFiveDataSet) {
-                if(wordEntry.getId() != null) {
-                    idsToExclude.add(wordEntry.getId());
-                }
-            }
-            if(mIsTweetList) {
-                mTopFiveDataSet = InternalDB.getTweetInterfaceInstance(getContext()).getTopFiveTweetWordEntries("Top",idsToExclude,mMyListEntry,colorThresholds,mTopCountLimit,topbottomThreshold);
-
-            } else {
-                mTopFiveDataSet = InternalDB.getWordInterfaceInstance(getContext()).getTopFiveWordEntries("Top",idsToExclude,mMyListEntry,colorThresholds,mTopCountLimit,topbottomThreshold);
+                mTopFiveDataSet = InternalDB.getWordInterfaceInstance(getContext()).getTopFiveWordEntries("Top",getIdsToExclude(mBottomFiveDataSet),mMyListEntry,colorThresholds,mTopCountLimit,topbottomThreshold);
             }
         }
 
         int greenPercent = Math.round(100*((float)mColorBlockMeasurables.getGreenCount()/(float)mColorBlockMeasurables.getTotalCount()));
-        txtCompletePercent.setText(greenPercent + "% Complete ");
+        txtCompletePercent.setText(getString(R.string.statsComplete,greenPercent));
 
         String titleString;
         try {
             //if the list is a system "star" list, show the star next to the title
-            if(mMyListEntry.getListsSys()==1) {
+            if(mIsSingleUserTweetList) {
+                Log.i(TAG,"IS HERE: " + mUserInfo.getDisplayScreenName());
+                titleString = mUserInfo.getDisplayScreenName();
+            } else if(mMyListEntry.getListsSys()==1) {
                 titleString = mMyListEntry.getListName();
 
                 imageButton.setFocusable(false);
@@ -191,7 +226,7 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
 
         } catch (NullPointerException e) {
             titleString = "";
-            Log.e(TAG,"setting title nullpointer exception: " + e);
+            Log.e(TAG,"setting title nullpointer exception: " + e.getCause());
         }
 
 
@@ -240,7 +275,7 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
                             wordDetailPopupDialog.setTargetFragment(StatsFragmentProgress.this, 0);
                             wordDetailPopupDialog.show(getFragmentManager(),"wordDetailPopup");
 
-//                            WordDetailPopupDialog.newInstance(wordEntry).show(getFragmentManager(),"wordDetailPopup");
+//                            WordDetailPopupDialog.newWordListInstance(wordEntry).show(getFragmentManager(),"wordDetailPopup");
                         }
 
                     }
@@ -277,16 +312,41 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
         adapter_top.notifyDataSetChanged();
     }
 
+
+    /**
+     * Compiles an array of edict kanji Ids from the bottomDataSet, so that they can be passed on to the
+     * {@link com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface#getTopFiveTweetWordEntries(String, ArrayList, MyListEntry, ColorThresholds, int, double)}
+     * when pulling hte Top 5 lists. This is because the "Bottom 5" and "Top 5" stats lists should not share any entries. So if an entry already
+     * exists in the bottom set, don't include it in the top set.
+     * @param bottomDataSet Bottom Five (or more) word entries set
+     * @return array of edict kanji Ids from the bottomDataSet
+     */
+    public ArrayList<Integer> getIdsToExclude(ArrayList<WordEntry> bottomDataSet) {
+        ArrayList<Integer> idsToExclude = new ArrayList<>();
+        for(WordEntry wordEntry : bottomDataSet) {
+            if(wordEntry.getId() != null) {
+                idsToExclude.add(wordEntry.getId());
+            }
+        }
+        return idsToExclude;
+    }
+
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        outState.putParcelable("mMyListEntry", mMyListEntry);
+        outState.putBoolean("mIsTweetList",mIsTweetList);
+        outState.putBoolean("mIsSingleUserTweetList",mIsSingleUserTweetList);
+        if(mIsSingleUserTweetList) {
+            outState.putParcelable("mUserInfo",mUserInfo);
+        } else {
+            outState.putParcelable("mMyListEntry", mMyListEntry);
+        }
         outState.putParcelable("mColorBlockMeasurables", mColorBlockMeasurables);
         outState.putInt("mTopCountLimit", mTopCountLimit);
         outState.putParcelableArrayList("mTopFiveDataSet",mTopFiveDataSet);
         outState.putParcelableArrayList("mBottomFiveDataSet",mBottomFiveDataSet);
-        outState.putBoolean("mIsTweetList",mIsTweetList);
+
     }
 
 

@@ -61,14 +61,14 @@ public class EditMyListDialog extends DialogFragment {
         final TextView textRename = (TextView) view.findViewById(R.id.txtRename);
         final TextView textDelete = (TextView) view.findViewById(R.id.txtDelete);
 
-
-
         /* Star Favorite lists (aka 'system lists') can not be deleted or renamed, only cleared.
         * So if it is a star favorite, only show the clear option */
         if(isStarFavorite) {
             textClear.setText(getString(R.string.listclearlist));
             textDelete.setVisibility(TextView.GONE);
             textRename.setVisibility(TextView.GONE);
+            ((View) view.findViewById(R.id.divider1)).setVisibility(View.GONE);
+            ((View) view.findViewById(R.id.divider2)).setVisibility(View.GONE);
             mSelectedItem =1;
         } else {
             textClear.setText(getString(R.string.listoptionclearlist));

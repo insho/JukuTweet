@@ -2050,7 +2050,8 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 
     /**
      * Pulls words for Top and Bottom in {@link com.jukuproject.jukutweet.Fragments.StatsFragmentProgress} for PostQuizStats
-     * after a TWEET based quiz (i.e. a quiz that began in {@link com.jukuproject.jukutweet.Fragments.TweetListFragment}).
+     * after a TWEET based quiz (i.e. a quiz that began in {@link com.jukuproject.jukutweet.Fragments.TweetListFragment}), OR from
+     * clicking the "Stats" option in the TweetListFragment.
      *
      * @param topOrBottom tag designating the list as a "Top" list of words with best scores or "Bottom" list of words with worst scores
      * @param idsToExclude Word ids to exclude from the results (for example, if they have already been added to the "Top" list, exclude
@@ -2236,7 +2237,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                         wordEntry.setFurigana(c.getString(4));
                         wordEntry.setDefinition(c.getString(5));
                         wordEntries.add(wordEntry);
-                        Log.d(TAG,"ADDING KANJI: " + wordEntry.getKanji());
+//                        Log.d(TAG,"ADDING KANJI: " + wordEntry.getKanji());
 
                         wordEntry.setItemFavorites(new ItemFavorites(c.getInt(6)
                                 ,c.getInt(7)
@@ -2254,8 +2255,8 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 
         } catch (SQLiteException e){
             Log.e(TAG,"getTopFiveTweetWordEntries Sqlite exception: " + e);
-        } catch (Exception e) {
-            Log.e(TAG,"getTopFiveTweetWordEntries generic exception: " + e);
+        } catch (NullPointerException e) {
+            Log.e(TAG,"getTopFiveTweetWordEntries NullPointerException exception: " + e);
         } finally {
             db.close();
         }
@@ -2263,6 +2264,219 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
         return  wordEntries;
     }
 
+
+
+
+    /**
+     * Pulls words for Top and Bottom in {@link com.jukuproject.jukutweet.Fragments.StatsFragmentProgress} for PostQuizStats
+     * after a TWEET based quiz (i.e. a quiz that began in {@link com.jukuproject.jukutweet.Fragments.TweetListFragment}).
+     *
+     * @param topOrBottom tag designating the list as a "Top" list of words with best scores or "Bottom" list of words with worst scores
+     * @param idsToExclude Word ids to exclude from the results (for example, if they have already been added to the "Top" list, exclude
+     *                     them from the "Bottom" list
+     * @param userInfo UserInfo for the single user whose tweets will comprise the top/bottom list
+     * @param colorThresholds Collection of thresholds which together determine what color to assign to a word/tweet based on its quiz scores
+     * @param totalCountLimit maximum number of results for the list
+     * @param topbottomThreshold percentage threshold necessary to be deemed a "Top" word
+     * @return Array of word entries for the Top X or Bottom X words in a saved TweetList
+     *
+     * @see com.jukuproject.jukutweet.Fragments.StatsFragmentProgress
+     */
+    public ArrayList<WordEntry> getTopFiveTweetSingleUserEntries(String topOrBottom
+            ,@Nullable  ArrayList<Integer> idsToExclude
+            ,UserInfo userInfo
+            ,ColorThresholds colorThresholds
+            ,int totalCountLimit
+            ,double topbottomThreshold) {
+
+        SQLiteDatabase db = sqlOpener.getReadableDatabase();
+
+        String topBottomSort;
+        if(topOrBottom.equals("Top")) {
+            topBottomSort = "WHERE [ColorSort]>0 ORDER BY [ColorSort] desc, [Percent] desc,[Total] desc ";
+        } else {
+            topBottomSort = "ORDER BY [ColorSort] asc, [Percent] asc,[Total] desc ";
+        }
+
+        ArrayList<WordEntry> wordEntries = new ArrayList<>();
+        try {
+
+            Cursor c = db.rawQuery("SELECT [_id]" +
+                    ",[Kanji]" +
+                    ",[Correct]" +
+                    ",[Total] " +
+
+                    ",(CASE WHEN Furigana is null then '' else Furigana  end) as [Furigana]" +
+                    ",[Definition]  " +
+
+                    " ,[Blue]" +
+                    " ,[Red] " +
+                    " ,[Green] " +
+                    " ,[Yellow] " +
+                    " ,[Purple] " +
+                    " ,[Orange] " +
+                    ",[Other] " +
+                    ",[Percent] " +
+                    "FROM " +
+                    "(" +
+                    "SELECT " +
+                    "[_id]," +
+                    "[Kanji]," +
+                    "[Furigana]," +
+                    "[Definition]," +
+                    "ifnull([Total],0) as [Total] " +
+
+                    ",(CASE WHEN ifnull([Total],0) < " + colorThresholds.getGreyThreshold() + " THEN 1 " +
+                    "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 0  " +
+                    "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and (CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getRedThreshold() + "  and CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + ") THEN 2  " +
+                    "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getYellowThreshold() + " THEN 3 " +
+                    "ELSE 0 END) as [ColorSort] " +
+
+                    ",ifnull([Correct],0)  as [Correct]" +
+                    ",CAST(ifnull([Correct],0)  as float)/[Total] as [Percent] " +
+
+
+                    " ,[Blue]" +
+                    " ,[Red] " +
+                    " ,[Green] " +
+                    " ,[Yellow] " +
+                    " ,[Purple] " +
+                    " ,[Orange] " +
+                    ",[Other] " +
+
+                    "FROM " +
+                    "(" +
+                    "SELECT [_id]" +
+                    ",[Kanji]" +
+                    ",[Furigana]" +
+                    ",[Definition]  " +
+                    "FROM [Edict] " +
+                    "where [_id] in (" +
+
+                    "Select Edict_id " +
+                    "FROM " +
+                    "(" +
+                    "Select DISTINCT _id as Tweet_Id " +
+                    "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES +
+                    " WHERE [UserId] = ? " +
+                    ") as a " +
+                    "Left JOIN " +
+                    "(" +
+                    "Select DISTINCT Tweet_id" +
+                    ",[Edict_id] " +
+                    "FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI +
+                    " WHERE [Edict_id] is not NULL " +
+                    ") as b " +
+                    "ON a.[Tweet_Id] = b.[Tweet_Id] " +
+                    ")" +
+                    ") " +
+                    "NATURAL LEFT JOIN " +
+                    "(" +
+                    "SELECT [_id]" +
+                    ",sum([Correct]) as [Correct]" +
+                    ",sum([Total]) as [Total] " +
+                    "from [JScoreboard]  " +
+                    "GROUP BY [_id]" +
+                    ") " +
+                    "NATURAL LEFT JOIN " +
+                    "(" +
+                    "SELECT [_id]" +
+                    ",SUM([Blue]) as [Blue]" +
+                    ",SUM([Red]) as [Red]" +
+                    ",SUM([Green]) as [Green]" +
+                    ",SUM([Yellow]) as [Yellow]" +
+                    ",SUM([Purple]) as [Purple]" +
+                    ",SUM([Orange]) as [Orange]" +
+
+                    ", SUM([Other]) as [Other] " +
+                    "FROM (" +
+                    "SELECT [_id] " +
+                    ",(CASE WHEN ([Sys] = 1 and Name = 'Blue') then 1 else 0 end) as [Blue]" +
+                    ",(CASE WHEN ([Sys] = 1 AND Name = 'Red') then 1 else 0 end) as [Red]" +
+                    ",(CASE WHEN ([Sys] = 1 AND Name = 'Green') then 1 else 0 end) as [Green]" +
+                    ",(CASE WHEN ([Sys] = 1  AND Name = 'Yellow') then 1 else 0 end) as [Yellow]" +
+                    ",(CASE WHEN ([Sys] = 1  AND Name = 'Purple') then 1 else 0 end) as [Purple]" +
+                    ",(CASE WHEN ([Sys] = 1  AND Name = 'Orange') then 1 else 0 end) as [Orange]" +
+                    ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
+
+                    "From (" +
+                    "SELECT DISTINCT [Name]" +
+                    ",[Sys]" +
+                    ",Edict_id as [_id] " +
+                    "FROM "+
+                    "( " +
+
+                    "SELECT DISTINCT _id as  Tweet_id" +
+                    ",[Name]" +
+                    ",[Sys] " +
+                    "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+                    " WHERE [UserId] = ? " +
+                    ") as a " +
+                    "LEFT JOIN "  +
+                    "( " +
+                    "SELECT DISTINCT Tweet_id,Edict_id " +
+                    "FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI + " " +
+                    " WHERE [Tweet_id] in (" +
+                    "SELECT DISTINCT _id as  Tweet_id " +
+                    "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+                    " WHERE [UserId] = ? " +
+                    ")" +
+                    ")  as b " +
+                    " ON a.Tweet_id = b.Tweet_id " +
+
+                    ")" +
+                    ") as x " +
+                    "Group by [_id]" +
+                    ")" +
+                    ") " + topBottomSort + " LIMIT " + totalCountLimit,new String[]{userInfo.getUserId(),userInfo.getUserId(),userInfo.getUserId()});
+
+
+            if(c.getCount() == 0) {
+                Log.e(TAG,"TweetOpsHelper gettopfive Single User c count is 0!");
+                return wordEntries;
+            }
+
+            c.moveToFirst();
+            while (!c.isAfterLast()) {
+
+                if(wordEntries.size()<totalCountLimit
+                        && ((topOrBottom.equals("Bottom") && c.getFloat(13)<=topbottomThreshold) || (topOrBottom.equals("Top") && c.getFloat(13)>0))) {
+
+                    if(idsToExclude == null || !idsToExclude.contains(c.getInt(0))) {
+                        WordEntry wordEntry = new WordEntry();
+                        wordEntry.setId(c.getInt(0));
+                        wordEntry.setKanji(c.getString(1));
+                        wordEntry.setCorrect(c.getInt(2));
+                        wordEntry.setTotal(c.getInt(3));
+                        wordEntry.setFurigana(c.getString(4));
+                        wordEntry.setDefinition(c.getString(5));
+                        wordEntries.add(wordEntry);
+//                        Log.d(TAG,"ADDING KANJI: " + wordEntry.getKanji());
+
+                        wordEntry.setItemFavorites(new ItemFavorites(c.getInt(6)
+                                ,c.getInt(7)
+                                ,c.getInt(8)
+                                ,c.getInt(9)
+                                ,c.getInt(10)
+                                ,c.getInt(11)
+                                ,c.getInt(12)));
+                    }
+
+                }
+                c.moveToNext();
+            }
+            c.close();
+
+        } catch (SQLiteException e){
+            Log.e(TAG,"getTopFiveTweetSingleUserEntries Sqlite exception: " + e);
+        } catch (NullPointerException e) {
+            Log.e(TAG,"getTopFiveTweetSingleUserEntries NullPointerException exception: " + e);
+        } finally {
+            db.close();
+        }
+
+        return  wordEntries;
+    }
 
 }
 

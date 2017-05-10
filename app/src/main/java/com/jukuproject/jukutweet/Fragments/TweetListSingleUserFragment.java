@@ -160,7 +160,7 @@ public class TweetListSingleUserFragment extends Fragment {
                     case "Flash Cards":
                         if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
                             QuizMenuDialog.newSingleUserInstance("flashcards"
-                                    ,1
+                                    ,0
                                     ,lastExpandedPosition
                                     ,mUserInfo
                                     ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
@@ -173,7 +173,7 @@ public class TweetListSingleUserFragment extends Fragment {
                     case "Multiple Choice":
                         if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
                             QuizMenuDialog.newSingleUserInstance("multiplechoice"
-                                    ,1
+                                    ,0
                                     ,lastExpandedPosition
                                     ,mUserInfo
                                     ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
@@ -186,7 +186,7 @@ public class TweetListSingleUserFragment extends Fragment {
                     case "Fill in the Blanks":
                         if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
                             QuizMenuDialog.newSingleUserInstance("fillintheblanks"
-                                    ,1
+                                    ,0
                                     ,lastExpandedPosition
                                     ,mUserInfo
                                     ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
@@ -195,14 +195,11 @@ public class TweetListSingleUserFragment extends Fragment {
 
                         break;
                     case "Stats":
-                        MyListEntry myListEntry = new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).getSystemList());
-                        ColorBlockMeasurables colorBlockMeasurables = prepareColorBlockDataForTweetList(myListEntry);
-
-
-                        StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newInstance(myListEntry
+//                        MyListEntry myListEntry = new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).getSystemList());
+                        ColorBlockMeasurables colorBlockMeasurables = prepareColorBlockDataForSingleUserTweetList(mUserInfo);
+                        StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newSingleUserTweetsInstance(mUserInfo
                                 , 10
-                                ,colorBlockMeasurables
-                                ,true);
+                                ,colorBlockMeasurables);
                         ((BaseContainerFragment)getParentFragment()).replaceFragment(statsFragmentProgress, true,"tweetlistbrowse");
                         mCallback.showFab(false,"");
                         break;
@@ -303,11 +300,11 @@ public class TweetListSingleUserFragment extends Fragment {
     }
 
 
-    public ColorBlockMeasurables prepareColorBlockDataForTweetList(MyListEntry myListEntry) {
+    public ColorBlockMeasurables prepareColorBlockDataForSingleUserTweetList(UserInfo userInfo) {
         ColorBlockMeasurables colorBlockMeasurables = new ColorBlockMeasurables();
 
         ColorThresholds colorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
-        Cursor c = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListColorBlocksCursor(colorThresholds,myListEntry);
+        Cursor c = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListColorBlocksCursorForSingleUser(colorThresholds,userInfo.getUserId());
 //        InternalDB.getWordInterfaceInstance(getContext()).supertest(colorThresholds,myListEntry);
         if(c.getCount()>0) {
             c.moveToFirst();
@@ -329,7 +326,7 @@ public class TweetListSingleUserFragment extends Fragment {
 
             c.moveToNext();
         } else {
-            Log.e(TAG,"no results for query listname: " + myListEntry.getListName() + ", sys: " + myListEntry.getListsSys());
+            Log.e(TAG,"prepareColorBlockDataForSingleUserTweetList no results for query single user: " + userInfo.getDisplayScreenName());
         }
         c.close();
         return  colorBlockMeasurables;

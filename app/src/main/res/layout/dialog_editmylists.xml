@@ -29,17 +29,31 @@
         android:background="@android:color/white"
         android:textSize="20sp" />
 
-    <View
-        android:layout_width="fill_parent"
-        android:layout_height="1dp"
+    <View style="@style/Divider_Black"
+        android:id="@+id/divider1"
+        android:background="@android:color/white"
+
         android:layout_marginLeft="10dp"
         android:layout_marginStart="10dp"
         android:layout_marginRight="10dp"
         android:layout_marginEnd="10dp"
-        android:padding="2dip"
-        android:background="?android:attr/listDivider"
-        android:visibility="visible"
-        android:alpha="50"/>
+
+        />
+
+
+    <!--<View-->
+        <!--android:layout_width="fill_parent"-->
+        <!--android:layout_height="1dp"-->
+        <!--android:layout_marginLeft="10dp"-->
+        <!--android:layout_marginStart="10dp"-->
+        <!--android:layout_marginRight="10dp"-->
+        <!--android:layout_marginEnd="10dp"-->
+        <!--android:padding="2dip"-->
+        <!--android:background="?android:attr/listDivider"-->
+        <!--android:visibility="visible"-->
+        <!--android:alpha="50"/>-->
+    <!---->
+
 
     <TextView
         android:layout_width="match_parent"
@@ -49,21 +63,32 @@
         android:text=""
         android:layout_marginBottom="4dp"
         android:id="@+id/txtRename"
+
         android:textColor="@android:color/black"
         android:background="@android:color/white"
         android:textSize="20sp" />
 
+    <View style="@style/Divider_Black"
+        android:id="@+id/divider2"
+        android:background="@android:color/white"
 
-    <View
-        android:layout_width="fill_parent"
-        android:layout_height="1dp"
         android:layout_marginLeft="10dp"
         android:layout_marginStart="10dp"
         android:layout_marginRight="10dp"
         android:layout_marginEnd="10dp"
-        android:background="?android:attr/listDivider"
-        android:visibility="visible"
-        android:alpha="50"/>
+
+        />
+
+    <!--<View-->
+        <!--android:layout_width="fill_parent"-->
+        <!--android:layout_height="1dp"-->
+        <!--android:layout_marginLeft="10dp"-->
+        <!--android:layout_marginStart="10dp"-->
+        <!--android:layout_marginRight="10dp"-->
+        <!--android:layout_marginEnd="10dp"-->
+        <!--android:background="?android:attr/listDivider"-->
+        <!--android:visibility="visible"-->
+        <!--android:alpha="50"/>-->
     <TextView
         android:layout_width="match_parent"
         android:layout_gravity="start|center"

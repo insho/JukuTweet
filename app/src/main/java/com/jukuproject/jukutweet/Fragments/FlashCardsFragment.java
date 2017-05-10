@@ -179,7 +179,7 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
                 WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(mDataset.get(currentPosition));
                 wordDetailPopupDialog.setTargetFragment(FlashCardsFragment.this, 0);
                 wordDetailPopupDialog.show(getFragmentManager(),"wordDetailPopup");
-//                WordDetailPopupDialog.newInstance(mDataset.get(currentPosition)).show(getFragmentManager(),"wordDetailPopup");
+//                WordDetailPopupDialog.newWordListInstance(mDataset.get(currentPosition)).show(getFragmentManager(),"wordDetailPopup");
             };
 
 

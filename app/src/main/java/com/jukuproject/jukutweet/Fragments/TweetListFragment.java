@@ -197,10 +197,9 @@ public class TweetListFragment extends Fragment {
                         ColorBlockMeasurables colorBlockMeasurables = prepareColorBlockDataForTweetList(myListEntry);
 
 
-                        StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newInstance(myListEntry
+                        StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newTweetsInstance(myListEntry
                                 , 10
-                                ,colorBlockMeasurables
-                                ,true);
+                                ,colorBlockMeasurables);
                         ((BaseContainerFragment)getParentFragment()).replaceFragment(statsFragmentProgress, true,"tweetlistbrowse");
                         mCallback.showFab(false,"");
                         break;
@@ -215,11 +214,25 @@ public class TweetListFragment extends Fragment {
             }
         });
 
-        expListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
+
+//        asdf
+//        expListView.setOnItemLongClickListener(new ExpandableListView.OnItemLongClickListener() {
+//            @Override
+//            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+//                mCallback.showEditMyListDialog("TweetList",mMenuHeader.get(position).getHeaderTitle(),mMenuHeader.get(position).isSystemList());
+//
+//                return false;
+//            }
+//        });
+
+        expListView.setOnItemLongClickListener(new ExpandableListView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                mCallback.showEditMyListDialog("TweetList",mMenuHeader.get(position).getHeaderTitle(),mMenuHeader.get(position).isSystemList());
-
+                if (ExpandableListView.getPackedPositionType(id) == ExpandableListView.PACKED_POSITION_TYPE_GROUP) {
+                    int groupPosition = ExpandableListView.getPackedPositionGroup(id);
+                    mCallback.showEditMyListDialog("TweetList",mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).isSystemList());
+                }
                 return false;
             }
         });
