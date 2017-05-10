@@ -690,6 +690,9 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
         }
     }
 
+    public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {}
+
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);

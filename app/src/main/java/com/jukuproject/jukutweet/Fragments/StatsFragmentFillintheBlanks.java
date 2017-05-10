@@ -179,6 +179,8 @@ public class StatsFragmentFillintheBlanks extends Fragment implements WordEntryF
 
     }
 
+    public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {}
+
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);

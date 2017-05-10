@@ -1628,14 +1628,12 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                         ",[Furigana]" +
                         ",[Definition]" +
                         "FROM [Edict] " +
-                        "where [_id] in (SELECT DISTINCT [Eedict_id] FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + ")" +
+                        "where [_id] in (SELECT DISTINCT [Edict_id] FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + ")" +
                         ") as c " +
                         "ON a.[Edict_id] = c.[Edict_id] " +
 
                         " ) as TweetKanji " +
                         "On TweetLists.Tweet_id = TweetKanji.Tweet_id " +
-
-
                         "LEFT JOIN " +
                         " (" +
                         "SELECT DISTINCT [UserId] " +

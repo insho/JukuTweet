@@ -568,7 +568,7 @@ public class UserListFragment extends Fragment {
         mCallback.showActionBarBackButton(true,userInfo.getDisplayScreenName());
 //        mCallback.showSavedTweetsTabForIndividualUser(userInfo);
 //        mCallback.updateTabs(new String[]{"Timeline","Saved Tweets"});
-        mCallback.updateTabs(new String[]{"Timeline","Saved Tweets","Word Lists","Search"});
+        mCallback.updateTabs(new String[]{"Timeline","Tweet Lists","Word Lists","Search"});
         ((BaseContainerFragment)getParentFragment()).replaceFragment(UserTimeLineFragment.newInstance(userInfo), true,"timeline");
         mCallback.showFab(false);
     }

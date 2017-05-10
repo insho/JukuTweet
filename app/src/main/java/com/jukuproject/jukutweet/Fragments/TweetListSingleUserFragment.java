@@ -200,7 +200,7 @@ public class TweetListSingleUserFragment extends Fragment {
                         StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newSingleUserTweetsInstance(mUserInfo
                                 , 10
                                 ,colorBlockMeasurables);
-                        ((BaseContainerFragment)getParentFragment()).replaceFragment(statsFragmentProgress, true,"tweetlistbrowse");
+                        ((BaseContainerFragment)getParentFragment()).replaceFragment(statsFragmentProgress, true,"singleUserStats");
                         mCallback.showFab(false,"");
                         break;
 

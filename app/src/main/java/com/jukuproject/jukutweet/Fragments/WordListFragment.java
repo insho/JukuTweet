@@ -206,7 +206,7 @@ public class WordListFragment extends Fragment {
                         StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newWordListInstance(myListEntry
                                 , 10
                                 ,colorBlockMeasurables);
-                        ((BaseContainerFragment)getParentFragment()).replaceFragment(statsFragmentProgress, true,"mylistbrowse");
+                        ((BaseContainerFragment)getParentFragment()).replaceFragment(statsFragmentProgress, true,"wordlistStats");
                         mCallback.showFab(false,"");
                         break;
 
@@ -231,17 +231,6 @@ public class WordListFragment extends Fragment {
                 return false;
             }
         });
-
-//        expListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-//            @Override
-//            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-//                mCallback.showEditMyListDialog("MyList",mMenuHeader.get(position).getHeaderTitle(),mMenuHeader.get(position).isSystemList());
-//                return false;
-//            }
-//        });
-//
-//        expListView.setGroupIndicator(null);
-
 
         //Expand the last expanded position (or expand first availalbe non-empty list)
         if(lastExpandedPosition >=0) {
@@ -380,14 +369,15 @@ public class WordListFragment extends Fragment {
     }
 
     public void updateMyListAdapter() {
-        prepareListData();
-        MyListFragmentAdapter = new WordListExpandableAdapter(getContext(),mMenuHeader,getdimenscore(),0);
-        expListView.setAdapter(MyListFragmentAdapter);
-        //Expand the last expanded position (or expand first availalbe non-empty list)
-        if(lastExpandedPosition >=0) {
-            expandTheListViewAtPosition(lastExpandedPosition);
+        if(isAdded() && !isDetached()) {
+            prepareListData();
+            MyListFragmentAdapter = new WordListExpandableAdapter(getContext(),mMenuHeader,getdimenscore(),0);
+            expListView.setAdapter(MyListFragmentAdapter);
+            //Expand the last expanded position (or expand first availalbe non-empty list)
+            if(lastExpandedPosition >=0) {
+                expandTheListViewAtPosition(lastExpandedPosition);
+            }
         }
-//        expListView.invalidateViews();
     }
 
     @Override
@@ -397,11 +387,10 @@ public class WordListFragment extends Fragment {
             mCallback = (FragmentInteractionListener) context;
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString()
-                    + " must implement OnHeadlineSelectedListener");
+                    + " must implement FragmentInteractionListener");
         }
     }
 
-    //TODO GLOBAL with savedtweetslistfragment
     public ColorBlockMeasurables prepareColorBlockDataForList(MyListEntry myListEntry) {
         ColorBlockMeasurables colorBlockMeasurables = new ColorBlockMeasurables();
 

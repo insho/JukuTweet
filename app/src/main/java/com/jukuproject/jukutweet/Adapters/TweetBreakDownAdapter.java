@@ -138,7 +138,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         holder.imgStarLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO favorite words
+
                 if(BuildConfig.DEBUG) {
                     Log.d(TAG, "mActiveFavoriteStars: " + mActiveFavoriteStars);
                     Log.d(TAG, "should open: " + mWords.get(holder.getAdapterPosition()).getItemFavorites().shouldOpenFavoritePopup(mActiveFavoriteStars));

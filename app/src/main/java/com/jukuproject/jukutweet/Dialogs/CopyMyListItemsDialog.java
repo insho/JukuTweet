@@ -1,8 +1,8 @@
 package com.jukuproject.jukutweet.Dialogs;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -29,48 +29,35 @@ import java.util.ArrayList;
 
 import rx.functions.Action1;
 
-//import android.app.DialogFragment;
-//import com.jukuproject.jukutweet.Interfaces.MyListCopyDialogListener;
-
 /**
  * Dialog for "following" a new twitter user. New user name is entered into edittext
  * and then input into the database
  */
 public class CopyMyListItemsDialog extends DialogFragment {
 
-    private AlertDialog.Builder builder;
     public DialogInteractionListener mCallback;
-
-    private ArrayList<String> mActiveFavoriteStars;
     private MyListEntry mCurrentList;
     private ArrayList<MyListEntry> mFavoritesLists;
     /*Tracks elapsed time since last click of a recyclerview row. Used to
-* keep from constantly recieving button clicks through the RxBus */
+    * keep from constantly recieving button clicks through the RxBus */
     private long mLastClickTime = 0;
     private boolean moveSelected =false;
     private ArrayList<MyListEntry> mListsToCopyTo = new ArrayList<>();
-
+    private String kanjiString;
 
     private RxBus mRxBus = new RxBus();
 
     String TAG = "TEST-AddUser";
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onAttach(Context context) {
+        super.onAttach(context);
         try {
-            mCallback = (DialogInteractionListener) activity;
+            mCallback = (DialogInteractionListener) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString() + " must implement mAddUserDialogListener");
+            throw new ClassCastException(context.toString() + " must implement mAddUserDialogListener");
         }
-
-
-        Log.d(TAG,"ON ATTACH");
-
-
-
     }
-
 
 
     public static CopyMyListItemsDialog newInstance(MyListEntry currentList, ArrayList<Integer> selectedEntries) {
@@ -87,10 +74,10 @@ public class CopyMyListItemsDialog extends DialogFragment {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-//        final UserInfo userInfo = getArguments().getParcelable("userInfo");
 
-        mActiveFavoriteStars  = SharedPrefManager.getInstance(getContext()).getActiveFavoriteStars();
 
+
+        ArrayList<String> activeFavoriteStars = SharedPrefManager.getInstance(getContext()).getActiveFavoriteStars();
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = getActivity().getLayoutInflater();
 
@@ -104,8 +91,7 @@ public class CopyMyListItemsDialog extends DialogFragment {
         setButtonActive(move,false);
 
 
-        /** Add the "Move / Copy"  buttons*/
-
+        /* Add the "Move / Copy"  buttons*/
         move.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -125,10 +111,16 @@ public class CopyMyListItemsDialog extends DialogFragment {
 
         });
 
-        final ArrayList<Integer> selectedEntries = getArguments().getIntegerArrayList("selectedEntries");
-        mCurrentList = getArguments().getParcelable("currentList");
-        final String kanjiString = getSelectedIntsAsString(selectedEntries);
-        mFavoritesLists = InternalDB.getWordInterfaceInstance(getContext()).getWordListsForAWord(mActiveFavoriteStars,"",mCurrentList);
+        if(savedInstanceState==null) {
+            mCurrentList = getArguments().getParcelable("currentList");
+            kanjiString = getSelectedIntsAsString(getArguments().getIntegerArrayList("selectedEntries"));
+            mFavoritesLists = InternalDB.getWordInterfaceInstance(getContext()).getWordListsForAWord(activeFavoriteStars,"",mCurrentList);
+        } else {
+            mCurrentList = savedInstanceState.getParcelable("mCurrentList");
+            kanjiString = savedInstanceState.getString("kanjiString");
+            mFavoritesLists = savedInstanceState.getParcelableArrayList("mFavoritesLists");
+            mListsToCopyTo = savedInstanceState.getParcelableArrayList("mListsToCopyTo");
+        }
 
         if(mFavoritesLists.contains(mCurrentList)) {
             mFavoritesLists.remove(mCurrentList);
@@ -183,17 +175,16 @@ public class CopyMyListItemsDialog extends DialogFragment {
         });
         builder.setCancelable(true);
 
-        Log.d(TAG,"BUilder create");
         return builder.create();
     }
 
-//    @Override
-//    public void onDismiss(DialogInterface dialog) {
-//        super.onDismiss(dialog);
-//        mCallback.onDialogDismiss();
-//    }
 
-
+    /**
+     * The Copy and Move buttons act as a toggle. If Copy is selected, it is highlighted and the "Move"
+     * button is muted, and visa versa.
+     * @param textView textView that is activated or deactivate
+     * @param active True for "activated"--i.e. selected and highlighted, false for not
+     */
     private void setButtonActive(TextView textView,boolean active){
         textView.setSelected(active);
 
@@ -209,8 +200,13 @@ public class CopyMyListItemsDialog extends DialogFragment {
 
     }
 
-    //TODO CONSOLIDATE
-    public String getSelectedIntsAsString(ArrayList<Integer> list ) {
+
+    /**
+     * Creates a concatenated string from a list of integers
+     * @param list List of integers
+     * @return concatenated string with numbers seperated by commas (to be passed on to a sql query)
+     */
+    public static String getSelectedIntsAsString(ArrayList<Integer> list ) {
         StringBuilder sb = new StringBuilder();
 
         for (int i = 0; i < list.size(); ++i) {
@@ -221,6 +217,7 @@ public class CopyMyListItemsDialog extends DialogFragment {
         }
         return sb.toString();
     }
+
     /**
      * Checks how many milliseconds have elapsed since the last time "mLastClickTime" was updated
      * If enough time has elapsed, returns True and updates mLastClickTime.
@@ -236,5 +233,17 @@ public class CopyMyListItemsDialog extends DialogFragment {
             return false;
         }
     }
+
+
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList("mFavoritesLists", mFavoritesLists);
+        outState.putParcelableArrayList("mListsToCopyTo", mListsToCopyTo);
+        outState.putParcelable("mCurrentList", mCurrentList);
+        outState.putString("kanjiString", kanjiString);
+    }
+
 
 }

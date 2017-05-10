@@ -2,6 +2,7 @@ package com.jukuproject.jukutweet.Interfaces;
 
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.UserInfo;
+import com.jukuproject.jukutweet.Models.WordEntry;
 
 /**
  * Created by JukuProject on 3/19/2017.
@@ -21,11 +22,11 @@ public interface FragmentInteractionListener {
     void showMenuMyListBrowse(boolean show, int tabNumber);
 
     void notifySavedTweetFragmentsChanged();
-    void notifySavedWordFragmentsChanged();
+    void notifySavedWordFragmentsChanged(WordEntry wordEntry);
 
-    void showSavedTweetsTabForIndividualUser(UserInfo userInfo);
+//    void showSavedTweetsTabForIndividualUser(UserInfo userInfo);
     void onBackPressed();
-    void showUserDetailFragment(UserInfo userInfo);
+//    void showUserDetailFragment(UserInfo userInfo);
 //void refreshFragment(String fragmentTag);
     void runDictionarySearch(String query, String queryOn);
     void runTwitterSearch(String query, String queryOn);

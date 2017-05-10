@@ -21,7 +21,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -57,8 +56,6 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
     private RecyclerView mRecyclerView;
 
     private SmoothProgressBar progressBar;
-//    private View divider;
-
 
     private boolean showFriendsSelected;
     private UserInfo mUserInfo;
@@ -66,15 +63,10 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
     private TextView btnShowFriendsToggle;
     private TextView btnShowFollowersToggle;
     private TextView txtNoUsers;
-//    private TextView txtFollowersCount;
-//    private ImageView imgBanner;
     private ImageView imgProfile;
     private TextView txtDisplayName;
     private TextView txtScreenName;
-//    private TextView txtUrl;
-
     private View baseLayout;
-//    private View popupView;
     private ArrayList<UserInfo> mDataSet;
     private int previousFingerPosition = 0;
     private int baseLayoutPosition = 0;
@@ -83,8 +75,8 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
     private boolean isScrollingUp = false;
     private boolean isScrollingDown = false;
     private UserListAdapter mAdapter;
-    private ScrollView mScrollView;
     private ImageView imgBanner;
+
     /* keep from constantly recieving button clicks through the RxBus */
     private long mLastClickTime = 0;
     private String mCursorString = "-1";
@@ -107,12 +99,8 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-//        setStyle(DialogFragment.STYLE_NO_FRAME, getTheme());
         setStyle(STYLE_NO_FRAME, android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
-//        getDialog().getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-//        getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         return super.onCreateDialog(savedInstanceState);
-
     }
 
 
@@ -123,20 +111,14 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
         mRecyclerView = (RecyclerView) view.findViewById(R.id.userInfoRecycler);
         baseLayout = view.findViewById(R.id.popuptab_layout);
         progressBar = (SmoothProgressBar) view.findViewById(R.id.progressbar);
-//        divider = (View) view.findViewById(R.id.dividerview);
-        mScrollView = (ScrollView) view.findViewById(R.id.scrollView);
-
         btnShowFriendsToggle = (TextView) view.findViewById(R.id.txtShowFollowingToggle);
         btnShowFollowersToggle  = (TextView) view.findViewById(R.id.txtShowFollowersToggle);
         imgBanner = (ImageView) view.findViewById(R.id.imgBanner);
         imgProfile = (ImageView) view.findViewById(R.id.imgUser);
-//        txtFollowingCount = (TextView) view.findViewById(R.id.txtFollowingCount);
         txtNoUsers = (TextView) view.findViewById(R.id.txtNoUsers);
-
         txtDisplayName = (TextView) view.findViewById(R.id.txtName);
         txtScreenName = (TextView) view.findViewById(R.id.txtScreenName);
         btnRemoveUser = (TextView) view.findViewById(R.id.txtRemoveUserButton);
-//        txtUrl = (TextView) view.findViewById(R.id.txtUrl);
 
         return view;
     }
@@ -260,20 +242,8 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
         txtDisplayName.setText(mUserInfo.getName());
         txtScreenName.setText(mUserInfo.getDisplayScreenName());
 
-//        if(mUserInfo.getUrl() != null) {
-//            txtUrl.setVisibility(View.VISIBLE);
-//
-//            SpannableString text = new SpannableString(mUserInfo.getUrl());
-//            text.setSpan(new URLSpan(mUserInfo.getUrl()), 0, mUserInfo.getUrl().length(), 0);
-//            txtUrl.setMovementMethod(LinkMovementMethod.getInstance());
-//            txtUrl.setText(text, TextView.BufferType.SPANNABLE);
-//        }
-
-//        txtFollowingCount.setText(mUserInfo.getFriendCountString());
-//        txtFollowersCount.setText(mUserInfo.getFollowerCountString());
-        //TODO clean this up
-        btnShowFriendsToggle.setText(mUserInfo.getFriendCountString() + " Friends");
-        btnShowFollowersToggle.setText(mUserInfo.getFollowerCountString() + " Followers");
+        btnShowFriendsToggle.setText(getString(R.string.userDetailPopupFriends,mUserInfo.getFriendCountString()));
+        btnShowFollowersToggle.setText(getString(R.string.userDetailPopupFollowers,mUserInfo.getFollowerCountString()));
 
         /* Add the "Move / Copy"  buttons*/
         btnShowFriendsToggle.setOnClickListener(new View.OnClickListener() {
@@ -283,6 +253,9 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
                 setButtonActive(btnShowFriendsToggle,true);
 
                 if(!showFriendsSelected) {
+                    mRecyclerView.setVisibility(View.GONE);
+                    txtNoUsers.setVisibility(View.GONE);
+
                     mDataSet = new ArrayList<UserInfo>();
                     mCursorString = "-1";
                     pullFriendsUserInfoList(mUserInfo,mCursorString,60,0);
@@ -298,6 +271,9 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
                 setButtonActive(btnShowFollowersToggle,true);
                 setButtonActive(btnShowFriendsToggle,false);
                 if(showFriendsSelected) {
+                    mRecyclerView.setVisibility(View.GONE);
+                    txtNoUsers.setVisibility(View.GONE);
+
                     mDataSet = new ArrayList<UserInfo>();
                     mCursorString = "-1";
                     pullFollowerUserInfoList(mUserInfo,mCursorString,60,0);
@@ -671,7 +647,6 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
                         if(mDataSet.size()==0) {
                             showRecyclerView(false);
                         } else {
-//                            mAdapter = new UserListAdapter(getContext(),mDataSet, _rxBus);
                             if(mAdapter==null) {
                                 mAdapter = new UserListAdapter(getContext(),mDataSet, _rxBus);
                             } else {
@@ -689,11 +664,6 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
 
                                             if(isUniqueClick(1000) && event instanceof UserInfo) {
                                                 UserInfo userInfo = (UserInfo) event;
-//                                                Toast.makeText(getContext(), "CLICK: " + userInfo.getScreenName(), Toast.LENGTH_SHORT).show();
-//                                                //TODO -- make it so only one instance of breakdown fragment exists
-//                                                Tweet tweet = (Tweet) event;
-//                                                TweetBreakDownFragment fragment = TweetBreakDownFragment.newInstanceTimeLine(tweet);
-//                                                ((BaseContainerFragment)getParentFragment()).addFragment(fragment, true,"tweetbreakdown");
 
                                                 if(getFragmentManager().findFragmentByTag("dialogAddCheck") == null || !getFragmentManager().findFragmentByTag("dialogAddCheck").isAdded()) {
                                                     AddUserCheckDialog.newInstance(userInfo).show(getFragmentManager(),"dialogAddCheck");
@@ -705,7 +675,6 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
                                     });
 
                             mRecyclerView.setAdapter(mAdapter);
-                            Log.d(TAG,"show progress FALSE");
                         }
 
 

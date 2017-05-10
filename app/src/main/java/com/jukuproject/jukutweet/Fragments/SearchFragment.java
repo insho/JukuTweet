@@ -82,14 +82,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
     private View mDividerView;
     public SearchFragment() {}
 
-    /**
-     * Returns a new instance of UserListFragment
-     */
     public static SearchFragment newInstance() {
-//        UserListFragment fragment = new UserListFragment();
-//        Bundle args = new Bundle();
-//        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-//        fragment.setArguments(args);
         return new SearchFragment();
     }
 
@@ -210,13 +203,6 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
         currentSearchText= null;
 
         /* Set the sub-criteria checkboxes visible every time the searchview is clicked*/
-//        searchView.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                mDictionarySearchLayout.setVisibility(View.VISIBLE);
-//            }
-//        });
-
         searchView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
@@ -285,7 +271,6 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
 
         //If saved instance state is not null, run the adapter...
         if(savedInstanceState!=null) {
-            Log.e(TAG,"SEARCH SAVE NOT NULL");
             try {
                 mCheckedOption = savedInstanceState.getString("mCheckedOption","Romaji");
                 if(mCheckedOption.equals("Twitter")) {
@@ -302,8 +287,6 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                 Log.e(TAG,"Nullpointer exception in loading saved state on search fragment");
             }
 
-        } else {
-            Log.e(TAG,"SEARCH SAVE STATE NULL");
         }
     }
 
@@ -352,7 +335,6 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
             mDictionaryAdapter = new TweetBreakDownAdapter(getContext()
                     ,mMetrics
                     ,mDictionaryResults
-//                    ,mColorThresholds
                     ,mActiveFavoriteStars
                     ,rxBus);
             rxBus.toClickObserverable().subscribe(new Action1<Object>() {
@@ -361,6 +343,8 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                     if (event instanceof WordEntry) {
                         WordEntry wordEntry = (WordEntry) event;
                         updateWordEntryItemFavorites(wordEntry);
+                        updateWordEntryFavoritesForOtherTabs(wordEntry);
+
                     }
                 }
             });
@@ -545,12 +529,16 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
             for(WordEntry tweetWordEntry : mDictionaryResults) {
                 if(tweetWordEntry.getId()==wordEntry.getId()) {
 
-                    wordEntry.setItemFavorites(wordEntry.getItemFavorites());
+                    tweetWordEntry.setItemFavorites(wordEntry.getItemFavorites());
                 }
             }
             mDictionaryAdapter.notifyDataSetChanged();
         }
 
+    }
+
+    public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {
+        mCallback.notifySavedWordFragmentsChanged(wordEntry);
     }
 
     @Override

@@ -23,7 +23,6 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.PopupWindow;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter;
@@ -53,18 +52,17 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
-
 /**
- * Created by Joe on 11/21/2015.
+ * Popup dialog showing detail for a Word in the Edict dictionary. Top half displays kanji and definition, quiz score percentages, as well
+ * as a favorites star to add/subtract word from a list. Bottom half allows user to toggle between saved tweets that contain the word, and
+ * a search of twitter for tweets that contain the word.
+ *
  */
-
 public class WordDetailPopupDialog extends DialogFragment implements View.OnTouchListener {
 
     String TAG = "TEST-worddetailpop";
     private WordEntryFavoritesChangedListener mCallback;
     private boolean favoriteStarHasBeenChanged = false; // if fav star changes, call back to refresh dialog (like for browse words, the word may no longer be contained in that list..)
-    //    private Context mContext;
-//    private View mAnchorView;
     private RxBus mRxBus = new RxBus();
     private RecyclerView mRecyclerView;
 
@@ -84,9 +82,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
     private FrameLayout imgStarLayout;
     private ImageButton imgStar;
     private TextView btnCollapseDefinition;
-    //    private TextView txtFollowersCount;
     private View baseLayout;
-    //    private View popupView;
     private ArrayList<Tweet> mDataSet;
     private int previousFingerPosition = 0;
     private int baseLayoutPosition = 0;
@@ -96,9 +92,6 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
     private boolean isScrollingDown = false;
     private ColorThresholds mColorThresholds;
     private UserTimeLineAdapter mAdapter;
-    private ScrollView mScrollView;
-//    private ImageView imgBanner;
-//    private boolean mShowStarInAdapter = false;
     /* keep from constantly recieving button clicks through the RxBus */
     private long mLastClickTime = 0;
     private String mCursorString = "-1";
@@ -111,11 +104,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setStyle(STYLE_NO_FRAME, android.R.style.Theme_Translucent_NoTitleBar);
-//        mCallback = (WordEntryFavoritesChangedListener) getTargetFragment();
     }
-
-
-    //    private RxBus _rxBus = new RxBus();
 
     public WordDetailPopupDialog() {}
 
@@ -127,18 +116,6 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         return  fragment;
     }
 
-    /* If popup is called from browse/edit fragment, it is necessary to know the word list from which the popup is called,
-    * because changing the favorite star in this word detail popup can effect whether the WordEntry should be included in the mylist */
-//    public static WordDetailPopupDialog newInstanceFromBrowse(WordEntry wordEntry,MyListEntry myListEntry) {
-//        WordDetailPopupDialog fragment = new WordDetailPopupDialog();
-//        Bundle args = new Bundle();
-//        args.putParcelable("mWordEntry", wordEntry);
-//        args.putParcelable("mMyListEntry", myListEntry);
-//
-//        fragment.setArguments(args);
-//        return  fragment;
-//    }
-
     @Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -146,7 +123,6 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         mRecyclerView = (RecyclerView) view.findViewById(R.id.userInfoRecycler);
         baseLayout = view.findViewById(R.id.popuptab_layout);
         progressBar = (SmoothProgressBar) view.findViewById(R.id.progressbar);
-        mScrollView = (ScrollView) view.findViewById(R.id.scrollView);
 
         btnShowSavedTweetsToggle = (TextView) view.findViewById(R.id.txtShowFollowingToggle);
         btnSearchForTweetsToggle = (TextView) view.findViewById(R.id.txtShowFollowersToggle);
@@ -172,9 +148,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         if(savedInstanceState == null) {
             showSavedTweetsSelected = true;
             mWordEntry = getArguments().getParcelable("mWordEntry");
-
             mDataSet = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsThatIncludeAWord(String.valueOf(mWordEntry.getId()),mColorThresholds);
-
         } else {
             mWordEntry = savedInstanceState.getParcelable("mWordEntry");
             showSavedTweetsSelected = savedInstanceState.getBoolean("showSavedTweetsSelected");
@@ -191,6 +165,8 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
 
         StringBuilder displayKanji = new StringBuilder();
         displayKanji.append(mWordEntry.getKanji());
+
+        /* Make display version of furigana and kanji if furigan exists */
         if(mWordEntry.getFurigana()!=null
                 && mWordEntry.getFurigana().length()>0
                 && !mWordEntry.getFurigana().equals(mWordEntry.getKanji())) {
@@ -199,7 +175,6 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
             displayKanji.append(")");
         }
         textKanji.setText(displayKanji.toString());
-
         listViewPopupDefinition.setText(mWordEntry.getDefinitionMultiLineString(20));
         listViewPopupDefinition.setTypeface(null, Typeface.ITALIC);
         listViewPopupDefinition.setFocusable(false);
@@ -229,9 +204,8 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
             }
         });
 
-        //TODO convert to word strings
         textScore.setText(mWordEntry.getCorrect() + "/" + mWordEntry.getTotal());
-        textPercentage.setText((int)(mWordEntry.getPercentage()*100) + "%");
+        textPercentage.setText(getString(R.string.percentage,(int)(mWordEntry.getPercentage()*100)));
 
         imgStarLayout.setClickable(true);
         imgStarLayout.setLongClickable(true);
@@ -242,8 +216,6 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
 
         if(starColorDrawableInt!=R.drawable.ic_star_multicolor) {
                 try {
-//                    Log.d(TAG,"active favs : " + activeFavoriteWordStars.get(0));
-//                    Log.d(TAG,"favs: " + mWordEntry.getItemFavorites().getSystemBlueCount() + " - " + mWordEntry.getItemFavorites().shouldOpenFavoritePopup(activeFavoriteWordStars));
                     imgStar.setColorFilter(ContextCompat.getColor(getContext(),FavoritesColors.assignStarColor(mWordEntry.getItemFavorites(),activeFavoriteWordStars)));
                 } catch (NullPointerException e) {
                     Log.e(TAG,"Nullpointer error setting star color filter in word detail popup dialog... Need to assign item favorites to WordEntry(?)" + e.getCause());
@@ -255,7 +227,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         imgStarLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO favorite words
+
                 favoriteStarHasBeenChanged = true;
 
                 if(BuildConfig.DEBUG) {
@@ -274,9 +246,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
                         } catch (NullPointerException e) {
                             Log.e(TAG,"showFavoriteListPopupWindow Nullpointer error setting star color filter in word detail popup dialog... Need to assign item favorites to WordEntry(?)" + e.getCause());
                         }
-
                     } else {
-                        //TODO insert an error?
                         Log.e(TAG,"OnFavoriteStarToggle did not work...");
                     }
                 }
@@ -305,8 +275,10 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
                 setButtonActive(btnShowSavedTweetsToggle,true);
 
                 if(!showSavedTweetsSelected) {
-//                    mDataSet = new ArrayList<Tweet>();
-//                    mShowStarInAdapter = false;
+
+                    mRecyclerView.setVisibility(View.GONE);
+                    txtNoTweetsFound.setVisibility(View.GONE);
+
                     mCursorString = "-1";
                     showSavedTweetsSelected = true;
                     mDataSet.clear();
@@ -315,7 +287,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
                     mAdapter = new UserTimeLineAdapter(getContext(), mRxBus, mDataSet, mActiveTweetFavoriteStars,metrics,mWordEntry.getKanji(),false);
 
                     mRecyclerView.setAdapter(mAdapter);
-
+                    showRecyclerView(true);
                 }
 
             }
@@ -324,10 +296,12 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         btnSearchForTweetsToggle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                mShowStarInAdapter = true;
                 setButtonActive(btnSearchForTweetsToggle,true);
                 setButtonActive(btnShowSavedTweetsToggle,false);
                 if(showSavedTweetsSelected) {
+                    mRecyclerView.setVisibility(View.GONE);
+                    txtNoTweetsFound.setVisibility(View.GONE);
+
                     showProgressBar(true);
                     mDataSet.clear();
                     showSavedTweetsSelected = false;
@@ -614,19 +588,6 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         }
     }
 
-//    @Override
-//    public void onAttach(Context context) {
-//        super.onAttach(context);
-//        try {
-//            mCallback = (DialogInteractionListener) context;
-//        } catch (ClassCastException e) {
-//            throw new ClassCastException(context.toString()
-//                    + " must implement OnHeadlineSelectedListener");
-//        }
-//    }
-
-
-
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -645,18 +606,8 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
             index = definition.substring(0,index).length() + definition.substring(index,definition.length()).indexOf("\u2022") + 1;
             linecounter += 1;
         }
-//
 
-//        int lastIndex = 0;
-//        int count = 0;
-//
-//        while ((lastIndex = definition.indexOf("\u2022", lastIndex)) != -1) {
-//            count++;
-//            lastIndex += "\u2022".length() - 1;
-//        }
-
-return linecounter;
-//        return count;
+        return linecounter;
     }
 
 
@@ -725,6 +676,7 @@ return linecounter;
                     @Override public void onError(Throwable e) {
                         e.printStackTrace();
                         showProgressBar(false);
+                        showRecyclerView(false);
 
                         if(BuildConfig.DEBUG){Log.d(TAG, "runTwitterSearch In onError()");}
                     }
@@ -755,6 +707,7 @@ return linecounter;
         }
         if(favoriteStarHasBeenChanged) {
             mCallback.updateWordEntryItemFavorites(mWordEntry);
+            mCallback.updateWordEntryFavoritesForOtherTabs(mWordEntry);
 //            getTargetFragment().
         }
         super.onDismiss(dialog);

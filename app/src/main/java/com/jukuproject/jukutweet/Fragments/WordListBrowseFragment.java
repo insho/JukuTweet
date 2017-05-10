@@ -2,7 +2,6 @@ package com.jukuproject.jukutweet.Fragments;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteException;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
@@ -14,6 +13,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupWindow;
@@ -42,14 +42,14 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
+import static com.jukuproject.jukutweet.Dialogs.CopyMyListItemsDialog.getSelectedIntsAsString;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
-//import com.jukuproject.jukutweet.Interfaces.MyListCopyDialogListener;
 
 /**
- * Created by JClassic on 3/26/2017.
+ * Displays a list of {@link WordEntry} objects for a WordList. User can edit lists (move/copy/remove) words, and
+ * open the {@link WordDetailPopupDialog} with a long click.
  */
-
 public class WordListBrowseFragment extends Fragment implements WordEntryFavoritesChangedListener {
 
     String TAG = "TEST-Wordbrowse";
@@ -74,15 +74,21 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
         return fragment;
     }
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        try {
+            mCallback = (FragmentInteractionListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()
+                    + " must implement OnHeadlineSelectedListener");
+        }
+    }
 
-    @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_browse, container, false);
-
         mRecyclerView = (RecyclerView) v.findViewById(R.id.recyclerMain);
-
-
         return v;
     }
 
@@ -105,14 +111,8 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
         if(mSelectedEntries != null && mSelectedEntries.size()>0) {
             mCallback.showMenuMyListBrowse(true,2);
         }
-        updateAdapter((savedInstanceState == null));
-    }
 
-
-
-    public void updateAdapter(boolean freshQuestion) {
-
-        if(freshQuestion || mWords == null) {
+        if(savedInstanceState == null || mWords == null) {
             //Pull list of word entries in the database for a given list
             mWords = InternalDB.getWordInterfaceInstance(getContext()).getWordsFromAWordList(mMyListEntry
                     ,mColorThresholds
@@ -121,8 +121,6 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
                     ,null);
         }
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
-
 
         //Create UserListAdapter and attach rxBus click listeners to it
         if(mWords != null && mWords.size() > 0) {
@@ -138,27 +136,17 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
                                 Integer id = (Integer) event;
 
                                 if(!mSelectedEntries.contains(id)) {
-                                        if(mSelectedEntries.size()==0) {
-                                            mCallback.showMenuMyListBrowse(true,2);
-                                            Log.d(TAG,"showing menu");
-                                        }
-                                    Log.d(TAG,"selected adding: " + id);
+                                    if(mSelectedEntries.size()==0) {
+                                        mCallback.showMenuMyListBrowse(true,2);
+                                    }
                                     mSelectedEntries.add(id);
-                                    Log.d(TAG,"selected size: " + mSelectedEntries.size());
-
                                 } else {
                                     mSelectedEntries.remove(id);
-                                    Log.d(TAG,"selected removing: " + id);
-                                    Log.d(TAG,"selected size: " + mSelectedEntries.size());
                                 }
 
                                 if(mSelectedEntries.size()==0) {
                                     mCallback.showMenuMyListBrowse(false,2);
-                                    Log.d(TAG,"hiding menu");
                                 }
-
-                                Log.d(TAG,"selected updated entry  count: " + mSelectedEntries.size());
-
                             }
 
                         }
@@ -174,7 +162,6 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
                         public void call(Object event) {
                             if(isUniqueClick(1000) && event instanceof WordEntry) {
                                 WordEntry wordEntry = (WordEntry) event;
-//
                                 WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(wordEntry);
                                 wordDetailPopupDialog.setTargetFragment(WordListBrowseFragment.this, 0);
                                 wordDetailPopupDialog.show(getFragmentManager(),"wordDetailPopup");
@@ -186,13 +173,11 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
             mRecyclerView.setAdapter(mAdapter);
             mRecyclerView.setVerticalScrollBarEnabled(true);
 
-        } else {
-            /* Hide recycler view and show "no users found" message */
-//            showRecyclerView(false);
         }
-
-
     }
+
+
+
 
     /**
      * Checks how many milliseconds have elapsed since the last time "mLastClickTime" was updated
@@ -217,7 +202,6 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
 
     public void selectAll() {
 
-//        //If every word item is already selected, deselect all
         if(mSelectedEntries.size() != mWords.size()) {
             mSelectedEntries.clear();
             for(WordEntry entry : mWords) {
@@ -227,28 +211,33 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
         }
     }
 
+    /**
+     * Opens {@link CopyMyListItemsDialog}. Called when user clicks copy button in action bar.
+     * Main Activity callback launches this method.
+     */
     public void showCopyMyListDialog(){
         if(getActivity().getSupportFragmentManager().findFragmentByTag("dialogCopy") == null || !getActivity().getSupportFragmentManager().findFragmentByTag("dialogCopy").isAdded()) {
             CopyMyListItemsDialog.newInstance(mMyListEntry,mSelectedEntries).show(getActivity().getSupportFragmentManager(),"dialogCopy");
         }
     }
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        try {
-            mCallback = (FragmentInteractionListener) context;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString()
-                    + " must implement OnHeadlineSelectedListener");
-        }
-    }
 
 
-    //TODO add error message to this
+
+
+    /**
+     * Recieves result of {@link com.jukuproject.jukutweet.Dialogs.CopyMyListItemsDialog} , passed from {@link com.jukuproject.jukutweet.MainActivity#saveAndUpdateMyLists(String, ArrayList, boolean, MyListEntry)}.
+     * This method is where the changes are entered into the database, the recycler is refreshed, and the user notified
+     *
+     * @param kanjiIdString concatenated string of kanji ids that will be moved/copied
+     * @param listsToCopyTo MyList object of word lists that the words will be copied to
+     * @param move bool true for MOVE the words, false to only COPY the words
+     * @param currentList The current list from which the copy dialog is called. This is so the list is not included
+     *                    as an option to move/copy to.
+     */
     public void saveAndUpdateMyLists(String kanjiIdString,ArrayList<MyListEntry> listsToCopyTo, boolean move,MyListEntry currentList) {
-        WordListOperationsInterface helperWordOps = InternalDB.getWordInterfaceInstance(getContext());
 
+        WordListOperationsInterface helperWordOps = InternalDB.getWordInterfaceInstance(getContext());
         try {
             for(MyListEntry entry : listsToCopyTo) {
                 helperWordOps.addMultipleWordsToWordList(entry,kanjiIdString);
@@ -256,6 +245,9 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
 
             if(move) {
                 removeKanjiFromList(kanjiIdString,currentList);
+                Toast.makeText(getContext(), "Items moved successfully", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getContext(), "Items copied successfully", Toast.LENGTH_SHORT).show();
             }
             deselectAll();
             mCallback.showMenuMyListBrowse(false,2);
@@ -266,11 +258,14 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
             Log.e(TAG,"SQLiteException in WordListBrowseFragment saveAndUpdateMyLists : " + e);
             Toast.makeText(getContext(), "Unable to update lists", Toast.LENGTH_SHORT).show();
         }
-
-
-
     }
 
+    /**
+     * Deletes items from the dataset and updates adapter, when User has "moved" them to a new list via
+     * the {@link CopyMyListItemsDialog}
+     * @param kanjiIdString concatenate (and comma seperated) string of kanji ids to move
+     * @param currentList The current my list that is being browsed
+     */
     public void removeKanjiFromList(String kanjiIdString, MyListEntry currentList){
         try {
             InternalDB.getWordInterfaceInstance(getContext()).removeMultipleWordsFromWordList(kanjiIdString,currentList);
@@ -291,7 +286,10 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
         }
     }
 
-
+    /**
+     * Deletes selected items from the dataset and updates adapter, when User has clicked on the trash icon. Activated
+     *  via a callback from {@link com.jukuproject.jukutweet.MainActivity#onOptionsItemSelected(MenuItem)}
+     */
     public void removeKanjiFromList(){
         try {
             final String kanjiString = getSelectedIntsAsString(mSelectedEntries);
@@ -314,22 +312,23 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
     }
 
 
+    /**
+     * Shows the "undo changes" popup window after user deletes selected rows. The window stays visible for 3 seconds,
+     * giving the user a chance to click on the "undo" button and reverse the changes.
+     * @param kanjiIdString concatenate (and comma seperated) string of kanji ids to move
+     * @param currentList The current my list that is being browsed
+     */
     public void showUndoPopup(final String kanjiIdString, final MyListEntry currentList) {
 
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
-//        LinearLayout viewGroup = (LinearLayout) context.findViewById(R.id.llSortChangePopup);
         LayoutInflater layoutInflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View v = layoutInflater.inflate(R.layout.popup_undo, null);
 
         final PopupWindow popupWindow = new PopupWindow(getContext());
-//        popupWindow.setWidth(popupwindowwidth);
-//        popupWindow.setHeight(poupwindowheight);
         popupWindow.setFocusable(true);
         popupWindow.setClippingEnabled(false);
         popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-//        View v = getLayoutInflater().inflate(R.layout.popup_undo,null);
-        final Drawable drawable = ContextCompat.getDrawable(getContext(), R.drawable.colorblock);
         popupWindow.setWidth((int)(metrics.widthPixels*.66f));
 
         TextView undoButton = (TextView) v.findViewById(R.id.undoButton);
@@ -340,8 +339,6 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
                         popupWindow.dismiss();
                     }
                 });
-
-
         undoButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -355,12 +352,10 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
                             ,null);
                     mSelectedEntries.clear();
                     mAdapter.swapDataSet(mWords,mSelectedEntries);
-                    try {
+
                         popupWindow.dismiss();
                         undoSubscription.unsubscribe();
-                    } catch (Exception e) {
 
-                    }
 
                 } catch (NullPointerException e) {
                     Log.e(TAG,"Nullpointer in WordListBrowseFragment showUndoPopup : re-add" + e);
@@ -373,39 +368,18 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
             }
         });
 
-
-//        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-//            holder.txtOption.setBackground(drawable);
-//        } else {
-//            holder.txtOption.setBackgroundDrawable(drawable);
-//        }
         popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.popup_drawable));
         popupWindow.setContentView(v);
         popupWindow.showAtLocation(mRecyclerView, Gravity.BOTTOM, 0, (int)(metrics.heightPixels / (float)9.5));
-        // create a single event in 10 seconds time
-
-
-
-
-
-
-
-
     }
 
-    //TODO CONSOLIDATE WITH TWIN IN COPYMYLISTITEMSDIALOG
-    public String getSelectedIntsAsString(ArrayList<Integer> list ) {
-        StringBuilder sb = new StringBuilder();
-
-        for (int i = 0; i < list.size(); ++i) {
-            if (i>0) {
-                sb.append(", ");
-            }
-            sb.append(list.get(i).toString());
-        }
-        return sb.toString();
-    }
-
+    /**
+     *  When word entry favorites star is clicked on the {@link BrowseWordsAdapter}, a callback is initiated and the
+     *  dataset in this fragment is updated. OR, when this fragment is open in one tab, and the user changes the favorite
+     *  star for a word in another tab, this method may be called from the {@link com.jukuproject.jukutweet.MainActivity#notifySavedWordFragmentsChanged(WordEntry)}
+     *  It keeps the favorite list stars synchronized across tabs.
+     * @param wordEntry WordEntry whose "FavoriteItems" object was updated (i.e. the favorite star was clicked and changed in the adapter)
+     */
     public void updateWordEntryItemFavorites(WordEntry wordEntry) {
         if(mWords.contains(wordEntry)) {
             if(!InternalDB.getWordInterfaceInstance(getContext()).myListContainsWordEntry(mMyListEntry,wordEntry)) {
@@ -426,17 +400,31 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
         }
     }
 
+    /**
+     *  Initiates the {@link com.jukuproject.jukutweet.MainActivity#notifySavedWordFragmentsChanged(WordEntry)} method when the favorites entries
+     *  for a word have changed in this tab, so that other tabs that might contain the same word are also updated.
+     *  It keeps the favorite list stars synchronized across tabs.
+     * @param wordEntry WordEntry whose "FavoriteItems" object was updated (i.e. the favorite star was clicked and changed in the adapter)
+     */
+    public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {
+        mCallback.notifySavedWordFragmentsChanged(wordEntry);
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
-        try {
+        if(undoSubscription!=null) {
             undoSubscription.unsubscribe();
-        } catch (Exception e) {
-
         }
     }
 
-
+    @Override
+    public void onPause() {
+        super.onPause();
+        if(undoSubscription!=null) {
+            undoSubscription.unsubscribe();
+        }
+    }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {

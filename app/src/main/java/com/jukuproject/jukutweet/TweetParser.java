@@ -2,6 +2,7 @@ package com.jukuproject.jukutweet;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteException;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -17,9 +18,6 @@ import com.vdurmont.emoji.EmojiManager;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-//import com.jukuproject.jukutweet.Models.ParseSentenceItem;
-//import com.jukuproject.jukutweet.Models.ParseSentenceSpecialSpan;
-
 /**
  * Created by JukuProject on 3/9/2017.
  * Takes a sentence (or piece of text), finds the kanji in it and creates an array of those kanji
@@ -27,10 +25,7 @@ import java.util.HashMap;
 
 public class TweetParser {
 
-
-    private static boolean debug = true;
-    private static String TAG = "TEST -- splitSent";
-
+    private static String TAG = "TEST-tweetparse";
     private String entireSentence;
     private WordLoader wordLoader;
     //    private ArrayList<ParseSentenceSpecialSpan> mSpecialSpans;
@@ -56,7 +51,7 @@ public class TweetParser {
         this.wordLoader = InternalDB.getInstance(mContext).getWordLists();
 
         possibleKanjiInSentence = findCoreKanjiBlocksInSentence(entireSentence,wordLoader,spansToExclude);
-        if(debug){
+        if(BuildConfig.DEBUG){
             Log.d(TAG, "whole sentence: " + entireSentence);
             Log.d(TAG, "# of Kanji found: " + possibleKanjiInSentence.size());
 
@@ -69,11 +64,11 @@ public class TweetParser {
 
 
         attachPrefixesandSuffixesToCoreKanji(possibleKanjiInSentence);
-        if(debug){
-            Log.e(TAG,"CREATING PREFIX/SUFIX COMBOS, ITERATING THROUGH THEM, IF MATCH FOUND ADDING TO FINAL");
+        if(BuildConfig.DEBUG){
+            Log.i(TAG,"CREATING PREFIX/SUFIX COMBOS, ITERATING THROUGH THEM, IF MATCH FOUND ADDING TO FINAL");
         }
         createBetterMatchesForPossibleKanji(possibleKanjiInSentence);
-        if(debug){Log.e(TAG,"CHECKING/CHOPPING POSSIBLE VERB COMBOS, ADDING TO KANJIFINALARRAY");}
+        if(BuildConfig.DEBUG){Log.e(TAG,"CHECKING/CHOPPING POSSIBLE VERB COMBOS, ADDING TO KANJIFINALARRAY");}
 
         ArrayList<Integer> cleanKanjiIds = getCleanKanjiIDsFromBetterMatches(possibleKanjiInSentence);
 
@@ -196,23 +191,23 @@ public class TweetParser {
             } else {
                 prevposition = 0;
             }
-            if(debug){Log.d(TAG, "CURRENT kanji: " + possibleKanjiInSentence.get(i).getKanji());}
+            if(BuildConfig.DEBUG){Log.d(TAG, "CURRENT kanji: " + possibleKanjiInSentence.get(i).getKanji());}
             /* For FillInTheBlanks, if the current Kanji is a designated SpinnerKanji, do not try to attach prefixes or suffixes*/
 //            if (wordvalues != null && wordvalues.contains(possibleKanjiInSentence.get(i).getKanji())) {
-//                if(debug){Log.d(TAG, "Adding to kanjifinal_HashMap (SPINNER): " + i + " - " + possibleKanjiInSentence.get(i).getKanji());}
+//                if(BuildConfig.DEBUG){Log.d(TAG, "Adding to kanjifinal_HashMap (SPINNER): " + i + " - " + possibleKanjiInSentence.get(i).getKanji());}
 //            } else {
             ArrayList<String> suffixes = new ArrayList<>();
             ArrayList<String> prefixes = new ArrayList<>();
 
             final int hiraganalength = findTrailingHiraganaLength(i,entireSentence.length(),possibleKanjiInSentence);
-            if(debug){
+            if(BuildConfig.DEBUG){
                 Log.d(TAG, possibleKanjiInSentence.get(i).getKanji() + " hiraganalength: " + hiraganalength);
                 Log.d(TAG,possibleKanjiInSentence.get(i).getKanji() +  " currentposition: " + possibleKanjiInSentence.get(i).getPositionInSentence());
             }
             if (hiraganalength > possibleKanjiInSentence.get(i).getPositionInSentence()) {
                 suffixes = fillTheSuffixLists(possibleKanjiInSentence.get(i),hiraganalength,wordLoader);
                 prefixes = fillThePrefixList(prevposition,possibleKanjiInSentence.get(i));
-                if(debug){Log.d(TAG, "Adding kanji chunk to kanjifinal_HashMap (at pos): " + i + " - " + possibleKanjiInSentence.get(i).getKanji());}
+                if(BuildConfig.DEBUG){Log.d(TAG, "Adding kanji chunk to kanjifinal_HashMap (at pos): " + i + " - " + possibleKanjiInSentence.get(i).getKanji());}
             }
             possibleKanjiInSentence.get(i).setPrefixes(prefixes);
             possibleKanjiInSentence.get(i).setSuffixes(suffixes);
@@ -277,7 +272,7 @@ public class TweetParser {
 
                 String possibleSuffix = builder_hiragana.toString();
                 suffixes.add(possibleSuffix);
-                if(debug){Log.d(TAG, "(" + possibleKanji.getKanji() + ") possible suffix: " + possibleSuffix);}
+                if(BuildConfig.DEBUG){Log.d(TAG, "(" + possibleKanji.getKanji() + ") possible suffix: " + possibleSuffix);}
 
                 /* If there is a KanjiChunk + verb suffix match, add it to the possible verb combos map*/
                 if(wordLoader.getVerbEndingsConjugation().contains(possibleSuffix)) {
@@ -288,7 +283,7 @@ public class TweetParser {
                         if (conjugation.equalsIgnoreCase(possibleSuffix)) {
                             possibleKanji.addToVerbCombos(possibleKanji.getKanji() + root);
                             VerbChunksAndPositions.put(possibleKanji.getKanji() + root, possibleKanji.getKanji());
-                            if(debug){
+                            if(BuildConfig.DEBUG){
                                 Log.d(TAG, "Kanjifinal POSSIBLE Verb match: " + possibleKanji.getKanji() + possibleSuffix);
                                 Log.d(TAG, "Adding to kanjifinal_HashMap_Verbs: - " + possibleKanji.getKanji() + root);
                             }
@@ -346,7 +341,7 @@ public class TweetParser {
                 if (builder_hiragana_prev.length() > 0) {
                     String string = builder_hiragana_prev.toString();
                     prefixes.add(string);
-                    if(debug){Log.d(TAG, "(" + possibleKanji.getKanji() + ") possible prefix: " + string);}
+                    if(BuildConfig.DEBUG){Log.d(TAG, "(" + possibleKanji.getKanji() + ") possible prefix: " + string);}
                 }
             }
         }
@@ -374,22 +369,22 @@ public class TweetParser {
 
             ArrayList<String> possibleCombination = brokenUpKanjiCombinations.get(m);
             ParseSentenceMatchCombination matchCombination = getCountofMatchingPieces(possibleCombination);
-            if(debug){Log.d(TAG, "BREAKUP(1) breakuparray combos size: " + possibleCombination.size());}
+            if(BuildConfig.DEBUG){Log.d(TAG, "BREAKUP(1) breakuparray combos size: " + possibleCombination.size());}
             /* If all the pieces have a DB match move them on to the next step
              * OR, if all but ONE have a match, try looking for suffixes/prefixes for that one. Maybe there's a match */
             if (matchCombination.getMatchCount() == possibleCombination.size() || (matchCombination.getMatchCount()>1 && possibleCombination.size()-matchCombination.getMatchCount()==1 && matchCombination.getNoMatchforFinalKanji())) {
-                if(debug){Log.d(TAG,"BREAKUP(1) -- Success. Matches found for each broken up kanji");}
+                if(BuildConfig.DEBUG){Log.d(TAG,"BREAKUP(1) -- Success. Matches found for each broken up kanji");}
 
                 /* Shut off the process if all combinations are accounted for */
                 if(matchCombination.getMatchCount() == possibleCombination.size()) {
                     shutoff = true;
                 }
 
-                if(debug){Log.d(TAG,"BREAKUP(1) tmpStringArray size: " + matchCombination.getMatches().size());}
+                if(BuildConfig.DEBUG){Log.d(TAG,"BREAKUP(1) tmpStringArray size: " + matchCombination.getMatches().size());}
                 for (int v = 0; v < matchCombination.getMatches().size(); v++) {
 
                     /* Check for PREFIX matches for the trailing kanji */
-                    if(debug) {
+                    if(BuildConfig.DEBUG) {
                         Log.d(TAG, "BREAKUP(1) current breakup chunk string: " + matchCombination.getMatches().get(v));
                         Log.d(TAG, "BREAKUP(1) kanjibreakupArray.size() >0: " + (brokenUpKanjiCombinations.size() > 0));
                         Log.d(TAG, "BREAKUP(1) v = " + v);
@@ -440,19 +435,19 @@ public class TweetParser {
         for (int index=0; index<possibleCombination.size();index++) {
             final String kanjiPiece = possibleCombination.get(index);
             Cursor cursorMatchPieceAgainstDB  = cursorMatchStringAgainstDB(kanjiPiece);
-            if(debug){Log.d(TAG, "BREAKUP(1): SELECT FROM [Edict_FTS] WHERE [Kanji] MATCH " + kanjiPiece + ":count: " + cursorMatchPieceAgainstDB.getCount());}
+            if(BuildConfig.DEBUG){Log.d(TAG, "BREAKUP(1): SELECT FROM [Edict_FTS] WHERE [Kanji] MATCH " + kanjiPiece + ":count: " + cursorMatchPieceAgainstDB.getCount());}
             if (cursorMatchPieceAgainstDB.getCount() > 0) {
                 cursorMatchPieceAgainstDB.moveToFirst();
                 combination.addMatches(kanjiPiece);
                 combination.addMatchID(cursorMatchPieceAgainstDB.getInt(0));
                 combination.addMatchCount();
-                if(debug){Log.d(TAG, "BREAKUP(1) found breakup match: " + kanjiPiece + ", " + matchingPieces + "/" + possibleCombination.size());}
+                if(BuildConfig.DEBUG){Log.d(TAG, "BREAKUP(1) found breakup match: " + kanjiPiece + ", " + matchingPieces + "/" + possibleCombination.size());}
             } else if (index == possibleCombination.size()-1) {
                 /* If it's the last kanji in the group, and there were matches for all the other pieces, and there were no matches for this last one, maybe it's a verb */
                 combination.setNoMatchforFinalKanji(true);
                 if(possibleCombination.size()-matchingPieces==1) {
                     combination.addMatches(kanjiPiece);
-                    if(debug){Log.d(TAG, "BREAKUP(1) no match for final entry: " + kanjiPiece + ", Adding it anyway...");}
+                    if(BuildConfig.DEBUG){Log.d(TAG, "BREAKUP(1) no match for final entry: " + kanjiPiece + ", Adding it anyway...");}
                 }
             }
             cursorMatchPieceAgainstDB.close();
@@ -491,22 +486,22 @@ public class TweetParser {
             if(possibleCombination.size()>1) {
 
                 String firstkanji = possibleCombination.get(0);
-                if(debug){Log.d(TAG,"BREAKUP(1) firstkanji = " + possibleCombination.get(0));}
+                if(BuildConfig.DEBUG){Log.d(TAG,"BREAKUP(1) firstkanji = " + possibleCombination.get(0));}
 
                 if (possibleKanji.getPrefixes().size() > 0) {
 
                     for (int xx = 0; xx < possibleKanji.getPrefixes().size(); xx++) {
                         Cursor dd = InternalDB.getInstance(mContext).getWritableDatabase().rawQuery("SELECT [Kanji],_id FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{possibleKanji.getPrefixes().get(xx) + firstkanji});
-                        if(debug){
+                        if(BuildConfig.DEBUG){
                             Log.d(TAG,"BREAKUP(1) (prefix) trying: " + possibleKanji.getPrefixes().get(xx) + firstkanji);
                             Log.d(TAG, "BREAKUP(1) SELECT [Kanji] FROM [Edict_FTS] WHERE [Kanji] MATCH " + possibleKanji.getPrefixes().get(xx) + firstkanji + ":count: " + dd.getCount());
                         }
                         if (dd.getCount() > 0) {
                             dd.moveToFirst();
-                            if(debug){Log.d(TAG, "BREAKUP(1) found extra match: (" + dd.getString(0) + ") " + possibleKanji.getPrefixes().get(xx) + firstkanji);}
+                            if(BuildConfig.DEBUG){Log.d(TAG, "BREAKUP(1) found extra match: (" + dd.getString(0) + ") " + possibleKanji.getPrefixes().get(xx) + firstkanji);}
                             if(dd.getString(0).length() > matchCombination.getMatches().get(0).length()) {
                                 xx = possibleKanji.getPrefixes().size(); // THIS ENDS THE PROCESS
-                                if(debug){Log.d(TAG,"BREAKUP(1) removing: " + matchCombination.getMatches().get(0) + ", adding: " + dd.getString(0));}
+                                if(BuildConfig.DEBUG){Log.d(TAG,"BREAKUP(1) removing: " + matchCombination.getMatches().get(0) + ", adding: " + dd.getString(0));}
 
                                 ArrayList<String> updatedKanji = new ArrayList<>();
                                 ArrayList<Integer> updatedIDs = new ArrayList<>();
@@ -558,7 +553,7 @@ public class TweetParser {
 
                 /* Filling in the first x number of entries for the broken up array. Leaving the last one out. We will then input the last entry + suffix into the kanjibreakuparray*/
                 String lastkanji = possibleCombination.get(possibleCombination.size()-1);
-                if(debug){Log.d(TAG,"BREAKUP(2) lastkanji  = " + possibleCombination.get(possibleCombination.size()-1));}
+                if(BuildConfig.DEBUG){Log.d(TAG,"BREAKUP(2) lastkanji  = " + possibleCombination.get(possibleCombination.size()-1));}
                 /* Search Edict for matches with Kanji + suffixes, prefix + kanji, and prefix + kanji + suffix. If matche exists, book it and replace old kanji with new entry in final hashmap*/
                 if (possibleKanji.getSuffixes().size() > 0) {
                     boolean shutoff = false;
@@ -566,10 +561,10 @@ public class TweetParser {
 
                         Cursor cursorDBMatch2 = cursorMatchStringAgainstDB(lastkanji + possibleKanji.getSuffixes().get(x));
 
-                        if(debug){Log.d(TAG, "BREAKUP(2) () (suffix)SELECT [_id] FROM [Edict_FTS] WHERE [Kanji] MATCH " + lastkanji + possibleKanji.getSuffixes().get(x) + ":count: " + cursorDBMatch2.getCount());}
+                        if(BuildConfig.DEBUG){Log.d(TAG, "BREAKUP(2) () (suffix)SELECT [_id] FROM [Edict_FTS] WHERE [Kanji] MATCH " + lastkanji + possibleKanji.getSuffixes().get(x) + ":count: " + cursorDBMatch2.getCount());}
                         if (cursorDBMatch2.getCount() > 0) {
                             cursorDBMatch2.moveToFirst();
-                            if(debug){Log.d(TAG, "BREAKUP(2) found extra match: (" + cursorDBMatch2.getString(0) + ") " + lastkanji + possibleKanji.getSuffixes().get(x));}
+                            if(BuildConfig.DEBUG){Log.d(TAG, "BREAKUP(2) found extra match: (" + cursorDBMatch2.getString(0) + ") " + lastkanji + possibleKanji.getSuffixes().get(x));}
                             shutoff = true; // THIS ENDS THE PROCESS
                             matchCombination.getMatchIDs().remove(matchCombination.getMatchIDs().size()-1);
                             matchCombination.getMatchIDs().add(cursorDBMatch2.getInt(0));
@@ -584,11 +579,11 @@ public class TweetParser {
                                 String root = wordLoader.getVerbEndingsRoot().get(k);
                                 String conjugation = wordLoader.getVerbEndingsConjugation().get(k);
                                 if (conjugation.equalsIgnoreCase(possibleKanji.getSuffixes().get(x))) {
-                                    if(debug){Log.d(TAG, "Kanjifinal POSSIBLE BREAKUP(1) Verb match: " + lastkanji + possibleKanji.getSuffixes().get(x));}
+                                    if(BuildConfig.DEBUG){Log.d(TAG, "Kanjifinal POSSIBLE BREAKUP(1) Verb match: " + lastkanji + possibleKanji.getSuffixes().get(x));}
                                     Cursor cursorMatchVerbInDB = InternalDB.getInstance(mContext).getWritableDatabase().rawQuery("SELECT[Kanji] FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{lastkanji + root});
                                     if(cursorMatchVerbInDB.getCount() > 0) {
                                         if((lastkanji + root).length() >= matchCombination.getMatches().get(matchCombination.getMatches().size() - 1).length()) {
-                                            if (debug) {
+                                            if (BuildConfig.DEBUG) {
                                                 Log.d(TAG, "BREAKUP(1) removing: " + matchCombination.getLastMatch() + ", adding: " + lastkanji + root);
                                             }
                                             matchCombination.getMatches().remove(matchCombination.getMatches().size() - 1);
@@ -628,7 +623,7 @@ public class TweetParser {
         ArrayList<ArrayList<String>> kanjibreakupArray = new ArrayList<>();
         StringBuilder kanjibreakupBuilder = new StringBuilder();
         int divisor = coreKanjiBlock.length() - 1;
-        if(debug){Log.d(TAG,"initial divisor: " + divisor);}
+        if(BuildConfig.DEBUG){Log.d(TAG,"initial divisor: " + divisor);}
         int innerstart =0;
         int outerstart = 0;
         while (divisor >= 1) {
@@ -643,7 +638,7 @@ public class TweetParser {
                     kanjibreakupBuilder.append(coreKanjiBlock.charAt(l));
                 }
                 if(kanjibreakupBuilder.length()>0) {
-                    if(debug){Log.d(TAG, "BREAKUP(1) div(" + divisor + ") added pre-div chunk: " + kanjibreakupBuilder.toString());}
+                    if(BuildConfig.DEBUG){Log.d(TAG, "BREAKUP(1) div(" + divisor + ") added pre-div chunk: " + kanjibreakupBuilder.toString());}
                     tmp.add(kanjibreakupBuilder.toString());
                     kanjibreakupBuilder.setLength(0);
                 }
@@ -651,7 +646,7 @@ public class TweetParser {
                 for (int l = 0; l < divisor; l++) {
                     kanjibreakupBuilder.append(coreKanjiBlock.charAt(innerstart + l));
                 }
-                if(debug){Log.d(TAG, "BREAKUP(1) div(" + divisor + ") added: " + kanjibreakupBuilder.toString());}
+                if(BuildConfig.DEBUG){Log.d(TAG, "BREAKUP(1) div(" + divisor + ") added: " + kanjibreakupBuilder.toString());}
                 tmp.add(kanjibreakupBuilder.toString());
                 innerstart = innerstart + divisor;
                 kanjibreakupBuilder.setLength(0);
@@ -662,7 +657,7 @@ public class TweetParser {
                         kanjibreakupBuilder.append(coreKanjiBlock.charAt(l));
                     }
                     if(kanjibreakupBuilder.length()>0) {
-                        if(debug){Log.d(TAG, "BREAKUP(1) div(" + divisor + ") added post-div chunk: " + kanjibreakupBuilder.toString());}
+                        if(BuildConfig.DEBUG){Log.d(TAG, "BREAKUP(1) div(" + divisor + ") added post-div chunk: " + kanjibreakupBuilder.toString());}
                         tmp.add(kanjibreakupBuilder.toString());
                         kanjibreakupBuilder.setLength(0);
                     }
@@ -674,14 +669,14 @@ public class TweetParser {
                 divisor = divisor - 1;
                 outerstart = 0;
                 innerstart = 0;
-                if(debug){Log.d(TAG," new divisor: " + divisor);}
+                if(BuildConfig.DEBUG){Log.d(TAG," new divisor: " + divisor);}
             } else {
                 outerstart = outerstart +1;
                 innerstart = outerstart;
             }
 
         }
-        if(debug){Log.d(TAG, "BREAKUP(2) kanjibreakupArray size: " + kanjibreakupArray.size());}
+        if(BuildConfig.DEBUG){Log.d(TAG, "BREAKUP(2) kanjibreakupArray size: " + kanjibreakupArray.size());}
         return kanjibreakupArray;
     }
 
@@ -701,7 +696,7 @@ public class TweetParser {
         ArrayList<String> kanjibreakupArray = new ArrayList<>();
         StringBuilder kanjibreakupBuilder = new StringBuilder();
         int divisor = coreKanjiBlock.length() - 1;
-        if(debug){Log.d(TAG,"initial divisor: " + divisor);}
+        if(BuildConfig.DEBUG){Log.d(TAG,"initial divisor: " + divisor);}
         int innerstart =0;
         int outerstart = 0;
         while (divisor >= 1) {
@@ -737,7 +732,7 @@ public class TweetParser {
                         kanjibreakupBuilder.append(coreKanjiBlock.charAt(l));
                     }
                     if(kanjibreakupBuilder.length()>0) {
-                        if(debug){Log.d(TAG, "BREAKUP(1) div(" + divisor + ") added post-div chunk: " + kanjibreakupBuilder.toString());}
+                        if(BuildConfig.DEBUG){Log.d(TAG, "BREAKUP(1) div(" + divisor + ") added post-div chunk: " + kanjibreakupBuilder.toString());}
                         if(!kanjibreakupArray.contains(kanjibreakupBuilder.toString())) {
                             kanjibreakupArray.add(kanjibreakupBuilder.toString());
                         }
@@ -750,14 +745,14 @@ public class TweetParser {
                 divisor = divisor - 1;
                 outerstart = 0;
                 innerstart = 0;
-                if(debug){Log.d(TAG," new divisor: " + divisor);}
+                if(BuildConfig.DEBUG){Log.d(TAG," new divisor: " + divisor);}
             } else {
                 outerstart = outerstart +1;
                 innerstart = outerstart;
             }
 
         }
-        if(debug){Log.d(TAG, "BREAKUP(2) kanjibreakupArray size: " + kanjibreakupArray.size());}
+        if(BuildConfig.DEBUG){Log.d(TAG, "BREAKUP(2) kanjibreakupArray size: " + kanjibreakupArray.size());}
         return kanjibreakupArray;
     }
 
@@ -771,11 +766,13 @@ public class TweetParser {
         int x = possibleKanji.getVerbCombos().size() - 1;
         while (x >= 0 && !foundVerbInfinitive) {  // we're cycling backwards because the later matches for the verb ending are longer, and therefore more accurate
             String kanji = possibleKanji.getVerbCombos().get(x);
-            if(debug){Log.d(TAG, "checking kanji: " + possibleKanji.getVerbCombos().get(x));}
+            if(BuildConfig.DEBUG){Log.d(TAG, "checking kanji: " + possibleKanji.getVerbCombos().get(x));}
+
+            try {
             Cursor f = InternalDB.getInstance(mContext).getWritableDatabase().rawQuery("SELECT [_id] FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{kanji});
             if (f.getCount() > 0) {
                 f.moveToFirst();
-                if(debug){
+                if(BuildConfig.DEBUG){
                     Log.d(TAG, kanji + " - Kanji Verb Entry FOUND!");
                     Log.d(TAG, "Adding verb entry to Supertemp: " + possibleKanji.getListIndex() + " - " + kanji);
                 }
@@ -786,6 +783,9 @@ public class TweetParser {
             }
             x--;
             f.close();
+            } catch(SQLiteException e) {
+                Log.e(TAG,"verbInfinitiveExists sqlite exception malformed match? - " + e.getCause());
+            }
         }
         return foundVerbInfinitive;
     }
@@ -812,7 +812,7 @@ public class TweetParser {
 
         for(ParseSentencePossibleKanji possibleKanji : possibleKanjiInSentence) {
             for (int z = 0; z < possibleKanji.getBetterKanjiMatches().size(); z++) {
-                if(debug) {
+                if(BuildConfig.DEBUG) {
                     Log.d(TAG, "currentkanji " + possibleKanji.getBetterKanjiMatches().get(z));
                     Log.d(TAG, "currentkanjipos " + possibleKanji.getListIndex());
                     Log.d(TAG, "prevkeystart: " + prevkeystart);
@@ -822,7 +822,7 @@ public class TweetParser {
                 if((possibleKanji.getListIndex()>=prevkeystart && possibleKanji.getListIndex() <=prevkanji.length()) && prevkanji.contains(possibleKanji.getBetterKanjiMatches().get(z)) ) {
                     Log.d(TAG,"Repeat chunk found, removing: " + possibleKanji.getBetterKanjiMatches().get(z));
                 } else {
-                    if(debug){Log.d(TAG,"Inserting into kanjifinal_HashMap_Array: " + possibleKanji.getBetterKanjiMatches().get(z));}
+                    if(BuildConfig.DEBUG){Log.d(TAG,"Inserting into kanjifinal_HashMap_Array: " + possibleKanji.getBetterKanjiMatches().get(z));}
                     addEntrytoFinalKanjiIDs(new ParseSentencePossibleKanji(possibleKanji.getPositionInSentence(),kanjiarrayReOrderIndex,possibleKanji.getBetterKanjiMatches().get(z)),cleanKanjiIDs);
                     kanjiarrayReOrderIndex = kanjiarrayReOrderIndex + 1;
                     prevkeystart = possibleKanji.getListIndex();
@@ -847,19 +847,19 @@ public class TweetParser {
     public void addEntrytoFinalKanjiIDs(ParseSentencePossibleKanji possibleKanji, ArrayList<Integer> cleanKanjiIds) {
 
         Cursor cursorDBMatch = cursorMatchStringAgainstDB(possibleKanji.getKanji());
-        if(debug) {
+        if(BuildConfig.DEBUG) {
             Log.d(TAG, "finalfinal kanji: " + possibleKanji.getKanji());
             Log.d(TAG, "Query: SELECT [_id] FROM [Edict_FTS] WHERE [Kanji] MATCH " + possibleKanji.getKanji() + " ORDER BY [COMMON] LIMIT 1");
             Log.d(TAG, "Kanji: --" + possibleKanji.getKanji() + "--");
         }
         if (cursorDBMatch.getCount() > 0) {
             cursorDBMatch.moveToFirst();
-            if(debug){Log.d(TAG, possibleKanji.getKanji() + " FOUND! -- " + cursorDBMatch.getString(0));}
+            if(BuildConfig.DEBUG){Log.d(TAG, possibleKanji.getKanji() + " FOUND! -- " + cursorDBMatch.getString(0));}
             cleanKanjiIds.add(cursorDBMatch.getInt(0));
             cursorDBMatch.close();
         } else if (possibleKanji.getKanji().length() >= minKanjiLengthtoSplit) {
 
-            if(debug){
+            if(BuildConfig.DEBUG){
                 Log.d(TAG, possibleKanji.getKanji() + " NOT found. Sending it to Kanji Breakup Process");
                 Log.e(TAG, "CHECKING/CHOPPING POSSIBLE COMPOUND KANJI COMBOS, ADDING TO KANJIFINAL_CLEAN_INTEGER");
             }
@@ -869,7 +869,7 @@ public class TweetParser {
             matchKanjiPiecesAgainstDB(possibleKanji,brokenUpKanjiCombinations,true,cleanKanjiIds);
 
         } else {
-            if(debug){Log.d(TAG, "Kanji not found...");}
+            if(BuildConfig.DEBUG){Log.d(TAG, "Kanji not found...");}
         }
 
 
@@ -890,13 +890,9 @@ public class TweetParser {
     public ArrayList<WordEntry>  compileFinalSentenceMap(ArrayList<Integer> cleanKanjiIDs) {
 
         ArrayList<WordEntry> resultMap = new ArrayList<>();
-        int prevkanjilength = 0;
-        int prevkanjiposition = 0;
         int foundKanjiPosition = 0;
-        int lastEndPosition = 0;
-        int currentSpecialSpandsIndex = 0;
         for(int index = 0; index < cleanKanjiIDs.size(); index ++) {
-            if(debug){Log.d(TAG, "clean_int: " + cleanKanjiIDs.get(index));}
+            if(BuildConfig.DEBUG){Log.d(TAG, "clean_int: " + cleanKanjiIDs.get(index));}
 
             Cursor c = InternalDB.getWordInterfaceInstance(mContext).getWordEntryForWordId(cleanKanjiIDs.get(index),mColorThresholds);
 
@@ -915,7 +911,7 @@ public class TweetParser {
                 }
 
 
-//                if(debug) {
+//                if(BuildConfig.DEBUG) {
 //                    Log.d(TAG, "edictKanji: " + edictKanji);
 //                    Log.d(TAG, "foundkanjiposition: " + foundKanjiPosition);
 //                    Log.d(TAG, "newSentenceFragment: " + newSentenceFragment);
@@ -930,7 +926,7 @@ public class TweetParser {
 
 
 
-//                    if(debug) {
+//                    if(BuildConfig.DEBUG) {
 //                        Log.d(TAG, "edictKanji: " + edictKanji);
 //                        Log.d(TAG, "foundkanjiposition + startposition: " + (foundKanjiPosition + startposition));
 //                        Log.d(TAG, "prevkanjiposition + prevkanjilength: " + (prevkanjiposition + prevkanjilength));
@@ -956,7 +952,7 @@ public class TweetParser {
                                 ,c.getInt(11)));
 
                     wordEntry.setCoreKanjiBlock(coreKanji);
-                    Log.d(TAG,"XXX Word: " + wordEntry.getKanji() +  " - " + wordEntry.getCorrect() + "/" + wordEntry.getTotal() + " - " + wordEntry.getColor());
+                    
                     resultMap.add(wordEntry);
 //                        ParseSentenceItem parseSentenceItem = new ParseSentenceItem(true,cleanKanjiIDs.get(index),coreKanji,coreFurigana,(foundKanjiPosition + startposition),(foundKanjiPosition + startposition + coreKanji.length()));
 //                        parseSentenceItem.setWordEntry(new WordEntry(cleanKanjiIDs.get(index)
@@ -974,16 +970,16 @@ public class TweetParser {
 //                                ,dd.getInt(11)));
 //
 //
-//                        if(debug) {
+//                        if(BuildConfig.DEBUG) {
 //                            Log.d(TAG, "endposition: " + endposition);
 //                        }
 
 //                        currentSpecialSpandsIndex += assignEntrytoResults(index,(prevkanjiposition+prevkanjilength),(foundKanjiPosition + startposition),parseSentenceItem,resultMap,specialSpans, currentSpecialSpandsIndex);
 
-                        lastEndPosition = (foundKanjiPosition + startposition) + coreKanji.length();
-                        if(debug) {Log.d(TAG, "added to kanjitreemap: pos - " + (foundKanjiPosition + startposition) + edictKanji);}
-                        prevkanjilength = coreKanji.length();
-                        prevkanjiposition = foundKanjiPosition + startposition;
+//                        lastEndPosition = (foundKanjiPosition + startposition) + coreKanji.length();
+//                        if(BuildConfig.DEBUG) {Log.d(TAG, "added to kanjitreemap: pos - " + (foundKanjiPosition + startposition) + edictKanji);}
+//                        prevkanjilength = coreKanji.length();
+//                        prevkanjiposition = foundKanjiPosition + startposition;
                         foundKanjiPosition = foundKanjiPosition + endposition;
 
 //                    }
@@ -1079,7 +1075,7 @@ public class TweetParser {
 //
 //                /* Add the non-kanji section from the beginning of the sentence to the first kanji*/
 //                ParseSentenceItem dummyParseSentenceItem = new ParseSentenceItem(false,0,entireSentence.substring(0, newStartPosition),entireSentence.substring(0, newStartPosition));
-//                if(debug) {Log.d(TAG, "Logging first nonkanji: " + entireSentence.substring(0, newStartPosition));}
+//                if(BuildConfig.DEBUG) {Log.d(TAG, "Logging first nonkanji: " + entireSentence.substring(0, newStartPosition));}
 //                resultMap.add(dummyParseSentenceItem);
 //
 //            }
@@ -1241,7 +1237,7 @@ public class TweetParser {
             String root = coreKanji.substring(VerbChunksAndPositions.get(coreKanji).length());
             return edictFurigana.substring(0, edictFurigana.length() - root.length());
         } else if(edictFurigana != null && edictFurigana.length()>=edictKanji.length()) {
-            if(debug){
+            if(BuildConfig.DEBUG){
                 Log.d(TAG,"onscreenfurigana last furigana char: " + edictFurigana.charAt(edictFurigana.length()-1));
                 Log.d(TAG,"onscreenfurigana last kanji char: " + edictKanji.charAt(edictKanji.length()-1));
             }
@@ -1287,7 +1283,7 @@ public class TweetParser {
 
             /* If it's a spinner kanji, just pass it on to the next step */
 //            if (wordvalues != null && wordvalues.contains(possibleKanji.getKanji())) {
-//                if(debug){Log.d(TAG, "Spinner Kanji -- not iterating: " + possibleKanji.getKanji());}
+//                if(BuildConfig.DEBUG){Log.d(TAG, "Spinner Kanji -- not iterating: " + possibleKanji.getKanji());}
 //                possibleKanji.replaceBetterKanjiMatch(possibleKanji.getKanji());
 //            } else {
                 /* Go back and chop up the original word, reattach the prefixes and suffixes to it, and search again...
@@ -1320,32 +1316,33 @@ public class TweetParser {
 
             for (int i = 0; i < prefixsuffixKanjiCombos.size(); i++) {
 //                Log.d(TAG,"i-" + i +",db open: " + db.isOpen());
-                Cursor cursorKanjiMatch = InternalDB.getInstance(mContext).getWritableDatabase().rawQuery("SELECT [Kanji] FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{prefixsuffixKanjiCombos.get(i)});
-                if(debug){Log.d(TAG, "Prefix/Suffix Query: (" + possibleKanji.getKanji() + ") MATCH " + prefixsuffixKanjiCombos.get(i));}
-                if (cursorKanjiMatch.getCount() > 0 ) {
-                    cursorKanjiMatch.moveToFirst();
+                try{
+                    Cursor cursorKanjiMatch = InternalDB.getInstance(mContext).getWritableDatabase().rawQuery("SELECT [Kanji] FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{prefixsuffixKanjiCombos.get(i)});
+                    if(BuildConfig.DEBUG){Log.d(TAG, "Prefix/Suffix Query: (" + possibleKanji.getKanji() + ") MATCH " + prefixsuffixKanjiCombos.get(i));}
+                    if (cursorKanjiMatch.getCount() > 0 ) {
+                        cursorKanjiMatch.moveToFirst();
 
-                    if(!wordLoader.getExcludedKanji().contains(cursorKanjiMatch.getString(0))) {
+                        if(!wordLoader.getExcludedKanji().contains(cursorKanjiMatch.getString(0))) {
 
-                        isfound = true;
-                        possibleKanji.setFoundInDictionary(true);
+                            isfound = true;
+                            possibleKanji.setFoundInDictionary(true);
 
-                        if (possibleKanji.getBetterKanjiMatches().size() > 0) {
-                            if(possibleKanji.getBetterKanjiMatches().get(0).length()<= cursorKanjiMatch.getString(0).length()
+                            if (possibleKanji.getBetterKanjiMatches().size() > 0) {
+                                if(possibleKanji.getBetterKanjiMatches().get(0).length()<= cursorKanjiMatch.getString(0).length()
 //                                    && !wordvalues.contains(possibleKanji.getBetterKanjiMatches().get(0))
-                                    ) {
-                                if(debug){Log.d(TAG,"LONGER MATCH FOUND. Replacing  " + possibleKanji.getBetterKanjiMatches().get(0) + " with " + cursorKanjiMatch.getString(0) );}
+                                        ) {
+                                    if(BuildConfig.DEBUG){Log.d(TAG,"LONGER MATCH FOUND. Replacing  " + possibleKanji.getBetterKanjiMatches().get(0) + " with " + cursorKanjiMatch.getString(0) );}
                                 /* If it's a spinner kanji, just move the word onto the BetterKanjiMatch element */
 //                                if(!wordvalues.contains(cursorKanjiMatch.getString(0))) {
-                                possibleKanji.replaceBetterKanjiMatch(cursorKanjiMatch.getString(0));
+                                    possibleKanji.replaceBetterKanjiMatch(cursorKanjiMatch.getString(0));
 //                                }
-                            }
+                                }
 
-                        } else {
-                            if(debug){Log.d(TAG,"MATCH FOUND. Initially adding: " + cursorKanjiMatch.getString(0));}
-                            possibleKanji.setKanji(cursorKanjiMatch.getString(0));
-                            possibleKanji.replaceBetterKanjiMatch(cursorKanjiMatch.getString(0));
-                        }
+                            } else {
+                                if(BuildConfig.DEBUG){Log.d(TAG,"MATCH FOUND. Initially adding: " + cursorKanjiMatch.getString(0));}
+                                possibleKanji.setKanji(cursorKanjiMatch.getString(0));
+                                possibleKanji.replaceBetterKanjiMatch(cursorKanjiMatch.getString(0));
+                            }
 
                         /* If there is a match for the prefix/suffix search, remove that kanji from the kanjifinal_HashMap_Verbs table.
                          * Because we found a better match. I think...
@@ -1353,27 +1350,31 @@ public class TweetParser {
                          * However, if the prefix suffix match is the FIRST entry, which is an entry WITHOUT any prefixes or suffixes, DONT remove the
                          * verb entry for that word. */
 
-                        int length = 0;
-                        for(int ilength =0; ilength <possibleKanji.getVerbCombos().size();ilength++) {
-                            if(possibleKanji.getVerbCombos().get(ilength).length()>length) {
-                                length =  possibleKanji.getVerbCombos().get(ilength).length();
+                            int length = 0;
+                            for(int ilength =0; ilength <possibleKanji.getVerbCombos().size();ilength++) {
+                                if(possibleKanji.getVerbCombos().get(ilength).length()>length) {
+                                    length =  possibleKanji.getVerbCombos().get(ilength).length();
+                                }
+                            }
+
+                            if (i>0 && (cursorKanjiMatch.getString(0).length()> length)) {
+                                if(BuildConfig.DEBUG){Log.d(TAG, "kanjifinal_HashMap_Verbs_Array removal: " + possibleKanji.getListIndex() + " - " + cursorKanjiMatch.getString(0));}
+                                possibleKanji.setVerbCombos(new ArrayList<String>());
                             }
                         }
-
-                        if (i>0 && (cursorKanjiMatch.getString(0).length()> length)) {
-                            if(debug){Log.d(TAG, "kanjifinal_HashMap_Verbs_Array removal: " + possibleKanji.getListIndex() + " - " + cursorKanjiMatch.getString(0));}
-                            possibleKanji.setVerbCombos(new ArrayList<String>());
-                        }
                     }
+                    cursorKanjiMatch.close();
+                } catch(SQLiteException e) {
+                    Log.e(TAG,"searchDictionaryForWordMatches sqlite exception malformed match? - " + e.getCause());                    
                 }
-                cursorKanjiMatch.close();
+
             }
 
         }
 
         if (prefixsuffixKanjiCombos.size() == 0 || !isfound) {
             possibleKanji.replaceBetterKanjiMatch(possibleKanji.getKanji());
-            if(debug){Log.d(TAG, "Prefix/Suffixes NOT FOUND. Adding initial kanji to possibleKanji BetterKanjiMatch: " + possibleKanji.getKanji());}
+            if(BuildConfig.DEBUG){Log.d(TAG, "Prefix/Suffixes NOT FOUND. Adding initial kanji to possibleKanji BetterKanjiMatch: " + possibleKanji.getKanji());}
         }
 
         return possibleKanji;
@@ -1389,7 +1390,7 @@ public class TweetParser {
     public void chopandCompare(ParseSentencePossibleKanji possibleKanji) {
         if (!verbInfinitiveExists(possibleKanji) && possibleKanji.getKanji().length() >= minKanjiLengthtoSplit && !possibleKanji.isFoundInDictionary()) {
             ArrayList<ArrayList<String>> brokenUpKanjiCombinations = chopKanjiIntoDifferentCombinations(possibleKanji.getKanji());
-            if(debug){Log.d(TAG, "BREAKUP(1) brokenUpKanjiCombinations size: " + brokenUpKanjiCombinations.size());}
+            if(BuildConfig.DEBUG){Log.d(TAG, "BREAKUP(1) brokenUpKanjiCombinations size: " + brokenUpKanjiCombinations.size());}
             matchKanjiPiecesAgainstDB(possibleKanji,brokenUpKanjiCombinations, false, null);
         }
     }
@@ -1402,7 +1403,7 @@ public class TweetParser {
     //     * @see #createBetterMatchesForPossibleKanji(ArrayList, SQLiteDatabase)
      */
     public ArrayList<String>  createPrefixSuffixCombinations(ParseSentencePossibleKanji possibleKanji) {
-        if(debug){Log.d(TAG, "ITERATING: " + possibleKanji.getKanji());}
+        if(BuildConfig.DEBUG){Log.d(TAG, "ITERATING: " + possibleKanji.getKanji());}
         ArrayList<String> prefixsuffixKanjiCombos = new ArrayList<>();
 
         /* Adding the initial raw kanji, so it will be run first through the dictionary lookup iteration.
@@ -1459,7 +1460,7 @@ public class TweetParser {
             if(possibleKanjiInSentence.size()> (possibleKanji.getListIndex() +1)) {
                 ParseSentencePossibleKanji nextKanji = possibleKanjiInSentence.get(possibleKanji.getListIndex() +1);
                 final int lengthfromendofthiskanjitoendofnextkanji = (nextKanji.getPositionInSentence() + (nextKanji.getKanji().length() -1)) - possibleKanjiInSentence.get(possibleKanji.getListIndex()).getPositionInSentence();
-                if(debug) {
+                if(BuildConfig.DEBUG) {
                     Log.d(TAG, "thiskanji: (" + possibleKanji.getListIndex() + ") " + possibleKanji.getKanji());
                     Log.d(TAG, "nextkanji: (" + nextKanji.getPositionInSentence() + ") " + nextKanji.getKanji());
                     Log.d(TAG, "lengthfromendofthiskanjitoendofnextkanji: " + lengthfromendofthiskanjitoendofnextkanji);
@@ -1470,12 +1471,12 @@ public class TweetParser {
 
                     String possibledoublekanjiroot = suffix.substring(0, lengthfromendofthiskanjitoendofnextkanji);
                     String possibledoublekanjiconjugatedverbending = suffix.substring(lengthfromendofthiskanjitoendofnextkanji,suffix.length());
-                    if(debug){Log.d(TAG,"possibledoublekanjiconjugatedverbending: " + possibledoublekanjiconjugatedverbending);}
+                    if(BuildConfig.DEBUG){Log.d(TAG,"possibledoublekanjiconjugatedverbending: " + possibledoublekanjiconjugatedverbending);}
 
                     if(wordLoader.getVerbEndingMap().keySet().contains(possibledoublekanjiconjugatedverbending)) {
                         for (int k = 0; k < wordLoader.getVerbEndingMap().get(possibledoublekanjiconjugatedverbending).size(); k++) {
                             String root = wordLoader.getVerbEndingMap().get(possibledoublekanjiconjugatedverbending).get(k);
-                            if(debug){Log.d(TAG, "Adding to VerbChunksAndPositions, the MCDBOUBLE DEELUX CONJUGATED VERB PATTERN: " + possibleKanji.getKanji() + possibledoublekanjiroot + root);}
+                            if(BuildConfig.DEBUG){Log.d(TAG, "Adding to VerbChunksAndPositions, the MCDBOUBLE DEELUX CONJUGATED VERB PATTERN: " + possibleKanji.getKanji() + possibledoublekanjiroot + root);}
                             VerbChunksAndPositions.put(possibleKanji.getKanji() + possibledoublekanjiroot + root, possibleKanji.getKanji() + possibledoublekanjiroot );
                             if(!prefixsuffixKanjiCombos.contains(possibleKanji.getKanji() + possibledoublekanjiroot + root)) {
                                 prefixsuffixKanjiCombos.add(possibleKanji.getKanji() + possibledoublekanjiroot + root);
@@ -1487,7 +1488,7 @@ public class TweetParser {
             }
 
             if(!prefixsuffixKanjiCombos.contains(possibleKanji.getKanji() + suffix)) {
-                if(debug){Log.d(TAG, "Adding to prefixsuffixKanjiCombos: " + possibleKanji.getKanji() + suffix);}
+                if(BuildConfig.DEBUG){Log.d(TAG, "Adding to prefixsuffixKanjiCombos: " + possibleKanji.getKanji() + suffix);}
                 prefixsuffixKanjiCombos.add(possibleKanji.getKanji() + suffix);
             }
         }

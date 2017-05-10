@@ -1,13 +1,8 @@
 package com.jukuproject.jukutweet;
 
-/**
- * Created by JClassic on 3/21/2017.
- */
-
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-//import com.jukuproject.jukutweet.TabContainers.Tab4Container;
 
 /**
  * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
@@ -15,8 +10,8 @@ import android.support.v4.app.FragmentPagerAdapter;
  */
 public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
-    String[] mCurrentTabs;
-    Fragment[] mSavedFragments;
+    private String[] mCurrentTabs;
+    private Fragment[] mSavedFragments;
 
     public SectionsPagerAdapter(FragmentManager fm, String[] currentTabs, Fragment[] savedFragments) {
         super(fm);
@@ -53,15 +48,8 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
         notifyDataSetChanged();
     }
 
-//    @Override
-//    public void notifyDataSetChanged() {
-////        Log.e("TEST","notifying dataset changed");
-////        Log.e("TEST","mCurrentTabs length: " + mCurrentTabs.length);
-////        Log.e("TEST","mSavedFragments length: " + mSavedFragments.length);
-//        try {
-//            super.notifyDataSetChanged();
-//        } catch (NullPointerException e) {
-//            Log.e("TEST","NullPointerException in notifydatasetchanged: " + e.getMessage());
-//        }
-//    }
+    @Override
+    public long getItemId(int position) {
+        return super.getItemId(position);
+    }
 }

@@ -150,6 +150,7 @@ public class TweetListFragment extends Fragment {
                     case "Browse/Edit":
                             TweetListBrowseFragment fragment = TweetListBrowseFragment.newInstance(new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle()                                     ,mMenuHeader.get(groupPosition).getSystemList()));
                             ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"savedtweetsbrowse");
+                        mCallback.showFab(false,"");
                         break;
 
                     case "Flash Cards":
@@ -200,7 +201,7 @@ public class TweetListFragment extends Fragment {
                         StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newTweetsInstance(myListEntry
                                 , 10
                                 ,colorBlockMeasurables);
-                        ((BaseContainerFragment)getParentFragment()).replaceFragment(statsFragmentProgress, true,"tweetlistbrowse");
+                        ((BaseContainerFragment)getParentFragment()).replaceFragment(statsFragmentProgress, true,"tweetlistStats");
                         mCallback.showFab(false,"");
                         break;
 

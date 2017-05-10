@@ -1,8 +1,8 @@
 package com.jukuproject.jukutweet.Dialogs;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,22 +16,37 @@ import android.widget.Toast;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.R;
 
-//import android.app.DialogFragment;
-
-
+/**
+ * Dialog window allows user to edit/remove a Tweet or Word list. Called from long click on
+ * a list group in {@link com.jukuproject.jukutweet.Adapters.TweetListExpandableAdapter} or {@link com.jukuproject.jukutweet.Adapters.WordListExpandableAdapter}
+ *
+ * @see com.jukuproject.jukutweet.Fragments.TweetListFragment
+ * @see com.jukuproject.jukutweet.Fragments.WordListFragment
+ */
 public class EditMyListDialog extends DialogFragment {
 
     public DialogInteractionListener mEditMyListDialogListener;
     private int mSelectedItem = 0;
+
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onAttach(Context context) {
+        super.onAttach(context);
         try {
-            mEditMyListDialogListener = (DialogInteractionListener) activity;
+            mEditMyListDialogListener = (DialogInteractionListener) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString() + " must implement mAddUserDialogListener");
+            throw new ClassCastException(context.toString() + " must implement mAddUserDialogListener");
         }
     }
+
+//    @Override
+//    public void onAttach(Activity activity) {
+//        super.onAttach(activity);
+//        try {
+//            mEditMyListDialogListener = (DialogInteractionListener) activity;
+//        } catch (ClassCastException e) {
+//            throw new ClassCastException(activity.toString() + " must implement mAddUserDialogListener");
+//        }
+//    }
 
     public static EditMyListDialog newInstance(String listType, String listName, boolean isStarFavorite) {
 

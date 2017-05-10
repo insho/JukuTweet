@@ -28,6 +28,7 @@ import android.widget.TextView;
 
 import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
+import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
@@ -46,7 +47,7 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
     ViewPager vp;	//Reference to class to swipe views
     ArrayList<WordEntry> mDataset;
     FloatingActionButton fab_shuffle;
-
+    FragmentInteractionListener mCallback;
 
     boolean mFrontShowing;
     String mFrontValue;
@@ -75,6 +76,18 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
 
         return  fragment;
     }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        try {
+            mCallback = (FragmentInteractionListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()
+                    + " must implement FragmentInteractionListener");
+        }
+    }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater,
@@ -505,6 +518,11 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
         } else {
             Log.e(TAG,"Dataset doesn't contain word entry y'all...");
         }
+
+    }
+
+    public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {
+        mCallback.notifySavedWordFragmentsChanged(wordEntry);
     }
 
     @Override

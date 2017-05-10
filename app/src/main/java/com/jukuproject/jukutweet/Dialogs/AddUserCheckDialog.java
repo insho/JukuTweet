@@ -1,8 +1,8 @@
 package com.jukuproject.jukutweet.Dialogs;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.net.Uri;
 import android.os.Bundle;
@@ -39,18 +39,15 @@ public class AddUserCheckDialog extends DialogFragment {
     private ImageView imgBanner;
     String TAG = "TEST-AddUser";
 
+
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onAttach(Context context) {
+        super.onAttach(context);
         try {
-            mAddUserDialogListener = (DialogInteractionListener) activity;
+            mAddUserDialogListener = (DialogInteractionListener) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString() + " must implement mAddUserDialogListener");
+            throw new ClassCastException(context.toString() + " must implement mAddUserDialogListener");
         }
-
-
-        Log.d(TAG,"ON ATTACH");
-
     }
 
     public static AddUserCheckDialog newInstance(UserInfo userInfo) {
@@ -76,33 +73,23 @@ public class AddUserCheckDialog extends DialogFragment {
         if(userInfo.getBannerUrl() == null) {
             dialogView  = inflater.inflate(R.layout.fragment_dialog_addusercheck_simple, null);
         } else {
-
             dialogView  = inflater.inflate(R.layout.fragment_dialog_addusercheck, null);
             imgBanner = (ImageView) dialogView.findViewById(R.id.imgBanner);
             try {
                 loadBestFitBanner(userInfo.getScreenName(),imgBanner);
-                //TODO set onclick listener for the banner
-
             } catch (NullPointerException e) {
-                //TODO HIDE BANNER
                 Log.e(TAG,"loadbestfit Nullpointer: " + e);
             } catch (Exception e) {
-                //TODO HIDE BANNER
                 Log.e(TAG,"loadbestfit failed: " + e);
             }
         }
 
-
-
-
-
+        /* Load profile image */
         final ImageView imgProfile = (ImageView) dialogView.findViewById(R.id.imgUser);
         if(userInfo.getProfileImageUrl()!=null) {
 
             /* Change the last bit of the image profile url from _normal to _bigger,
             * and try to get a better url image... if that doesn't work, do the normal url */
-
-
             Picasso picasso = new Picasso.Builder(getContext())
                     .listener(new Picasso.Listener() {
                         @Override
@@ -153,8 +140,6 @@ public class AddUserCheckDialog extends DialogFragment {
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Log.d(TAG,"mAddUserDialogListener: " + mAddUserDialogListener);
-
                 mAddUserDialogListener.saveAndUpdateUserInfoList(userInfo);
                 dialog.dismiss();
             }
@@ -167,18 +152,20 @@ public class AddUserCheckDialog extends DialogFragment {
             }
         });
         builder.setCancelable(true);
-
-        Log.d(TAG,"BUilder create");
         return builder.create();
     }
 
+    /**
+     * Tries to load the user's profile banner
+     * @param screenName
+     * @param imgBanner
+     */
     private void loadBestFitBanner(final String screenName, final ImageView imgBanner) {
 
         Log.d(TAG,"INSIDE loading best fit banner");
         String token = getResources().getString(R.string.access_token);
         String tokenSecret = getResources().getString(R.string.access_token_secret);
 
-//        final String bestFitUrl;
         TwitterUserClient.getInstance(token,tokenSecret)
                 .getProfileBanner(screenName)
                 .subscribeOn(Schedulers.io())
@@ -196,7 +183,6 @@ public class AddUserCheckDialog extends DialogFragment {
                         if(bannerInstance != null) {
 
                             //Set the banner that best fits phone size
-
                             try {
                                 DisplayMetrics metrics = new DisplayMetrics();
                                 getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
@@ -206,19 +192,13 @@ public class AddUserCheckDialog extends DialogFragment {
                                             .into(imgBanner, new com.squareup.picasso.Callback() {
                                                 @Override
                                                 public void onSuccess() {
-                                                    //TODO load with banner
                                                 }
 
                                                 @Override
                                                 public void onError() {
-                                                    //TODO load without banner
                                                     onCreateDialog(null);
                                                 }
                                             });
-
-
-
-
                                 }
                             } catch (NullPointerException e) {
                                 Log.e(TAG,"Banner url pull Nullpointed: " + e);
@@ -226,30 +206,21 @@ public class AddUserCheckDialog extends DialogFragment {
                                 Log.e(TAG,"Banner url pull Other Exception: " + e);
                             }
 
-
-
-                        } else {
-//                            Toast.makeText(MainActivity.this, "Unable to add user " + screenName, Toast.LENGTH_SHORT).show();
                         }
                     }
 
                     @Override public void onError(Throwable e) {
                         e.printStackTrace();
                         if(BuildConfig.DEBUG){Log.d(TAG, "BestFitBannerURL In onError()");}
-                        Log.d(TAG,"ERROR CAUSE: " + e.getCause());
                     }
 
                     @Override public void onNext(UserProfileBanner userProfileBanner) {
                         if(BuildConfig.DEBUG) {
                             Log.d(TAG, "BestFitBannerURL In onNext()");
                         }
-
-                        /***TMP**/
-                        if(bannerInstance == null) {
-                            bannerInstance = userProfileBanner;
-                        }
-
-
+                            if(bannerInstance == null) {
+                                bannerInstance = userProfileBanner;
+                            }
                     }
                 });
 

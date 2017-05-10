@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import rx.functions.Action1;
 
 /**
- * Created by JClassic on 3/31/2017.
+ *
  */
 
 public class StatsFragmentProgress extends Fragment implements WordEntryFavoritesChangedListener {
@@ -49,6 +49,7 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
     private boolean mIsTweetList;
     private boolean mIsSingleUserTweetList;
     private UserInfo mUserInfo;
+//    FragmentInteractionListener mCallback;
 
     ListView bottomFiveList;
     TextView txtTopFive;
@@ -109,6 +110,17 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
         fragment.setArguments(args);
         return  fragment;
     }
+
+//    @Override
+//    public void onAttach(Context context) {
+//        super.onAttach(context);
+//        try {
+//            mCallback = (FragmentInteractionListener) context;
+//        } catch (ClassCastException e) {
+//            throw new ClassCastException(context.toString()
+//                    + " must implement FragmentInteractionListener");
+//        }
+//    }
 
     @Override
     public View onCreateView(LayoutInflater inflater,
@@ -186,7 +198,6 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
         try {
             //if the list is a system "star" list, show the star next to the title
             if(mIsSingleUserTweetList) {
-                Log.i(TAG,"IS HERE: " + mUserInfo.getDisplayScreenName());
                 titleString = mUserInfo.getDisplayScreenName();
             } else if(mMyListEntry.getListsSys()==1) {
                 titleString = mMyListEntry.getListName();
@@ -312,6 +323,9 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
         adapter_top.notifyDataSetChanged();
     }
 
+    public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {
+//        mCallback.notifySavedWordFragmentsChanged(wordEntry);
+    }
 
     /**
      * Compiles an array of edict kanji Ids from the bottomDataSet, so that they can be passed on to the

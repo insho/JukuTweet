@@ -296,7 +296,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
 
                         if(disectedTweet.size()>0) {
                         mTweet.setWordEntries(disectedTweet);
-                            showDisectedTweet(disectedTweet,txtSentence);
+                            showDisectedTweet(mTweet.getWordEntries(),txtSentence);
                             InternalDB.getTweetInterfaceInstance(getContext()).saveParsedTweetKanji(disectedTweet,mTweet.getIdString());
                             showProgressBar(false);
                         } else {
@@ -451,6 +451,8 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                                                           if (event instanceof WordEntry) {
                                                               WordEntry wordEntry = (WordEntry) event;
                                                               updateWordEntryItemFavorites(wordEntry);
+
+                                                              updateWordEntryFavoritesForOtherTabs(wordEntry);
                                                           }
                                                       }
                                                   });
@@ -587,14 +589,20 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
 
     public void updateWordEntryItemFavorites(WordEntry wordEntry) {
 
-                if(mTweet.getWordEntries()!=null && countOfAll(wordEntry,mTweet.getWordEntries())>1) {
+                if(mTweet.getWordEntries()!=null ) {
                     for(WordEntry tweetWordEntry : mTweet.getWordEntries()) {
                         if(tweetWordEntry.getId()==wordEntry.getId()) {
-                            wordEntry.setItemFavorites(wordEntry.getItemFavorites());
+
+                            tweetWordEntry.setItemFavorites(wordEntry.getItemFavorites());
                         }
                     }
                 }
-            mAdapter.notifyDataSetChanged();
+
+
+        mAdapter.notifyDataSetChanged();
+    }
+    public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {
+        mCallback.notifySavedWordFragmentsChanged(wordEntry);
 
     }
     @Override

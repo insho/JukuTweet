@@ -299,6 +299,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                     ClickableSpan userMentionClickableSpan = new ClickableSpan() {
                         @Override
                         public void onClick(View textView) {
+                            Log.d(TAG,"BALLS");
                             _rxbus.send(userMentionses);
                         }
 
@@ -306,7 +307,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                         public void updateDrawState(TextPaint ds) {
                             super.updateDrawState(ds);
                             ds.setColor(ContextCompat.getColor(mContext,R.color.colorAccent));
-                            ds.setAlpha(85);
+                            ds.setAlpha(90);
                             ds.setUnderlineText(false);
 
                         }
