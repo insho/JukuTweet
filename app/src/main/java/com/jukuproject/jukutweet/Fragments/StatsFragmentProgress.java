@@ -312,17 +312,53 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
     }
 
     public void updateWordEntryItemFavorites(WordEntry wordEntry) {
-        if(mTopFiveDataSet.contains(wordEntry)) {
-            mTopFiveDataSet.get(mTopFiveDataSet.indexOf(wordEntry)).setItemFavorites(wordEntry.getItemFavorites());
+        for(WordEntry topWordEntry : mTopFiveDataSet) {
+            if(topWordEntry.getId().equals(wordEntry.getId())) {
+                topWordEntry.setItemFavorites(wordEntry.getItemFavorites());
+            }
         }
-        if(mBottomFiveDataSet.contains(wordEntry)) {
-            mBottomFiveDataSet.get(mBottomFiveDataSet.indexOf(wordEntry)).setItemFavorites(wordEntry.getItemFavorites());
+
+        for(WordEntry bottomWordEntry : mBottomFiveDataSet) {
+            if(bottomWordEntry.getId().equals(wordEntry.getId())) {
+                bottomWordEntry.setItemFavorites(wordEntry.getItemFavorites());
+            }
         }
+
+//        if(mTopFiveDataSet.contains(wordEntry)) {
+//            mTopFiveDataSet.get(mTopFiveDataSet.indexOf(wordEntry)).setItemFavorites(wordEntry.getItemFavorites());
+//        }
+//        if(mBottomFiveDataSet.contains(wordEntry)) {
+//            mBottomFiveDataSet.get(mBottomFiveDataSet.indexOf(wordEntry)).setItemFavorites(wordEntry.getItemFavorites());
+//        }
 
         adapter_bottom.notifyDataSetChanged();
         adapter_top.notifyDataSetChanged();
     }
 
+    public void updateWordEntryItemFavorites(ArrayList<WordEntry> updatedWordEntries) {
+
+        if(mTopFiveDataSet!=null && mBottomFiveDataSet !=null ) {
+            for(WordEntry dataSetWordEntry : mTopFiveDataSet) {
+                for(WordEntry updatedWordEntry : updatedWordEntries ) {
+                    if(dataSetWordEntry.getId().equals(updatedWordEntry.getId())) {
+                        dataSetWordEntry.setItemFavorites(updatedWordEntry.getItemFavorites());
+                    }
+                }
+            }
+
+            for(WordEntry dataSetWordEntry : mBottomFiveDataSet) {
+                for(WordEntry updatedWordEntry : updatedWordEntries ) {
+                    if(dataSetWordEntry.getId().equals(updatedWordEntry.getId())) {
+                        dataSetWordEntry.setItemFavorites(updatedWordEntry.getItemFavorites());
+                    }
+                }
+            }
+
+            adapter_bottom.notifyDataSetChanged();
+            adapter_top.notifyDataSetChanged();
+
+        }
+    }
     public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {
 //        mCallback.notifySavedWordFragmentsChanged(wordEntry);
     }

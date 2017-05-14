@@ -3,7 +3,6 @@ package com.jukuproject.jukutweet.Fragments;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -75,6 +74,8 @@ public class UserTimeLineFragment extends Fragment {
     private Subscription timeLineSubscription;
     private Subscription timerSubscription;
     private LinearLayoutManager mLayoutManager;
+    private Boolean searchInProgress = false;
+//    private int userCreatedListCount;
 //    private TweetBreakDownFragment mTweetBreakDownFragment;
 
     private static final String TAG = "TEST-TimeLineFrag";
@@ -124,10 +125,10 @@ public class UserTimeLineFragment extends Fragment {
             } else  {
                 mDataSetMaxId = null;
             }
-
-
+            searchInProgress = savedInstanceState.getBoolean("searchInProgress");
         }
         tweetIdStringsInFavorites = InternalDB.getTweetInterfaceInstance(getContext()).getStarFavoriteDataForAUsersTweets(mUserInfo.getUserId());
+//        userCreatedListCount = InternalDB.getTweetInterfaceInstance(getContext()).getUserCreatedTweetListCount();
 
         mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
@@ -139,15 +140,17 @@ public class UserTimeLineFragment extends Fragment {
             mRecyclerView.setOnScrollChangeListener(new View.OnScrollChangeListener() {
                 @Override
                 public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-                    if (mLayoutManager == null || mDataSet == null || mDataSet.size()==0 ) {
-                        return;
-                    } else {
-                        if(mDataSet.size()>0 && mLayoutManager.findFirstCompletelyVisibleItemPosition()>0 && mLayoutManager.findLastCompletelyVisibleItemPosition()==mDataSet.size()-1 && mDataSet.size()-1>mPreviousMaxScrollPosition) {
-                            Log.d(TAG,"pulling timeline after scroll. dataset size: " + mDataSet.size() + ", prev pos: " + mPreviousMaxScrollPosition);
+
+                        if(mLayoutManager != null
+                                && mDataSet!=null
+                                && mDataSet.size()>0
+                                && mLayoutManager.findFirstCompletelyVisibleItemPosition()>0
+                                && mLayoutManager.findLastCompletelyVisibleItemPosition()==mDataSet.size()-1
+                                && mDataSet.size()-1>mPreviousMaxScrollPosition) {
+                                if(BuildConfig.DEBUG){Log.d(TAG,"pulling timeline after scroll. dataset size: " + mDataSet.size() + ", prev pos: " + mPreviousMaxScrollPosition);}
                                 mPreviousMaxScrollPosition = mDataSet.size()-1;
                                 pullTimeLineData(mUserInfo);
                         }
-                    }
                 }
             });
         } else {
@@ -168,13 +171,9 @@ public class UserTimeLineFragment extends Fragment {
             });
         }
 
-
-//        mSwipeToRefreshLayout.setEnabled(false);
         mSwipeToRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-
-                Log.d(TAG,"SWIPE REFRESHING...");
 
                     if(!mCallback.isOnline()) {
                         showRecyclerView(false);
@@ -194,34 +193,20 @@ public class UserTimeLineFragment extends Fragment {
             }
         });
 
-
-        if(mDataSet !=null) {
-            Log.d(TAG,"SETTING UP ADAPTER");
+        if(searchInProgress && mUserInfo != null) {
+            pullTimeLineData(mUserInfo);
+        } else if(mDataSet !=null) {
             setUpAdapter();
         } else if(!mCallback.isOnline()) {
-            Log.d(TAG,"OFFLINE");
             showRecyclerView(false);
             mCallback.showProgressBar(false);
             mNoLists.setTextColor(ContextCompat.getColor(getContext(),android.R.color.holo_red_dark));
             mNoLists.setText(getResources().getString(R.string.nointernet));
-//            mSwipeToRefreshLayout.setEnabled(true);
-
         } else if(mUserInfo != null) {
-            Log.d(TAG,"PULLING DATA");
             pullTimeLineData(mUserInfo);
-        } else {
-            Log.d(TAG,"WHAT THE FUFUUUUUUCK");
         }
 
     }
-
-    @Override
-    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
-        super.onViewStateRestored(savedInstanceState);
-//        updateAdapter();
-        //TODO Put something in place to repull data on resume...
-    }
-
 
     /**
      * Accesses twitters api and pulls the last X tweets from a user's timeline into
@@ -239,7 +224,7 @@ public class UserTimeLineFragment extends Fragment {
 
             Observable<Long> observable = Observable.timer(5, TimeUnit.SECONDS, Schedulers.io());
 
-            Log.d(TAG,"HERE: swipeisrefresh: " + mSwipeToRefreshLayout.isRefreshing());
+//            Log.d(TAG,"HERE: swipeisrefresh: " + mSwipeToRefreshLayout.isRefreshing());
             if(!mSwipeToRefreshLayout.isRefreshing() && mDataSet.size()==0) {
                 timerSubscription =  observable
                         .subscribeOn(Schedulers.io())
@@ -264,7 +249,7 @@ public class UserTimeLineFragment extends Fragment {
 
                         @Override public void onCompleted() {
                             if(BuildConfig.DEBUG){Log.d(TAG, "In onCompleted()");}
-
+                            searchInProgress = false;
                             mCallback.showProgressBar(false);
                             if(timerSubscription!=null) {
                                 timerSubscription.unsubscribe();
@@ -274,7 +259,6 @@ public class UserTimeLineFragment extends Fragment {
                             setUpAdapter();
 
 
-                            //TODO Make this its own subscribable that we can chain!
                         /* Check most recent user info (if it exists within timeline api response)
                         * against the user info stored in db. update db with any changed ino */
                             //And make it its own void
@@ -294,6 +278,7 @@ public class UserTimeLineFragment extends Fragment {
                         }
 
                         @Override public void onError(Throwable e) {
+                            searchInProgress = false;
                             e.printStackTrace();
                             if(BuildConfig.DEBUG){Log.d(TAG, "In onError()");}
                             mCallback.showProgressBar(false);
@@ -333,17 +318,8 @@ public class UserTimeLineFragment extends Fragment {
                                 }
 
                                 mDataSetMaxId = (Long) Long.valueOf(mDataSet.get(mDataSet.size()-1).getIdString());
-//                            }
-
                         }
                     });
-//        } else {
-//            mAdapter = new UserTimeLineAdapter(getContext(),_rxBus, mDataSet,mActiveTweetFavoriteStars,mMetrics,null,true);
-//            mRecyclerView.setAdapter(mAdapter);
-//            mCallback.showProgressBar(false);
-//        }
-
-
     }
 
     /**
@@ -512,6 +488,7 @@ public class UserTimeLineFragment extends Fragment {
             outState.putBoolean("mDataSetMaxIdisNull",false);
         }
 
+        outState.putBoolean("searchInProgress",searchInProgress);
 
     }
 

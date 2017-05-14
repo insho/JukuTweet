@@ -59,16 +59,18 @@
     <string name="menuchildviewsavedtweets">Saved Tweets</string>
 
 
+    <string name="nolistsfound">No lists found. Click the star to create a list, or enable one of the default lists in the user preferences.</string>
+
     <string name="clickanoption">Click on one of the options to select it</string>
 
     <string name="title_favoriteslist">Kanji Favorites Lists</string>
-    <string name="list_favoriteslistcount"># of Kanji Favorites Lists to Include</string>
+    <string name="list_favoriteslistcount"># of Kanji Favorites Lists</string>
     <string name="list_favoriteslistcount_summary">Yellow, Blue, Red Stars!</string>
     <string name="dialog_title_list_favoritescount">Kanji Favorites Lists</string>
 
 
     <string name="title_favoriteslist_tweet">Tweet Favorites Lists</string>
-    <string name="list_favoriteslistcount_tweet"># of Tweet Favorites Lists to Include</string>
+    <string name="list_favoriteslistcount_tweet"># of Tweet Favorites Lists</string>
     <string name="dialog_title_list_favoritescount_tweet">Tweet Favorites Lists</string>
 
     <string name="statsComplete">%1$d%% Complete</string>
@@ -90,6 +92,9 @@
     <string name="searchinputtexttosearch">Input some text to search</string>
     <string name="searchchoosecriteria">Choose search criteria (Romaji or Definition)</string>
     <string name="searchalphanumericsonly">Search with alphanumeric characters only</string>
+
+
+    <string name="exitquiz">Exit Quiz?</string>
 
     <string-array name="entryvalues_list_favoritescount_kanji">
         <item>Blue</item>
@@ -118,16 +123,16 @@
     </string-array>
 
 
-    <string-array name="favoriteslistcount_default">
-        <item>Blue</item>
-        <item>Red</item>
-    </string-array>
+    <!--<string-array name="favoriteslistcount_default">-->
+        <!--<item>Blue</item>-->
+        <!--<item>Red</item>-->
+    <!--</string-array>-->
 
 
-    <string-array name="favoriteslistcount_default_tweet">
-        <item>Yellow</item>
-        <item>Green</item>
-    </string-array>
+    <!--<string-array name="favoriteslistcount_default_tweet">-->
+        <!--<item>Yellow</item>-->
+        <!--<item>Green</item>-->
+    <!--</string-array>-->
 
     <string name="listclearlist">Clear List?</string>
     <string name="listoptionclearlist">1. Clear List</string>
@@ -209,7 +214,7 @@
     <string name="menuoptionskanji">Kanji</string>
     <string name="menuoptionsdefinition">Definition</string>
     <string name="menuoptionsnone">None</string>
-    <string name="menuoptionsten">1</string>
+    <string name="menuoptionsten">2</string>
     <string name="menuoptionssixty">60</string>
     <string name="menuoptionswordbuildertype">Repeating</string>
 

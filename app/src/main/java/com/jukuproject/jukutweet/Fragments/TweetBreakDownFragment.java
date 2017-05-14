@@ -7,6 +7,7 @@ package com.jukuproject.jukutweet.Fragments;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
@@ -73,6 +74,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
     private FragmentInteractionListener mCallback;
     private RxBus mRxBus= new RxBus();
     private Tweet mTweet;
+
     private RecyclerView mRecyclerView;
     private boolean mSavedTweet = false;
     private ArrayList<String> mActiveTweetFavoriteStars;
@@ -90,7 +92,9 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
     private TextView txtUserScreenName;
     private ImageButton imgStar;
     private FrameLayout imgStarLayout;
-
+    private long mLastClickTime = 0;
+//    private ArrayList<WordEntry> mDisectedTweet;
+//    private int possibleAvailableUserListCount;
     public TweetBreakDownFragment() {}
 
     public static TweetBreakDownFragment newInstanceTimeLine(Tweet tweet) {
@@ -158,7 +162,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
 //            txtSentence.setClickable(true);
 //            txtSentence.setAlph(.7f);
 
-
+//        possibleAvailableUserListCount = InternalDB.getWordInterfaceInstance(getContext()).getUserCreatedWordListCount();
 
             final String sentence = mTweet.getText();
 
@@ -253,7 +257,6 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                 c.close();
             }
         }
-
         showDisectedTweet(mTweet.getWordEntries(),txtSentence);
 
     } else  {
@@ -418,7 +421,9 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                     ClickableSpan kanjiClick = new ClickableSpan() {
                         @Override
                         public void onClick(View textView) {
-                            WordDetailPopupDialog.newInstance(wordEntry).show(getFragmentManager(),"wordDetailPopup");
+                            if(isUniqueClick(150)) {
+                                WordDetailPopupDialog.newInstance(wordEntry).show(getFragmentManager(),"wordDetailPopup");
+                            }
                         }
 
                         @Override
@@ -448,7 +453,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
         mRxBus.toClickObserverable().subscribe(new Action1<Object>() {
                                                       @Override
                                                       public void call(Object event) {
-                                                          if (event instanceof WordEntry) {
+                                                          if (isUniqueClick(150) && event instanceof WordEntry) {
                                                               WordEntry wordEntry = (WordEntry) event;
                                                               updateWordEntryItemFavorites(wordEntry);
 
@@ -459,7 +464,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
             mRxBus.toLongClickObserverable().subscribe(new Action1<Object>() {
                 @Override
                 public void call(Object event) {
-                    if (event instanceof WordEntry) {
+                    if (isUniqueClick(1000) && event instanceof WordEntry) {
                         WordEntry wordEntry = (WordEntry) event;
                         WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(wordEntry);
                         wordDetailPopupDialog.setTargetFragment(TweetBreakDownFragment.this, 0);
@@ -489,8 +494,6 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
         }
     }
 
-
-    //TODO make static? because its shared with timelineadapter....
     public void showTweetFavoriteListPopupWindow() {
 
         RxBus rxBus = new RxBus();
@@ -578,29 +581,58 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
     };
 
 
-    //TODO put this in catchall
-    public static int countOfAll(Object obj, ArrayList list){
-        int count = 0;
-        for (int i = 0; i < list.size(); i++)
-            if(obj.equals(list.get(i)))
-                count += 1;
-        return count;
-    }
+//    //TODO put this in catchall
+//    public static int countOfAll(Object obj, ArrayList list){
+//        int count = 0;
+//        for (int i = 0; i < list.size(); i++)
+//            if(obj.equals(list.get(i)))
+//                count += 1;
+//        return count;
+//    }
 
     public void updateWordEntryItemFavorites(WordEntry wordEntry) {
 
+        if(BuildConfig.DEBUG) {
+            Log.i(TAG,"updateWordEntryItemFavorites WordEntry: " + wordEntry.getKanji()
+                    + ", favs: " + wordEntry.getItemFavorites().getSystemBlueCount());
+        }
                 if(mTweet.getWordEntries()!=null ) {
                     for(WordEntry tweetWordEntry : mTweet.getWordEntries()) {
-                        if(tweetWordEntry.getId()==wordEntry.getId()) {
-
+                        if(tweetWordEntry.getId().equals(wordEntry.getId())) {
                             tweetWordEntry.setItemFavorites(wordEntry.getItemFavorites());
+                            if(BuildConfig.DEBUG) {
+                                Log.i(TAG, "updateWordEntryItemFavorites MATCH! : " + tweetWordEntry.getKanji()
+                                        + ", updating favs: " + wordEntry.getItemFavorites().getSystemBlueCount());
+                            }
                         }
                     }
                 }
 
-
+        Log.i(TAG,"Notifying dataset changed...");
         mAdapter.notifyDataSetChanged();
     }
+
+    public void updateWordEntryItemFavorites(ArrayList<WordEntry> updatedWordEntries) {
+
+
+        if(mTweet.getWordEntries()!=null ) {
+            for(WordEntry tweetWordEntry : mTweet.getWordEntries()) {
+                for(WordEntry updatedWordEntry : updatedWordEntries ) {
+                    if(tweetWordEntry.getId().equals(updatedWordEntry.getId())) {
+                                if(BuildConfig.DEBUG) {
+            Log.i(TAG,"updateWordEntryItemFavorites SUPER match found: " + updatedWordEntry.getKanji()
+                    + ", favs: " + updatedWordEntry.getItemFavorites().getSystemBlueCount());
+        }
+                        tweetWordEntry.setItemFavorites(updatedWordEntry.getItemFavorites());
+                    }
+                }
+            }
+        }
+
+        Log.i(TAG,"updateWordEntryItemFavorites MULTI Notifying dataset changed...");
+        mAdapter.notifyDataSetChanged();
+    }
+
     public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {
         mCallback.notifySavedWordFragmentsChanged(wordEntry);
 
@@ -628,5 +660,20 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
         outState.putParcelable("mTweet", mTweet);
     }
 
+    /**
+     * Checks how many milliseconds have elapsed since the last time "mLastClickTime" was updated
+     * If enough time has elapsed, returns True and updates mLastClickTime.
+     * This is to stop unwanted rapid clicks of the same button
+     * @param elapsedMilliSeconds threshold of elapsed milliseconds before a new button click is allowed
+     * @return bool True if enough time has elapsed, false if not
+     */
+    public boolean isUniqueClick(int elapsedMilliSeconds) {
+        if(SystemClock.elapsedRealtime() - mLastClickTime > elapsedMilliSeconds) {
+            mLastClickTime = SystemClock.elapsedRealtime();
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
 

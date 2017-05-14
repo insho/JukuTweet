@@ -4,25 +4,44 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 
+import com.jukuproject.jukutweet.TabContainers.Tab1Container;
+import com.jukuproject.jukutweet.TabContainers.Tab2Container;
+import com.jukuproject.jukutweet.TabContainers.Tab3Container;
+import com.jukuproject.jukutweet.TabContainers.Tab4Container;
+
 /**
  * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
  * one of the sections/tabs/pages.
  */
-public class SectionsPagerAdapter extends FragmentPagerAdapter {
+public class SectionsPagerAdapter2 extends FragmentPagerAdapter {
 
     private String[] mCurrentTabs;
-    private Fragment[] mSavedFragments;
 
-    public SectionsPagerAdapter(FragmentManager fm, String[] currentTabs, Fragment[] savedFragments) {
+    public SectionsPagerAdapter2(FragmentManager fm, String[] currentTabs) {
         super(fm);
         this.mCurrentTabs = currentTabs;
-        this.mSavedFragments = savedFragments;
     }
+//
+//    public SectionsPagerAdapter2SavedInstance(FragmentManager fm, String[] currentTabs, Fragment[] savedFragments) {
+//        super(fm);
+//        this.mCurrentTabs = currentTabs;
+//    }
 
     @Override
     public Fragment getItem(int position) {
-        return mSavedFragments[position];
-    }
+        switch (position) {
+            case 0:
+                return Tab1Container.newInstance();
+            case 1:
+                return Tab2Container.newInstance();
+            case 2:
+                return Tab3Container.newInstance();
+            case 3:
+                return Tab4Container.newInstance();
+            default:
+                return Tab1Container.newInstance();
+        }
+    };
 
 
     @Override

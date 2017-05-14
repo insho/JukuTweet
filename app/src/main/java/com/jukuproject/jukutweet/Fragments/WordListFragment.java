@@ -51,6 +51,7 @@ public class WordListFragment extends Fragment {
     ArrayList<MenuHeader> mMenuHeader;
     private int lastExpandedPosition = -1;
     private SharedPrefManager sharedPrefManager;
+    private TextView txtNoListsFound;
 
     public static WordListFragment newInstance(Bundle bundle) {
 //        WordListFragment fragment = new WordListFragment();
@@ -62,9 +63,9 @@ public class WordListFragment extends Fragment {
         //Call shared prefs to find out which star colors (i.e. favorites lists) to include
         sharedPrefManager = SharedPrefManager.getInstance(getContext());
 
-        View v = inflater.inflate(R.layout.fragment_mylists, container, false);
+        View v = inflater.inflate(R.layout.fragment_wordandtweet_lists, container, false);
         expListView = (ExpandableListView) v.findViewById(R.id.lvMyListCategory);
-
+        txtNoListsFound = (TextView) v.findViewById(R.id.nolistsfound);
         setRetainInstance(true);
         return v;
     }
@@ -83,6 +84,12 @@ public class WordListFragment extends Fragment {
 
         MyListFragmentAdapter = new WordListExpandableAdapter(getContext(),mMenuHeader,getdimenscore(),0);
         expListView.setAdapter(MyListFragmentAdapter);
+        if(mMenuHeader.size()==0) {
+            txtNoListsFound.setVisibility(View.VISIBLE);
+        } else {
+            txtNoListsFound.setVisibility(View.GONE);
+        }
+
         expListView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
             @Override
             public boolean onGroupClick(ExpandableListView parent, View v,
@@ -143,6 +150,9 @@ public class WordListFragment extends Fragment {
 
                 switch (childOption) {
                     case "Browse/Edit":
+
+
+
 //                        ColorThresholds colorThresholds = sharedPrefManager.getColorThresholds();
 //                        ArrayList<WordEntry>  supertext =   InternalDB.getWordInterfaceInstance(getContext()).getWordsFromAWordList(new MyListEntry("Red",1)
 //                                ,colorThresholds
@@ -158,6 +168,7 @@ public class WordListFragment extends Fragment {
                         ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"mylistbrowse");
                         //Hide the fab
                         mCallback.showFab(false,"");
+                        mCallback.showActionBarBackButton(true,mMenuHeader.get(groupPosition).getHeaderTitle(),2);
                         break;
                     case "Flash Cards":
                         if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
@@ -168,7 +179,9 @@ public class WordListFragment extends Fragment {
                                     ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
                                     ,getdimenscore()).show(getActivity().getSupportFragmentManager()
                                     ,"dialogQuizMenu");
-                            mCallback.showFab(false,"");
+
+                            mCallback.showActionBarBackButton(true,mMenuHeader.get(groupPosition).getHeaderTitle(),2);
+                            mCallback.showFab(false);
                         }
 
                         break;
@@ -208,6 +221,7 @@ public class WordListFragment extends Fragment {
                                 ,colorBlockMeasurables);
                         ((BaseContainerFragment)getParentFragment()).replaceFragment(statsFragmentProgress, true,"wordlistStats");
                         mCallback.showFab(false,"");
+                        mCallback.showActionBarBackButton(true,mMenuHeader.get(groupPosition).getHeaderTitle(),2);
                         break;
 
                     default:
@@ -245,10 +259,16 @@ public class WordListFragment extends Fragment {
             expListView.collapseGroup(lastExpandedPosition);
         }
 
-        expListView.expandGroup(position);
-        expListView.setSelectedGroup(position);
-        mMenuHeader.get(position).setExpanded(true);
-        lastExpandedPosition = position;
+        try {
+            expListView.expandGroup(position);
+            expListView.setSelectedGroup(position);
+            mMenuHeader.get(position).setExpanded(true);
+            lastExpandedPosition = position;
+        } catch (IndexOutOfBoundsException e) {
+            Log.e(TAG,"expandthelistview at position " + position + " index out of bounds");
+            lastExpandedPosition = -1;
+        }
+
     };
 
     public void prepareListData() {
@@ -373,6 +393,11 @@ public class WordListFragment extends Fragment {
             prepareListData();
             MyListFragmentAdapter = new WordListExpandableAdapter(getContext(),mMenuHeader,getdimenscore(),0);
             expListView.setAdapter(MyListFragmentAdapter);
+            if(mMenuHeader.size()==0) {
+                txtNoListsFound.setVisibility(View.VISIBLE);
+            } else {
+                txtNoListsFound.setVisibility(View.GONE);
+            }
             //Expand the last expanded position (or expand first availalbe non-empty list)
             if(lastExpandedPosition >=0) {
                 expandTheListViewAtPosition(lastExpandedPosition);

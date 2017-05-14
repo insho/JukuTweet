@@ -50,6 +50,7 @@ public class TweetListFragment extends Fragment {
     ArrayList<MenuHeader> mMenuHeader;
     private int lastExpandedPosition = -1;
     private SharedPrefManager sharedPrefManager;
+    private TextView txtNoListsFound;
 
     public static TweetListFragment newInstance() {
         return new TweetListFragment();
@@ -58,9 +59,9 @@ public class TweetListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
-        View v = inflater.inflate(R.layout.fragment_mylists, container, false);
+        View v = inflater.inflate(R.layout.fragment_wordandtweet_lists, container, false);
         expListView = (ExpandableListView) v.findViewById(R.id.lvMyListCategory);
-
+        txtNoListsFound = (TextView) v.findViewById(R.id.nolistsfound);
 
         return v;
     }
@@ -73,16 +74,22 @@ public class TweetListFragment extends Fragment {
         expListView.setClickable(true);
 
         if(savedInstanceState == null) {
+                prepareListData();
                 mCallback.showProgressBar(false);
         } else {
             mMenuHeader = savedInstanceState.getParcelableArrayList("mMenuHeader");
             lastExpandedPosition = savedInstanceState.getInt("lastExpandedPosition");
         }
-        prepareListData();
 
         SavedTweetsFragmentAdapter = new TweetListExpandableAdapter(getContext(),mMenuHeader,getdimenscore(.36f),0);
 
         expListView.setAdapter(SavedTweetsFragmentAdapter);
+        if(mMenuHeader.size()==0) {
+            txtNoListsFound.setVisibility(View.VISIBLE);
+        } else {
+            txtNoListsFound.setVisibility(View.GONE);
+        }
+
         expListView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
             @Override
             public boolean onGroupClick(ExpandableListView parent, View v,
@@ -151,6 +158,7 @@ public class TweetListFragment extends Fragment {
                             TweetListBrowseFragment fragment = TweetListBrowseFragment.newInstance(new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle()                                     ,mMenuHeader.get(groupPosition).getSystemList()));
                             ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"savedtweetsbrowse");
                         mCallback.showFab(false,"");
+                        mCallback.showActionBarBackButton(true,mMenuHeader.get(groupPosition).getHeaderTitle(),1);
                         break;
 
                     case "Flash Cards":
@@ -162,6 +170,8 @@ public class TweetListFragment extends Fragment {
                                     ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
                                     ,getdimenscore(.5f)).show(getActivity().getSupportFragmentManager()
                                     ,"dialogQuizMenu");
+
+                            mCallback.showActionBarBackButton(true,mMenuHeader.get(groupPosition).getHeaderTitle(),1);
                             mCallback.showFab(false,"");
                         }
 
@@ -175,7 +185,6 @@ public class TweetListFragment extends Fragment {
                                     ,mMenuHeader.get(groupPosition).getMyListEntry()
                                     ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
                                     ,getdimenscore(.5f)).show(getActivity().getSupportFragmentManager(),"dialogQuizMenu");
-//                            mCallback.showFab(false,"");
                         }
 
 
@@ -189,7 +198,6 @@ public class TweetListFragment extends Fragment {
                                     ,mMenuHeader.get(groupPosition).getMyListEntry()
                                     ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
                                     ,getdimenscore(.5f)).show(getActivity().getSupportFragmentManager(),"dialogQuizMenu");
-//                            mCallback.showFab(false,"");
                         }
 
                         break;
@@ -203,6 +211,7 @@ public class TweetListFragment extends Fragment {
                                 ,colorBlockMeasurables);
                         ((BaseContainerFragment)getParentFragment()).replaceFragment(statsFragmentProgress, true,"tweetlistStats");
                         mCallback.showFab(false,"");
+                        mCallback.showActionBarBackButton(true,mMenuHeader.get(groupPosition).getHeaderTitle(),1);
                         break;
 
 
@@ -254,12 +263,14 @@ public class TweetListFragment extends Fragment {
     public void prepareListData() {
         mMenuHeader = new ArrayList<>();
 
+        if(sharedPrefManager==null) {
+            sharedPrefManager = SharedPrefManager.getInstance(getContext());
+        }
         ArrayList<String> availableFavoritesStars = sharedPrefManager.getActiveTweetFavoriteStars();
         ColorThresholds colorThresholds = sharedPrefManager.getColorThresholds();
         ArrayList<String> childOptions = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.menu_mylist)));
 
-        Cursor c;
-            c = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListColorBlocksCursor(colorThresholds,null);
+        Cursor c = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListColorBlocksCursor(colorThresholds,null);
         if(c.getCount()>0) {
             c.moveToFirst();
             while (!c.isAfterLast()) {
@@ -368,10 +379,17 @@ public class TweetListFragment extends Fragment {
     }
 
     public void expandTheListViewAtPosition(int position) {
-        expListView.expandGroup(position);
-        expListView.setSelectedGroup(position);
-        mMenuHeader.get(position).setExpanded(true);
-        lastExpandedPosition = position;
+
+        try {
+            expListView.expandGroup(position);
+            expListView.setSelectedGroup(position);
+            mMenuHeader.get(position).setExpanded(true);
+            lastExpandedPosition = position;
+        } catch (IndexOutOfBoundsException e) {
+            Log.e(TAG,"expandthelistview at position " + position + " index out of bounds");
+            lastExpandedPosition = -1;
+        }
+
     };
 
 
@@ -406,6 +424,12 @@ public class TweetListFragment extends Fragment {
         prepareListData();
         SavedTweetsFragmentAdapter = new TweetListExpandableAdapter(getContext(),mMenuHeader,getdimenscore(.36f),0);
         expListView.setAdapter(SavedTweetsFragmentAdapter);
+        if(mMenuHeader.size()==0) {
+            txtNoListsFound.setVisibility(View.VISIBLE);
+        } else {
+            txtNoListsFound.setVisibility(View.GONE);
+        }
+
         //Expand the last expanded position (or expand first availalbe non-empty list)
         if(lastExpandedPosition >=0) {
             expandTheListViewAtPosition(lastExpandedPosition);

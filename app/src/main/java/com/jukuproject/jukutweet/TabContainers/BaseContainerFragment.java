@@ -54,6 +54,11 @@ public class BaseContainerFragment extends Fragment {
         return isPop;
     }
 
-
-
+    /**
+     * Returns the top fragment in the stack
+     * @return top fragment
+     */
+    public Fragment getTopFragment() {
+        return getChildFragmentManager().findFragmentById(R.id.container_framelayout);
+    }
 }

@@ -64,7 +64,7 @@ public class TweetListSingleUserFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_mylists, container, false);
+        View v = inflater.inflate(R.layout.fragment_wordandtweet_lists, container, false);
         expListView = (ExpandableListView) v.findViewById(R.id.lvMyListCategory);
         return v;
     }
@@ -83,6 +83,7 @@ public class TweetListSingleUserFragment extends Fragment {
         } else {
             mMenuHeader = savedInstanceState.getParcelableArrayList("mMenuHeader");
             lastExpandedPosition = savedInstanceState.getInt("lastExpandedPosition");
+            mUserInfo = savedInstanceState.getParcelable("mUserInfo");
         }
 
         SavedTweetsFragmentAdapter = new TweetListExpandableAdapter(getContext(),mMenuHeader,getdimenscore(.36f),0);
@@ -154,7 +155,7 @@ public class TweetListSingleUserFragment extends Fragment {
                 switch (childOption) {
                     case "Browse/Edit":
                             TweetListBrowseFragment fragment = TweetListBrowseFragment.newInstance(mUserInfo);
-                            ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"savedtweetsbrowse");
+                            ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"savedtweetsbrowseSingleUser");
                         break;
 
                     case "Flash Cards":
@@ -166,7 +167,7 @@ public class TweetListSingleUserFragment extends Fragment {
                                     ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
                                     ,getdimenscore(.5f)).show(getActivity().getSupportFragmentManager()
                                     ,"dialogQuizMenu");
-                            mCallback.showFab(false,"");
+                            mCallback.showFab(false);
                         }
                         break;
 
@@ -184,6 +185,7 @@ public class TweetListSingleUserFragment extends Fragment {
                         break;
 
                     case "Fill in the Blanks":
+                        Log.i(TAG,"mUserInfo: " + mUserInfo.getUserId());
                         if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
                             QuizMenuDialog.newSingleUserInstance("fillintheblanks"
                                     ,0
@@ -201,7 +203,7 @@ public class TweetListSingleUserFragment extends Fragment {
                                 , 10
                                 ,colorBlockMeasurables);
                         ((BaseContainerFragment)getParentFragment()).replaceFragment(statsFragmentProgress, true,"singleUserStats");
-                        mCallback.showFab(false,"");
+                        mCallback.showFab(false);
                         break;
 
 

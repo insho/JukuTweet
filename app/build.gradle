@@ -55,7 +55,7 @@ dependencies {
 
     compile 'com.bignerdranch.android:expandablerecyclerview:3.0.0-RC1'
 
-    testCompile "org.mockito:mockito-core:2.+"
+    testCompile "org.mockito:mockito-core:2.7.2"
     testCompile "org.robolectric:robolectric:3.3.1"
     testCompile 'junit:junit:4.12'
 

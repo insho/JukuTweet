@@ -7,13 +7,9 @@ import com.jukuproject.jukutweet.Models.UserInfo;
 
 import java.util.ArrayList;
 
-/**
- * Created by JClassic on 4/13/2017.
- */
 
 public interface QuizFragmentInteractionListener {
-//    void showFab(boolean show, String type);
-//    void showFab(boolean show);
+
     void showPostQuizStatsMultipleChoice(ArrayList<MultChoiceResult> dataset
             , String quizType
             , MyListEntry myListEntry
@@ -44,4 +40,6 @@ public interface QuizFragmentInteractionListener {
             , UserInfo userInfo
             , int correct
             , int total);
+
+    void emergencyGoBackToMainActivity();
 }

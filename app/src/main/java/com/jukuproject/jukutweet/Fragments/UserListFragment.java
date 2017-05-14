@@ -196,9 +196,7 @@ public class UserListFragment extends Fragment {
         if(mMenuHeader != null && mMenuHeader.size() > 0) {
 
             mAdapter = new UserListExpandableRecyclerAdapter(getContext(),mMenuHeader,_rxBus);
-
             showRecyclerView(true);
-
             mRecyclerView.setAdapter(mAdapter);
 
 
@@ -419,7 +417,7 @@ public class UserListFragment extends Fragment {
 //                            }
 
                             if(menuChild.getColorBlockMeasurables().getTweetCount()>0) {
-                                mCallback.showActionBarBackButton(true,menuChild.getUserInfo().getDisplayScreenName());
+                                mCallback.showActionBarBackButton(true,menuChild.getUserInfo().getDisplayScreenName(),0);
                                 mCallback.showFab(false);
 //                            mCallback.showSavedTweetsTabForIndividualUser(userInfo);
 //        mCallback.updateTabs(new String[]{"Timeline","Saved Tweets"});
@@ -565,7 +563,7 @@ public class UserListFragment extends Fragment {
 
     public void showUserTimelineFragment(UserInfo userInfo) {
         mCallback.showProgressBar(true);
-        mCallback.showActionBarBackButton(true,userInfo.getDisplayScreenName());
+        mCallback.showActionBarBackButton(true,userInfo.getDisplayScreenName(),0);
 //        mCallback.showSavedTweetsTabForIndividualUser(userInfo);
 //        mCallback.updateTabs(new String[]{"Timeline","Saved Tweets"});
         mCallback.updateTabs(new String[]{"Timeline","Tweet Lists","Word Lists","Search"});

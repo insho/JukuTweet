@@ -77,13 +77,14 @@ public class Tab1Container extends BaseContainerFragment {
             } else {
                 return false;
             }
-//            (getChildFragmentManager().findFragmentByTag("userlistfragment")).isVisible();
-//            return true;
         } catch (Exception e) {
             Log.e("TEST-Tab1Container","isTopFragmentShowing failed");
             return false;
         }
     }
+
+
+
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);

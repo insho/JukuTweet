@@ -9,4 +9,5 @@ import com.jukuproject.jukutweet.Models.WordEntry;
 public interface WordEntryFavoritesChangedListener {
     void updateWordEntryItemFavorites(WordEntry wordEntry);
     void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry);
+
 }

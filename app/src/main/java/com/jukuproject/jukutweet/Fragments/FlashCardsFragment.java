@@ -117,7 +117,7 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
             mFrontShowing = savedInstanceState.getBoolean("mFrontShowing");
             cardNumber = savedInstanceState.getInt("cardNumber");
         }
-
+//        mCallback.showFab(false);
         totalCardCount = mDataset.size();
 
         vp.setAdapter(new MyPagesAdapter_Array());
@@ -520,6 +520,20 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
         }
 
     }
+    public void updateWordEntryItemFavorites(ArrayList<WordEntry> updatedWordEntries) {
+        if(mDataset!=null ) {
+            for(WordEntry dataSetWordEntry : mDataset) {
+                for(WordEntry updatedWordEntry : updatedWordEntries ) {
+                    if(dataSetWordEntry.getId().equals(updatedWordEntry.getId())) {
+                        dataSetWordEntry.setItemFavorites(updatedWordEntry.getItemFavorites());
+                    }
+                }
+            }
+        }
+
+    }
+    //        }
+
 
     public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {
         mCallback.notifySavedWordFragmentsChanged(wordEntry);

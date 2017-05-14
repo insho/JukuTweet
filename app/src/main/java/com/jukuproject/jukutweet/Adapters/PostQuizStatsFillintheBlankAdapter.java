@@ -113,7 +113,7 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
             } else {
                 holder.txtSentence.setText(tweet.getText());
             }
-            holder.txtRowNumber.setText(String.valueOf(holder.getAdapterPosition()));
+            holder.txtRowNumber.setText(String.valueOf(holder.getAdapterPosition()+1) +".");
         } catch (NullPointerException e) {
             holder.txtSentence.setText(tweet.getText());
             Log.e(TAG,"fillblank Postquizstats setting tweet right/wrong word colors nullpointer failure : " + e);

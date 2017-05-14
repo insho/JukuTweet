@@ -14,7 +14,7 @@ public interface FragmentInteractionListener {
     void showAddUserDialog();
     void showEditMyListDialog(String listType, String currentListName, Boolean isStarFavorite);
     void showProgressBar(Boolean show);
-    void showActionBarBackButton(Boolean showBack, CharSequence title);
+    void showActionBarBackButton(Boolean showBack, CharSequence title, int tabNumber);
     void showFab(boolean show, String type);
     void showFab(boolean show);
     boolean isOnline();
@@ -23,14 +23,13 @@ public interface FragmentInteractionListener {
 
     void notifySavedTweetFragmentsChanged();
     void notifySavedWordFragmentsChanged(WordEntry wordEntry);
-
-//    void showSavedTweetsTabForIndividualUser(UserInfo userInfo);
+    void notifySavedWordFragmentsChanged(String wordEntriesString);
     void onBackPressed();
-//    void showUserDetailFragment(UserInfo userInfo);
-//void refreshFragment(String fragmentTag);
     void runDictionarySearch(String query, String queryOn);
     void runTwitterSearch(String query, String queryOn);
     void showAddUserCheckDialog(UserInfo userInfo);
 
     void parseAndSaveTweet(Tweet tweet);
+
+//    void updateAllOtherTabs();
 }

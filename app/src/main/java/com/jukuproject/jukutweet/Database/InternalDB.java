@@ -22,7 +22,6 @@ import java.util.HashMap;
 public class InternalDB extends SQLiteOpenHelper
 
 {
-    private static String TAG = "TEST-Internal";
 
     public static TweetListOperationsInterface tweetOpsHelper;
     public static UserOperationsInterface userOpsHelper;

@@ -15,7 +15,6 @@ import android.text.style.ClickableSpan;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -71,6 +70,8 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
     int displayMarginPadding = 30; //How much to pad the edge of the screen by when laying down the sentenceblocks (so the sentence doesn't overlap the screen or get cut up too much)
     int spinnerWidth = 200;
     int spinnerHeight = 55;
+    int redundentQuestionCounter = 0;
+
 
     LinearLayout linearLayoutVerticalParagraph;  //This is the main linear layout, that we will fill row by row with horizontal linear layouts, which are     // in turn filled with vertical layouts (with furigana on top and japanese on bottom)
     LinearLayout linearLayoutHorizontalLine; //one of these layouts for each line in the vertical paragraph
@@ -88,7 +89,7 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
 
         FillInTheBlankFragment fragment = new FillInTheBlankFragment();
         Bundle args = new Bundle();
-        args.putParcelableArrayList("tweets", tweets);
+        args.putParcelableArrayList("dataset", tweets);
         args.putString("quizSize",quizSize);
         args.putDouble("totalWeight",totalWeight);
         args.putString("colorString",colorString);
@@ -106,7 +107,7 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
 
         FillInTheBlankFragment fragment = new FillInTheBlankFragment();
         Bundle args = new Bundle();
-        args.putParcelableArrayList("tweets", tweets);
+        args.putParcelableArrayList("dataset", tweets);
         args.putString("quizSize",quizSize);
         args.putDouble("totalWeight",totalWeight);
         args.putString("colorString",colorString);
@@ -135,6 +136,21 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        /* Get width of screen */
+        DisplayMetrics metrics = new DisplayMetrics();
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        displayWidth = metrics.widthPixels;
+        displayMarginPadding = (int) ((float) (displayWidth) * 0.055555556);
+        spinnerWidth = (int) (180.0f * metrics.density + 0.5f);
+        spinnerHeight = (int) (37.0f * metrics.density + 0.5f);
+
+        linearLayoutHorizontalLine = new LinearLayout(getContext());
+        linearLayoutHorizontalLine.setOrientation(LinearLayout.HORIZONTAL);
+        linearLayoutHorizontalLine.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+
+
         if (savedInstanceState != null) {
             //Save the fragment's state here
             mDataset = savedInstanceState.getParcelableArrayList("mDataset");
@@ -147,49 +163,31 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
             currentLineWidth = savedInstanceState.getInt("currentLineWidth");
             mUserInfo = savedInstanceState.getParcelable("mUserInfo");
             mSingleUser = savedInstanceState.getBoolean("mSingleUser",false);
+            currentDataSetindex = savedInstanceState.getInt("currentDataSetindex",0);
+            //Randomize the dataset
+            Collections.shuffle(mDataset);
         } else {
-            mDataset = getArguments().getParcelableArrayList("tweets");
+            mDataset = getArguments().getParcelableArrayList("dataset");
             mQuizSize = Integer.parseInt(getArguments().getString("quizSize"));
             mTotalWeight = getArguments().getDouble("totalWeight");
             mColorString = getArguments().getString("colorString");
             mMyListEntry = getArguments().getParcelable("myListEntry");
-            mUserInfo = getArguments().getParcelable("mUserInfo");
-            mSingleUser = getArguments().getBoolean("mSingleUser",false);
+            mUserInfo = getArguments().getParcelable("userInfo");
+            mSingleUser = getArguments().getBoolean("singleUser",false);
+
+            currentDataSetindex = 0;
+
         }
-
-
-//        Log.d("TEST","dataset fragment isspinner: " + mDataset.get(0).getWordEntries().get(1).getKanji() + ", spinner: "
-//                + mDataset.get(0).getWordEntries().get(1).isSpinner());
-
-
-        /* Get width of screen */
-        DisplayMetrics metrics = new DisplayMetrics();
-        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        displayWidth = metrics.widthPixels;
-        Log.d(TAG,"displayWidth: " + displayWidth);
-        displayMarginPadding = (int) ((float) (displayWidth) * 0.055555556);
-        spinnerWidth = (int) (180.0f * metrics.density + 0.5f);
-        spinnerHeight = (int) (37.0f * metrics.density + 0.5f);
-
-
-        linearLayoutHorizontalLine = new LinearLayout(getContext());
-        linearLayoutHorizontalLine.setOrientation(LinearLayout.HORIZONTAL);
 
         /* Reset the lists and layouts */
         txtQuestionNumber.setText((currentTotal +1) + "/" + mQuizSize);
-
-        //Randomize the dataset
-        Collections.shuffle(mDataset);
-        currentDataSetindex = 0;
-
-
-
         scoreButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                scoreTheSpinners();
             }
         });
+
         //Set up tweet and spinners
         setUpQuestion(mDataset.get(currentDataSetindex));
     }
@@ -202,103 +200,123 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
         String sentence = tweet.getText();
         ArrayList<WordEntry> disectedSavedTweet = tweet.getWordEntries();
 
-
-//        Log.d(TAG,"STTING UP QUESTIONL DisectedSavedTweet size: " + tweet.getWordEntries().size());
-
-        currentLineWidth = 0;
-        linearLayoutVerticalParagraph.removeAllViews();
-        linearLayoutHorizontalLine = new LinearLayout(getContext());
-
+        if(redundentQuestionCounter>4) {
+            mCallback.emergencyGoBackToMainActivity();
+        } else if(disectedSavedTweet.size()==0) {
+            redundentQuestionCounter +=1;
+            moveToNextQuestion();
+        } else {
+            currentLineWidth = 0;
+            linearLayoutVerticalParagraph.removeAllViews();
+            linearLayoutHorizontalLine = new LinearLayout(getContext());
+            linearLayoutHorizontalLine.setLayoutParams(new ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
         /* Set tweet color spans. If the saved Tweet object includes a "colorIndex" object (
         * which comes from the savedTweetKanji table and contains the id, positions and color designation
         * of each kanji in the TWeet), replace the normal Tweet text with colored spans for those kanji */
-//        int startIndex = 0;
-//        TextView textView = new TextView(getContext());
 
-        try {
+            try {
 
-            int startIndex = 0;
-            SpannableStringBuilder sb = new SpannableStringBuilder();
-            for(final WordEntry wordEntry : disectedSavedTweet) {
+                int startIndex = 0;
+                SpannableStringBuilder sb = new SpannableStringBuilder();
+                for(final WordEntry wordEntry : disectedSavedTweet) {
 
+                    if(wordEntry.getKanji() == null) {
+                        throw new NullPointerException("fillintheblank word entry has null kanji!");
+                    }
                 /* If its a spinner word:
                     * 1. Put the current stringbuilder contents into a textview
                     * and enter it into the LinearLayout input process.
                     * 2. Create the spinner and its contents, and put it into the linearlayout process
                     * */
-
-                Log.d(TAG,"is spinner? " + wordEntry.isSpinner() + ", adding word entry: " + wordEntry.getKanji() + ", start: " + wordEntry.getStartIndex() + ", end: " + wordEntry.getEndIndex());
+                    if(BuildConfig.DEBUG) {
+                        Log.d(TAG,"is spinner? " + wordEntry.isSpinner() + ", adding word entry: " + wordEntry.getKanji() + ", start: " + wordEntry.getStartIndex() + ", end: " + wordEntry.getEndIndex());
+                    }
 
                 /*Add the portion of normal, non-kanji, non-spinner text between the previous
                  kanji end-index and the current kanji start-index to the layout*/
-                if(wordEntry.getStartIndex()>startIndex) {
-                    Log.d(TAG,"adding previous word chunk: " + sentence.substring(startIndex,wordEntry.getStartIndex()));
-                    sb.append(sentence.substring(startIndex,wordEntry.getStartIndex()));
-                    addToLayout(sb);
+                    if(wordEntry.getStartIndex()>startIndex) {
+                        if(BuildConfig.DEBUG) {
+                            Log.d(TAG, "adding previous word chunk: " + sentence.substring(startIndex, wordEntry.getStartIndex()));
+                        }
+                        sb.append(sentence.substring(startIndex,wordEntry.getStartIndex()));
+
+                        if(sb.toString().contains(System.getProperty("line.separator"))) {
+                            insertTextWithLineSeperators(sb.toString());
+
+                        } else {
+                            addToLayout(sb);
+                        }
+
 //                    startIndex = wordEntry.getEndIndex();
-                    sb = new SpannableStringBuilder();
+                        sb = new SpannableStringBuilder();
 
-                }
+                    }
 
-                if(wordEntry.isSpinner()) {
-                    addSpinnerToLayout(wordEntry);
-                    startIndex = wordEntry.getEndIndex();
-                } else {
+                    if(wordEntry.isSpinner()) {
+                        addSpinnerToLayout(wordEntry);
+                        startIndex = wordEntry.getEndIndex();
+                    } else {
 
-                    sb.append(sentence.substring(wordEntry.getStartIndex(),wordEntry.getEndIndex()));
+                        sb.append(sentence.substring(wordEntry.getStartIndex(),wordEntry.getEndIndex()));
 
-                    ClickableSpan kanjiClick = new ClickableSpan() {
-                        @Override
-                        public void onClick(View textView) {
+                        ClickableSpan kanjiClick = new ClickableSpan() {
+                            @Override
+                            public void onClick(View textView) {
 //                            WordDetailPopupDialog.newWordListInstance(wordEntry).show(getFragmentManager(),"wordDetailPopup");
-                            WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(wordEntry);
-                            wordDetailPopupDialog.setTargetFragment(FillInTheBlankFragment.this, 0);
-                            wordDetailPopupDialog.show(getFragmentManager(),"wordDetailPopup");
-                        }
+                                WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(wordEntry);
+                                wordDetailPopupDialog.setTargetFragment(FillInTheBlankFragment.this, 0);
+                                wordDetailPopupDialog.show(getFragmentManager(),"wordDetailPopup");
+                            }
 
-                        @Override
-                        public void updateDrawState(TextPaint ds) {
-                            super.updateDrawState(ds);
-                            ds.setColor(ContextCompat.getColor(getContext(),wordEntry.getColorValue()));
-                            ds.setUnderlineText(false);
-//                                ds.setAlpha(1);
+                            @Override
+                            public void updateDrawState(TextPaint ds) {
+                                super.updateDrawState(ds);
+                                ds.setColor(ContextCompat.getColor(getContext(),wordEntry.getColorValue()));
+                                ds.setUnderlineText(false);
+                            }
+                        };
 
-                        }
-                    };
+                        sb.setSpan(kanjiClick, 0, sb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                        addToLayout(sb);
+                        startIndex = wordEntry.getEndIndex();
+                        sb = new SpannableStringBuilder();
+                    }
 
-                    sb.setSpan(kanjiClick, 0, sb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-                    addToLayout(sb);
-                    startIndex = wordEntry.getEndIndex();
+                }
+
+                //Add the last part of the sentence
+                if(startIndex<sentence.length()) {
                     sb = new SpannableStringBuilder();
+                    sb.append(sentence.substring(startIndex,sentence.length()));
+                    if(sb.toString().contains(System.getProperty("line.separator"))) {
+                        insertTextWithLineSeperators(sb.toString());
+                    } else {
+                        addToLayout(sb);
+                    }
+
+                    //It's the last line, so insert it regardless
+                    if(currentLineWidth>0) {
+                        insertLineIntoParagraph();
+                    }
                 }
 
-                //TODO ADD THE LAST ONE
 
-            }
-
-            //Add the last part of the sentence
-//            int lastIndex = disectedSavedTweet.get(disectedSavedTweet.size()-1).getEndIndex();
-            if(startIndex<sentence.length()) {
-                sb = new SpannableStringBuilder();
-                sb.append(sentence.substring(startIndex,sentence.length()));
-                addToLayout(sb);
-
-                //It's the last line, so insert it regardless
-                if(currentLineWidth>0) {
-                    insertLineIntoParagraph();
+            } catch (NullPointerException e) {
+                if(redundentQuestionCounter<4) {
+                    moveToNextQuestion();
+                    redundentQuestionCounter += 1;
+                    Log.e(TAG,"Adding sentence pieces to fillblanks generic failure: " + e.getCause());
+                } else {
+                    //Kick back to main menu
+                    mCallback.emergencyGoBackToMainActivity();
                 }
             }
 
-
-        } catch (Exception e) {
-            //TODO -- MOVE TO THE NEXT QUESTION
-//            txtSentence.setText(entireSentence);
-            Log.e(TAG,"Adding sentence pieces to fillblanks generic failure: " + e);
         }
 
-
     }
-
 
 
 
@@ -310,9 +328,6 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
 
             //Estimate the length of the chunk of text
             int estimatedTextViewWidth = getEstimatedTextViewWidth(text.toString());
-
-
-            //Compare the estimated length against the allowale length for a single line
             int maxWidthAllowed = displayWidth - currentLineWidth - displayMarginPadding;
             int widthExtra = estimatedTextViewWidth - maxWidthAllowed;
 
@@ -332,15 +347,6 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
 
             if (widthExtra > 0) {
 
-//                if(BuildConfig.DEBUG) {Log.d(TAG, "curentendpoint: " + currentendpoint);}
-//                int substringend = currentendpoint;
-
-//                if (maxWidthAllowed < 0) {
-//                    estimatedSubStringEnd = text.length();
-//                    if(BuildConfig.DEBUG) {Log.d(TAG, "Width overrun Substring end is the whole text");}
-//                }
-
-
                 int substringstart = 0;
                 int estimatedSubStringEnd = Math.round(((float) maxWidthAllowed / (float) estimatedTextViewWidth) * text.length());
                 CharSequence textRemaining = text;
@@ -351,14 +357,14 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
                     Log.d(TAG, "textRemaining: " + textRemaining);
                 }
 
-                if(estimatedSubStringEnd == substringstart) {
-                    insertLineIntoParagraph((currentLineWidth + getEstimatedTextViewWidth(textRemaining.toString()) + displayMarginPadding), displayWidth);
-                } else {
-                    while (widthExtra > 0 && estimatedSubStringEnd > substringstart) {
+                while (widthExtra > 0) {
 
+                    if(estimatedSubStringEnd>substringstart) {
+                        /* Create the first portion of the chopped up text what will fit to the end of the current line */
                         CharSequence textToAdd = textRemaining.subSequence(substringstart, estimatedSubStringEnd);
-                        if(BuildConfig.DEBUG) {Log.d(TAG, "textToAdd: " + textToAdd);}
-
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "textToAdd: " + textToAdd);
+                        }
                         TextView textView = new TextView(getContext());
                         textView.setLayoutParams(new ViewGroup.LayoutParams(
                                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -370,35 +376,63 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
                         textView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
                         linearLayoutHorizontalLine.addView(textView);
 
-                        int estimatedWidthOfTextViewThatWasAdded = getEstimatedTextViewWidth(textToAdd.toString());
-                        if(BuildConfig.DEBUG) {Log.d(TAG, "TextAdded, estimated width: : " + estimatedWidthOfTextViewThatWasAdded);}
+                            insertLineIntoParagraph();
 
-//                    if (substringend < substringstart) {
-//                        insertLineIntoParagraph(2, 0); //DONT LOG A NEW ROW
-//                    } else {
-
-                        insertLineIntoParagraph((currentLineWidth + estimatedWidthOfTextViewThatWasAdded + displayMarginPadding), displayWidth);
+//                        substringstart = estimatedSubStringEnd;
+//                        estimatedSubStringEnd = textRemaining.length();
+                    } else if(substringstart == estimatedSubStringEnd ){
+                            insertLineIntoParagraph();
+                    }
+//                    else {
+//                        Log.e(TAG,"Width extra is 0 for " + textRemaining);
+//                        widthExtra=0;
 //                    }
 
 
-                        //Its a new line
-                        widthExtra = widthExtra - estimatedWidthOfTextViewThatWasAdded;
-                        estimatedTextViewWidth = estimatedTextViewWidth - estimatedWidthOfTextViewThatWasAdded;
+//                    textRemaining = textRemaining.subSequence(estimatedSubStringEnd, textRemaining.length());
+                    estimatedTextViewWidth = getEstimatedTextViewWidth(textRemaining.subSequence(estimatedSubStringEnd, textRemaining.length()).toString());
+                    maxWidthAllowed = displayWidth - currentLineWidth - displayMarginPadding;
+                    widthExtra = estimatedTextViewWidth - maxWidthAllowed;
+
+
+                    /* ADD THE TRAILING TEXT */
+
+                    if(widthExtra<0) {
+                        CharSequence textToAdd = textRemaining.subSequence(estimatedSubStringEnd, textRemaining.length());
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "trailing textToAdd: " + textToAdd);
+                        }
+                        TextView textView = new TextView(getContext());
+                        textView.setLayoutParams(new ViewGroup.LayoutParams(
+                                ViewGroup.LayoutParams.WRAP_CONTENT,
+                                ViewGroup.LayoutParams.WRAP_CONTENT));
+
+                        textView.setText(textToAdd);
+                        textView.setMovementMethod(LinkMovementMethod.getInstance());
+                        textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
+                        textView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                        linearLayoutHorizontalLine.addView(textView);
+
+                        currentLineWidth = currentLineWidth + getEstimatedTextViewWidth(textToAdd.toString());;
+                    }
+
+
+//                        //Its a new line
+//                        widthExtra = widthExtra - estimatedWidthOfTextViewThatWasAdded;
+//                        estimatedTextViewWidth = estimatedTextViewWidth - estimatedWidthOfTextViewThatWasAdded;\
 
                         substringstart = estimatedSubStringEnd;
+
                         textRemaining = text.subSequence(substringstart, text.length());
+                        estimatedSubStringEnd = Math.round(((float) maxWidthAllowed / (float) estimatedTextViewWidth) * textRemaining.length());
                         if(BuildConfig.DEBUG) {
                             Log.d(TAG, "Updated widthExtra: " + widthExtra);
                             Log.d(TAG, "Updated estimatedTextViewWidth: " + estimatedTextViewWidth);
                             Log.d(TAG, "Updated substringstart: " + substringstart);
                             Log.d(TAG, "Updated textRemaining: " + textRemaining);
-
                         }
 
                     }
-                }
-
-
 
             } else {
 
@@ -438,12 +472,11 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
 
         FillinSentencesSpinner spinnerData = wordEntry.getFillinSentencesSpinner();
 
-//        LinearLayout innerLinearLayout4 = new LinearLayout(getContext());
-//        innerLinearLayout4.setOrientation(LinearLayout.VERTICAL);
-
         final Spinner spinner = (Spinner)LayoutInflater.from(getActivity()).inflate(R.layout.spinneritem, null);
 
         spinner.setTag(wordEntry.getStartIndex());//setting the tag so we can extract from map later
+        spinner.setMinimumWidth(spinnerWidth);
+        spinner.setLayoutParams(new ViewGroup.LayoutParams(spinnerWidth, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         if (spinnerData.hasBeenAnswered()) {
             if(spinnerData.isCorrect()) {
@@ -451,22 +484,27 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
                 spinner.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorJukuGreen));
                 ArrayList<String> spinnerArray = new ArrayList<>();
                 spinnerArray.add(wordEntry.getKanji());
-
                 ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item, spinnerArray);
 //                spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spinner.setAdapter(spinnerArrayAdapter);
                 spinner.setClickable(false);
                 //TODO set the current selected item to be spinnerData.getselecteditem
             } else {
+//                ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(getContext(), R.layout.spinneritem_red, spinnerData.getOptions()); //selected item will look like a spinner set from XML
 
-                ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(getContext(), R.layout.spinneritem_red, spinnerData.getOptions()); //selected item will look like a spinner set from XML
+                ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item, spinnerData.getOptions()); //selected item will look like a spinner set from XML
                 spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spinner.setAdapter(spinnerArrayAdapter);
+                spinner.setMinimumWidth(spinnerWidth);
+                spinner.setLayoutParams(new ViewGroup.LayoutParams(spinnerWidth, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(spinnerWidth, ViewGroup.LayoutParams.MATCH_PARENT);
-                params.weight = 1.0f;
-                params.gravity = Gravity.BOTTOM;
-                spinner.setLayoutParams(params);
+                spinner.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorJukuRed));
+                spinner.setOnItemSelectedListener(spinnerSelectedListener(wordEntry));
+//                Log.d(TAG,"spinnerwidth: " + spinnerWidth);
+//                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(spinnerWidth, ViewGroup.LayoutParams.WRAP_CONTENT);
+//                params.weight = 1.0f;
+//                params.gravity = Gravity.BOTTOM;
+//                spinner.setLayoutParams(params);
             }
 
         } else {
@@ -477,36 +515,43 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
             spinnerData.setSelectedOption(spinnerData.getOptions().get(0));
             Log.d(TAG,"spinner option selected: " + spinnerData.getOptions().get(0));
 
-//TODO FIX
+            spinner.setOnItemSelectedListener(spinnerSelectedListener(wordEntry));
 
+//            spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+//                                                  @Override
+//                                                  public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+//                                                      wordEntry.getFillinSentencesSpinner().setSelectedOption(wordEntry.getFillinSentencesSpinner().getOptions().get(position));
+//
+//                                                      /*If the word has already been answered wrongly, and the user changes the answer
+//                                                      to the correct one, automatically score the tweet again without them having to
+//                                                      click the score button */
+//                                                      if(BuildConfig.DEBUG) {
+//                                                          Log.i(TAG,"corekanji block: " + wordEntry.getCoreKanjiBlock());
+//                                                          Log.i(TAG,"isselected option: " + wordEntry.getFillinSentencesSpinner().getSelectedOption());
+//                                                          Log.i(TAG,"isCorrectFirstTry: " + wordEntry.getFillinSentencesSpinner().isCorrectFirstTry());
+//                                                      }
+//
+//                                                      if(wordEntry.getCoreKanjiBlock() != null && !wordEntry.getFillinSentencesSpinner().isCorrectFirstTry() && wordEntry.getCoreKanjiBlock().equals(wordEntry.getFillinSentencesSpinner().getSelectedOption())) {
+//                                                          scoreTheSpinners();
+//                                                      }
+//
+//                                                  }
+//
+//                                                  @Override
+//                                                  public void onNothingSelected(AdapterView<?> parent) {
+//
+//                                                  }
+//                                              }
+//            );
+//            Log.d(TAG,"spinnerwidth2: " + spinnerWidth);
 
+//            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(spinnerWidth, ViewGroup.LayoutParams.WRAP_CONTENT);
+//            params.weight = 1.0f;
+//            params.gravity = Gravity.BOTTOM;
+//            spinner.setLayoutParams(params);
+            spinner.setMinimumWidth(spinnerWidth);
+            spinner.setLayoutParams(new ViewGroup.LayoutParams(spinnerWidth, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-//            spinner.setOnItemSelectedListener(this);
-            spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                                                  @Override
-                                                  public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                                      wordEntry.getFillinSentencesSpinner().setSelectedOption(wordEntry.getFillinSentencesSpinner().getOptions().get(position));
-//                                                      Log.d(TAG,"spinner option selected: " + wordEntry.getFillinSentencesSpinner().getOptions().get(position));
-
-                                                      /*If the word has already been answered wrongly, and the user changes the answer
-                                                      to the correct one, automatically score the tweet again without them having to
-                                                      click the score button */
-                                                      if(wordEntry.getCoreKanjiBlock() != null && !wordEntry.getFillinSentencesSpinner().isCorrectFirstTry() && wordEntry.getCoreKanjiBlock().equals(wordEntry.getFillinSentencesSpinner().getSelectedOption())) {
-                                                          scoreTheSpinners();
-                                                      }
-
-                                                  }
-
-                                                  @Override
-                                                  public void onNothingSelected(AdapterView<?> parent) {
-
-                                                  }
-                                              }
-            );
-                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(spinnerWidth, ViewGroup.LayoutParams.MATCH_PARENT);
-            params.weight = 1.0f;
-            params.gravity = Gravity.BOTTOM;
-            spinner.setLayoutParams(params);
         }
 
         linearLayoutHorizontalLine.addView(spinner);
@@ -527,6 +572,9 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
             //now reset the linear layout... (hope that works)
             linearLayoutHorizontalLine = new LinearLayout(getContext());
             linearLayoutHorizontalLine.setOrientation(LinearLayout.HORIZONTAL);
+            linearLayoutHorizontalLine.setLayoutParams(new ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
             currentLineWidth = 0;
             if(BuildConfig.DEBUG) {
                 Log.d(TAG, "BIGLAYOUT childcount: " + linearLayoutVerticalParagraph.getChildCount());
@@ -544,6 +592,9 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
             //now reset the linear layout... (hope that works)
             linearLayoutHorizontalLine = new LinearLayout(getContext());
             linearLayoutHorizontalLine.setOrientation(LinearLayout.HORIZONTAL);
+        linearLayoutHorizontalLine.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
             currentLineWidth = 0;
             if(BuildConfig.DEBUG) {
                 Log.d(TAG, "Direct BIGLAYOUT childcount: " + linearLayoutVerticalParagraph.getChildCount());
@@ -588,9 +639,14 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
                     wordEntry.getFillinSentencesSpinner().setCorrect(true);
                     if(!wordEntry.getFillinSentencesSpinner().hasBeenAnswered()) {
                         wordEntry.getFillinSentencesSpinner().setCorrectFirstTry(true);
+                        wordEntry.getFillinSentencesSpinner().setHasBeenAnswered(true);
+                        Log.i(TAG,"Setting correct first try: " + wordEntry.getKanji());
                     }
 
-                    ((Spinner)linearLayoutVerticalParagraph.findViewWithTag(wordEntry.getStartIndex())).setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorJukuGreen));
+                    Spinner correctSpinner = (Spinner)linearLayoutVerticalParagraph.findViewWithTag(wordEntry.getStartIndex());
+                    correctSpinner.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorJukuGreen));
+                    correctSpinner.setClickable(false);
+
                 } else {
                     wordEntry.getFillinSentencesSpinner().setCorrect(false);
                     wordEntry.getFillinSentencesSpinner().setHasBeenAnswered(true);
@@ -619,7 +675,7 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
                 @Override
                 public void run() {
 
-//Score the answers
+                    //Score the answers
                     for (WordEntry wordEntry : mDataset.get(currentDataSetindex).getWordEntries()) {
                         if(wordEntry.isSpinner()) {
                             //If correct
@@ -634,40 +690,16 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
                         }
 
                         //Also reset the word entry spinner information
-                        wordEntry.getFillinSentencesSpinner().resetSpinnerInformation();
+//                        wordEntry.getFillinSentencesSpinner().resetSpinnerInformation();
                     }
 
                     //Move to the next question
-
-                    currentDataSetindex += 1;
+//                    currentDataSetindex += 1;
                     currentTotal += 1;
                     currentCorrect += additiontoCorrectTotal;
-                    txtQuestionNumber.setText(currentTotal + "/" + mQuizSize);
 
-                    //Move to stats if we have reached the end of the quiz
-                    if(currentTotal>= mQuizSize) {
-
-                        if(mSingleUser) {
-                            mCallback.showPostQuizStatsFillintheBlanksForSingleUsersTweets(mDataset
-                                    ,mUserInfo
-                                    ,currentCorrect
-                                    ,currentTotal);
-
-                        } else {
-                            mCallback.showPostQuizStatsFillintheBlanks(mDataset
-                                    ,mMyListEntry
-                                    ,currentCorrect
-                                    ,currentTotal);
-
-                        }
-
-                    } else {
-                        if(currentDataSetindex >= mDataset.size()) {
-                            Collections.shuffle(mDataset);
-                            currentDataSetindex = 0;
-                        }
-                        setUpQuestion(mDataset.get(currentDataSetindex));
-                    }
+                    redundentQuestionCounter = 0;
+                    moveToNextQuestion();
 
                 }
             };
@@ -687,6 +719,63 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
                     }
                 }
             }
+        }
+    }
+
+    public void moveToNextQuestion() {
+
+        currentDataSetindex +=1;
+        //Move to stats if we have reached the end of the quiz
+        if(redundentQuestionCounter>4) {
+            //Kick back to main menu
+            mCallback.emergencyGoBackToMainActivity();
+        } else if(currentTotal>= mQuizSize || currentDataSetindex >= mDataset.size()) {
+
+                if(mSingleUser) {
+                    mCallback.showPostQuizStatsFillintheBlanksForSingleUsersTweets(mDataset
+                            ,mUserInfo
+                            ,currentCorrect
+                            ,currentTotal);
+                } else {
+                    mCallback.showPostQuizStatsFillintheBlanks(mDataset
+                            ,mMyListEntry
+                            ,currentCorrect
+                            ,currentTotal);
+                }
+
+            } else {
+                txtQuestionNumber.setText((currentTotal +1) + "/" + mQuizSize);
+                redundentQuestionCounter += 1;
+                setUpQuestion(mDataset.get(currentDataSetindex));
+            }
+
+    }
+
+    private void insertTextWithLineSeperators(String textToInsert) {
+        String remainingLineSepText = textToInsert;
+//                            int lineSepStartIndex = 0;
+
+        while(remainingLineSepText.contains(System.getProperty("line.separator"))) {
+            int lineSepEndIndex = remainingLineSepText.indexOf(System.getProperty("line.separator"));
+            String preLineSepTextToAdd = remainingLineSepText.substring(0,lineSepEndIndex);
+            addToLayout(new SpannableStringBuilder(preLineSepTextToAdd));
+            if(BuildConfig.DEBUG) {
+                Log.d(TAG,"ADding to layout pre line sep text: " + preLineSepTextToAdd);
+            }
+            //Mimic the line seperator by creating a new line
+            insertLineIntoParagraph();
+
+            //Remaining text begins after the line seperatore, until the end of the stringbuilder
+            remainingLineSepText =  remainingLineSepText.substring(lineSepEndIndex + 1,textToInsert.length());
+            if(BuildConfig.DEBUG) {
+                Log.d(TAG, "remainingLineSepText: " + remainingLineSepText);
+            }
+        }
+
+
+        if(remainingLineSepText.length()>0) {
+            Log.d(TAG,"final remainingLineSepText to add: " + remainingLineSepText);
+            addToLayout(new SpannableStringBuilder(remainingLineSepText));
         }
     }
 
@@ -719,10 +808,35 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
         outState.putInt("currentLineWidth",currentLineWidth);
         outState.putBoolean("mSingleUser",mSingleUser);
         outState.putParcelable("mUserInfo",mUserInfo);
+        outState.putInt("currentDataSetindex",currentDataSetindex);
     }
 
 
+private AdapterView.OnItemSelectedListener spinnerSelectedListener (final WordEntry wordEntry) {
+    return new AdapterView.OnItemSelectedListener() {
+        @Override
+        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            wordEntry.getFillinSentencesSpinner().setSelectedOption(wordEntry.getFillinSentencesSpinner().getOptions().get(position));
 
+                                                      /*If the word has already been answered wrongly, and the user changes the answer
+                                                      to the correct one, automatically score the tweet again without them having to
+                                                      click the score button */
+            if(BuildConfig.DEBUG) {
+                Log.i(TAG,"corekanji block: " + wordEntry.getCoreKanjiBlock());
+                Log.i(TAG,"isselected option: " + wordEntry.getFillinSentencesSpinner().getSelectedOption());
+                Log.i(TAG,"isCorrectFirstTry: " + wordEntry.getFillinSentencesSpinner().isCorrectFirstTry());
+            }
 
+            if(wordEntry.getCoreKanjiBlock() != null && !wordEntry.getFillinSentencesSpinner().isCorrectFirstTry() && wordEntry.getCoreKanjiBlock().equals(wordEntry.getFillinSentencesSpinner().getSelectedOption())) {
+                scoreTheSpinners();
+            }
+        }
+
+        @Override
+        public void onNothingSelected(AdapterView<?> parent) {
+
+        }
+    };
+}
 
 }

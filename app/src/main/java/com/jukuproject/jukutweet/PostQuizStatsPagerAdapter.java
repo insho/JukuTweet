@@ -1,26 +1,19 @@
 package com.jukuproject.jukutweet;
 
-/**
- * Created by JClassic on 3/21/2017.
- */
-
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.util.Log;
-//import com.jukuproject.jukutweet.TabContainers.Tab4Container;
 
 /**
  * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
  * one of the sections/tabs/pages.
- //     */
-public class QuizSectionsPagerAdapter extends FragmentPagerAdapter {
+ */
+public class PostQuizStatsPagerAdapter extends FragmentPagerAdapter {
 
-    String[] mCurrentTabs;
-    Fragment[] mSavedFragments;
-//    Intent mIntent;
+    private String[] mCurrentTabs;
+    private Fragment[] mSavedFragments;
 
-    public QuizSectionsPagerAdapter(FragmentManager fm, String[] currentTabs, Fragment[] savedFragments) {
+    public PostQuizStatsPagerAdapter(FragmentManager fm, String[] currentTabs, Fragment[] savedFragments) {
         super(fm);
         this.mCurrentTabs = currentTabs;
         this.mSavedFragments = savedFragments;
@@ -28,11 +21,7 @@ public class QuizSectionsPagerAdapter extends FragmentPagerAdapter {
 
     @Override
     public Fragment getItem(int position) {
-//            if(position == 1) {
-//                return  QuizTab2Container.newWordListInstance();
-//            } else {
-                return mSavedFragments[position];
-//            }
+        return mSavedFragments[position];
     }
 
 
@@ -48,8 +37,6 @@ public class QuizSectionsPagerAdapter extends FragmentPagerAdapter {
         return POSITION_NONE;
     }
 
-
-
     @Override
     public CharSequence getPageTitle(int position) {
 
@@ -58,9 +45,11 @@ public class QuizSectionsPagerAdapter extends FragmentPagerAdapter {
 
     public void updateTabs(String[] updatedTabs) {
         this.mCurrentTabs = updatedTabs;
-        Log.d("TEST","Updating tabs: " +mCurrentTabs  + " NEW: " + updatedTabs + ", fragment size: " + mSavedFragments.length);
         notifyDataSetChanged();
     }
 
-
+    @Override
+    public long getItemId(int position) {
+        return super.getItemId(position);
+    }
 }

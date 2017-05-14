@@ -4,6 +4,14 @@
     android:layout_height="wrap_content"
     android:id="@+id/linearLayoutMenuMyLists"
     android:background="@android:color/white">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/nolistsfound"
+        android:id="@+id/nolistsfound"
+        android:textSize="16sp"
+        android:visibility="gone"
+        />
     <ExpandableListView
         android:id="@+id/lvMyListCategory"
         android:groupIndicator="@null"

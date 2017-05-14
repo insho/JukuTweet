@@ -495,7 +495,12 @@ public class WordOpsHelper implements WordListOperationsInterface {
                             ") " +
                             "WHERE [Color] in (" +  colorString + ") "  +
                             " " + limit + " "
-                    , new String[]{String.valueOf(myListEntry.getListsSys()),myListEntry.getListName(),idToExclude,String.valueOf(myListEntry.getListsSys()),myListEntry.getListName(),idToExclude});
+                    , new String[]{String.valueOf(myListEntry.getListsSys())
+                            ,myListEntry.getListName()
+                            ,idToExclude
+                            ,String.valueOf(myListEntry.getListsSys())
+                            ,myListEntry.getListName()
+                            ,idToExclude});
 
 
             if(c.getCount()>0) {
@@ -539,7 +544,149 @@ public class WordOpsHelper implements WordListOperationsInterface {
         return wordEntries;
     }
 
+    /**
+     *  Retrieves a list of word entries (and corresponding edict dictionary info) for a string of concatenated edict kanji ids.
+     *  Used update fragments from {@link com.jukuproject.jukutweet.MainActivity#notifySavedWordFragmentsChanged(String)}
+     * @param wordIds String of concatenated word ids
+     * @param colorThresholds Collection of thresholds which together determine what color to assign to a word/tweet based on its quiz scores
+     * @return list of words from the word list filtered by color
+     */
 
+    public ArrayList<WordEntry> getWordsFromAStringofWordIds(String wordIds
+            , ColorThresholds colorThresholds) {
+
+        ArrayList<WordEntry> wordEntries = new ArrayList<>();
+        SQLiteDatabase db = sqlOpener.getReadableDatabase();
+        try {
+            Cursor c;
+
+            c = db.rawQuery("Select [_id]" +
+                            ",Kanji " +
+                            ",Furigana " +
+                            ",Definition " +
+                            ",Correct " +
+                            ",Total " +
+//                            ",Percent " +
+                            ",Color " +
+
+                            " ,[Blue]" +
+                            " ,[Red] " +
+                            " ,[Green] " +
+                            " ,[Yellow] " +
+                            " ,[Purple] " +
+                            " ,[Orange] " +
+                            " ,[Other] " +
+
+                            "FROM (" +
+                            "SELECT  x.[_id]" +
+                            ",x.[Kanji]" +
+                            ",(CASE WHEN x.[Furigana] is null  then '' else x.[Furigana] end) as [Furigana] " +
+                            ",x.[Definition]" +
+                            ",ifnull(y.[Correct],0) as [Correct] " +
+                            ",ifnull(y.[Total],0) as [Total] " +
+                            " ,[Blue]" +
+                            " ,[Red] " +
+                            " ,[Green] " +
+                            " ,[Yellow] " +
+                            " ,[Purple] " +
+                            " ,[Orange] " +
+
+                            " ,[Other] " +
+                            ",(CASE WHEN [Total] >0 THEN CAST(ifnull([Correct],0)  as float)/[Total] ELSE 0 END) as [Percent] " +
+                            " ,(CASE WHEN [Total] is NULL THEN 'Grey' " +
+                            "WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 'Grey' " +
+                            "WHEN CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 'Red' " +
+                            "WHEN CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + " THEN 'Yellow' " +
+                            "ELSE 'Green' END) as [Color] " +
+                            "FROM " +
+                            "(" +
+                            "SELECT [_id]" +
+                            ",[Kanji]" +
+                            ",[Furigana]" +
+                            ",[Definition]  " +
+                            "FROM [Edict] " +
+                            " WHERE [_id] IN (" + wordIds + ") " +
+                            "ORDER BY [_id]" +
+                            ") as x " +
+                            "LEFT JOIN " +
+                            "(" +
+                            "SELECT [_id]" +
+                            ",sum([Correct]) as [Correct]" +
+                            ",sum([Total]) as [Total]  " +
+                            "FROM [JScoreboard] " +
+                            " WHERE [_id] IN (" + wordIds + ") " +
+                            "GROUP BY [_id]" +
+                            ") as y " +
+                            "ON x.[_id] = y.[_id] " +
+
+                            " LEFT JOIN (" +
+                            "SELECT [_id]" +
+                            ",SUM([Blue]) as [Blue]" +
+                            ",SUM([Red]) as [Red]" +
+                            ",SUM([Green]) as [Green]" +
+                            ",SUM([Yellow]) as [Yellow]" +
+                            ",SUM([Purple]) as [Purple]" +
+                            ",SUM([Orange]) as [Orange]" +
+
+                            ", SUM([Other]) as [Other] " +
+                            "FROM (" +
+                            "SELECT [_id] " +
+                            ",(CASE WHEN ([Sys] = 1 and Name = 'Blue') then 1 else 0 end) as [Blue]" +
+                            ",(CASE WHEN ([Sys] = 1 AND Name = 'Red') then 1 else 0 end) as [Red]" +
+                            ",(CASE WHEN ([Sys] = 1 AND Name = 'Green') then 1 else 0 end) as [Green]" +
+                            ",(CASE WHEN ([Sys] = 1  AND Name = 'Yellow') then 1 else 0 end) as [Yellow]" +
+                            ",(CASE WHEN ([Sys] = 1  AND Name = 'Purple') then 1 else 0 end) as [Purple]" +
+                            ",(CASE WHEN ([Sys] = 1  AND Name = 'Orange') then 1 else 0 end) as [Orange]" +
+                            ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
+                            "FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
+                            " WHERE [_id] IN (" + wordIds + ") " +
+//                            "WHERE [_id] = ?" +
+                            ") Group by [_id]" +
+
+                            ") as z " +
+                            "ON x.[_id] = z.[_id] " +
+
+                            ") ",null);
+
+
+            if(c.getCount()>0) {
+                c.moveToFirst();
+                while (!c.isAfterLast())
+
+                {
+                    WordEntry wordEntry = new WordEntry();
+                    wordEntry.setId(c.getInt(0));
+                    wordEntry.setKanji(c.getString(1));
+                    wordEntry.setFurigana(c.getString(2));
+                    wordEntry.setDefinition(c.getString(3));
+                    wordEntry.setCorrect(c.getInt(4));
+                    wordEntry.setTotal(c.getInt(5));
+                    wordEntries.add(wordEntry);
+
+
+                    wordEntry.setItemFavorites(new ItemFavorites(c.getInt(7)
+                            ,c.getInt(8)
+                            ,c.getInt(9)
+                            ,c.getInt(10)
+                            ,c.getInt(11)
+                            ,c.getInt(12)
+                            ,c.getInt(13)));
+
+
+
+                    c.moveToNext();
+                }
+                c.close();
+            } else {
+                if(BuildConfig.DEBUG) {Log.e(TAG,"getmylistwords c.getcount was 0!!");}
+            }
+        } catch (SQLiteException e){
+            Log.e(TAG,"getWordsFromAStringofWordIds Sqlite exception: " + e);
+        } finally {
+            db.close();
+        }
+        return wordEntries;
+    }
 
     /**
      * Inserts multiple words into a given word list
@@ -667,7 +814,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
             Log.d(TAG,"sys: " + sys);
         }
 
-        supertest();
 
         return  sqlOpener.getWritableDatabase().rawQuery(
                 "SELECT xx.[Name]" +
@@ -748,46 +894,46 @@ public class WordOpsHelper implements WordListOperationsInterface {
 
     }
 
-    public void supertest() {
-        SQLiteDatabase db = sqlOpener.getReadableDatabase();
-
-            Cursor c = db.rawQuery("SELECT a.[Name]" +
-                ",a.[Sys]" +
-                ",a.[_id]" +
-                ",ifnull(b.[Total],0) as [Total] " +
-                ",ifnull(b.[Correct],0)  as [Correct]" +
-                ",CAST(ifnull(b.[Correct],0)  as float)/b.[Total] as [Percent] " +
-                "FROM (" +
-                "SELECT  DISTINCT [Name]" +
-                ",[Sys]" +
-                ",[_id] " +
-                "FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
-//                "WHERE [Name] is not NULL and [_id] is not NULL and ([Name] = ? and [Sys] = "+sys+ ") OR " + ALL_LISTS_FLAG + " = 1 " +
-                ") as a " +
-                "LEFT JOIN  (" +
-                "SELECT [_id]" +
-                ",sum([Correct]) as [Correct]" +
-                ",sum([Total]) as [Total] " +
-                "FROM [JScoreboard] " +
-                "where [_id] in (SELECT DISTINCT [_id] FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + ")" +
-                " GROUP BY [_id]" +
-                ") as b " +
-                "ON a.[_id] = b.[_id] "
-                ,null);
-
-        if(c.getCount()>0) {
-            c.moveToFirst();
-            while (!c.isAfterLast()) {
-                    Log.d(TAG,"SuperTESt NAME:  "  + c.getString(0) + ", sys: " + c.getString(1)
-                            + ", id: " + c.getString(2)
-                            + ", correct/total: " + c.getString(4) + "/" + c.getString(3) );
-
-                    c.moveToNext();
-
-                }
-            }
-
-    };
+//    public void supertest() {
+//        SQLiteDatabase db = sqlOpener.getReadableDatabase();
+//
+//            Cursor c = db.rawQuery("SELECT a.[Name]" +
+//                ",a.[Sys]" +
+//                ",a.[_id]" +
+//                ",ifnull(b.[Total],0) as [Total] " +
+//                ",ifnull(b.[Correct],0)  as [Correct]" +
+//                ",CAST(ifnull(b.[Correct],0)  as float)/b.[Total] as [Percent] " +
+//                "FROM (" +
+//                "SELECT  DISTINCT [Name]" +
+//                ",[Sys]" +
+//                ",[_id] " +
+//                "FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
+////                "WHERE [Name] is not NULL and [_id] is not NULL and ([Name] = ? and [Sys] = "+sys+ ") OR " + ALL_LISTS_FLAG + " = 1 " +
+//                ") as a " +
+//                "LEFT JOIN  (" +
+//                "SELECT [_id]" +
+//                ",sum([Correct]) as [Correct]" +
+//                ",sum([Total]) as [Total] " +
+//                "FROM [JScoreboard] " +
+//                "where [_id] in (SELECT DISTINCT [_id] FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + ")" +
+//                " GROUP BY [_id]" +
+//                ") as b " +
+//                "ON a.[_id] = b.[_id] "
+//                ,null);
+//
+//        if(c.getCount()>0) {
+//            c.moveToFirst();
+//            while (!c.isAfterLast()) {
+//                    Log.d(TAG,"SuperTESt NAME:  "  + c.getString(0) + ", sys: " + c.getString(1)
+//                            + ", id: " + c.getString(2)
+//                            + ", correct/total: " + c.getString(4) + "/" + c.getString(3) );
+//
+//                    c.moveToNext();
+//
+//                }
+//            }
+//
+//    };
 
 
     /**
@@ -1511,4 +1657,26 @@ public class WordOpsHelper implements WordListOperationsInterface {
         return true;
 
     }
+
+//    public int getUserCreatedWordListCount() {
+//        int userCreatedListCount = 0;
+//        /** Before inserting record, check to see if feed already exists */
+//        SQLiteDatabase db = sqlOpener.getWritableDatabase();
+//
+//        try {
+//
+//            Cursor c = db.rawQuery("Select Count(Name) as [Count] From " + InternalDB.Tables.TABLE_FAVORITES_LISTS, null);
+//            if (c.moveToFirst()) {
+//                userCreatedListCount = c.getInt(0);
+//            }
+//            c.close();
+//        } catch (SQLiteException e) {
+//            Log.e(TAG,"getUserCreatedWordListCount Sqlite exception: " + e.getCause());
+//        } finally {
+//            db.close();
+//        }
+//
+//
+//        return userCreatedListCount;
+//    };
 }

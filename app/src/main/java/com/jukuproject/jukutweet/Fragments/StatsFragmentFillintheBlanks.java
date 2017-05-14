@@ -44,7 +44,7 @@ public class StatsFragmentFillintheBlanks extends Fragment implements WordEntryF
     TextView textScore;
     TextView textPercentage;
     private long mLastClickTime = 0;
-    PostQuizStatsFillintheBlankAdapter mAdapter;
+    private PostQuizStatsFillintheBlankAdapter mAdapter;
 
     public StatsFragmentFillintheBlanks() {}
 
@@ -86,7 +86,6 @@ public class StatsFragmentFillintheBlanks extends Fragment implements WordEntryF
 
         } else {
             mDataset = getArguments().getParcelableArrayList("dataset");
-            Log.i("TEST","datasetsize2: " + mDataset.size());
             mCorrect = getArguments().getInt("correct");
             mTotal = getArguments().getInt("total");
         }

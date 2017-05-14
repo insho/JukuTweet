@@ -54,4 +54,7 @@ public interface WordListOperationsInterface {
     String getWordIdsForKanjiMatch(String kanji);
     Boolean myListContainsWordEntry(MyListEntry myListEntry, WordEntry wordEntry);
 //    void supertest(ColorThresholds colorThresholds, MyListEntry myListEntry);
+//    int getUserCreatedWordListCount();
+ArrayList<WordEntry> getWordsFromAStringofWordIds(String wordIds
+        , ColorThresholds colorThresholds);
 }

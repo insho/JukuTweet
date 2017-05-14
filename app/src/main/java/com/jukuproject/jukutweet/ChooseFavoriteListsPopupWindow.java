@@ -1,6 +1,7 @@
 package com.jukuproject.jukutweet;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -57,8 +58,11 @@ public class ChooseFavoriteListsPopupWindow {
 
         popupWindow.setFocusable(true);
         popupWindow.setClippingEnabled(false);
-
-        popupWindow.setWidth(ViewGroup.LayoutParams.WRAP_CONTENT);
+        if(context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
+            popupWindow.setWidth(Math.round((float) metrics.widthPixels * (float) .45));
+        } else {
+            popupWindow.setWidth(Math.round((float) metrics.widthPixels * (float) 0.26));
+        }
 //        popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
 
         if(favoritesLists.size()>12) {
@@ -94,8 +98,13 @@ public class ChooseFavoriteListsPopupWindow {
 
         popupWindow.setFocusable(true);
         popupWindow.setClippingEnabled(false);
+        if(context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
+            popupWindow.setWidth(Math.round((float) metrics.widthPixels * (float) .45));
+        } else {
+            popupWindow.setWidth(Math.round((float) metrics.widthPixels * (float) 0.26));
+        }
 
-        popupWindow.setWidth(ViewGroup.LayoutParams.WRAP_CONTENT);
+//        popupWindow.setWidth(ViewGroup.LayoutParams.WRAP_CONTENT);
 //        popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         if(favoritesLists.size()>12) {
             popupWindow.setHeight((int)((float)metrics.heightPixels/2.0f));

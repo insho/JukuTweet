@@ -110,6 +110,12 @@ public class ChooseFavoritesTweetAdapter extends RecyclerView.Adapter<ChooseFavo
                 case "Yellow":
                     holder.imageButton.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuYellow));
                     break;
+                case "Purple":
+                    holder.imageButton.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuPurple));
+                    break;
+                case "Orange":
+                    holder.imageButton.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuOrange));
+                    break;
                 default:
                     break;
             }

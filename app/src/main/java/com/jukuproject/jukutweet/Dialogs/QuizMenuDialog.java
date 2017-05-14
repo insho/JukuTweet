@@ -1,7 +1,7 @@
 package com.jukuproject.jukutweet.Dialogs;
 
-import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
@@ -597,13 +597,28 @@ public class QuizMenuDialog extends DialogFragment {
 
     }
 
+//    @Override
+//    public void onDismiss(DialogInterface dialog) {
+//        mCallback.showFab(true);
+//        super.onDismiss(dialog);
+//    }
+
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onCancel(DialogInterface dialog) {
+        if(!mSingleUser) {
+            mCallback.showFab(true);
+        }
+        super.onCancel(dialog);
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
         try {
-            mCallback = (QuizMenuDialogInteractionListener) activity;
+            mCallback = (QuizMenuDialogInteractionListener) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString() + " must implement mCallback");
+            throw new ClassCastException(context.toString() + " must implement mCallback");
         }
     }
+
 }

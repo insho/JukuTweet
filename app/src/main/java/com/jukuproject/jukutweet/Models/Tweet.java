@@ -403,8 +403,9 @@ public class Tweet  implements Parcelable {
         this.quizWeight = in.readDouble();
         this.itemFavorites = in.readParcelable(ItemFavorites.class.getClassLoader());
         this.entities = in.readParcelable(TweetEntities.class.getClassLoader());
-        this.wordEntries = in.readArrayList(WordEntry.class.getClassLoader());
-
+//        this.wordEntries = in.readArrayList(WordEntry.class.getClassLoader());
+        wordEntries = new ArrayList<>();
+            in.readTypedList(wordEntries,WordEntry.CREATOR);
     }
 
     public int describeContents(){
@@ -436,8 +437,8 @@ public class Tweet  implements Parcelable {
         dest.writeDouble(this.quizWeight);
         dest.writeParcelable(this.itemFavorites,flags);
         dest.writeParcelable(this.entities,flags);
-        dest.writeList(this.wordEntries);
-
+//        dest.writeList(this.wordEntries);
+        dest.writeTypedList(this.wordEntries);
     }
 
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {

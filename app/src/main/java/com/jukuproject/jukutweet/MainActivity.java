@@ -44,6 +44,7 @@ import com.jukuproject.jukutweet.Fragments.TweetBreakDownFragment;
 import com.jukuproject.jukutweet.Fragments.TweetListBrowseFragment;
 import com.jukuproject.jukutweet.Fragments.TweetListFragment;
 import com.jukuproject.jukutweet.Fragments.TweetListSingleUserFragment;
+import com.jukuproject.jukutweet.Fragments.UserPreferenceFragment;
 import com.jukuproject.jukutweet.Fragments.WordListBrowseFragment;
 import com.jukuproject.jukutweet.Fragments.WordListFragment;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
@@ -111,7 +112,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * may be best to switch to a
      * {@link android.support.v4.app.FragmentStatePagerAdapter}.
      */
-    private SectionsPagerAdapter mSectionsPagerAdapter;
+    private SectionsPagerAdapter2 mSectionsPagerAdapter;
 
     /**
      * The {@link ViewPager} that will host the section contents.
@@ -120,12 +121,24 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     private SmoothProgressBar progressbar;
     private FloatingActionButton fab;
     private Menu mMenu;
-    //array keeping track of which tabs (either tab2,tab3, both, or neither) have the browsemenu icons showing. defaults to false
+    /*array keeping track of which tabs (either tab2,tab3, both, or neither)
+      have the browsemenu icons showing. defaults to false*/
     private boolean[] tabsShowingBrowseMenu = new boolean[4];
+    /*array keeping track of which tabs have the action bar back button showing, and what text is
+    displayed next to the bak button. An empty string means no back button showed. */
+    private String[] tabsShowingBackButton = new String[4];
+
+
     private String[] mAdapterTitles;
     private static final String TAG = "TEST-Main";
     private Subscription searchQuerySubscription;
     private Subscription userInfoSubscription;
+
+    /* Used to save and reactivate the "searchQuerySubscription" on activity destroyed.
+     * the First string is the type of search "Dictionary" or "Twitter". The second is the "query" paramater to start a new subscription.
+      * and third is the "queryOption" parameter. */
+    private String[] searchSubscriptionCriteria;
+
 
     Scheduler parseTweetScheduler = Schedulers.from(Executors.newSingleThreadExecutor());
 
@@ -145,38 +158,18 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         }
 
-        Fragment[] fragments = new Fragment[4];
-        if (savedInstanceState != null) {
-            //Restore the fragment's instance
-            fragments[0] = (Tab1Container)getSupportFragmentManager().getFragment(savedInstanceState, "tab1Container");
-            fragments[1] = (Tab2Container)getSupportFragmentManager().getFragment(savedInstanceState, "tab2Container");
-            fragments[2] = (Tab3Container)getSupportFragmentManager().getFragment(savedInstanceState, "tab3Container");
-            fragments[3] = (Tab4Container)getSupportFragmentManager().getFragment(savedInstanceState, "tab4Container");
-
-            mAdapterTitles = savedInstanceState.getStringArray("adapterTitles");
-            tabsShowingBrowseMenu = savedInstanceState.getBooleanArray("tabsShowingBrowseMenu");
-        } else {
-            fragments[0] = Tab1Container.newInstance();
-            fragments[1] = Tab2Container.newInstance();
-            fragments[2] = Tab3Container.newInstance();
-            fragments[3] = Tab4Container.newInstance();
-            mAdapterTitles = new String[]{"Users","Tweet Lists","Word Lists","Search"};
-        }
-
-
+        mAdapterTitles = new String[]{"Users","Tweet Lists","Word Lists","Search"};
         // Create the adapter that will return a fragment for each of the primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(),mAdapterTitles,fragments);
+        mSectionsPagerAdapter = new SectionsPagerAdapter2(getSupportFragmentManager(),mAdapterTitles);
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        mViewPager.setOffscreenPageLimit(2);
+        mViewPager.setOffscreenPageLimit(3);
 
-        /*choose a tab to focus on initially. Default to 0. tabNumber is passed
+        /* choose a tab to focus on initially. Default to 0. tabNumber is passed
         to quiz activity when a quiz is chosen, and passed back via intent to mainactivity on Back Pressed, and
-        this tabNumber is used to focus on the last open tab.
-         */
-
+        this tabNumber is used to focus on the last open tab. */
         if(getIntent()!= null) {
             mViewPager.setCurrentItem(getIntent().getIntExtra("tabNumber",0));
             setPreviousMyListExpanded(getIntent().getIntExtra("tabNumber",0),getIntent().getIntExtra("lastExpandedPosition",0));
@@ -184,9 +177,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
-            }
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
 
             /**
              * Changes visibility and function of floating action button depending on which bucket is currently visible
@@ -196,42 +187,51 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             public void onPageSelected(int position) {
 
                 /* The fab has different functions and appearance depending on which tab is visible */
-                if(isTopShowing(position)) {
-                    switch (position) {
-                        case 0:
-                            showFab(true,"addUser");
-                            showMenuMyListBrowse(false,position);
-                            break;
-                        case 1:
-                            showFab(true,"addTweetList");
-                            showMenuMyListBrowse(false,position);
-                            break;
-                        case 2:
-                            showFab(true,"addMyList");
-                            showMenuMyListBrowse(false,position);
-                            break;
-                        default:
-                            showMenuMyListBrowse(false,position);
-                            showFab(false);
-                            break;
-                    }
-
-                } else {
-                    showFab(false);
-                    if(tabsShowingBrowseMenu!=null && tabsShowingBrowseMenu[position]) {
-                        showMenuMyListBrowse(true,position);
-                    } else {
-                        showMenuMyListBrowse(false,position);
-                    }
-
-                }
+                setUpFabsAndMenus(position);
+//                if(isTopShowing(position)) {
+//                    switch (position) {
+//                        case 0:
+//                            showFab(true,"addUser");
+//                            showMenuMyListBrowse(false,position);
+//                            showActionBarBackButton(false,"JukuTweet",position);
+//
+//                            break;
+//                        case 1:
+//                            showFab(true,"addTweetList");
+//                            showMenuMyListBrowse(false,position);
+//                            showActionBarBackButton(false,"JukuTweet",position);
+//                            break;
+//                        case 2:
+//                            showFab(true,"addMyList");
+//                            showMenuMyListBrowse(false,position);
+//                            showActionBarBackButton(false,"JukuTweet",position);
+//                            break;
+//                        default:
+//                            showMenuMyListBrowse(false,position);
+//                            showFab(false);
+//                            showActionBarBackButton(false,"JukuTweet",position);
+//                            break;
+//                    }
+//
+//                } else {
+//                    showFab(false);
+//                    if(tabsShowingBrowseMenu!=null && tabsShowingBrowseMenu[position]) {
+//                        showMenuMyListBrowse(true,position);
+//                    } else {
+//                        showMenuMyListBrowse(false,position);
+//                    }
+//
+//                    if(tabsShowingBackButton!=null && tabsShowingBackButton[position] !=null) {
+//                        showActionBarBackButton(true,tabsShowingBackButton[position],position);
+//                    } else {
+//                        showActionBarBackButton(false,"",position);
+//                    }
+//                }
 
             }
 
             @Override
-            public void onPageScrollStateChanged(int state) {
-
-            }
+            public void onPageScrollStateChanged(int state) {}
         });
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -253,8 +253,82 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             }
             }
         });
+
+if(savedInstanceState!=null) {
+
+    tabsShowingBackButton = savedInstanceState.getStringArray("tabsShowingBackButton");
+    tabsShowingBrowseMenu = savedInstanceState.getBooleanArray("tabsShowingBrowseMenu");
+
+    try {
+//
+//        if(tabsShowingBrowseMenu[mViewPager.getCurrentItem()]) {
+//            showMenuMyListBrowse(true, mViewPager.getCurrentItem());
+//        }
+//        if(tabsShowingBackButton[mViewPager.getCurrentItem()] != null) {
+//            showActionBarBackButton(true,tabsShowingBackButton[mViewPager.getCurrentItem()],mViewPager.getCurrentItem());
+//        }
+        setUpFabsAndMenus(mViewPager.getCurrentItem());
+
+    } catch (NullPointerException e) {
+        Log.e(TAG,"reactivating activity setUpFabsAndMenus Nullpointer");
     }
 
+    if(savedInstanceState.getStringArray("searchSubscriptionCriteria")!=null) {
+        searchSubscriptionCriteria = savedInstanceState.getStringArray("searchSubscriptionCriteria");
+        if(searchSubscriptionCriteria.length==3) {
+            if(searchSubscriptionCriteria[0].equals("Dictionary")) {
+                runDictionarySearch(searchSubscriptionCriteria[1],searchSubscriptionCriteria[2]);
+            } else if(searchSubscriptionCriteria[0].equals("Twitter")) {
+                runTwitterSearch(searchSubscriptionCriteria[1],searchSubscriptionCriteria[2]);
+            }
+        }
+    }
+
+}
+    }
+
+
+    public void setUpFabsAndMenus(int position) {
+        if(isTopShowing(position)) {
+            switch (position) {
+                case 0:
+                    showFab(true,"addUser");
+                    showMenuMyListBrowse(false,position);
+                    showActionBarBackButton(false,"JukuTweet",position);
+
+                    break;
+                case 1:
+                    showFab(true,"addTweetList");
+                    showMenuMyListBrowse(false,position);
+                    showActionBarBackButton(false,"JukuTweet",position);
+                    break;
+                case 2:
+                    showFab(true,"addMyList");
+                    showMenuMyListBrowse(false,position);
+                    showActionBarBackButton(false,"JukuTweet",position);
+                    break;
+                default:
+                    showMenuMyListBrowse(false,position);
+                    showFab(false);
+                    showActionBarBackButton(false,"JukuTweet",position);
+                    break;
+            }
+
+        } else {
+            showFab(false);
+            if(tabsShowingBrowseMenu!=null && tabsShowingBrowseMenu[position]) {
+                showMenuMyListBrowse(true,position);
+            } else {
+                showMenuMyListBrowse(false,position);
+            }
+
+            if(tabsShowingBackButton!=null && tabsShowingBackButton[position] !=null) {
+                showActionBarBackButton(true,tabsShowingBackButton[position],position);
+            } else {
+                showActionBarBackButton(false,"",position);
+            }
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -288,6 +362,9 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+                getFragmentManager().beginTransaction()
+                        .replace(android.R.id.content, new UserPreferenceFragment(),"preferenceFragment")
+                        .commit();
             return true;
         }
 
@@ -298,27 +375,48 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
             case R.id.action_cancel:
                 try {
-                    if(tabsShowingBrowseMenu[2] && findFragmentByPosition(2) != null
-                            && findFragmentByPosition(2) instanceof Tab3Container
-                            && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse") != null
-                            && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse").isVisible()) {
-                        ((WordListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).deselectAll();
+                    switch (mViewPager.getCurrentItem()) {
+                        case 0:
+                            if(tabsShowingBrowseMenu[0]
+                                    && findFragmentByPosition(0) != null
+//                                    && ((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse") != null
+//                                    && ((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse").isVisible()
+                                    ) {
 
-                        //Hide the action icons
-                        showMenuMyListBrowse(false, 2);
-                    } else if(tabsShowingBrowseMenu[1] && findFragmentByPosition(1) != null
-                            && findFragmentByPosition(1) instanceof Tab2Container
-                            && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse") != null
-                            && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse").isVisible()) {
-                        ((TweetListBrowseFragment)((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse")).deselectAll();
-                        //Hide the action icons
-                        showMenuMyListBrowse(false, 1);
+                                //Cancel the selections
+                                ((TweetListBrowseFragment)((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowseSingleUser")).deselectAll();
+                                //Hide the action icons
+                                showMenuMyListBrowse(false, 0);
+                            }
+                            break;
+                        case 1:
+                            if(tabsShowingBrowseMenu[1]
+                                    && findFragmentByPosition(1) != null
+//                                    && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse") != null
+//                                    && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse").isVisible()
+                                    ) {
+
+                                //Cancel the selections
+                                ((TweetListBrowseFragment)((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse")).deselectAll();
+                                //Hide the action icons
+                                showMenuMyListBrowse(false, 1);
+                            }
+                            break;
+                        case 2:
+                            if(tabsShowingBrowseMenu[2] && findFragmentByPosition(2) != null) {
+
+                                //Cancel the selections
+                                ((WordListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).deselectAll();
+
+                                //Hide the action icons
+                                showMenuMyListBrowse(false, 2);
+                            }
+                            break;
+
                     }
 
                 } catch (NullPointerException e) {
                     Log.e(TAG,"TabContainer->BrowseFragment deselectALL Nullpointer: " + e.toString());
-                } catch (Exception e) {
-                    Log.e(TAG,"TabContainer->BrowseFragment  deselectALL error: " + e.toString());
                 }
 
 
@@ -326,83 +424,95 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             case R.id.action_copy:
 
                 try {
-                    if(tabsShowingBrowseMenu[2] && findFragmentByPosition(2) != null
-                            && findFragmentByPosition(2) instanceof Tab3Container
-                            && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse") != null
-                            && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse").isVisible()) {
-                        ((WordListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).showCopyMyListDialog();
-                    } else if(tabsShowingBrowseMenu[1] && findFragmentByPosition(1) != null
-                            && findFragmentByPosition(1) instanceof Tab2Container
-                            && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse") != null
-                            && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse").isVisible()) {
-                        ((TweetListBrowseFragment)((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse")).showCopyTweetsDialog();
+                    switch (mViewPager.getCurrentItem()) {
+                        case 0:
+                            if(tabsShowingBrowseMenu[0] && findFragmentByPosition(0) != null) {
+                                ((TweetListBrowseFragment)((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowseSingleUser")).showCopyTweetsDialog();
+                            }
+                            break;
+                        case 1:
+                            if(tabsShowingBrowseMenu[1] && findFragmentByPosition(1) != null) {
+                                ((TweetListBrowseFragment)((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse")).showCopyTweetsDialog();
+                            }
+                            break;
+                        case 2:
+                            if(tabsShowingBrowseMenu[2] && findFragmentByPosition(2) != null) {
+                                ((WordListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).showCopyMyListDialog();
+                            }
+                            break;
                     }
 
                 } catch (NullPointerException e) {
                     Log.e(TAG,"TabContainer->BrowseFragment copy Nullpointer: " + e.toString());
-                } catch (Exception e) {
-                    Log.e(TAG,"TabContainer->BrowseFragment  copy error: " + e.toString());
                 }
 
                 break;
             case R.id.action_delete:
                 try {
-                    if(tabsShowingBrowseMenu[2] && findFragmentByPosition(2) != null
-                            && findFragmentByPosition(2) instanceof Tab3Container
-                            && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse") != null
-                            && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse").isVisible()) {
-                        ((WordListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).removeKanjiFromList();
+                    switch (mViewPager.getCurrentItem()) {
+                        case 0:
+                            if(tabsShowingBrowseMenu[0] && findFragmentByPosition(0) != null
+                                    ) {
+                                ((TweetListBrowseFragment)((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowseSingleUser")).removeTweetFromList();
 
-                        //Hide the action icons
-                        showMenuMyListBrowse(false, 2);
+                                //Hide the action icons
+                                showMenuMyListBrowse(false, 0);
+                            }
+                            break;
+                        case 1:
+                            if(tabsShowingBrowseMenu[1] && findFragmentByPosition(1) != null) {
+                                ((TweetListBrowseFragment)((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse")).removeTweetFromList();
 
-                    } else if(tabsShowingBrowseMenu[1] && findFragmentByPosition(1) != null
-                            && findFragmentByPosition(1) instanceof Tab2Container
-                            && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse") != null
-                            && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse").isVisible()) {
-                        ((TweetListBrowseFragment)((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse")).removeTweetFromList();
+                                //Hide the action icons
+                                showMenuMyListBrowse(false, 1);
+                            }
+                            break;
+                        case 2:
+                            if(tabsShowingBrowseMenu[2] && findFragmentByPosition(2) != null) {
+                                ((WordListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).removeKanjiFromList();
 
-                        //Hide the action icons
-                        showMenuMyListBrowse(false, 1);
+                                //Hide the action icons
+                                showMenuMyListBrowse(false, 2);
+
+                            }
+                            break;
                     }
 
                 } catch (NullPointerException e) {
                     Log.e(TAG,"TabContainer->BrowseFragment delete Nullpointer: " + e.toString());
-                } catch (Exception e) {
-                    Log.e(TAG,"TabContainer->BrowseFragment  delete error: " + e.toString());
                 }
 
 
                 break;
             case R.id.action_selectall:
-
-
                 try {
-                    if(tabsShowingBrowseMenu[2] && findFragmentByPosition(2) != null
-                            && findFragmentByPosition(2) instanceof Tab3Container
-                            && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse") != null
-                            && ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse").isVisible()) {
-                        ((WordListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).selectAll();
-                    } else if(tabsShowingBrowseMenu[1] && findFragmentByPosition(1) != null
-                            && findFragmentByPosition(1) instanceof Tab2Container
-                            && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse") != null
-                            && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse").isVisible()) {
-                        ((TweetListBrowseFragment)((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse")).selectAll();
-                    }
+                switch (mViewPager.getCurrentItem()) {
+                    case 0:
+                        if(tabsShowingBrowseMenu[0] && findFragmentByPosition(0) != null
+                                ) {
+                            ((TweetListBrowseFragment)((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowseSingleUser")).selectAll();
+                        }
+                        break;
+                    case 1:
+                        if(tabsShowingBrowseMenu[1] && findFragmentByPosition(1) != null) {
+                            ((TweetListBrowseFragment)((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse")).selectAll();
+                        }
+                        break;
+                    case 2:
+                        if(tabsShowingBrowseMenu[2] && findFragmentByPosition(2) != null) {
+                            ((WordListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).selectAll();
+                        }
+                        break;
+                }
 
                 } catch (NullPointerException e) {
                     Log.e(TAG,"TabContainer->BrowseFragment selectALL Nullpointer: " + e.toString());
-                } catch (Exception e) {
-                    Log.e(TAG,"TabContainer->BrowseFragment  selectALL error: " + e.toString());
                 }
-
                 break;
         }
 
         return super.onOptionsItemSelected(item);
     }
-
-
 
     /**
      * Shows {@link AddUserDialog}, where user can input a twitter handle whom they would like to follow.
@@ -455,8 +565,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 }
             }
 
-//            Toast.makeText(getBaseContext(), "Unable to access internet", Toast.LENGTH_SHORT).show();
-            } else {
+        } else {
             getInitialUserInfoForAddUserCheck(inputText.trim());
         }
 
@@ -484,7 +593,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         if (InternalDB.getUserInterfaceInstance(getBaseContext()).deleteUser(userId) ) {
 
             // Locate Tab1Continer and update the UserListInfo adapter to reflect removed item
-//            if(findFragmentByPosition(0) != null && findFragmentByPosition(0) instanceof Tab1Container) {
                 try {
                     ((Tab1Container) findFragmentByPosition(0)).updateUserListFragment();
                 } catch (NullPointerException e) {
@@ -492,7 +600,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 } catch (Exception e) {
                     Log.e(TAG,"generic exception error onRemoveUserDialogPOsitiveclick " + e.getCause());
                 }
-//            }
         } else {
             Toast.makeText(this, "Could not remove item", Toast.LENGTH_SHORT).show();
         }
@@ -601,13 +708,10 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         ContextWrapper cw = new ContextWrapper(getApplicationContext());
         File directory = cw.getDir("icons", Context.MODE_PRIVATE);
 
-//        context.getApplicationContext().getFilesDir()
-
-//        File directory_icons = cw.getDir("icons", Context.MODE_PRIVATE);
         if (!directory.exists()) {
             directory.mkdir();
         }
-        Log.i(TAG,"URI directory: " + directory.getAbsolutePath() + ", FILE: " + title +".png" );
+        if(BuildConfig.DEBUG){Log.i(TAG,"URI directory: " + directory.getAbsolutePath() + ", FILE: " + title +".png" );}
         return new File(directory, title + ".png");
     }
 
@@ -618,8 +722,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * @param imageUrl Url of icon image
      * @param screenName user screenname which will become the file name of the icon
      */
-
-
     public void downloadUserIcon(String imageUrl, final String screenName) {
 
         Picasso.with(getBaseContext()).load(imageUrl).into(new Target() {
@@ -669,23 +771,54 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      */
     @Override
     public void onBackPressed() {
+
         boolean isPopFragment;
+        boolean clearingSearchOrDismissingPreferences = false;
 
-        showMenuMyListBrowse(false,mViewPager.getCurrentItem());
+        /*If user is closing the preference fragment, update prefences and reload word/tweet list tabs, as
+        they may have changed */
+        if(getFragmentManager().findFragmentByTag("preferenceFragment") != null
+                && getFragmentManager().findFragmentByTag("preferenceFragment").isAdded()) {
+            getFragmentManager().beginTransaction()
+                    .remove(getFragmentManager().findFragmentByTag("preferenceFragment"))
+                    .commit();
+            clearingSearchOrDismissingPreferences = true;
+            SharedPrefManager.initialize(getBaseContext());
 
-         isPopFragment = ((BaseContainerFragment)findFragmentByPosition(mViewPager.getCurrentItem())).popFragment();
+            if(((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistfragment") != null) {
+                ((WordListFragment) ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistfragment")).updateMyListAdapter();
+            }
+            if(((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsallfragment") != null) {
+                ((TweetListFragment) ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsallfragment")).updateMyListAdapter();
+            }
+
+        } else if(mViewPager.getCurrentItem() == 3) {
+            //If it is a searchfragment, and a search has some results, on back should clear the search, not pop the fragment
+
+            if(findFragmentByPosition(3) != null
+                    && findFragmentByPosition(3) instanceof Tab4Container
+                    && ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment") != null) {
+                clearingSearchOrDismissingPreferences = ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment")).clearSearchResults();
+            } else {
+                clearingSearchOrDismissingPreferences=false;
+            }
+        }
+
+        if(!clearingSearchOrDismissingPreferences) {
+            showMenuMyListBrowse(false,mViewPager.getCurrentItem());
+            isPopFragment = ((BaseContainerFragment)findFragmentByPosition(mViewPager.getCurrentItem())).popFragment();
             try {
                 if(((BaseContainerFragment)findFragmentByPosition(mViewPager.getCurrentItem())).getChildFragmentManager().getBackStackEntryCount()<=1) {
 
                     /* The UserTimeline and User SavedTweets fragments work in concert. So when the user backs out
                     * to the top of */
                     if(mAdapterTitles.length == 2 && mAdapterTitles[0].equals("Timeline") && mViewPager.getCurrentItem()==0) {
-                            ((Tab2Container)findFragmentByPosition(1)).popAllFragments();
+                        ((Tab2Container)findFragmentByPosition(1)).popAllFragments();
                     } else if(mAdapterTitles.length == 2 && mAdapterTitles[0].equals("Timeline") && mViewPager.getCurrentItem()==1) {
-                            ((Tab1Container)findFragmentByPosition(0)).popAllFragments();
+                        ((Tab1Container)findFragmentByPosition(0)).popAllFragments();
                     }
 
-                    showActionBarBackButton(false,getString(R.string.app_name));
+                    showActionBarBackButton(false,getString(R.string.app_name),mViewPager.getCurrentItem());
                     updateTabs(new String[]{"Users","Tweet Lists","Word Lists","Search"});
                     showMenuMyListBrowse(false,mViewPager.getCurrentItem());
                     switch (mViewPager.getCurrentItem()) {
@@ -707,17 +840,18 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 Log.e(TAG,"OnBackPressed child entrycount null : " + e);
             }
 
+            showProgressBar(false);
 
-        showProgressBar(false);
-
-        if (!isPopFragment) {
-            finish();
+            if (!isPopFragment) {
+                finish();
+            }
         }
+
     }
 
 
     /**
-     * Returns fragment for a given position in {@link SectionsPagerAdapter}
+     * Returns fragment for a given position in {@link PostQuizStatsPagerAdapter}
      * @param position pager adapter position
      * @return Fragment corresponding to position
      */
@@ -744,14 +878,23 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * @param showBack bool true to show the button
      * @param title title to show next to button
      */
-    public void showActionBarBackButton(Boolean showBack, CharSequence title) {
+    public void showActionBarBackButton(Boolean showBack
+            , CharSequence title
+            ,int tabNumber) {
 
+        if(showBack) {
+            tabsShowingBackButton[tabNumber] = title.toString();
+        } else {
+            tabsShowingBackButton[tabNumber] = null;
+        }
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(showBack);
             getSupportActionBar().setDisplayShowTitleEnabled(true);
             getSupportActionBar().setTitle(title);
         }
     }
+
+
 
     /**
      * Shows dialog where user can create a new list (either word list or tweet list)
@@ -971,7 +1114,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         switch(position) {
             case 0:
                 try {
-
                     return ((BaseContainerFragment)findFragmentByPosition(0)).isTopFragmentShowing();
                 } catch(NullPointerException e) {
                     return false;
@@ -980,13 +1122,11 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 try {
                     return ((BaseContainerFragment)findFragmentByPosition(1)).isTopFragmentShowing();
                 } catch(NullPointerException e) {
-                    Log.e(TAG,"ERROR IN PULLING TAB 2 container top ");
                     return false;
                 }
             case 2:
                 try {
                     return  ((BaseContainerFragment)findFragmentByPosition(2)).isTopFragmentShowing();
-
                 } catch(NullPointerException e) {
                     return false;
                 }
@@ -1024,7 +1164,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         } catch (NullPointerException e) {
             Log.e(TAG,"FAB IS NULL: "  + e);
         }
-
     }
 
     /**
@@ -1038,6 +1177,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             } else {
                 fab.setVisibility(View.GONE);
             }
+
+
         } catch (NullPointerException e) {
             Log.e(TAG,"FAB IS NULL: "  + e);
         }
@@ -1046,7 +1187,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
     /**
      * Traffic control method which takes callback from fragment and passes it to
-     * the SectionsPagerAdapter, which will update the number of available tab buckets and
+     * the PostQuizStatsPagerAdapter, which will update the number of available tab buckets and
      * titles of those buckets
      * @param updatedTabs String array of tab titles. The number of tab titles in the array dictates
      *                    the number of tab buckets that will be available. So when the user drills down
@@ -1061,180 +1202,93 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
     }
 
-//    /**
-//     * When user clicks on a timeline for a twitter user in the {@link com.jukuproject.jukutweet.Fragments.UserListFragment}
-//     * the  {@link TweetListFragment} in the  tab2 bucket should switch from showing ALL saved tweet lists, to a single list of
-//     * saved tweets for that specific user. The method replaces the savedtweets all fragment with a new one for the specific user
-//      * @param userInfo Userinfo of twitter user whose timeline is being shown, and whose saved tweets will be displayed in the saved tweets fragment
-//     */
-//    public void showSavedTweetsTabForIndividualUser(UserInfo userInfo){
-//
-//        try {
-//            TweetListSingleUserFragment tweetListSingleUserFragment = TweetListSingleUserFragment.newInstance(userInfo);
-//            ((BaseContainerFragment)findFragmentByPosition(1)).replaceFragment(tweetListSingleUserFragment,true,"savedTweetsAllFragmentIndividual");
-//        } catch (Exception e) {
-//            Log.e("TEST","showSavedTweetsTabForIndividualUser failed");
-//        }
-//    }
-
-
     /**
      * Looks for current tweet fragment in tab 1 (either saved tweet lists
      * or individual users saved tweets) and refreshes the list. Initiated from the onSuccess portion of the parseAndSaveTweet method.
      * @see #parseAndSaveTweet(Tweet)
+     * @see TweetBreakDownFragment
+     * @see com.jukuproject.jukutweet.Fragments.UserTimeLineFragment
      */
     public void notifySavedTweetFragmentsChanged() {
-        if(findFragmentByPosition(0) != null
-                && findFragmentByPosition(0) instanceof Tab2Container) {
-
+        if(findFragmentByPosition(0) != null && findFragmentByPosition(0) instanceof Tab1Container) {
             if(((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("savedTweetsAllFragmentIndividual") != null){
                 ((TweetListSingleUserFragment) ((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("savedTweetsAllFragmentIndividual")).updateMyListAdapter();
+            }
+        }
+
+        if(findFragmentByPosition(1) != null && findFragmentByPosition(1) instanceof Tab2Container) {
+            if(((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsallfragment") != null){
+                TweetListFragment tweetListBrowseFragment = ((TweetListFragment) ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsallfragment"));
+                if(tweetListBrowseFragment.isAdded()) {
+                    tweetListBrowseFragment.updateMyListAdapter();
+                }
             }
         }
     }
 
 
     /**
-     * Coordinates status of word favorite lists as they change across the tabs. If the user has opened the tweet breakdown
+     * Coordinates status of word favorite lists as they change across the tabs. When the user changes a word entry favorite list in one tab,
+     * the others must immediately reflect that change because the user can just swipe to them.
+     *
+     * For example, If the user has opened the tweet breakdown
      * fragment in tab 1 (for a single user's saved tweets), and has added a word to a list, the word related fragments in tabs 2 and must
-     * be updated to reflect that change. And also the search tab, if it exists and has been searching the dictionary for the word in question.
+     * be updated to reflect that change, as well as the search tab if applicable..
      */
+
     public void notifySavedWordFragmentsChanged(WordEntry wordEntry) {
-        Log.i(TAG,"notifySavedWordFragmentsChanged all up in here");
-        switch(mViewPager.getCurrentItem())  {
-            case 0:
-//                Fragment fragmentTab2Container;
-//                if((fragmentTab2Container = findFragmentByPosition(1)) != null ) {
-//
-//                    if((fragmentTab2Container).getChildFragmentManager().findFragmentByTag("savedtweetbreakdown") != null) {
-//                        ((TweetBreakDownFragment) (fragmentTab2Container).getChildFragmentManager().findFragmentByTag("savedtweetbreakdown")).updateWordEntryItemFavorites(wordEntry);
-//                    } else if((fragmentTab2Container).getChildFragmentManager().findFragmentByTag("flashcards") != null) {
-//                        ((FlashCardsFragment) (fragmentTab2Container).getChildFragmentManager().findFragmentByTag("flashcards")).updateWordEntryItemFavorites(wordEntry);
-//                    }  else if((fragmentTab2Container).getChildFragmentManager().findFragmentByTag("tweetlistStats") != null) {
-//                        ((StatsFragmentProgress) (findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("tweetlistStats")).updateWordEntryItemFavorites(wordEntry);
-//                    }
-//                }
-                if(findFragmentByPosition(1) != null && findFragmentByPosition(1) instanceof Tab2Container) {
-                    if(((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetbreakdown") != null) {
-                        ((TweetBreakDownFragment) ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetbreakdown")).updateWordEntryItemFavorites(wordEntry);
-                    } else if(((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("flashcards") != null) {
-                        ((FlashCardsFragment) ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("flashcards")).updateWordEntryItemFavorites(wordEntry);
-                    }  else if(((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("tweetlistStats") != null) {
-                        ((StatsFragmentProgress) ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("tweetlistStats")).updateWordEntryItemFavorites(wordEntry);
-                    }
+
+        try {
+            for(int i=0;i<4;i++) {
+                if(mViewPager.getCurrentItem()!=i) {
+                    Fragment currentFragment = ((BaseContainerFragment) findFragmentByPosition(i)).getTopFragment();
+                    updateChildFragment(currentFragment,wordEntry);
                 }
+            }
+        } catch (NullPointerException e) {
+            Log.e(TAG,"currentFragment updates failed for notifySavedWordFragmentsChanged");
+        }
+    }
 
+    public void notifySavedWordFragmentsChanged(String wordEntryIdString) {
 
-                if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
-                    if(((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistfragment") != null) {
-                        ((WordListFragment) ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistfragment")).updateMyListAdapter();
-                    }
-                    if(((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("flashcards") != null) {
-                        ((FlashCardsFragment) ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("flashcards")).updateWordEntryItemFavorites(wordEntry);
-                    } else if(((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("wordlistStats") != null) {
-                        ((StatsFragmentProgress) ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("wordlistStats")).updateWordEntryItemFavorites(wordEntry);
-                    }
+        ArrayList<WordEntry> wordEntries = InternalDB.getWordInterfaceInstance(getBaseContext()).getWordsFromAStringofWordIds(wordEntryIdString,SharedPrefManager.getInstance(getBaseContext()).getColorThresholds());
+        try {
+            for(int i=0;i<4;i++) {
+                if(mViewPager.getCurrentItem()!=i) {
+                    Fragment currentFragment = ((BaseContainerFragment) findFragmentByPosition(i)).getTopFragment();
+                    updateChildFragment(currentFragment,wordEntries);
                 }
+            }
+        } catch (NullPointerException e) {
+            Log.e(TAG,"currentFragment updates failed for notifySavedWordFragmentsChanged");
+        }
+    }
 
-                if(findFragmentByPosition(3) != null && findFragmentByPosition(3) instanceof Tab4Container) {
-                    if(((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment") != null) {
-                        ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment")).updateWordEntryItemFavorites(wordEntry);
-                    }
-                }
-                break;
-
-
-            case 1:
-
-                if(findFragmentByPosition(0) != null && findFragmentByPosition(0) instanceof Tab1Container) {
-                    if(((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("tweetbreakdown") != null) {
-                        ((TweetBreakDownFragment) ((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("tweetbreakdown")).updateWordEntryItemFavorites(wordEntry);
-                    } else if(((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("flashcards") != null) {
-                        ((FlashCardsFragment) ((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("flashcards")).updateWordEntryItemFavorites(wordEntry);
-                    } else if(((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("singleUserStats") != null) {
-                        ((StatsFragmentProgress) ((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("singleUserStats")).updateWordEntryItemFavorites(wordEntry);
-                    }
-                }
-
-                if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
-                    if(((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistfragment") != null) {
-                        ((WordListFragment) ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistfragment")).updateMyListAdapter();
-                    }
-                    if(((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("flashcards") != null) {
-                        ((FlashCardsFragment) ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("flashcards")).updateWordEntryItemFavorites(wordEntry);
-                    } else if(((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("wordlistStats") != null) {
-                        ((StatsFragmentProgress) ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("wordlistStats")).updateWordEntryItemFavorites(wordEntry);
-                    }
-                }
-
-                if(findFragmentByPosition(3) != null && findFragmentByPosition(3) instanceof Tab4Container) {
-                    if(((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment") != null) {
-                        ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment")).updateWordEntryItemFavorites(wordEntry);
-                    }
-                }
-
-                break;
-            case 2:
-                if(findFragmentByPosition(0) != null && findFragmentByPosition(0) instanceof Tab1Container) {
-                    if(((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("tweetbreakdown") != null) {
-                        ((TweetBreakDownFragment) ((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("tweetbreakdown")).updateWordEntryItemFavorites(wordEntry);
-                    } else if(((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("flashcards") != null) {
-                        ((FlashCardsFragment) ((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("flashcards")).updateWordEntryItemFavorites(wordEntry);
-                    } else if(((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("singleUserStats") != null) {
-                        ((StatsFragmentProgress) ((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("singleUserStats")).updateWordEntryItemFavorites(wordEntry);
-                    }
-                }
-
-                if(findFragmentByPosition(1) != null && findFragmentByPosition(1) instanceof Tab2Container) {
-                    if(((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetbreakdown") != null) {
-                        ((TweetBreakDownFragment) ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetbreakdown")).updateWordEntryItemFavorites(wordEntry);
-                    } else if(((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("flashcards") != null) {
-                        ((FlashCardsFragment) ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("flashcards")).updateWordEntryItemFavorites(wordEntry);
-                    }  else if(((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("tweetlistStats") != null) {
-                        ((StatsFragmentProgress) ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("tweetlistStats")).updateWordEntryItemFavorites(wordEntry);
-                    }
-                }
-
-                if(findFragmentByPosition(3) != null && findFragmentByPosition(3) instanceof Tab4Container) {
-                    if(((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment") != null) {
-                        ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment")).updateWordEntryItemFavorites(wordEntry);
-                    }
-                }
-
-                break;
-            case 3:
-
-                if(findFragmentByPosition(0) != null && findFragmentByPosition(0) instanceof Tab1Container) {
-                    if(((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("tweetbreakdown") != null) {
-                        ((TweetBreakDownFragment) ((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("tweetbreakdown")).updateWordEntryItemFavorites(wordEntry);
-                    } else if(((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("flashcards") != null) {
-                        ((FlashCardsFragment) ((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("flashcards")).updateWordEntryItemFavorites(wordEntry);
-                    } else if(((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("singleUserStats") != null) {
-                        ((StatsFragmentProgress) ((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("singleUserStats")).updateWordEntryItemFavorites(wordEntry);
-                    }
-                }
-
-                if(findFragmentByPosition(1) != null && findFragmentByPosition(1) instanceof Tab2Container) {
-                    if(((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetbreakdown") != null) {
-                        ((TweetBreakDownFragment) ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetbreakdown")).updateWordEntryItemFavorites(wordEntry);
-                    } else if(((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("flashcards") != null) {
-                        ((FlashCardsFragment) ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("flashcards")).updateWordEntryItemFavorites(wordEntry);
-                    }  else if(((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("tweetlistStats") != null) {
-                        ((StatsFragmentProgress) ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("tweetlistStats")).updateWordEntryItemFavorites(wordEntry);
-                    }
-                }
-
-                if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
-                    if(((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistfragment") != null) {
-                        ((WordListFragment) ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistfragment")).updateMyListAdapter();
-                    }
-                    if(((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("flashcards") != null) {
-                        ((FlashCardsFragment) ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("flashcards")).updateWordEntryItemFavorites(wordEntry);
-                    } else if(((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("wordlistStats") != null) {
-                        ((StatsFragmentProgress) ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("wordlistStats")).updateWordEntryItemFavorites(wordEntry);
-                    }
-                }
-                break;
+    public void updateChildFragment(Fragment currentFragment, WordEntry wordEntry) {
+        if(currentFragment instanceof TweetBreakDownFragment) {
+            ((TweetBreakDownFragment) currentFragment).updateWordEntryItemFavorites(wordEntry);
+        } else if(currentFragment instanceof FlashCardsFragment) {
+            ((FlashCardsFragment) currentFragment).updateWordEntryItemFavorites(wordEntry);
+        } else if(currentFragment instanceof StatsFragmentProgress) {
+            ((StatsFragmentProgress) currentFragment).updateWordEntryItemFavorites(wordEntry);
+        } else if(currentFragment instanceof WordListBrowseFragment) {
+            ((WordListBrowseFragment) currentFragment).updateWordEntryItemFavorites(wordEntry);
+        } else if(currentFragment instanceof WordListFragment) {
+            ((WordListFragment) currentFragment).updateMyListAdapter();
+        } else if(currentFragment instanceof SearchFragment) {
+            ((SearchFragment) currentFragment).updateWordEntryItemFavorites(wordEntry);
+        }
+    }
+    public void updateChildFragment(Fragment currentFragment, ArrayList<WordEntry> wordEntries) {
+        if(currentFragment instanceof TweetBreakDownFragment) {
+            ((TweetBreakDownFragment) currentFragment).updateWordEntryItemFavorites(wordEntries);
+        } else if(currentFragment instanceof FlashCardsFragment) {
+            ((FlashCardsFragment) currentFragment).updateWordEntryItemFavorites(wordEntries);
+        } else if(currentFragment instanceof StatsFragmentProgress) {
+            ((StatsFragmentProgress) currentFragment).updateWordEntryItemFavorites(wordEntries);
+        } else if(currentFragment instanceof SearchFragment) {
+            ((SearchFragment) currentFragment).updateWordEntryItemFavorites(wordEntries);
         }
     }
 
@@ -1263,7 +1317,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     }
 
 
-
     /**
      * Traffic control, passing result of  {@link com.jukuproject.jukutweet.Dialogs.CopySavedTweetsDialog}  to the
      * {@link TweetListBrowseFragment} so the tweets can be saved and the recycler refreshed
@@ -1288,7 +1341,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             }
 
         }
-    }
+    };
 
     /**
      * Shows the flashcard fragment (Replacing the current fragment) for specified words in a wordlist or savedtweet list
@@ -1305,6 +1358,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             , String frontValue
             , String backValue
             ,String selectedColorString) {
+
+        showFab(false);
 
         //If its a WordList fragment
         if(tabNumber == 1) {
@@ -1338,7 +1393,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 ((BaseContainerFragment)findFragmentByPosition(tabNumber)).replaceFragment(flashCardsFragment,true,"flashcards");
             }
         }
-    }
+    };
 
     /**
      * Shows the flashcard fragment (Replacing the current fragment) for specified words in the saved tweets of
@@ -1365,7 +1420,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                             ,null);
 
             if(findFragmentByPosition(tabNumber) != null
-                    && findFragmentByPosition(tabNumber) instanceof Tab2Container) {
+                    && findFragmentByPosition(tabNumber) instanceof Tab1Container) {
 
                 FlashCardsFragment flashCardsFragment = FlashCardsFragment.newInstance(dataset,frontValue,backValue);
                 ((BaseContainerFragment)findFragmentByPosition(tabNumber)).replaceFragment(flashCardsFragment,true,"flashcards");
@@ -1424,7 +1479,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
                 intent.putExtra("typeOfQuizThatWasCompleted","Multiple Choice"); //The type of quiz that was chosen inthe menu
                 intent.putExtra("quizType",quizType);
-                intent.putExtra("tabNumber", 2);
+                intent.putExtra("tabNumber", tabNumber);
                 intent.putExtra("myListEntry",listEntry);
                 intent.putExtra("quizSize",quizSize);
                 intent.putExtra("colorString",selectedColorString);
@@ -1461,7 +1516,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             , String quizTimer
             , String selectedColorString) {
 
-        ArrayList<WordEntry> dataset = new ArrayList<>();
+        ArrayList<WordEntry> dataset;
         String dataType = "";
 
             dataset = InternalDB.getTweetInterfaceInstance(getBaseContext())
@@ -1480,7 +1535,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             intent.putExtra("singleUser",true); //The type of quiz that was chosen inthe menu
             intent.putExtra("typeOfQuizThatWasCompleted","Multiple Choice"); //The type of quiz that was chosen inthe menu
             intent.putExtra("quizType",quizType); //Multiple choice quiz option (Kanji to Definition, etc)
-            intent.putExtra("tabNumber", 2);
+            intent.putExtra("tabNumber", 0);
             intent.putExtra("userInfo",userInfo);
             intent.putExtra("quizSize",quizSize);
             intent.putExtra("colorString",selectedColorString);
@@ -1515,9 +1570,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         ArrayList<Tweet> dataset = new ArrayList<>();
         String dataType = "";
 
-
-//        Log.i(TAG,"HERE CHECK I OUT: " + tabNumber);
-
         //The request is coming from the saved tweets fragment
         if (tabNumber == 1) {
 
@@ -1526,7 +1578,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                             , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
                             , selectedColorString
                             , Integer.parseInt(quizSize));
-
             dataType = "Tweet";
 
         //The request is coming from the saved words fragment
@@ -1553,8 +1604,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             intent.putExtra("quizSize",quizSize);
             intent.putExtra("colorString",selectedColorString);
             intent.putExtra("totalweight",totalweight);
-//            Log.d(TAG,"dataset isspinner: " + dataset.get(0).getWordEntries().get(1).getKanji() + ", spinner: "
-//                    + dataset.get(0).getWordEntries().get(1).isSpinner());
             intent.putParcelableArrayListExtra("dataset",dataset);
             intent.putExtra("dataType",dataType);
             intent.putExtra("lastExpandedPosition",currentExpandedPosition);
@@ -1562,7 +1611,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             showFab(false);
 
             startActivity(intent);
-
         } else {
             Toast.makeText(this, "No tweets found to quiz on", Toast.LENGTH_SHORT).show();
         }
@@ -1587,13 +1635,10 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             , String quizSize
             , String selectedColorString) {
 
-//        Log.i(TAG,"HERE CHECK I OUT2: " + tabNumber);
-
         ArrayList<Tweet> dataset = new ArrayList<>();
         String dataType = "";
 
-        //The request is coming from the saved tweets fragment
-        if (tabNumber == 1) {
+        if (tabNumber == 0) {
             dataset = InternalDB.getQuizInterfaceInstance(getBaseContext())
                     .getFillintheBlanksTweetsForAUser(userInfo
                             , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
@@ -1601,6 +1646,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                             , Integer.parseInt(quizSize));
 
             dataType = "Tweet";
+
         }
 
         if(dataset.size()>0) {
@@ -1615,8 +1661,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             intent.putExtra("quizSize",quizSize);
             intent.putExtra("colorString",selectedColorString);
             intent.putExtra("totalweight",totalweight);
-            Log.d(TAG,"dataset isspinner: " + dataset.get(0).getWordEntries().get(1).getKanji() + ", spinner: "
-                    + dataset.get(0).getWordEntries().get(1).isSpinner());
             intent.putParcelableArrayListExtra("dataset",dataset);
             intent.putExtra("dataType",dataType);
             intent.putExtra("lastExpandedPosition",currentExpandedPosition);
@@ -1659,19 +1703,16 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             /* The slider multiplier is what affects how rapidly a word diverges from the natural weight of .25.
             * The higher the multiplier, the faster it will diverge with an increased count.*/
             double countMultiplier = (double)total/(double)sliderCountMax*(percentage-(double)sliderUpperBound)*(double)sliderMultipler;
-
             double a = ((double)sliderUpperBound/(double)2)-(double)sliderUpperBound*(countMultiplier) ;
-
             double b = sliderLowerBound;
             if(a>=sliderUpperBound) {
                 b = sliderUpperBound;
             } else if(a>=sliderLowerBound) {
                 b = a;
             }
-
             wordEntry.setQuizWeight(b);
             totalWeight += b;
-            Log.d(TAG,"Setting quiz weight: " + b  + ", new total weight: " + totalWeight);
+            if(BuildConfig.DEBUG){Log.d(TAG,"Setting quiz weight: " + b  + ", new total weight: " + totalWeight);}
         }
 
         return totalWeight;
@@ -1711,11 +1752,9 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             /* The slider multiplier is what affects how rapidly a word diverges from the natural weight of .25.
             * The higher the multiplier, the faster it will diverge with an increased count.*/
             double countMultiplier = (double)aggregatedTweetTotal/(double)sliderCountMax*(tweetPercentage-(double)sliderUpperBound)*(double)sliderMultiplier;
-
-
             double a = ((double)sliderUpperBound/(double)2)-(double)sliderUpperBound*(countMultiplier) ;
-
             double b = sliderLowerBound;
+
             if(a>=sliderUpperBound) {
                 b = sliderUpperBound;
             } else if(a>=sliderLowerBound) {
@@ -1727,10 +1766,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
 
         return totalWeight;
-    }
-
-
-
+    };
 
     /**
      * Called during activity recreation to expand the previously expanded position in the word or tweet list.
@@ -1752,13 +1788,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             Log.e(TAG,"setPreviousMyListExpanded could not set prev expanded");
         }
     }
-
-//    //TODO hook this to something
-//    public void showUserDetailFragment(UserInfo userInfo) {
-//        UserDetailPopupDialog userDetailFragment = UserDetailPopupDialog.newInstance(userInfo);
-//        userDetailFragment.show(getSupportFragmentManager(),"userDetailFragment");
-//    };
-
 
     /**
      * Searches twitter for either "User", resulting in a list of possible users, or for a "Tweet",
@@ -1783,12 +1812,11 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     convert it to a kanji and run the search on that kanji if possible.  */
     final String kanjiQuery ;
     if(isRomaji(query)) {
-        ArrayList<WordEntry> conversionResults = querytheDictionary(query,"Romaji");
+        ArrayList<WordEntry> conversionResults = querytheDictionary(query,"Kanji");
         if(conversionResults != null && conversionResults.size()>0) {
             kanjiQuery = conversionResults.get(0).getKanji();
         } else {
             kanjiQuery = query;
-
         }
 
     } else {
@@ -1808,6 +1836,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
                 @Override public void onCompleted() {
                     if(BuildConfig.DEBUG){Log.d(TAG, "runTwitterSearch In onCompleted()");}
+                    searchSubscriptionCriteria = null;
 
                     try {
                         //Compile a string concatenation of all user ids in the set of tweets
@@ -1839,10 +1868,9 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                         Log.e(TAG,"Adding favorite information to tweets exception: " + e.toString());
                     }
 
-
                         //Try to refresh the search fragment recyclerview with the updated search results
                         try {
-                            ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment")).recieveTwitterSearchResults(mDataSet,kanjiQuery);
+                            ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment")).receiveTwitterSearchResults(mDataSet,kanjiQuery);
                         } catch (NullPointerException e) {
                             Log.e(TAG,"runTwitterSearch onsuccess error updating SearchFragment, null: " + e.toString());
                         } catch (Exception e) {
@@ -1866,6 +1894,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
                     e.printStackTrace();
                     if(BuildConfig.DEBUG){Log.d(TAG, "runTwitterSearch In onError()");}
+                    searchSubscriptionCriteria = null;
 
 
                 }
@@ -1895,7 +1924,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
                              //Try to refresh the search fragment recyclerview with the updated search results
                                  try {
-                                     ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment")).recieveTwitterUserSearchResults(mDataSet);
+                                     ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment")).receiveTwitterUserSearchResults(mDataSet);
 
                                  } catch (NullPointerException e) {
                                      Log.e(TAG,"runTwitterSearch onsuccess error updating SearchFragment, null: " + e.toString());
@@ -1903,17 +1932,19 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                                      Log.e(TAG,"runTwitterSearch onsuccess error updating SearchFragment, generic exception: " + e.toString());
 
                                  }
+                             searchSubscriptionCriteria = null;
+
                          }
 
                          @Override public void onError(Throwable e) {
                              e.printStackTrace();
                              if(BuildConfig.DEBUG){Log.d(TAG, "runTwitterSearch Users In onError()");}
+                             searchSubscriptionCriteria = null;
                          }
 
                          @Override public void onNext(List<UserInfo> followers) {
                              if(BuildConfig.DEBUG) {
                                  Log.d(TAG, "In onNext()");
-//                                 Log.d(TAG,"FOLLOWERS SIZE: " + followers.getUsers().size());
                              }
 
                                  try {
@@ -1926,7 +1957,9 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                      });
      }
 
-}
+     searchSubscriptionCriteria = new String[]{"Twitter",query,queryOption};
+
+ }
 
     /**
      * Searches the Edict dictionary database for a Kanji (in japanese text or romanized japanese, which is then
@@ -1960,6 +1993,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                             } catch (NullPointerException e) {
                                 Log.e(TAG,"searchquerysubscription onsuccess error updating SearchFragment, null: " + e.toString());
                             }
+                        searchSubscriptionCriteria = null;
                         }
 
                     @Override
@@ -1974,6 +2008,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                             Log.e(TAG,"searchQuerySubscription in MAIN A inerror error hiding progress bar! generic exception: " + e.toString());
 
                         }
+                        searchSubscriptionCriteria = null;
+
                     }
 
                     @Override
@@ -1982,7 +2018,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     }
                 });
 
-
+        searchSubscriptionCriteria = new String[]{"Dictionary",query,queryOption};
     }
 
 
@@ -1996,7 +2032,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         Matcher ms = ps.matcher(query.trim());
         return ms.matches();
     }
-
 
     /**
      * Queries the Edict dictionary, looking for matches for a query in the {@link SearchFragment} . Search can be
@@ -2024,7 +2059,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             idstopasson = InternalDB.getWordInterfaceInstance(getBaseContext()).getWordIdsForDefinitionMatch(query);
         }
 
-
         /* If we have a match, pull the edict info for those matching ids */
         if(idstopasson!=null && idstopasson.length()>0) {
 
@@ -2041,7 +2075,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
         }
         return searchResults;
-
     }
 
     /**
@@ -2193,13 +2226,12 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
                 }
 
-
                 if(!foundone) {
                     if(BuildConfig.DEBUG){Log.d(TAG,"nothing found, moving 3 char ahead");}
                     iterator = 3;
                     startposition = (startposition + 3);
 
-                }else {
+                } else {
                     if(BuildConfig.DEBUG){
                         Log.d(TAG,"Chunk added, moving " + iterator + " chars ahead(2)");
                         Log.d(TAG,"old start pos: " + startposition);
@@ -2230,8 +2262,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
                 }
             }
-        }
 
+        }
 
         /*Adding hiragana entries to the katakana ones, so we can look for hiragana and katakan ones in db all at once baby*/
         if(possibleHiraganaSearchQueries.size()>0) {
@@ -2312,19 +2344,27 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         super.onDestroy();
     }
 
-
+    @Override
+    protected void onPause() {
+        if(searchQuerySubscription!=null) {
+            searchQuerySubscription.unsubscribe();
+        }
+        if(userInfoSubscription!=null) {
+            userInfoSubscription.unsubscribe();
+        }
+        super.onPause();
+    }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        Log.d(TAG,"in main activity on saved instance out state...");
+        if(BuildConfig.DEBUG){Log.d(TAG,"in main activity on saved instance out state...");}
 
         if(findFragmentByPosition(0) != null
                 && findFragmentByPosition(0) instanceof Tab1Container) {
             getSupportFragmentManager().putFragment(outState, "tab1Container", (Tab1Container)findFragmentByPosition(0));
         }
-
         if(findFragmentByPosition(1) != null
                 && findFragmentByPosition(1) instanceof Tab2Container) {
             getSupportFragmentManager().putFragment(outState, "tab2Container", (Tab2Container)findFragmentByPosition(1));
@@ -2333,7 +2373,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 && findFragmentByPosition(2) instanceof Tab3Container) {
             getSupportFragmentManager().putFragment(outState, "tab3Container", (Tab3Container)findFragmentByPosition(2));
         }
-
         if(findFragmentByPosition(3) != null
                 && findFragmentByPosition(3) instanceof Tab3Container) {
             getSupportFragmentManager().putFragment(outState, "tab4Container", (Tab4Container)findFragmentByPosition(3));
@@ -2341,5 +2380,10 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
         outState.putStringArray("adapterTitles", mAdapterTitles);
         outState.putBooleanArray("tabsShowingBrowseMenu",tabsShowingBrowseMenu);
+        outState.putStringArray("tabsShowingBackButton",tabsShowingBackButton);
+
+        if(searchQuerySubscription!=null && searchSubscriptionCriteria != null) {
+            outState.putStringArray("searchSubscriptionCriteria",searchSubscriptionCriteria);
+        }
     }
 }

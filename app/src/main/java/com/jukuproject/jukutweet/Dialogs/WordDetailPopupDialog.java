@@ -97,7 +97,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
     private String mCursorString = "-1";
     private Subscription searchQuerySubscription;
     private LinearLayoutManager mLayoutManager;
-
+//    private int userCreatedListCount;
     private DisplayMetrics metrics;
 
     @Override
@@ -158,7 +158,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
-
+//        userCreatedListCount = InternalDB.getTweetInterfaceInstance(getContext()).getUserCreatedTweetListCount();
         setButtonActive(btnShowSavedTweetsToggle,true);
         setButtonActive(btnSearchForTweetsToggle,false);
 
@@ -644,6 +644,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
                             //Pull a list of favorited tweets for those user ids (if any exist)
                             if(stringBuilder.length()>0) {
                                 HashMap<String,ItemFavorites> tweetIdStringsInFavorites = InternalDB.getTweetInterfaceInstance(getContext()).getStarFavoriteDataForAUsersTweets(stringBuilder.toString());
+
 
                                 if(tweetIdStringsInFavorites.size()>0) {
                                     for(Tweet tweet : mDataSet) {

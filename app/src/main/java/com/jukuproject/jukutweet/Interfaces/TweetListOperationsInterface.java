@@ -75,4 +75,6 @@ public interface TweetListOperationsInterface {
             ,ColorThresholds colorThresholds
             ,int totalCountLimit
             ,double topbottomThreshold);
+
+//    int getUserCreatedTweetListCount();
 }

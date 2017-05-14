@@ -35,7 +35,7 @@ public class TweetParser {
     private HashMap<String, String> VerbChunksAndPositions = new HashMap<>();
     private ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence;
     private final int minKanjiLengthtoSplit = 2; //Smallest # of characters in a kanji combo for the kanji breakup builder to try splitting
-
+//    private int possibleAvailableUserListCount;
     public static TweetParser getInstance() {
         return new TweetParser();
     }
@@ -49,7 +49,7 @@ public class TweetParser {
         this.entireSentence = entireSentence;
         this.mColorThresholds = colorThresholds;
         this.wordLoader = InternalDB.getInstance(mContext).getWordLists();
-
+//        possibleAvailableUserListCount = InternalDB.getWordInterfaceInstance(mContext).getUserCreatedWordListCount();
         possibleKanjiInSentence = findCoreKanjiBlocksInSentence(entireSentence,wordLoader,spansToExclude);
         if(BuildConfig.DEBUG){
             Log.d(TAG, "whole sentence: " + entireSentence);

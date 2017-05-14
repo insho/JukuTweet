@@ -42,16 +42,20 @@ import java.util.Random;
 
 import static com.jukuproject.jukutweet.Fragments.FlashCardsFragment.setTextHeightLoop;
 
-/**
- * Created by JClassic on 3/31/2017.
- */
 
+/**
+ * Multiple choice quiz, running in {@link com.jukuproject.jukutweet.QuizActivity}. Quiz is based on "mDataset", a
+ * list of WordEntry objects (compiled in the MainActivity from a word list, tweet list, or singe user's saved tweets).
+ *
+ * @see com.jukuproject.jukutweet.MainActivity#goToQuizActivityMultipleChoice(int, MyListEntry, Integer, String, String, String, String)
+ * @see com.jukuproject.jukutweet.MainActivity#goToSingleUserQuizActivityMultipleChoice(int, UserInfo, Integer, String, String, String, String)
+ */
 public class MultipleChoiceFragment extends Fragment {
 
     String TAG = "Test-quizmultchoice";
     QuizFragmentInteractionListener mCallback;
-    ArrayList<WordEntry> mDataset;
-    String mQuizType;
+    ArrayList<WordEntry> mDataset; // Word entries that will be quizzed on
+    String mQuizType; //Relationship between question and answer (i.e. "Kanji to Kana", "Kanji to Definition" etc);
     Integer mQuizSize;
     Integer mQuizTimer;
     double mTotalWeight;
@@ -61,7 +65,7 @@ public class MultipleChoiceFragment extends Fragment {
     boolean mSingleUser;
     String mColorString;
     WordEntry currentCorrectAnswer;
-    ArrayList<WordEntry> questionSet;
+    ArrayList<WordEntry> questionSet; //set of word entries for the current question (5 incorrect WordEntries and 1 Correct one from the mDataset)
 
 
     TextView txtQuestion;
@@ -73,9 +77,6 @@ public class MultipleChoiceFragment extends Fragment {
 
     CountDownTimer coundDownTimer;
     long millstogo; //milliseconds left on the timer
-//    static Integer timer;
-
-
     int currentTotal = 0; //CURRENT number of questions asked
     int currentCorrect = 0; //CURRENT number of correct answers
     int currentPlusMinus = 0; // CURRENT plusminus of correct answers
@@ -269,15 +270,16 @@ public class MultipleChoiceFragment extends Fragment {
                 wrongAnswerIds = new ArrayList<>();
             }
 
-                    /* Get next question from wordEntry pool, and add it as the
-         first question of the set */
+
+            /* Get next question from wordEntry pool, and add it as the
+            first question of the set */
 
             currentCorrectAnswer = getRandomWordEntry(mDataset, mTotalWeight, previousId);
             previousId = currentCorrectAnswer.getId();
             questionSet.add(currentCorrectAnswer);
 
 
-                    /* Get a set of word entries to fill out the rest of the options in the multiple choice grid */
+            /* Get a set of word entries to fill out the rest of the options in the multiple choice grid */
 
             questionSet.addAll(getIncorrectAnswerSet(getContext()
                     , mMyListType
@@ -544,10 +546,12 @@ public class MultipleChoiceFragment extends Fragment {
                         break;
                 }
 
-                Log.d(TAG, "currentCorrectAnswer.getId() " + currentCorrectAnswer.getId());
-                Log.d(TAG, "correct " + correct);
-                Log.d(TAG, "hashmapResult " + hashmapResult);
-                Log.d(TAG, "currentTotal " + currentTotal);
+                if(BuildConfig.DEBUG) {
+                    Log.d(TAG, "currentCorrectAnswer.getId() " + currentCorrectAnswer.getId());
+                    Log.d(TAG, "correct " + correct);
+                    Log.d(TAG, "hashmapResult " + hashmapResult);
+                    Log.d(TAG, "currentTotal " + currentTotal);
+                }
 
 
                 questionResults.add(new MultChoiceResult(currentCorrectAnswer, correct, hashmapResult, currentTotal));
@@ -644,7 +648,7 @@ public class MultipleChoiceFragment extends Fragment {
         /*If the user has chosen difficult incorrect answers setting, break up the kanji/furigana correct answer
          into pieces, search for words that contain those pieces, and user these as the incorrect answers. This will
          result in incorrect answers that are more difficult to solve. */
-
+        Log.i(TAG,"DIFFICULTE ANSWERS: " + SharedPrefManager.getInstance(mContext).getmDifficultAnswers());
         if (SharedPrefManager.getInstance(mContext).getmDifficultAnswers() && (!quizType.equals("Kanji to Definition"))) { //If we are choosing comparable answers and the answers are either 1: kanji to furigana, or 2: furigana to kanji
 
             Log.d("TEST-multchoice","DIFFICULT ANSWER WORD BREAKUP");
@@ -710,9 +714,9 @@ public class MultipleChoiceFragment extends Fragment {
                 incorrectAnswerSet = InternalDB.getTweetInterfaceInstance(mContext).getWordsFromATweetList(mMyListEntry, colorThresholds, colorString, correctWordEntry.getId(), randomMaxRelatedEntries);
             }
         } else {
-
+            int randomMaxRelatedEntries = new Random().nextInt(6 - 1) + 1;
             if(BuildConfig.DEBUG){Log.d("TEST-multchoice","pulling regular word incorrect answers from DB");}
-                incorrectAnswerSet = InternalDB.getWordInterfaceInstance(mContext).getWordsFromAWordList(mMyListEntry, colorThresholds, colorString, correctWordEntry.getId(), 5);
+                incorrectAnswerSet = InternalDB.getWordInterfaceInstance(mContext).getWordsFromAWordList(mMyListEntry, colorThresholds, colorString, correctWordEntry.getId(), randomMaxRelatedEntries);
         }
 
         if(BuildConfig.DEBUG){Log.d("Test-multchoice","Initial pull wrong answer size: "+ incorrectAnswerSet.size());}
@@ -750,7 +754,6 @@ public class MultipleChoiceFragment extends Fragment {
     }
 
 
-    //TODO -- COMBINE THIS SHIT
     public static String getSelectedItemsAsString(ArrayList<String> list) {
         StringBuilder sb = new StringBuilder();
         boolean foundOne = false;
@@ -765,22 +768,6 @@ public class MultipleChoiceFragment extends Fragment {
         return sb.toString();
     }
 
-//    @Override
-//    public void onActivityCreated(Bundle savedInstanceState) {
-//        super.onActivityCreated(savedInstanceState);
-//        ...
-//        if (savedInstanceState != null) {
-//            //Restore the fragment's state here
-//        }
-//    }
-//
-//    @Override
-//    public void onSaveInstanceState(Bundle outState) {
-//        super.onSaveInstanceState(outState);
-//
-//        //Save the fragment's state here
-//
-//    }
 
     @Override
     public void onAttach(Context context) {

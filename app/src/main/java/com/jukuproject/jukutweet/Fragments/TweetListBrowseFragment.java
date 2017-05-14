@@ -21,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Adapters.BrowseTweetsAdapter;
+import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.CopySavedTweetsDialog;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
@@ -127,7 +128,7 @@ public class TweetListBrowseFragment extends Fragment {
         /*If orientation changed and some rows were selected before activity restarts,
          show the browse menu when activity is recreated */
         if(mSelectedEntries != null && mSelectedEntries.size()>0) {
-            mCallback.showMenuMyListBrowse(true,1);
+            showMenuMyListBrowse(true);
         }
 
         setUpAdapter();
@@ -166,24 +167,24 @@ public class TweetListBrowseFragment extends Fragment {
 
                                 if (!mSelectedEntries.contains(tweet_id)) {
                                     if (mSelectedEntries.size() == 0) {
-                                        mCallback.showMenuMyListBrowse(true,1);
-                                        Log.d(TAG, "showing menu");
+                                        showMenuMyListBrowse(true);
+                                        if(BuildConfig.DEBUG){Log.d(TAG, "showing menu");};
                                     }
-                                    Log.d(TAG, "selected adding: " + tweet_id);
+                                    if(BuildConfig.DEBUG){Log.d(TAG, "selected adding: " + tweet_id);};
                                     mSelectedEntries.add(tweet_id);
-                                    Log.d(TAG, "selected size: " + mSelectedEntries.size());
+                                    if(BuildConfig.DEBUG){Log.d(TAG, "selected size: " + mSelectedEntries.size());};
 
                                 } else {
                                     mSelectedEntries.remove(tweet_id);
-                                    Log.d(TAG, "selected removing: " + tweet_id);
-                                    Log.d(TAG, "selected size: " + mSelectedEntries.size());
-
-
+                                    if(BuildConfig.DEBUG){
+                                        Log.d(TAG, "selected removing: " + tweet_id);
+                                        Log.d(TAG, "selected size: " + mSelectedEntries.size());
+                                    }
                                 }
 
                                 if (mSelectedEntries.size() == 0) {
-                                    mCallback.showMenuMyListBrowse(false,1);
-                                    Log.d(TAG, "hiding menu");
+                                    showMenuMyListBrowse(false);
+                                    if(BuildConfig.DEBUG){Log.d(TAG, "hiding menu");}
                                 }
 
                             } else if(event instanceof Tweet) {
@@ -211,21 +212,6 @@ public class TweetListBrowseFragment extends Fragment {
         }
 
     }
-
-//    /**
-//     * Toggles between showing recycler (if there are followed users in the database)
-//     * and hiding the recycler while showing the "no users found" message if there are not
-//     * @param show bool True to show recycler, False to hide it
-//     */
-//    private void showRecyclerView(boolean show) {
-//        if(show) {
-//            mRecyclerView.setVisibility(View.VISIBLE);
-////            mNoLists.setVisibility(View.GONE);
-//        } else {
-//            mRecyclerView.setVisibility(View.GONE);
-////            mNoLists.setVisibility(View.VISIBLE);
-//        }
-//    }
 
     public void showCopyTweetsDialog(){
         if(getActivity().getSupportFragmentManager().findFragmentByTag("dialogCopyTweet") == null || !getActivity().getSupportFragmentManager().findFragmentByTag("dialogCopyTweet").isAdded()) {
@@ -286,10 +272,15 @@ public class TweetListBrowseFragment extends Fragment {
                 helperTweetOps.addMultipleTweetsToTweetList(entry,tweetIds);
             }
             if(move) {
+                Toast.makeText(getContext(), "Items moved successfully", Toast.LENGTH_SHORT).show();
                 removeTweetFromList(tweetIds,currentList);
+            } else {
+                Toast.makeText(getContext(), "Items copied successfully", Toast.LENGTH_SHORT).show();
+
             }
+
             deselectAll();
-            mCallback.showMenuMyListBrowse(false,1);
+            showMenuMyListBrowse(false);
         } catch (NullPointerException e) {
             Log.e(TAG,"Nullpointer in WordListBrowseFragment saveAndUpdateMyLists : " + e);
             Toast.makeText(getContext(), "Unable to update lists", Toast.LENGTH_SHORT).show();
@@ -320,7 +311,6 @@ public class TweetListBrowseFragment extends Fragment {
 
     public void removeTweetFromList(){
         try {
-//            Log.i(TAG, "BOOzzzzz: " + mMyListEntry.getListName() + ", " + mMyListEntry.getListsSys());
 
             final String tweetIds = joinSelectedStrings(mSelectedEntries);
 
@@ -432,6 +422,14 @@ public class TweetListBrowseFragment extends Fragment {
         popupWindow.showAtLocation(mRecyclerView, Gravity.BOTTOM, 0, (int)(metrics.heightPixels / (float)9.5));
     }
 
+
+    private void showMenuMyListBrowse(boolean show) {
+        if(mUserInfo!=null) {
+            mCallback.showMenuMyListBrowse(show,0);
+        } else if(mMyListEntry!=null) {
+            mCallback.showMenuMyListBrowse(show,1);
+        }
+    }
 
     @Override
     public void onDestroy() {

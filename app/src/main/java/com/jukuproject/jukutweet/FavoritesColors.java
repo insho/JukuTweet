@@ -41,6 +41,10 @@ public class FavoritesColors {
             return R.color.colorJukuRed;
         } else if(preferenceFavorites.contains("Yellow") && itemFavorites.getSystemYellowCount() > 0) {
             return R.color.colorJukuYellow;
+        } else if(preferenceFavorites.contains("Purple") && itemFavorites.getSystemPurpleCount() > 0) {
+            return R.color.colorJukuPurple;
+        } else if(preferenceFavorites.contains("Orange") && itemFavorites.getSystemOrangeCount() > 0) {
+            return R.color.colorJukuOrange;
         } else {
             return android.R.color.black;
         }

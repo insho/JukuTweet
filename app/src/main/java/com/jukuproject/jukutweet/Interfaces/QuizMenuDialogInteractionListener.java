@@ -48,4 +48,6 @@ public interface QuizMenuDialogInteractionListener {
             , Integer currentExpandedPosition
             , String quizSize
             , String selectedColorString);
+
+    void showFab(boolean show);
 }

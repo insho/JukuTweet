@@ -3,7 +3,6 @@ package com.jukuproject.jukutweet.Fragments;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.LinearLayoutManager;
@@ -30,7 +29,6 @@ import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface;
 import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
-import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
@@ -42,9 +40,14 @@ import java.util.ArrayList;
 
 import rx.functions.Action1;
 
-//import static com.jukuproject.jukutweet.Adapters.ChooseFavoritesAdapter.setAppCompatCheckBoxColors;
-
-
+/**
+ * Search tab, allowing user to search Edict dictionary (offline), or Twitter API (online). Dictionary search
+ * can be on a Kanji, romaji, or definition, and will return a list of WordEntry objects like those in {@link TweetBreakDownFragment}. User
+ * can add them to a list by clicking on the favorites star or long click for {@link WordDetailPopupDialog}.
+ *
+ * Twitter API search can be for a Twitter User (in which case the results will be a list of {@link UserInfo} objects akin to the {@link UserListFragment}),
+ * or for text contained in a Tweet, in which case the result set will be a list of {@link Tweet} objects like in {@link UserTimeLineFragment}.
+ */
 public class SearchFragment extends Fragment implements WordEntryFavoritesChangedListener {
     FragmentInteractionListener mCallback;
 
@@ -55,37 +58,47 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
 
     private TextView mNoLists;
     private RecyclerView mRecyclerView;
-//    private LinearLayout searchtoplayout;
     private ProgressBar progressBar;
-//    private TextView nothingfound;
-    AppCompatCheckBox checkBoxRomaji;
-    AppCompatCheckBox checkBoxDefinition;
-    AppCompatCheckBox checkBoxTwitter;
-    AppCompatCheckBox checkBoxDictionary;
-    SearchView searchView;
-    String currentSearchText;
+    private AppCompatCheckBox checkBoxRomaji;
+    private AppCompatCheckBox checkBoxDefinition;
+    private AppCompatCheckBox checkBoxTwitter;
+    private AppCompatCheckBox checkBoxDictionary;
+    private SearchView searchView;
+    private String currentSearchText;
 
-    String mCheckedOption;
-    ArrayList<WordEntry> mDictionaryResults;
-    ArrayList<Tweet> mTwitterResults;
-    ArrayList<UserInfo> mTwitterUserResults;
-    DisplayMetrics mMetrics;
+    private String mCheckedOption;
+    private ArrayList<WordEntry> mDictionaryResults;
+    private ArrayList<Tweet> mTwitterResults;
+    private ArrayList<UserInfo> mTwitterUserResults;
+    private DisplayMetrics mMetrics;
 
-    ColorThresholds mColorThresholds;
-    ArrayList<String> mActiveFavoriteStars;
-    ArrayList<String> mActiveTweetFavoriteStars;
-    LinearLayout mDictionarySearchLayout;
-    TweetBreakDownAdapter mDictionaryAdapter;
-    UserTimeLineAdapter mTwitterAdapter;
+    private ArrayList<String> mActiveFavoriteStars;
+    private ArrayList<String> mActiveTweetFavoriteStars;
+    private LinearLayout mDictionarySearchLayout;
+    private TweetBreakDownAdapter mDictionaryAdapter;
+    private UserTimeLineAdapter mTwitterAdapter;
+    private boolean mIsShowingProgressBar;
 
     private final String TAG = "TEST-searchfrag";
     private View mDividerView;
+
     public SearchFragment() {}
 
     public static SearchFragment newInstance() {
         return new SearchFragment();
     }
 
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        try {
+            mCallback = (FragmentInteractionListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()
+                    + " must implement OnHeadlineSelectedListener");
+        }
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater,
@@ -95,7 +108,6 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
         mDictionarySearchLayout = (LinearLayout) view.findViewById(R.id.searchOnOptionLayout);
         mRecyclerView = (RecyclerView) view.findViewById(R.id.search_recycler);
         progressBar = (ProgressBar) view.findViewById(R.id.progressbar);
-//        searchtoplayout = (LinearLayout) view.findViewById(R.id.searchtoplayout);
         checkBoxTwitter = (AppCompatCheckBox) view.findViewById(R.id.checkBoxTwitter);
         checkBoxDictionary = (AppCompatCheckBox) view.findViewById(R.id.checkBoxDictionary);
         checkBoxRomaji = (AppCompatCheckBox) view.findViewById(R.id.checkBoxRomaji);
@@ -115,24 +127,50 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(mMetrics);
 
         SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(getContext());
-        mColorThresholds = sharedPrefManager.getColorThresholds();
         mActiveTweetFavoriteStars = SharedPrefManager.getInstance(getContext()).getActiveTweetFavoriteStars();
         mActiveFavoriteStars = sharedPrefManager.getActiveFavoriteStars();
 
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-//        setAppCompatCheckBoxColors(checkBoxDictionary, ContextCompat.getColor(getContext(), android.R.color.black), ContextCompat.getColor(getContext(), android.R.color.black));
-//        setAppCompatCheckBoxColors(checkBoxRomaji, ContextCompat.getColor(getContext(), android.R.color.black), ContextCompat.getColor(getContext(), android.R.color.black));
-//        setAppCompatCheckBoxColors(checkBoxDefinition, ContextCompat.getColor(getContext(), android.R.color.black), ContextCompat.getColor(getContext(), android.R.color.black));
-//        setAppCompatCheckBoxColors(checkBoxTwitter, ContextCompat.getColor(getContext(), android.R.color.black), ContextCompat.getColor(getContext(), android.R.color.black));
 
-        mCheckedOption = "Romaji";
-        mDictionarySearchLayout.setVisibility(View.VISIBLE);
-        checkBoxDictionary.setChecked(true);
-        checkBoxRomaji.setChecked(true);
-        checkBoxDefinition.setChecked(false);
-        checkBoxTwitter.setChecked(false);
+        //If saved instance state is not null, run the adapter...
+        if(savedInstanceState!=null) {
+            try {
+                mCheckedOption = savedInstanceState.getString("mCheckedOption","Romaji");
+                if(mCheckedOption.equals("Twitter")) {
+                    mTwitterResults = savedInstanceState.getParcelableArrayList("mTwitterResults");
+                    receiveTwitterSearchResults(mTwitterResults,currentSearchText);
+                } else if(mCheckedOption.equals("Definition")) {
+                    mDictionaryResults = savedInstanceState.getParcelableArrayList("mDictionaryResults");
+                    recieveDictionarySearchResults(mDictionaryResults);
+                }
+
+                /* If the activity was destroyed and recreated during an ongoing search, show the progress bar
+                * when activity recreates itself */
+                mIsShowingProgressBar = savedInstanceState.getBoolean("mIsShowingProgressBar");
+                if(mIsShowingProgressBar) {
+                    showProgressBar(true);
+                }
+            } catch (NullPointerException e) {
+                mCheckedOption = "Romaji";
+                mDictionarySearchLayout.setVisibility(View.VISIBLE);
+                checkBoxDictionary.setChecked(true);
+                checkBoxRomaji.setChecked(true);
+                checkBoxDefinition.setChecked(false);
+                checkBoxTwitter.setChecked(false);
+                Log.e(TAG,"Nullpointer exception in loading saved state on search fragment");
+            }
+
+        } else {
+            mCheckedOption = "Romaji";
+            mDictionarySearchLayout.setVisibility(View.VISIBLE);
+            checkBoxDictionary.setChecked(true);
+            checkBoxRomaji.setChecked(true);
+            checkBoxDefinition.setChecked(false);
+            checkBoxTwitter.setChecked(false);
+        }
+
 
         checkBoxDictionary.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -152,7 +190,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    mCheckedOption = "Romaji";
+//                    mCheckedOption = "Romaji";
                     checkBoxDefinition.setChecked(false);
                 } else if(!checkBoxDefinition.isChecked()){
                     checkBoxRomaji.setChecked(true);
@@ -215,6 +253,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
             @Override
             public boolean onQueryTextSubmit(String query) {
 
+                /* Check to make sure the query is valid. If so, run the query. */
                 if(query.trim().length()>25) {
                     Toast.makeText(getContext(), getString(R.string.searchquerytoolong), Toast.LENGTH_LONG).show();
                 }else if(query.trim().length()==0) {
@@ -269,34 +308,10 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
         });
 
 
-        //If saved instance state is not null, run the adapter...
-        if(savedInstanceState!=null) {
-            try {
-                mCheckedOption = savedInstanceState.getString("mCheckedOption","Romaji");
-                if(mCheckedOption.equals("Twitter")) {
-                    Log.e(TAG,"running not null fuckin' twitterresults");
-                    mTwitterResults = savedInstanceState.getParcelableArrayList("mTwitterResults");
 
-                    recieveTwitterSearchResults(mTwitterResults,currentSearchText);
-                } else {
-                    Log.e(TAG,"running not null fuckin' dictionary results");
-                    mDictionaryResults = savedInstanceState.getParcelableArrayList("mDictionaryResults");
-                    recieveDictionarySearchResults(mDictionaryResults);
-                }
-            } catch (NullPointerException e) {
-                Log.e(TAG,"Nullpointer exception in loading saved state on search fragment");
-            }
 
-        }
+
     }
-
-    @Override
-    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
-        super.onViewStateRestored(savedInstanceState);
-//        updateAdapter();
-    }
-
-
 
 
     /**
@@ -313,19 +328,16 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
             progressBar.setVisibility(View.GONE);
             mNoLists.setVisibility(View.VISIBLE);
         }
+
     }
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        try {
-            mCallback = (FragmentInteractionListener) context;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString()
-                    + " must implement OnHeadlineSelectedListener");
-        }
-    }
 
+    /**
+     * Recieves dictionary search results from MainActivity and displays them in the recycler view.
+     * When user searches, the search criteria are passed from this fragment to {@link com.jukuproject.jukutweet.MainActivity#runDictionarySearch(String, String)} subscription. When
+     * the search finishes, results are passed back to the fragment via this method.
+     * @param results List of WordEntry results for a dictionary search.
+     */
     public void recieveDictionarySearchResults(ArrayList<WordEntry> results) {
         showRecyclerView(true);
         showProgressBar(false);
@@ -352,7 +364,6 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
             rxBus.toLongClickObserverable().subscribe(new Action1<Object>() {
                 @Override
                 public void call(Object event) {
-
                     if (event instanceof WordEntry) {
                         WordEntry wordEntry = (WordEntry) event;
                         WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(wordEntry);
@@ -362,16 +373,20 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                 }
             });
 
-
-
             mRecyclerView.setAdapter(mDictionaryAdapter);
-//            mRecyclerView.setVerticalScrollBarEnabled(true);
         } else {
             showRecyclerView(false);
         }
     }
 
-    public void recieveTwitterSearchResults(ArrayList<Tweet> results,String queryText) {
+
+    /**
+     * Recieves twitter search results from MainActivity and displays them in the recycler view.
+     * When user searches, the search criteria are passed from this fragment to {@link com.jukuproject.jukutweet.MainActivity#runTwitterSearch(String, String)} subscription. When
+     * the search finishes, results are passed back to the fragment via this method.
+     * @param results List of Tweet results for a twitter search.
+     */
+    public void receiveTwitterSearchResults(ArrayList<Tweet> results, String queryText) {
         showRecyclerView(true);
         showProgressBar(false);
         if(results.size()>0) {
@@ -395,9 +410,6 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                                 TweetBreakDownFragment fragment = TweetBreakDownFragment.newInstanceTimeLine(tweet);
                                 ((BaseContainerFragment)getParentFragment()).addFragment(fragment, true,"tweetbreakdownSearch");
                             }
-
-
-
 
                         }
 
@@ -438,25 +450,26 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
 
                     }
 
-
-
-
                 }
 
             });
-
             mRecyclerView.setAdapter(mTwitterAdapter);
-//            mRecyclerView.setVerticalScrollBarEnabled(true);
         } else {
             showRecyclerView(false);
         }
     }
 
-    public void recieveTwitterUserSearchResults(ArrayList<UserInfo> results) {
-
+    /**
+     * Receives twitter search results from MainActivity and displays them in the recycler view.
+     * When user searches, the search criteria are passed from this fragment to {@link com.jukuproject.jukutweet.MainActivity#runTwitterSearch(String, String)} subscription. When
+     * the search finishes, results are passed back to the fragment via this method.
+     * @param results List of Tweet results for a twitter search.
+     */
+    public void receiveTwitterUserSearchResults(ArrayList<UserInfo> results) {
 
         showRecyclerView(true);
         showProgressBar(false);
+
         if(results.size()>0) {
             mTwitterUserResults = results;
 
@@ -479,28 +492,28 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                         }
 
                     });
-
-
             mRecyclerView.setAdapter(listAdapter);
-//            mRecyclerView.setVerticalScrollBarEnabled(true);
         } else {
             showRecyclerView(false);
         }
     }
 
+    /**
+     * Show/hide progress bar while search is active but unfinished
+     * @param show true to show progress bar, false to hide
+     */
     public void showProgressBar(boolean show){
         if(show) {
+            mIsShowingProgressBar = true;
             progressBar.setVisibility(View.VISIBLE);
             mDividerView.setVisibility(View.GONE);
 
         } else {
+            mIsShowingProgressBar = false;
             progressBar.setVisibility(View.GONE);
             mDividerView.setVisibility(View.VISIBLE);
         }
     }
-//    public void recieveSearchResults(ArrayList<Tweet> results) {
-//
-//    }
 
     /**
      * Checks how many milliseconds have elapsed since the last time "mLastClickTime" was updated
@@ -527,7 +540,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
 
         if(mDictionaryResults!=null ) {
             for(WordEntry tweetWordEntry : mDictionaryResults) {
-                if(tweetWordEntry.getId()==wordEntry.getId()) {
+                if(tweetWordEntry.getId().equals(wordEntry.getId())) {
 
                     tweetWordEntry.setItemFavorites(wordEntry.getItemFavorites());
                 }
@@ -535,6 +548,41 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
             mDictionaryAdapter.notifyDataSetChanged();
         }
 
+    }
+
+    public void updateWordEntryItemFavorites(ArrayList<WordEntry> updatedWordEntries) {
+
+        if(mDictionaryResults!=null ) {
+            for(WordEntry dataSetWordEntry : mDictionaryResults) {
+                for(WordEntry updatedWordEntry : updatedWordEntries ) {
+                    if(dataSetWordEntry.getId().equals(updatedWordEntry.getId())) {
+                        dataSetWordEntry.setItemFavorites(updatedWordEntry.getItemFavorites());
+                    }
+                }
+            }
+            mDictionaryAdapter.notifyDataSetChanged();
+        }
+    }
+
+    /**
+     * Verifies if this fragment is showing some search results or not. When user clicks "onBackPressed"
+     * if there are search results, activate {@link #showRecyclerView(boolean)} to false, otherwise pop the fragment and exit the app
+     * @return true if there are active search results to clear, false if not
+     */
+    public boolean clearSearchResults() {
+        if(mRecyclerView!= null
+                && mRecyclerView.getAdapter()!=null
+                && mRecyclerView.getAdapter().getItemCount()>0
+                && mRecyclerView.getVisibility()==View.VISIBLE) {
+            mRecyclerView.setVisibility(View.GONE);
+            progressBar.setVisibility(View.GONE);
+            mNoLists.setVisibility(View.GONE);
+            searchView.setQuery("",false);
+            searchView.clearFocus();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {
@@ -546,14 +594,10 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
         super.onSaveInstanceState(outState);
 
         outState.putString("mCheckedOption", mCheckedOption);
-//        if(mCheckedOption.equals("Twitter")) {
-            outState.putParcelableArrayList("mTwitterResults", mTwitterResults);
-//        } else {
-            outState.putParcelableArrayList("mDictionaryResults", mDictionaryResults);
-//        }
-
+        outState.putParcelableArrayList("mTwitterResults", mTwitterResults);
+        outState.putParcelableArrayList("mDictionaryResults", mDictionaryResults);
         outState.putParcelableArrayList("mTwitterUserResults",mTwitterUserResults);
-
+        outState.putBoolean("mIsShowingProgressBar",mIsShowingProgressBar);
 
     }
 

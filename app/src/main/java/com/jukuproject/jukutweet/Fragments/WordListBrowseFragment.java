@@ -275,6 +275,21 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
                     ,null
                     ,null);
 
+            /*Notify other tabs that a word has been removed.
+            * If there is only one word, update the lists for that word entry. If
+            * there are more, however, (Because there could be hundreds), have the tabs update themselves entirely
+            */
+            if(mSelectedEntries.size()==1) {
+                for(WordEntry wordEntry : mWords) {
+                    if(wordEntry.getId().equals(mSelectedEntries.get(0))) {
+                        updateWordEntryFavoritesForOtherTabs(wordEntry);
+                    }
+                }
+
+            } else {
+                mCallback.notifySavedWordFragmentsChanged(getSelectedIntsAsString(mSelectedEntries));
+            }
+
             mSelectedEntries.clear();
             mAdapter.swapDataSet(mWords,mSelectedEntries);
         } catch (NullPointerException e) {
@@ -285,6 +300,8 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
             Toast.makeText(getContext(), "Unable to delete entries", Toast.LENGTH_SHORT).show();
         }
     }
+
+
 
     /**
      * Deletes selected items from the dataset and updates adapter, when User has clicked on the trash icon. Activated
@@ -299,9 +316,24 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
                     ,"'Grey','Red','Yellow','Green'"
                     ,null
                     ,null);
+
+
+            if(mSelectedEntries.size()==1) {
+                for(WordEntry wordEntry : mWords) {
+                    if(wordEntry.getId().equals(mSelectedEntries.get(0))) {
+                        updateWordEntryFavoritesForOtherTabs(wordEntry);
+                    }
+                }
+
+            } else {
+                mCallback.notifySavedWordFragmentsChanged(getSelectedIntsAsString(mSelectedEntries));
+            }
+
             mSelectedEntries.clear();
             mAdapter.swapDataSet(mWords,mSelectedEntries);
             showUndoPopup(kanjiString,mMyListEntry);
+
+
         } catch (NullPointerException e) {
             Log.e(TAG,"Nullpointer in WordListBrowseFragment removeKanjiFromList : " + e);
             Toast.makeText(getContext(), "Unable to delete entries", Toast.LENGTH_SHORT).show();
@@ -350,6 +382,18 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
                             ,"'Grey','Red','Yellow','Green'"
                             ,null
                             ,null);
+
+                    if(mSelectedEntries.size()==1) {
+                        for(WordEntry wordEntry : mWords) {
+                            if(wordEntry.getId().equals(mSelectedEntries.get(0))) {
+                                updateWordEntryFavoritesForOtherTabs(wordEntry);
+                            }
+                        }
+
+                    } else {
+                        mCallback.notifySavedWordFragmentsChanged(getSelectedIntsAsString(mSelectedEntries));
+                    }
+
                     mSelectedEntries.clear();
                     mAdapter.swapDataSet(mWords,mSelectedEntries);
 
@@ -381,22 +425,40 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
      * @param wordEntry WordEntry whose "FavoriteItems" object was updated (i.e. the favorite star was clicked and changed in the adapter)
      */
     public void updateWordEntryItemFavorites(WordEntry wordEntry) {
-        if(mWords.contains(wordEntry)) {
-            if(!InternalDB.getWordInterfaceInstance(getContext()).myListContainsWordEntry(mMyListEntry,wordEntry)) {
-                //If the word that appeared in the popup window no longer is contained in this list, remove it
-                mWords.remove(wordEntry);
-                if(mWords.size()==0) {
-                    //Kick the user back to the main menu if the word that was removed was the last word in the list
-                    mCallback.onBackPressed();
+        boolean wordExistsinList = InternalDB.getWordInterfaceInstance(getContext()).myListContainsWordEntry(mMyListEntry,wordEntry);
+        boolean wordEntryFound = false;
+        for(WordEntry datasetWordEntry : mWords) {
+            if(datasetWordEntry.getId().equals(wordEntry.getId())) {
+                wordEntryFound = true;
+                if(!wordExistsinList) {
+                    //If the word that appeared in the popup window no longer is contained in this list, remove it
+                    mWords.remove(datasetWordEntry);
+                    if(mWords.size()==0) {
+                        //Kick the user back to the main menu if the word that was removed was the last word in the list
+                        mCallback.onBackPressed();
+                    } else {
+                        //Remove word entry from selected entries if applicable
+                        if(mSelectedEntries.contains(datasetWordEntry.getId())) {
+                            mSelectedEntries.remove(datasetWordEntry.getId());
+                        }
+                        if(mSelectedEntries.size()==0) {
+                            mCallback.showMenuMyListBrowse(false,2);
+                        }
+
+                        mAdapter.notifyDataSetChanged();
+                    }
                 } else {
+                    mWords.get(mWords.indexOf(wordEntry)).setItemFavorites(wordEntry.getItemFavorites());
                     mAdapter.notifyDataSetChanged();
                 }
-            } else {
-                mWords.get(mWords.indexOf(wordEntry)).setItemFavorites(wordEntry.getItemFavorites());
-                mAdapter.notifyDataSetChanged();
+
             }
-        } else {
-            Log.e(TAG,"Dataset doesn't contain word entry y'all...");
+        }
+
+        //If no word entry was found in the list and the word should be there, add the word to the list
+        if(wordExistsinList && !wordEntryFound) {
+            mWords.add(wordEntry);
+            mAdapter.notifyDataSetChanged();
         }
     }
 

@@ -163,6 +163,10 @@ public class MenuHeader implements  Parcelable,Parent<MenuChild> {
                 return R.color.colorJukuGreen;
             case "Yellow":
                 return R.color.colorJukuYellow;
+            case "Purple":
+                return R.color.colorJukuPurple;
+            case "Orange":
+                return R.color.colorJukuOrange;
             default:
                 return android.R.color.black;
         }
@@ -190,8 +194,14 @@ public class MenuHeader implements  Parcelable,Parent<MenuChild> {
         this.systemList = in.readByte() != 0;
         this.myListEntry = in.readParcelable(MyListEntry.class.getClassLoader());
         this.isExpanded = in.readByte() != 0;
+        menuChildren = new ArrayList<>();
+//        in.readTypedList(mStringList,MyString.CREATOR);
+//         in.readArrayList(MenuChild.class.getClassLoader());
+        in.readTypedList(menuChildren, MenuChild.CREATOR);
+//        this.menuChildren = in.readArrayList(MenuChild.class.getClassLoader());
 
-        this.menuChildren = in.readArrayList(MenuChild.class.getClassLoader());
+        this.userInfo = in.readParcelable(UserInfo.class.getClassLoader());
+
     }
 
     public int describeContents(){
@@ -211,8 +221,9 @@ public class MenuHeader implements  Parcelable,Parent<MenuChild> {
         dest.writeByte((byte) (this.systemList ? 1 : 0));
         dest.writeParcelable(this.myListEntry,flags);
         dest.writeByte((byte) (this.isExpanded ? 1 : 0));
-
-        dest.writeList(this.menuChildren);
+        dest.writeTypedList(this.menuChildren);
+        dest.writeParcelable(this.userInfo,flags);
+//        dest.(this.menuChildren);
     }
 
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {

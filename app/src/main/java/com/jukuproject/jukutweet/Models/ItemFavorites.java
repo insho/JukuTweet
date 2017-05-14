@@ -19,6 +19,7 @@ public class ItemFavorites implements Parcelable {
     private int systemOrangeCount;
     private int userListCount;
 
+
     //TODO explain this, we can't include inactive favorites so set them to 0...
     public ItemFavorites(int systemBlueCount
             , int systemRedCount
@@ -43,8 +44,23 @@ public class ItemFavorites implements Parcelable {
         this.systemGreenCount = 0;
         this.systemPurpleCount = 0;
         this.systemOrangeCount = 0;
-
         this.userListCount = 0;
+    }
+
+    /**
+     *
+     * @param userListCount
+     * @see  com.jukuproject.jukutweet.Fragments.UserTimeLineFragment
+     */
+    public ItemFavorites(int userListCount) {
+        this.systemBlueCount = 0;
+        this.systemRedCount = 0;
+        this.systemYellowCount = 0;
+        this.systemGreenCount = 0;
+        this.systemPurpleCount = 0;
+        this.systemOrangeCount = 0;
+
+        this.userListCount = userListCount;
 
     }
 
@@ -143,13 +159,7 @@ public class ItemFavorites implements Parcelable {
      * more than one system list that includes the entry.
      * @return true if should open the favorites popup, false to toggle
      */
-//    public boolean shouldOpenFavoritePopup(){
-//        if(userListCount > 0 || getSystemBlueCount() + getSystemRedCount() + getSystemGreenCount() + getSystemYellowCount() > 1 ) {
-//            return true;
-//        } else {
-//            return false;
-//        }
-//    }
+
     public boolean shouldOpenFavoritePopup(ArrayList<String> activeFavoriteLists){
         int totalcount = 0;
         if(activeFavoriteLists.contains("Blue") && getSystemBlueCount() >0){
@@ -173,10 +183,10 @@ public class ItemFavorites implements Parcelable {
             totalcount += 1;
         }
 
-        if(userListCount > 0 || totalcount > 1 ) {
-            return true;
-        } else {
+        if(userListCount==0 && totalcount<=1) {
             return false;
+        } else {
+            return true;
         }
     }
 
