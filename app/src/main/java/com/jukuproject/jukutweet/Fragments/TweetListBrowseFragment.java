@@ -4,7 +4,6 @@ import android.content.Context;
 import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.util.Pair;
@@ -136,13 +135,22 @@ public class TweetListBrowseFragment extends Fragment {
 
     }
 
-    @Override
-    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
-        super.onViewStateRestored(savedInstanceState);
+//    @Override
+//    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+//        super.onViewStateRestored(savedInstanceState);
+//
+//        //TODO Put something in place to repull data on resume...
+//    }
 
-        //TODO Put something in place to repull data on resume...
+    public void updateMyListAdapter() {
+        if (mMyListEntry != null) {
+            mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mMyListEntry,mColorThresholds);
+            setUpAdapter();
+        } else if(mUserInfo != null) {
+            mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mUserInfo,mColorThresholds);
+            setUpAdapter();
+        }
     }
-
 
     public void setUpAdapter(){
 
@@ -264,6 +272,111 @@ public class TweetListBrowseFragment extends Fragment {
             mAdapter.notifyDataSetChanged();
         }
     }
+//
+//    public void addTweetOrUpdateTweetEntryItemFavorites(Tweet updatedTweet) {
+//        boolean tweetExistsinList = InternalDB.getTweetInterfaceInstance(getContext()).myListContainsTweet(mMyListEntry,updatedTweet);
+//        boolean tweetEntryFound = false;
+//
+//        Log.i(TAG,"ADDING TWEET EXISTS DEAL: " + tweetExistsinList);
+//        for(Tweet datasetTweetEntry : mDataset) {
+//            if(datasetTweetEntry.getIdString().equals(updatedTweet.getIdString())) {
+//                tweetEntryFound = true;
+//                if(!tweetExistsinList) {
+//                    //If the word that appeared in the popup window no longer is contained in this list, remove it
+//                    Log.i(TAG,"dataset removing tweet in browse tweets yo");
+//                    mDataset.remove(datasetTweetEntry);
+//                    if(mDataset.size()==0) {
+//                        //Kick the user back to the main menu if the word that was removed was the last word in the list
+//                        mCallback.onBackPressed();
+//                    } else {
+//                        //Remove word entry from selected entries if applicable
+//                        if(mSelectedEntries.contains(datasetTweetEntry.getIdString())) {
+//                            mSelectedEntries.remove(datasetTweetEntry.getIdString());
+//                        }
+//                        if(mSelectedEntries.size()==0) {
+//                            if(mUserInfo!=null) {
+//                                mCallback.showMenuMyListBrowse(false,0);
+//                            } else {
+//                                mCallback.showMenuMyListBrowse(false,1);
+//                            }
+//                        }
+//
+//                        mAdapter.notifyDataSetChanged();
+//                    }
+//                } else {
+//                    datasetTweetEntry.setItemFavorites(updatedTweet.getItemFavorites());
+//                    mAdapter.notifyDataSetChanged();
+//                }
+//
+//            }
+//        }
+//
+//        //If no word entry was found in the list and the word should be there, add the word to the list
+//        if(tweetExistsinList && !tweetEntryFound) {
+//            mDataset.add(updatedTweet);
+//            mAdapter.notifyDataSetChanged();
+//        }
+//    }
+
+
+//    public void addTweetOrUpdateTweetEntryItemFavorites(String concatenatedTweetIds) {
+////        for(Tweet updatedTweet : updatedTweets) {
+//
+//
+////            Log.i(TAG,"ADD OR UPDATE: " + updatedTweets.size() + ", tweetExistsinList: " + tweetExistsinList  );
+//            for(Tweet datasetTweetEntry : mDataset) {
+//                boolean tweetEntryFound = false;
+//                if(concatenatedTweetIds.equals(datasetTweetEntry.getIdString()) || concatenatedTweetIds.contains(datasetTweetEntry.getIdString())) {
+//                    tweetEntryFound = true;
+//
+//                    boolean tweetExistsinList = InternalDB.getTweetInterfaceInstance(getContext()).myListContainsTweet(mMyListEntry,datasetTweetEntry.getIdString());
+//                    Log.i(TAG,"HEEERE");
+//
+//                    if(!tweetExistsinList) {
+//                        Log.i(TAG,"HEEERE2");
+//                        //If the word that appeared in the popup window no longer is contained in this list, remove it
+//                        mDataset.remove(datasetTweetEntry);
+//                        if(mDataset.size()==0) {
+//                            //Kick the user back to the main menu if the word that was removed was the last word in the list
+//                            mCallback.onBackPressed();
+//                        } else {
+//                            //Remove word entry from selected entries if applicable
+//                            if(mSelectedEntries.contains(datasetTweetEntry.getIdString())) {
+//                                mSelectedEntries.remove(datasetTweetEntry.getIdString());
+//                            }
+//                            if(mSelectedEntries.size()==0) {
+//                                if(mUserInfo!=null) {
+//                                    mCallback.showMenuMyListBrowse(false,0);
+//                                } else {
+//                                    mCallback.showMenuMyListBrowse(false,1);
+//                                }
+//                            }
+//
+//                            mAdapter.notifyDataSetChanged();
+//                        }
+//                    } else {
+//                        Tweet updatedTweet = InternalDB.getTweetInterfaceInstance(getContext()).getTweetFromATweetId(datasetTweetEntry.getIdString(),mColorThresholds);
+//                        datasetTweetEntry.setItemFavorites(updatedTweet.getItemFavorites());
+//                        mAdapter.notifyDataSetChanged();
+//                    }
+//
+//                }
+//
+//                //If no word entry was found in the list and the word should be there, add the word to the list
+//                if(!tweetEntryFound) {
+//                    boolean tweetExistsinList = InternalDB.getTweetInterfaceInstance(getContext()).myListContainsTweet(mMyListEntry,datasetTweetEntry.getIdString());
+//                    Tweet updatedTweet = InternalDB.getTweetInterfaceInstance(getContext()).getTweetFromATweetId(datasetTweetEntry.getIdString(),mColorThresholds);
+//                    if(tweetExistsinList) {
+//                        mDataset.add(updatedTweet);
+//                    }
+//                }
+//        }
+//
+//
+////        }
+//        mAdapter.notifyDataSetChanged();
+//
+//    }
 
     public void saveAndUpdateTweets(String tweetIds,ArrayList<MyListEntry> listsToCopyTo, boolean move,MyListEntry currentList) {
         TweetListOperationsInterface helperTweetOps = InternalDB.getTweetInterfaceInstance(getContext());
@@ -275,6 +388,7 @@ public class TweetListBrowseFragment extends Fragment {
                 Toast.makeText(getContext(), "Items moved successfully", Toast.LENGTH_SHORT).show();
                 removeTweetFromList(tweetIds,currentList);
             } else {
+                mCallback.notifySavedTweetFragmentsChanged();
                 Toast.makeText(getContext(), "Items copied successfully", Toast.LENGTH_SHORT).show();
 
             }
@@ -295,9 +409,24 @@ public class TweetListBrowseFragment extends Fragment {
     public void removeTweetFromList(String bulkTweetIds, MyListEntry currentList){
         try {
             InternalDB.getTweetInterfaceInstance(getContext()).removeMultipleTweetsFromTweetList(bulkTweetIds,currentList);
+
+
             mSelectedEntries.clear();
             mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mMyListEntry,mColorThresholds);
             mAdapter.swapDataSet(mDataset);
+
+
+//            if(mSelectedEntries.size()==1) {
+//                for(Tweet tweet : mDataset) {
+//                    if(tweet.getIdString().equals(mSelectedEntries.get(0))) {
+//                        mCallback.notifySavedTweetFragmentsChanged(tweet.getIdString());
+//                    }
+//                }
+//
+//            } else {
+                mCallback.notifySavedTweetFragmentsChanged();
+//            }
+
         } catch (NullPointerException e) {
             Log.e(TAG,"Nullpointer in TweetListBrowseFragment removeTweetFromList : " + e);
             Toast.makeText(getContext(), "Unable to delete entries", Toast.LENGTH_SHORT).show();
@@ -311,8 +440,23 @@ public class TweetListBrowseFragment extends Fragment {
 
     public void removeTweetFromList(){
         try {
-
+        Log.i(TAG,"HEEREE IN removeTweetFromList");
             final String tweetIds = joinSelectedStrings(mSelectedEntries);
+
+
+//            if(mSelectedEntries.size()==1) {
+//                Log.i(TAG,"HEEREE IN x");
+//
+//                for(Tweet tweet : mDataset) {
+//                    Log.i(TAG,"HEEREE IN y");
+//                    if(tweet.getIdString().equals(mSelectedEntries.get(0))) {
+//                        mCallback.notifySavedTweetFragmentsChanged(tweet.getIdString());
+//                    }
+//                }
+//
+//            } else {
+
+//            }
 
             if(mMyListEntry!=null) {
                 InternalDB.getTweetInterfaceInstance(getContext()).removeMultipleTweetsFromTweetList(tweetIds,mMyListEntry);
@@ -321,6 +465,10 @@ public class TweetListBrowseFragment extends Fragment {
                 mSingleUserUndoPairs = InternalDB.getTweetInterfaceInstance(getContext()).removeTweetsFromAllTweetLists(tweetIds);
                 mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mUserInfo,mColorThresholds);
             }
+
+
+
+            mCallback.notifySavedTweetFragmentsChanged();
 
             mSelectedEntries.clear();
             mAdapter.swapDataSet(mDataset);
@@ -386,6 +534,31 @@ public class TweetListBrowseFragment extends Fragment {
                         mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mUserInfo,mColorThresholds);
 
                     }
+
+
+//                    if(mSelectedEntries.size()==1) {
+//                        for(Tweet tweet : mDataset) {
+//                            if(tweet.getIdString().equals(mSelectedEntries.get(0))) {
+//                                mCallback.notifySavedTweetFragmentsChanged(tweet.getIdString());
+//                            }
+//                        }
+//
+//                    } else {
+                        mCallback.notifySavedTweetFragmentsChanged();
+//                    }
+
+//                    if(mSelectedEntries.size()==1) {
+//                        for(WordEntry wordEntry : mWords) {
+//                            if(wordEntry.getId().equals(mSelectedEntries.get(0))) {
+//                                updateWordEntryFavoritesForOtherTabs(wordEntry);
+//                            }
+//                        }
+//
+//                    } else {
+//                        mCallback.notifySavedWordFragmentsChanged(getSelectedIntsAsString(mSelectedEntries));
+//                    }
+
+
 
                     mSelectedEntries.clear();
                     mAdapter.swapDataSet(mDataset);

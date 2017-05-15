@@ -38,7 +38,6 @@ import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
 
 /**
@@ -164,8 +163,8 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
             mUserInfo = savedInstanceState.getParcelable("mUserInfo");
             mSingleUser = savedInstanceState.getBoolean("mSingleUser",false);
             currentDataSetindex = savedInstanceState.getInt("currentDataSetindex",0);
-            //Randomize the dataset
-            Collections.shuffle(mDataset);
+//            //Randomize the dataset
+//            Collections.shuffle(mDataset);
         } else {
             mDataset = getArguments().getParcelableArrayList("dataset");
             mQuizSize = Integer.parseInt(getArguments().getString("quizSize"));
@@ -188,6 +187,12 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
             }
         });
 
+//        for(int i=0;i<mDataset.size();i++) {
+//            for(WordEntry wordEntry : mDataset.get(i).getWordEntries()) {
+//                Log.i(TAG,"TWEET (" + i + ") " + wordEntry.getKanji() + ", spinner: " + wordEntry.isSpinner());
+//            }
+//        }
+
         //Set up tweet and spinners
         setUpQuestion(mDataset.get(currentDataSetindex));
     }
@@ -196,7 +201,7 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
 
 
     public void setUpQuestion(Tweet tweet) {
-
+//        Log.i(TAG,"Setting up question with current index: " + currentDataSetindex);
         String sentence = tweet.getText();
         ArrayList<WordEntry> disectedSavedTweet = tweet.getWordEntries();
 
@@ -478,6 +483,7 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
         spinner.setMinimumWidth(spinnerWidth);
         spinner.setLayoutParams(new ViewGroup.LayoutParams(spinnerWidth, ViewGroup.LayoutParams.WRAP_CONTENT));
 
+        Log.i(TAG,"spinnerdata: " + wordEntry.getKanji() + ", " + spinnerData.hasBeenAnswered() + ", " + spinnerData.isCorrect());
         if (spinnerData.hasBeenAnswered()) {
             if(spinnerData.isCorrect()) {
 
@@ -488,7 +494,6 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
 //                spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spinner.setAdapter(spinnerArrayAdapter);
                 spinner.setClickable(false);
-                //TODO set the current selected item to be spinnerData.getselecteditem
             } else {
 //                ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(getContext(), R.layout.spinneritem_red, spinnerData.getOptions()); //selected item will look like a spinner set from XML
 
@@ -497,9 +502,13 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
                 spinner.setAdapter(spinnerArrayAdapter);
                 spinner.setMinimumWidth(spinnerWidth);
                 spinner.setLayoutParams(new ViewGroup.LayoutParams(spinnerWidth, ViewGroup.LayoutParams.WRAP_CONTENT));
-
+                if(spinnerData.getSelectedOption()!=null) {
+                    spinner.setSelection(spinnerData.getOptions().indexOf(spinnerData.getSelectedOption()));
+                }
                 spinner.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorJukuRed));
                 spinner.setOnItemSelectedListener(spinnerSelectedListener(wordEntry));
+
+
 //                Log.d(TAG,"spinnerwidth: " + spinnerWidth);
 //                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(spinnerWidth, ViewGroup.LayoutParams.WRAP_CONTENT);
 //                params.weight = 1.0f;
@@ -507,52 +516,28 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
 //                spinner.setLayoutParams(params);
             }
 
+
         } else {
 
             ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item, spinnerData.getOptions()); //selected item will look like a spinner set from XML
             spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinner.setAdapter(spinnerArrayAdapter);
-            spinnerData.setSelectedOption(spinnerData.getOptions().get(0));
+
+            if(spinnerData.getSelectedOption()!=null) {
+                spinner.setSelection(spinnerData.getOptions().indexOf(spinnerData.getSelectedOption()));
+            } else {
+                spinnerData.setSelectedOption(spinnerData.getOptions().get(0));
+            }
+
             Log.d(TAG,"spinner option selected: " + spinnerData.getOptions().get(0));
 
             spinner.setOnItemSelectedListener(spinnerSelectedListener(wordEntry));
 
-//            spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-//                                                  @Override
-//                                                  public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-//                                                      wordEntry.getFillinSentencesSpinner().setSelectedOption(wordEntry.getFillinSentencesSpinner().getOptions().get(position));
-//
-//                                                      /*If the word has already been answered wrongly, and the user changes the answer
-//                                                      to the correct one, automatically score the tweet again without them having to
-//                                                      click the score button */
-//                                                      if(BuildConfig.DEBUG) {
-//                                                          Log.i(TAG,"corekanji block: " + wordEntry.getCoreKanjiBlock());
-//                                                          Log.i(TAG,"isselected option: " + wordEntry.getFillinSentencesSpinner().getSelectedOption());
-//                                                          Log.i(TAG,"isCorrectFirstTry: " + wordEntry.getFillinSentencesSpinner().isCorrectFirstTry());
-//                                                      }
-//
-//                                                      if(wordEntry.getCoreKanjiBlock() != null && !wordEntry.getFillinSentencesSpinner().isCorrectFirstTry() && wordEntry.getCoreKanjiBlock().equals(wordEntry.getFillinSentencesSpinner().getSelectedOption())) {
-//                                                          scoreTheSpinners();
-//                                                      }
-//
-//                                                  }
-//
-//                                                  @Override
-//                                                  public void onNothingSelected(AdapterView<?> parent) {
-//
-//                                                  }
-//                                              }
-//            );
-//            Log.d(TAG,"spinnerwidth2: " + spinnerWidth);
-
-//            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(spinnerWidth, ViewGroup.LayoutParams.WRAP_CONTENT);
-//            params.weight = 1.0f;
-//            params.gravity = Gravity.BOTTOM;
-//            spinner.setLayoutParams(params);
             spinner.setMinimumWidth(spinnerWidth);
             spinner.setLayoutParams(new ViewGroup.LayoutParams(spinnerWidth, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         }
+
 
         linearLayoutHorizontalLine.addView(spinner);
         currentLineWidth = currentLineWidth + spinnerWidth;
@@ -724,7 +709,7 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
 
     public void moveToNextQuestion() {
 
-        currentDataSetindex +=1;
+        currentDataSetindex += 1;
         //Move to stats if we have reached the end of the quiz
         if(redundentQuestionCounter>4) {
             //Kick back to main menu
@@ -743,11 +728,11 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
                             ,currentTotal);
                 }
 
-            } else {
+        } else {
                 txtQuestionNumber.setText((currentTotal +1) + "/" + mQuizSize);
                 redundentQuestionCounter += 1;
                 setUpQuestion(mDataset.get(currentDataSetindex));
-            }
+        }
 
     }
 

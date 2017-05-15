@@ -422,7 +422,10 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                         @Override
                         public void onClick(View textView) {
                             if(isUniqueClick(150)) {
-                                WordDetailPopupDialog.newInstance(wordEntry).show(getFragmentManager(),"wordDetailPopup");
+
+                                WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(wordEntry);
+                                wordDetailPopupDialog.setTargetFragment(TweetBreakDownFragment.this, 0);
+                                wordDetailPopupDialog.show(getFragmentManager(),"wordDetailPopup");
                             }
                         }
 
@@ -455,7 +458,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                                                       public void call(Object event) {
                                                           if (isUniqueClick(150) && event instanceof WordEntry) {
                                                               WordEntry wordEntry = (WordEntry) event;
-                                                              updateWordEntryItemFavorites(wordEntry);
+//                                                              updateWordEntryItemFavorites(wordEntry);
 
                                                               updateWordEntryFavoritesForOtherTabs(wordEntry);
                                                           }
@@ -621,20 +624,22 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                     if(tweetWordEntry.getId().equals(updatedWordEntry.getId())) {
                                 if(BuildConfig.DEBUG) {
             Log.i(TAG,"updateWordEntryItemFavorites SUPER match found: " + updatedWordEntry.getKanji()
-                    + ", favs: " + updatedWordEntry.getItemFavorites().getSystemBlueCount());
+                    + ", favs: " + updatedWordEntry.getItemFavorites().getSystemBlueCount() );
         }
                         tweetWordEntry.setItemFavorites(updatedWordEntry.getItemFavorites());
+                        mAdapter.notifyItemChanged(mTweet.getWordEntries().indexOf(tweetWordEntry));
                     }
                 }
             }
         }
 
         Log.i(TAG,"updateWordEntryItemFavorites MULTI Notifying dataset changed...");
+
         mAdapter.notifyDataSetChanged();
     }
 
     public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {
-        mCallback.notifySavedWordFragmentsChanged(wordEntry);
+        mCallback.notifySavedWordFragmentsChanged(String.valueOf(wordEntry.getId()));
 
     }
     @Override

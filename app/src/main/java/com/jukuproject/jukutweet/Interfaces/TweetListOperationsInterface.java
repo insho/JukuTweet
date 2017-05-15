@@ -76,5 +76,7 @@ public interface TweetListOperationsInterface {
             ,int totalCountLimit
             ,double topbottomThreshold);
 
+    Boolean myListContainsTweet(MyListEntry myListEntry, String tweetid);
+    public Tweet getTweetFromATweetId(String tweetId, ColorThresholds colorThresholds);
 //    int getUserCreatedTweetListCount();
 }

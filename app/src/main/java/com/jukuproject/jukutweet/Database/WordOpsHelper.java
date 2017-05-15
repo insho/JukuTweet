@@ -297,6 +297,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
      */
     public ArrayList<MyListEntry> getWordListsForAWord(ArrayList<String> activeFavoriteStars
             , String concatenatedWordIds
+            , int countOfWordIds
             , @Nullable MyListEntry entryToExclude) {
         ArrayList<MyListEntry> myListEntries = new ArrayList<>();
         SQLiteDatabase db = sqlOpener.getWritableDatabase();
@@ -305,7 +306,9 @@ public class WordOpsHelper implements WordListOperationsInterface {
             //Except for if a certain favorite list exists that we do not want to include (as occurs in the mylist copy dialog)
             Cursor c = db.rawQuery("Select [Lists].[Name] "    +
                     ",[Lists].[Sys] "    +
-                    ",(Case when UserEntries.Name is null then 0 else 1 END) as SelectionLevel "    +
+                    ",(Case when UserEntries.Name is null then 0 " +
+                                " WHEN UserEntries.UserCount > 0 AND UserEntries.UserCount < " + countOfWordIds + " THEN 2 " +
+                                " else 1 END) as SelectionLevel "    +
                     " "    +
                     "from "    +
                     "( "    +

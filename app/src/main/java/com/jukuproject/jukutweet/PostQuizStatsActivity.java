@@ -103,6 +103,7 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
             mQuizPostQuizStatsPagerAdapter = new PostQuizStatsPagerAdapter(getSupportFragmentManager(),mAdapterTitles,fragments);
             mUserInfo = savedInstanceState.getParcelable("mUserInfo");
             mSingleUser = savedInstanceState.getBoolean("mSingleUser");
+            mLastExpandedPosition = savedInstanceState.getInt("mLastExpandedPosition",mLastExpandedPosition);
         } else {
             //Get the intent from the options menu, with the pertinent data
             Intent mIntent = getIntent();
@@ -176,12 +177,17 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
             mAdapterTitles = new String[]{"Score","Stats"};
             updateTabs(mAdapterTitles);
 
-            // Set the title
-            try {
+        }
+
+        // Set the title
+        try {
+            if(mSingleUser) {
+                showActionBarBackButton(true,mUserInfo.getDisplayScreenName());
+            } else {
                 showActionBarBackButton(true,mMyListEntry.getListName());
-            } catch (Exception e) {
-                showActionBarBackButton(true,"");
             }
+        } catch (Exception e) {
+            showActionBarBackButton(true,"");
         }
 
         setUpTheFab(typeOfQuizThatWasCompleted,mSingleUser);
@@ -806,6 +812,7 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
         outState.putBoolean("mIsTweetListQuiz",mIsTweetListQuiz);
         outState.putParcelable("mUserInfo",mUserInfo);
         outState.putBoolean("mSingleUser",mSingleUser);
+        outState.putInt("mLastExpandedPosition",mLastExpandedPosition);
 
     }
 

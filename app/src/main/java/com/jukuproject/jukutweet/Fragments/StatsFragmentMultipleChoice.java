@@ -119,24 +119,26 @@ public class StatsFragmentMultipleChoice extends Fragment implements WordEntryFa
 
                         if(isUniqueClick(100) && event instanceof WordEntry) {
                             WordEntry wordEntry = (WordEntry) event;
-                            WordDetailPopupDialog.newInstance(wordEntry).show(getFragmentManager(),"wordDetailPopup");
+                            WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(wordEntry);
+                            wordDetailPopupDialog.setTargetFragment(StatsFragmentMultipleChoice.this, 0);
+                            wordDetailPopupDialog.show(getFragmentManager(),"wordDetailPopup");
+
                         }
 
                     }
 
                 });
 
-        //TODO replace with string vars
         if(mQuizType != null && mQuizType.equals("WordBuilder")) {
             if(mIsHighScore) {
                 topscoreLayout.setBackgroundColor(ContextCompat.getColor(getActivity(), android.R.color.holo_green_light));
-                textScore.setText("High Score! " + mWordBuilderScore);
+                textScore.setText(getString(R.string.statsfrag_multchoice_wordbuilder_highscore, mWordBuilderScore));
             } else {
                 topscoreLayout.setBackgroundColor(ContextCompat.getColor(getActivity(), android.R.color.holo_orange_light));
-                textScore.setText("Total: " + mWordBuilderScore);
+                textScore.setText(getString(R.string.statsfrag_multchoice_wordbuilder_total, mWordBuilderScore));
             }
             if(mDataset!=null) {
-                textPercentage.setText("Unique: " + mDataset.size());
+                textPercentage.setText(getString(R.string.statsfrag_multchoice_wordbuilder_unique, mDataset.size()));
             }
 
         } else {
@@ -152,13 +154,9 @@ public class StatsFragmentMultipleChoice extends Fragment implements WordEntryFa
                     topscoreLayout.setBackgroundColor(ContextCompat.getColor(getActivity(), android.R.color.holo_green_light));
                 }
 
-//                Log.d(TAG,"mCorrect: " + mCorrect);
-//                Log.d(TAG,"mPercentage: " + percentage);
-
-                //TODO replace with string vars
                 textScore.setText(String.valueOf(mCorrect) + "/" + String.valueOf(mTotal));
-                String txtpercentage =   String.valueOf((int)percentage) + "%";
-                textPercentage.setText(txtpercentage);
+//                String txtpercentage =   String.valueOf((int)percentage) + "%";
+                textPercentage.setText(getString(R.string.percentage,(int)percentage));
 
 
             } catch (Exception e) {

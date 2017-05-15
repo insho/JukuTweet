@@ -435,7 +435,7 @@ public class UserTimeLineFragment extends Fragment {
 
                     //Try to insert Kanji if they do not already exist
                     if(helperTweetOps.tweetParsedKanjiExistsInDB(tweet) == 0) {
-                        Log.d(TAG,"SAVING TWEET KANJI");
+//                        Log.d(TAG,"SAVING TWEET KANJI");
 //                                        final WordLoader wordLoader = helper.getWordLists(db);
                         mCallback.parseAndSaveTweet(tweet);
                     } else {

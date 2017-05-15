@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Parcel;
 import android.util.Log;
 
 import com.jukuproject.jukutweet.BuildConfig;
@@ -347,7 +348,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                     ,String.valueOf(wordEntry.getId())});
 
 
-            Log.i(TAG,"USER INFO CCOUNT RANDOM: " + c.getCount() + ", for word: " + wordEntry.getKanji());
+//            Log.i(TAG,"USER INFO CCOUNT RANDOM: " + c.getCount() + ", for word: " + wordEntry.getKanji());
             if(c.getCount()>0) {
                 c.moveToFirst();
                 while (!c.isAfterLast()) {
@@ -638,11 +639,18 @@ public class QuizOpsHelper implements QuizOperationsInterface {
             /* If there are not enough unique results to fill out the quiz size, start doubling the
             * savedTweets until there are enough entries, and then shuffle them. */
             if(savedTweets.size()>0) {
-                ArrayList<Tweet> tmpSavedTweets = new ArrayList<>(savedTweets);
+
                 while (savedTweets.size()<resultLimit) {
+                    ArrayList<Tweet> tmpSavedTweets = new ArrayList<>(savedTweets);
                     Collections.shuffle(tmpSavedTweets);
-                    setRandomSpinnersForTweet(tmpSavedTweets.get(0),db,myListEntry,"Tweet");
-                    savedTweets.add(tmpSavedTweets.get(0));
+                    //Create deep copy of Tweet via parcel
+                    Parcel p = Parcel.obtain();
+                    p.writeValue(tmpSavedTweets.get(0));
+                    p.setDataPosition(0);
+                    Tweet randomTweet = (Tweet)p.readValue(Tweet.class.getClassLoader());
+                    p.recycle();
+                    setRandomSpinnersForTweet(randomTweet,db,myListEntry,"Tweet");
+                    savedTweets.add(randomTweet);
                 }
             }
 
@@ -929,12 +937,24 @@ public class QuizOpsHelper implements QuizOperationsInterface {
             /* If there are not enough unique results to fill out the quiz size, start doubling the
             * savedTweets until there are enough entries, and then shuffle them. */
                 if(savedTweets.size()>0) {
-                    ArrayList<Tweet> tmpSavedTweets = new ArrayList<>(savedTweets);
+
                     while (savedTweets.size()<resultLimit) {
 
+                        ArrayList<Tweet> tmpSavedTweets = new ArrayList<>(savedTweets);
                         Collections.shuffle(tmpSavedTweets);
-                        setRandomSpinnersForTweet(tmpSavedTweets.get(0),db,userInfo);
-                        savedTweets.add(tmpSavedTweets.get(0));
+
+                        //Create deep copy of Tweet via parcel
+                        Parcel p = Parcel.obtain();
+                        p.writeValue(tmpSavedTweets.get(0));
+                        p.setDataPosition(0);
+                        Tweet randomTweet = (Tweet)p.readValue(Tweet.class.getClassLoader());
+                        p.recycle();
+
+                        ArrayList<WordEntry> randomWordEntries = new ArrayList<>(randomTweet.getWordEntries());
+                        randomTweet.setWordEntries(randomWordEntries);
+                        setRandomSpinnersForTweet(randomTweet,db,userInfo);
+                        savedTweets.add(randomTweet);
+
                     }
                 }
             } else {
@@ -947,6 +967,9 @@ public class QuizOpsHelper implements QuizOperationsInterface {
         } finally {
             db.close();
         }
+
+
+
         return savedTweets;
     }
 
@@ -1314,12 +1337,20 @@ public class QuizOpsHelper implements QuizOperationsInterface {
             /* If there are not enough unique results to fill out the quiz size, start doubling the
             * savedTweets until there are enough entries, and then shuffle them. */
                 if(savedTweets.size()>0) {
-                    ArrayList<Tweet> tmpSavedTweets = new ArrayList<>(savedTweets);
-                    while (savedTweets.size()<resultLimit) {
 
+                    while (savedTweets.size()<resultLimit) {
+                        ArrayList<Tweet> tmpSavedTweets = new ArrayList<>(savedTweets);
                         Collections.shuffle(tmpSavedTweets);
-                        setSpinnersForTweetWithMyListWords(db,"Word",myListEntry,tmpSavedTweets.get(0),possibleSpinners);
-                        savedTweets.add(tmpSavedTweets.get(0));
+
+                        //Create deep copy of Tweet via parcel
+                        Parcel p = Parcel.obtain();
+                        p.writeValue(tmpSavedTweets.get(0));
+                        p.setDataPosition(0);
+                        Tweet randomTweet = (Tweet)p.readValue(Tweet.class.getClassLoader());
+                        p.recycle();
+
+                        setSpinnersForTweetWithMyListWords(db,"Word",myListEntry,randomTweet,possibleSpinners);
+                        savedTweets.add(randomTweet);
                     }
                 }
             } else {if(BuildConfig.DEBUG) {Log.d(TAG,"c.getcount was 0!!");}}
@@ -1433,14 +1464,22 @@ public class QuizOpsHelper implements QuizOperationsInterface {
      * @param tweet The tweet in question
      */
     public int setRandomSpinnersForTweet(Tweet tweet, SQLiteDatabase db,UserInfo userInfo) {
+
+        /* Reset spinner info in case the same tweet is put through this twice (if there were not
+        * enough tweets to round out the quiz number, they are recyclerd and passed through this again) */
+        for(WordEntry wordEntry : tweet.getWordEntries()) {
+            if(wordEntry.getFillinSentencesSpinner()!=null) {
+                wordEntry.setSpinner(false);
+                wordEntry.getFillinSentencesSpinner().resetSpinnerInformation();
+            }
+        }
+
         ArrayList<WordEntry> wordEntries = tweet.getWordEntries();
         int spinnerAddedCount = 0;
 
-
-
         /* Determine maxiumum number of spinners that can be added to the tweet, from 1 - 3,
-        with a 50% chance of 1, 40% chance of 2 and a 10 % chance of 3*/
-        int[] possibleSpinnerLimits = new int[]{1,1,1,1,1,2,2,2,2,3};
+        with a 60% chance of 1, 30% chance of 2 and a 10 % chance of 3*/
+        int[] possibleSpinnerLimits = new int[]{1,1,1,1,1,1,2,2,2,3};
         int spinnerLimit = possibleSpinnerLimits[(new Random()).nextInt(possibleSpinnerLimits.length)];
 
         /* Pick random kanji from the wordEntries list to be spinners (with maximum of the spinner limit)*/
@@ -1449,12 +1488,11 @@ public class QuizOpsHelper implements QuizOperationsInterface {
 
         for(int i=0;i<shuffledEntries.size() && spinnerAddedCount<spinnerLimit;i++) {
 
-                if(BuildConfig.DEBUG){Log.d(TAG,"setting word spinner TRUE " + wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))).getKanji());}
+//                if(BuildConfig.DEBUG){Log.d(TAG,"setting word spinner TRUE " + wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))).getKanji());}
 
             ArrayList<String> arrayOptions = getDummySpinnerOptions(db
                     ,userInfo
                     ,wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))));
-            if(BuildConfig.DEBUG){Log.d(TAG,"getDummySpinnerOptions COMPELETE... - " + arrayOptions.size());};
 
             if(arrayOptions.size()>0) {
                 wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))).setSpinner(true);
@@ -1463,22 +1501,11 @@ public class QuizOpsHelper implements QuizOperationsInterface {
             }
         }
 
-//        for(int i=0;i<wordEntries.size() && spinnerAddedCount<spinnerLimit;i++) {
-//
-//
-//            ArrayList<String> arrayOptions = getDummySpinnerOptions(db
-//                    ,userInfo
-//                    ,wordEntries.get(i));
-//            if(arrayOptions.size()>0) {
-//                wordEntries.get(i).setSpinner(true);
-//                wordEntries.get(i).getFillinSentencesSpinner().setOptions(arrayOptions);
-//                spinnerAddedCount += 1;
-//            }
-//        }
+
 
         if(BuildConfig.DEBUG) {
             for(WordEntry wordEntry :wordEntries) {
-                Log.d(TAG,"randomspinner wordentries: " + wordEntry.getKanji());
+                Log.d(TAG,"randomspinner wordentries: " + wordEntry.getKanji() + ", spinner: " + wordEntry.isSpinner());
             }
         }
         Log.i(TAG,"spinner limit: " + spinnerLimit + ", Spinner count! - " + spinnerAddedCount);
@@ -1494,11 +1521,19 @@ public class QuizOpsHelper implements QuizOperationsInterface {
         ArrayList<WordEntry> wordEntries = tweet.getWordEntries();
         int spinnerAddedCount = 0;
 
+        /* Reset spinner info in case the same tweet is put through this twice (if there were not
+        * enough tweets to round out the quiz number, they are recyclerd and passed through this again) */
+        for(WordEntry wordEntry : wordEntries) {
+            if(wordEntry.getFillinSentencesSpinner()!=null) {
+                wordEntry.setSpinner(false);
+                wordEntry.getFillinSentencesSpinner().resetSpinnerInformation();
+            }
+        }
 
 
         /* Determine maxiumum number of spinners that can be added to the tweet, from 1 - 3,
-        with a 50% chance of 1, 40% chance of 2 and a 10 % chance of 3*/
-        int[] possibleSpinnerLimits = new int[]{1,1,1,1,1,2,2,2,2,3};
+        with a 60% chance of 1, 30% chance of 2 and a 10 % chance of 3*/
+        int[] possibleSpinnerLimits = new int[]{1,1,1,1,1,1,2,2,2,3};
         int spinnerLimit = possibleSpinnerLimits[(new Random()).nextInt(possibleSpinnerLimits.length)];
 
         /* Pick random kanji from the wordEntries list to be spinners (with maximum of the spinner limit)*/
@@ -1524,7 +1559,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
 
         for(int i=0;i<shuffledEntries.size() && spinnerAddedCount<spinnerLimit;i++) {
 
-            if(BuildConfig.DEBUG){Log.d(TAG,"setting word spinner TRUE " + wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))).getKanji());}
+//            if(BuildConfig.DEBUG){Log.d(TAG,"setting word spinner TRUE " + wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))).getKanji());}
 
             ArrayList<String> arrayOptions = getDummySpinnerOptions(db
                     ,myListEntry
@@ -1539,11 +1574,11 @@ public class QuizOpsHelper implements QuizOperationsInterface {
         }
 
 
-        if(BuildConfig.DEBUG) {
-            for(WordEntry wordEntry :wordEntries) {
-                Log.d(TAG,"randomspinner wordentries: " + wordEntry.getKanji());
-            }
-        }
+//        if(BuildConfig.DEBUG) {
+//            for(WordEntry wordEntry :wordEntries) {
+//                Log.d(TAG,"randomspinner wordentries: " + wordEntry.getKanji());
+//            }
+//        }
         Log.i(TAG,"spinner limit: " + spinnerLimit + ", Spinner count! - " + spinnerAddedCount);
         return spinnerAddedCount;
     }

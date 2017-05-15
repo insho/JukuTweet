@@ -57,6 +57,7 @@
 
     <string name="menuchildviewtimeline">Timeline</string>
     <string name="menuchildviewsavedtweets">Saved Tweets</string>
+    <string name="wordDetailPopup_SearchTwitter">Search Twitter</string>
 
 
     <string name="nolistsfound">No lists found. Click the star to create a list, or enable one of the default lists in the user preferences.</string>
@@ -92,6 +93,11 @@
     <string name="searchinputtexttosearch">Input some text to search</string>
     <string name="searchchoosecriteria">Choose search criteria (Romaji or Definition)</string>
     <string name="searchalphanumericsonly">Search with alphanumeric characters only</string>
+
+
+    <string name="statsfrag_multchoice_wordbuilder_highscore">High Score! %1$d</string>
+    <string name="statsfrag_multchoice_wordbuilder_total">Total: %1$d</string>
+    <string name="statsfrag_multchoice_wordbuilder_unique">Unique: %1$d</string>
 
 
     <string name="exitquiz">Exit Quiz?</string>

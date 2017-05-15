@@ -21,6 +21,7 @@ import android.widget.ImageButton;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.ChooseFavoriteListsPopupWindow;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.FavoritesColors;
@@ -187,13 +188,15 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                         //If tweet doesn't already exist in db, insert it
                         if(helperTweetOps.tweetExistsInDB(currentTweet) == 0){
                             //Otherwise enter the tweet into the database and then toggle
-                            Log.d(TAG,"createdAt: " + currentTweet.getCreatedAt() + ", db insert: " + currentTweet.getDatabaseInsertDate());
+                            if(BuildConfig.DEBUG) {
+                                Log.d(TAG,"createdAt: " + currentTweet.getCreatedAt() + ", db insert: " + currentTweet.getDatabaseInsertDate());
+                            }
                             int addTweetResultCode = helperTweetOps.saveTweetToDB(mDataset.get(holder.getAdapterPosition()).getUser(),currentTweet);
 //                            Log.d(TAG,"addTweetResultCode: " + addTweetResultCode);
                             if(addTweetResultCode < 0) {
-                                //TODO handle error -- can't insert tweet
+                                Log.e(TAG,"UserTimeline Adapter CAN'T SAVE TWEET!");
                             } else {
-                                Log.e(TAG,"saving TWEET:" + mDataset.get(holder.getAdapterPosition()).getText());
+                                Log.d(TAG,"saving TWEET:" + mDataset.get(holder.getAdapterPosition()).getText());
                                 /*DB insert successfull, now send callback to fragment and run observable to add
                                  urls for the tweet to database, as well as parse the kanji (in observable) and add those to database */
                                 _rxbus.sendSaveTweet(mDataset.get(holder.getAdapterPosition()));

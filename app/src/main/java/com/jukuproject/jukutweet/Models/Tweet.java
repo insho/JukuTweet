@@ -406,6 +406,8 @@ public class Tweet  implements Parcelable {
 //        this.wordEntries = in.readArrayList(WordEntry.class.getClassLoader());
         wordEntries = new ArrayList<>();
             in.readTypedList(wordEntries,WordEntry.CREATOR);
+
+        this.user = in.readParcelable(UserInfo.class.getClassLoader());
     }
 
     public int describeContents(){
@@ -439,6 +441,8 @@ public class Tweet  implements Parcelable {
         dest.writeParcelable(this.entities,flags);
 //        dest.writeList(this.wordEntries);
         dest.writeTypedList(this.wordEntries);
+
+        dest.writeParcelable(this.user,flags);
     }
 
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {

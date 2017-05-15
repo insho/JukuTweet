@@ -35,7 +35,6 @@ import rx.functions.Action1;
  */
 public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAdapter.ViewHolder>  {
     String TAG = "TEST-tweetBreakAdapter";
-    private static final boolean debug = false;
 
     private Context mContext;
     private DisplayMetrics mMetrics;
@@ -108,6 +107,8 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         holder.imgStar.setImageResource(starColorDrawableInt);
         if(starColorDrawableInt!=R.drawable.ic_star_multicolor) {
             holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
+        } else {
+            holder.imgStar.setColorFilter(null);
         }
 
         try {
@@ -187,7 +188,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
     public void showFavoriteListPopupWindow(final ViewHolder holder) {
         RxBus rxBus = new RxBus();
 
-        ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getWordInterfaceInstance(mContext).getWordListsForAWord(mActiveFavoriteStars,String.valueOf(mWords.get(holder.getAdapterPosition()).getId()),null);
+        ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getWordInterfaceInstance(mContext).getWordListsForAWord(mActiveFavoriteStars,String.valueOf(mWords.get(holder.getAdapterPosition()).getId()),1,null);
 
         PopupWindow popupWindow =  ChooseFavoriteListsPopupWindow.createWordFavoritesPopup(mContext,mMetrics,rxBus,availableFavoriteLists,mWords.get(holder.getAdapterPosition()).getId());
 

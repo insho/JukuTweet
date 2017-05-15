@@ -188,46 +188,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
                 /* The fab has different functions and appearance depending on which tab is visible */
                 setUpFabsAndMenus(position);
-//                if(isTopShowing(position)) {
-//                    switch (position) {
-//                        case 0:
-//                            showFab(true,"addUser");
-//                            showMenuMyListBrowse(false,position);
-//                            showActionBarBackButton(false,"JukuTweet",position);
-//
-//                            break;
-//                        case 1:
-//                            showFab(true,"addTweetList");
-//                            showMenuMyListBrowse(false,position);
-//                            showActionBarBackButton(false,"JukuTweet",position);
-//                            break;
-//                        case 2:
-//                            showFab(true,"addMyList");
-//                            showMenuMyListBrowse(false,position);
-//                            showActionBarBackButton(false,"JukuTweet",position);
-//                            break;
-//                        default:
-//                            showMenuMyListBrowse(false,position);
-//                            showFab(false);
-//                            showActionBarBackButton(false,"JukuTweet",position);
-//                            break;
-//                    }
-//
-//                } else {
-//                    showFab(false);
-//                    if(tabsShowingBrowseMenu!=null && tabsShowingBrowseMenu[position]) {
-//                        showMenuMyListBrowse(true,position);
-//                    } else {
-//                        showMenuMyListBrowse(false,position);
-//                    }
-//
-//                    if(tabsShowingBackButton!=null && tabsShowingBackButton[position] !=null) {
-//                        showActionBarBackButton(true,tabsShowingBackButton[position],position);
-//                    } else {
-//                        showActionBarBackButton(false,"",position);
-//                    }
-//                }
-
             }
 
             @Override
@@ -254,40 +214,38 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             }
         });
 
-if(savedInstanceState!=null) {
+            if(savedInstanceState!=null) {
 
-    tabsShowingBackButton = savedInstanceState.getStringArray("tabsShowingBackButton");
-    tabsShowingBrowseMenu = savedInstanceState.getBooleanArray("tabsShowingBrowseMenu");
+            tabsShowingBackButton = savedInstanceState.getStringArray("tabsShowingBackButton");
+            tabsShowingBrowseMenu = savedInstanceState.getBooleanArray("tabsShowingBrowseMenu");
 
-    try {
-//
-//        if(tabsShowingBrowseMenu[mViewPager.getCurrentItem()]) {
-//            showMenuMyListBrowse(true, mViewPager.getCurrentItem());
-//        }
-//        if(tabsShowingBackButton[mViewPager.getCurrentItem()] != null) {
-//            showActionBarBackButton(true,tabsShowingBackButton[mViewPager.getCurrentItem()],mViewPager.getCurrentItem());
-//        }
-        setUpFabsAndMenus(mViewPager.getCurrentItem());
+            try {
+                setUpFabsAndMenus(mViewPager.getCurrentItem());
 
-    } catch (NullPointerException e) {
-        Log.e(TAG,"reactivating activity setUpFabsAndMenus Nullpointer");
-    }
-
-    if(savedInstanceState.getStringArray("searchSubscriptionCriteria")!=null) {
-        searchSubscriptionCriteria = savedInstanceState.getStringArray("searchSubscriptionCriteria");
-        if(searchSubscriptionCriteria.length==3) {
-            if(searchSubscriptionCriteria[0].equals("Dictionary")) {
-                runDictionarySearch(searchSubscriptionCriteria[1],searchSubscriptionCriteria[2]);
-            } else if(searchSubscriptionCriteria[0].equals("Twitter")) {
-                runTwitterSearch(searchSubscriptionCriteria[1],searchSubscriptionCriteria[2]);
+            } catch (NullPointerException e) {
+                Log.e(TAG,"reactivating activity setUpFabsAndMenus Nullpointer");
             }
+
+            if(savedInstanceState.getStringArray("searchSubscriptionCriteria")!=null) {
+                searchSubscriptionCriteria = savedInstanceState.getStringArray("searchSubscriptionCriteria");
+                if(searchSubscriptionCriteria.length==3) {
+                    if(searchSubscriptionCriteria[0].equals("Dictionary")) {
+                        runDictionarySearch(searchSubscriptionCriteria[1],searchSubscriptionCriteria[2]);
+                    } else if(searchSubscriptionCriteria[0].equals("Twitter")) {
+                        runTwitterSearch(searchSubscriptionCriteria[1],searchSubscriptionCriteria[2]);
+                    }
+                }
+            }
+
         }
     }
 
-}
-    }
-
-
+    /**
+     * Each tab "bucket" has its own fab action and actionbar text/back button display depending
+     * on where the user is navigating within the tab bucket. This method initializes the fab/action bar
+     * for the given tab, and also is called from the mViewPager onPageSelected listener, to keep the tabs/fab updated
+     * @param position Position of mViewPager (i.e. current visible tab bucket)
+     */
     public void setUpFabsAndMenus(int position) {
         if(isTopShowing(position)) {
             switch (position) {
@@ -330,13 +288,6 @@ if(savedInstanceState!=null) {
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        this.mMenu = menu;
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
 
 
     /**
@@ -353,6 +304,18 @@ if(savedInstanceState!=null) {
 
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        this.mMenu = menu;
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+
+    /**
+     * Set of
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -377,12 +340,7 @@ if(savedInstanceState!=null) {
                 try {
                     switch (mViewPager.getCurrentItem()) {
                         case 0:
-                            if(tabsShowingBrowseMenu[0]
-                                    && findFragmentByPosition(0) != null
-//                                    && ((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse") != null
-//                                    && ((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse").isVisible()
-                                    ) {
-
+                            if(tabsShowingBrowseMenu[0] && findFragmentByPosition(0) != null) {
                                 //Cancel the selections
                                 ((TweetListBrowseFragment)((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowseSingleUser")).deselectAll();
                                 //Hide the action icons
@@ -392,8 +350,6 @@ if(savedInstanceState!=null) {
                         case 1:
                             if(tabsShowingBrowseMenu[1]
                                     && findFragmentByPosition(1) != null
-//                                    && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse") != null
-//                                    && ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse").isVisible()
                                     ) {
 
                                 //Cancel the selections
@@ -407,7 +363,6 @@ if(savedInstanceState!=null) {
 
                                 //Cancel the selections
                                 ((WordListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).deselectAll();
-
                                 //Hide the action icons
                                 showMenuMyListBrowse(false, 2);
                             }
@@ -572,8 +527,11 @@ if(savedInstanceState!=null) {
     }
 
     /**
-     * Shows remove UserInfo Dialog
+     * Shows remove User Dialog when "remove" user is clicked in the {@link com.jukuproject.jukutweet.Dialogs.UserDetailPopupDialog}
      * @param userInfo UserInfo to "unfollow" (i.e. remove from database)
+     *
+     * @see com.jukuproject.jukutweet.Dialogs.UserDetailPopupDialog
+     * @see com.jukuproject.jukutweet.Fragments.UserListFragment
      */
     public void showRemoveUserDialog(UserInfo userInfo) {
         if(getFragmentManager().findFragmentByTag("dialogRemove") == null || !getFragmentManager().findFragmentByTag("dialogRemove").isAdded()) {
@@ -586,6 +544,8 @@ if(savedInstanceState!=null) {
      * Is called from {@link RemoveUserDialog} via the {@link DialogInteractionListener}
      * @param userId userId to remove from database
      *
+     * @see RemoveUserDialog
+     * @see com.jukuproject.jukutweet.Fragments.UserListFragment
      */
     @Override
     public void onRemoveUserDialogPositiveClick(String userId) {
@@ -1209,23 +1169,74 @@ if(savedInstanceState!=null) {
      * @see TweetBreakDownFragment
      * @see com.jukuproject.jukutweet.Fragments.UserTimeLineFragment
      */
-    public void notifySavedTweetFragmentsChanged() {
-        if(findFragmentByPosition(0) != null && findFragmentByPosition(0) instanceof Tab1Container) {
-            if(((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("savedTweetsAllFragmentIndividual") != null){
-                ((TweetListSingleUserFragment) ((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("savedTweetsAllFragmentIndividual")).updateMyListAdapter();
-            }
-        }
+//    public void notifySavedTweetFragmentsChanged(Tweet tweet) {
+//
+//        try {
+//            for(int i=0;i<4;i++) {
+//                if(mViewPager.getCurrentItem()!=i) {
+//                    Fragment currentFragment = ((BaseContainerFragment) findFragmentByPosition(i)).getTopFragment();
+//
+//                    if(currentFragment instanceof TweetListSingleUserFragment) {
+//                        ((TweetListSingleUserFragment) currentFragment).updateMyListAdapter();
+//                    } else if(currentFragment instanceof TweetListFragment) {
+//                        ((TweetListFragment) currentFragment).updateMyListAdapter();
+//                    } else if(currentFragment instanceof TweetListBrowseFragment) {
+//                        ((TweetListBrowseFragment) currentFragment).addTweetOrUpdateTweetEntryItemFavorites(tweet);
+//                    }
+//                }
+//            }
+//        } catch (NullPointerException e) {
+//            Log.e(TAG,"currentFragment updates failed for notifySavedTweetFragmentsChanged");
+//        }
+//
+////        if(findFragmentByPosition(0) != null && findFragmentByPosition(0) instanceof Tab1Container) {
+////            if(((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("savedTweetsAllFragmentIndividual") != null){
+////                ((TweetListSingleUserFragment) ((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("savedTweetsAllFragmentIndividual")).updateMyListAdapter();
+////            }
+////        }
+////
+////        if(findFragmentByPosition(1) != null && findFragmentByPosition(1) instanceof Tab2Container) {
+////            if(((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsallfragment") != null){
+////                TweetListFragment tweetListBrowseFragment = ((TweetListFragment) ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsallfragment"));
+////                if(tweetListBrowseFragment.isAdded()) {
+////                    tweetListBrowseFragment.updateMyListAdapter();
+////                }
+////            }
+////        }
+//    }
 
-        if(findFragmentByPosition(1) != null && findFragmentByPosition(1) instanceof Tab2Container) {
-            if(((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsallfragment") != null){
-                TweetListFragment tweetListBrowseFragment = ((TweetListFragment) ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsallfragment"));
-                if(tweetListBrowseFragment.isAdded()) {
-                    tweetListBrowseFragment.updateMyListAdapter();
+
+    /**
+     * Looks for current tweet fragment in tab 1 (either saved tweet lists
+     * or individual users saved tweets) and refreshes the list. Initiated from the onSuccess portion of the parseAndSaveTweet method.
+     * @see #parseAndSaveTweet(Tweet)
+     * @see TweetBreakDownFragment
+     * @see com.jukuproject.jukutweet.Fragments.UserTimeLineFragment
+     */
+    public void notifySavedTweetFragmentsChanged() {
+
+        try {
+//            ArrayList<Tweet> tweetEntries = InternalDB.getTweetInterfaceInstance(getBaseContext()).getTweetsFromAStringofTweetIds(tweetIdString,SharedPrefManager.getInstance(getBaseContext()).getColorThresholds());
+
+//            Log.i(TAG,"HERE IN NOTIFY SAVED TWEETS FRAGMENTS CHANGED: " + tweetEntries.size());
+            for(int i=0;i<4;i++) {
+                if(mViewPager.getCurrentItem()!=i) {
+                    Fragment currentFragment = ((BaseContainerFragment) findFragmentByPosition(i)).getTopFragment();
+
+                    if(currentFragment instanceof TweetListSingleUserFragment) {
+                        ((TweetListSingleUserFragment) currentFragment).updateMyListAdapter();
+                    } else if(currentFragment instanceof TweetListFragment) {
+                        ((TweetListFragment) currentFragment).updateMyListAdapter();
+                    } else if(currentFragment instanceof TweetListBrowseFragment) {
+                        ((TweetListBrowseFragment) currentFragment).updateMyListAdapter();
+                    }
                 }
             }
+        } catch (NullPointerException e) {
+            Log.e(TAG,"currentFragment updates failed for notifySavedTweetFragmentsChanged");
         }
-    }
 
+    }
 
     /**
      * Coordinates status of word favorite lists as they change across the tabs. When the user changes a word entry favorite list in one tab,
@@ -1235,24 +1246,29 @@ if(savedInstanceState!=null) {
      * fragment in tab 1 (for a single user's saved tweets), and has added a word to a list, the word related fragments in tabs 2 and must
      * be updated to reflect that change, as well as the search tab if applicable..
      */
+//    public void notifySavedWordFragmentsChanged(WordEntry wordEntry) {
+//
+//        try {
+//            for(int i=0;i<4;i++) {
+//                if(mViewPager.getCurrentItem()!=i) {
+//                    Fragment currentFragment = ((BaseContainerFragment) findFragmentByPosition(i)).getTopFragment();
+//                    updateChildFragment(currentFragment,wordEntry);
+//                }
+//            }
+//        } catch (NullPointerException e) {
+//            Log.e(TAG,"currentFragment updates failed for notifySavedWordFragmentsChanged");
+//        }
+//    }
 
-    public void notifySavedWordFragmentsChanged(WordEntry wordEntry) {
-
-        try {
-            for(int i=0;i<4;i++) {
-                if(mViewPager.getCurrentItem()!=i) {
-                    Fragment currentFragment = ((BaseContainerFragment) findFragmentByPosition(i)).getTopFragment();
-                    updateChildFragment(currentFragment,wordEntry);
-                }
-            }
-        } catch (NullPointerException e) {
-            Log.e(TAG,"currentFragment updates failed for notifySavedWordFragmentsChanged");
-        }
-    }
-
+    /**
+     * Used specifically when multiple words have been deleted/copied from the {@link WordListBrowseFragment}, to update the
+     * other tabs to reflect the changes in the wordlist. It cycles through the other tab positions and updates those tabs if they exist.
+     * @param wordEntryIdString concatenated comma-delimited string of edict kanji ids for the words that were removed
+     */
     public void notifySavedWordFragmentsChanged(String wordEntryIdString) {
 
         ArrayList<WordEntry> wordEntries = InternalDB.getWordInterfaceInstance(getBaseContext()).getWordsFromAStringofWordIds(wordEntryIdString,SharedPrefManager.getInstance(getBaseContext()).getColorThresholds());
+        Log.i(TAG,"WordEntry size: " + wordEntries.size());
         try {
             for(int i=0;i<4;i++) {
                 if(mViewPager.getCurrentItem()!=i) {
@@ -1265,31 +1281,66 @@ if(savedInstanceState!=null) {
         }
     }
 
-    public void updateChildFragment(Fragment currentFragment, WordEntry wordEntry) {
-        if(currentFragment instanceof TweetBreakDownFragment) {
-            ((TweetBreakDownFragment) currentFragment).updateWordEntryItemFavorites(wordEntry);
-        } else if(currentFragment instanceof FlashCardsFragment) {
-            ((FlashCardsFragment) currentFragment).updateWordEntryItemFavorites(wordEntry);
-        } else if(currentFragment instanceof StatsFragmentProgress) {
-            ((StatsFragmentProgress) currentFragment).updateWordEntryItemFavorites(wordEntry);
-        } else if(currentFragment instanceof WordListBrowseFragment) {
-            ((WordListBrowseFragment) currentFragment).updateWordEntryItemFavorites(wordEntry);
-        } else if(currentFragment instanceof WordListFragment) {
-            ((WordListFragment) currentFragment).updateMyListAdapter();
-        } else if(currentFragment instanceof SearchFragment) {
-            ((SearchFragment) currentFragment).updateWordEntryItemFavorites(wordEntry);
-        }
-    }
+//    /**
+//     * Checks if a fragment is one of a certain type (i.e. one that is of interest because the WordEntry
+//     * list it contains might need to be updated to reflect a change in another tab), and updates that fragment if it is. This is
+//     * called via {@link #notifySavedWordFragmentsChanged(WordEntry)} when a word entry favorite association was changed in one of the other tabs
+//     * @param currentFragment an instance of the current visible fragment in one of the tab buckets
+//     * @param wordEntry updated word entry, that will overwrite its counterpart in the currentFragment (if it exists)
+//     */
+//
+//    public void updateChildFragment(Fragment currentFragment, WordEntry wordEntry) {
+//        if(currentFragment instanceof TweetBreakDownFragment) {
+//            ((TweetBreakDownFragment) currentFragment).updateWordEntryItemFavorites(wordEntry);
+//        } else if(currentFragment instanceof FlashCardsFragment) {
+//            ((FlashCardsFragment) currentFragment).updateWordEntryItemFavorites(wordEntry);
+//        } else if(currentFragment instanceof StatsFragmentProgress) {
+//            ((StatsFragmentProgress) currentFragment).updateWordEntryItemFavorites(wordEntry);
+//        } else if(currentFragment instanceof WordListBrowseFragment) {
+//            ((WordListBrowseFragment) currentFragment).updateWordEntryItemFavorites(wordEntry);
+//        } else if(currentFragment instanceof WordListFragment) {
+//            ((WordListFragment) currentFragment).updateMyListAdapter();
+//        } else if(currentFragment instanceof SearchFragment) {
+//            ((SearchFragment) currentFragment).updateWordEntryItemFavorites(wordEntry);
+//        }
+//    }
+
+    /**
+     * Checks if a fragment is one of a certain type (i.e. one that is of interest because the WordEntry
+     * list it contains might need to be updated to reflect a change in another tab), and updates that fragment if it is. This is
+     * called via {@link #notifySavedWordFragmentsChanged(String)} when words were removed from a word list in the {@link WordListBrowseFragment}
+     * @param currentFragment an instance of the current visible fragment in one of the tab buckets
+     * @param wordEntries updated list of word entries, that will overwrite their counterparts in the currentFragment (if they exist)
+     */
     public void updateChildFragment(Fragment currentFragment, ArrayList<WordEntry> wordEntries) {
+
         if(currentFragment instanceof TweetBreakDownFragment) {
             ((TweetBreakDownFragment) currentFragment).updateWordEntryItemFavorites(wordEntries);
         } else if(currentFragment instanceof FlashCardsFragment) {
             ((FlashCardsFragment) currentFragment).updateWordEntryItemFavorites(wordEntries);
         } else if(currentFragment instanceof StatsFragmentProgress) {
             ((StatsFragmentProgress) currentFragment).updateWordEntryItemFavorites(wordEntries);
-        } else if(currentFragment instanceof SearchFragment) {
+        } else  if(currentFragment instanceof SearchFragment) {
             ((SearchFragment) currentFragment).updateWordEntryItemFavorites(wordEntries);
         }
+
+        else if(currentFragment instanceof WordListBrowseFragment ) {
+            for(WordEntry wordEntry : wordEntries) {
+                ((WordListBrowseFragment) currentFragment).updateWordEntryItemFavorites(wordEntry);
+            }
+        } else if(currentFragment instanceof WordListFragment) {
+            ((WordListFragment) currentFragment).updateMyListAdapter();
+        }
+//
+//        if(currentFragment instanceof TweetBreakDownFragment) {
+//            ((TweetBreakDownFragment) currentFragment).updateWordEntryItemFavorites(wordEntries);
+//        } else if(currentFragment instanceof FlashCardsFragment) {
+//            ((FlashCardsFragment) currentFragment).updateWordEntryItemFavorites(wordEntries);
+//        } else if(currentFragment instanceof StatsFragmentProgress) {
+//            ((StatsFragmentProgress) currentFragment).updateWordEntryItemFavorites(wordEntries);
+//        } else if(currentFragment instanceof SearchFragment) {
+//            ((SearchFragment) currentFragment).updateWordEntryItemFavorites(wordEntries);
+//        }
     }
 
     /**

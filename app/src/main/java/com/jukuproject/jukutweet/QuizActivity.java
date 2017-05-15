@@ -77,7 +77,7 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
             mMyListEntry = savedInstanceState.getParcelable("myListEntry");
             mColorBlockMeasurables = savedInstanceState.getParcelable("colorBlockMeasurables");
             mTabNumber = savedInstanceState.getInt("tabNumber");
-            mSingleUser = savedInstanceState.getBoolean("singleUser",false);
+            mSingleUser = savedInstanceState.getBoolean("mSingleUser",false);
             mUserInfo = savedInstanceState.getParcelable("mUserInfo");
 
             Fragment[] fragments = new Fragment[2];
@@ -88,6 +88,7 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
             }
             mQuizPostQuizStatsPagerAdapter = new PostQuizStatsPagerAdapter(getSupportFragmentManager(),mAdapterTitles,fragments);
 
+            mLastExpandedPosition = savedInstanceState.getInt("mLastExpandedPosition",0);
         } else {
 
             //Get the intent from the options menu, with the pertinent data
@@ -160,14 +161,18 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
             mAdapterTitles = new String[]{typeOfQuizThatWasCompleted};
             updateTabs(mAdapterTitles);
 
-            // Set the title
-            try {
-                showActionBarBackButton(true,mMyListEntry.getListName());
-            } catch (Exception e) {
-                showActionBarBackButton(true,"");
-            }
         }
 
+        // Set the title
+        try {
+            if(mSingleUser) {
+                showActionBarBackButton(true,mUserInfo.getDisplayScreenName());
+            } else {
+                showActionBarBackButton(true,mMyListEntry.getListName());
+            }
+        } catch (Exception e) {
+            showActionBarBackButton(true,"");
+        }
 
         mViewPager.setAdapter(mQuizPostQuizStatsPagerAdapter);
         mViewPager.setOffscreenPageLimit(1);
@@ -469,5 +474,6 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
         outState.putParcelable("colorBlockMeasurables",mColorBlockMeasurables);
         outState.putInt("tabNumber",mTabNumber);
         outState.putBoolean("mSingleUser",mSingleUser);
+        outState.putInt("mLastExpandedPosition",mLastExpandedPosition);
     }
 }

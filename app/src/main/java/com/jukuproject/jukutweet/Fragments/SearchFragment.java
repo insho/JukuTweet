@@ -586,7 +586,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
     }
 
     public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {
-        mCallback.notifySavedWordFragmentsChanged(wordEntry);
+        mCallback.notifySavedWordFragmentsChanged(String.valueOf(wordEntry.getId()));
     }
 
     @Override

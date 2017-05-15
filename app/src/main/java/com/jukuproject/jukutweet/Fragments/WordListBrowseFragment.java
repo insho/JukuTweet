@@ -247,10 +247,14 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
                 removeKanjiFromList(kanjiIdString,currentList);
                 Toast.makeText(getContext(), "Items moved successfully", Toast.LENGTH_SHORT).show();
             } else {
+                mCallback.notifySavedWordFragmentsChanged(getSelectedIntsAsString(mSelectedEntries));
                 Toast.makeText(getContext(), "Items copied successfully", Toast.LENGTH_SHORT).show();
+                deselectAll();
             }
-            deselectAll();
+
             mCallback.showMenuMyListBrowse(false,2);
+
+
         } catch (NullPointerException e) {
             Log.e(TAG,"Nullpointer in WordListBrowseFragment saveAndUpdateMyLists : " + e);
             Toast.makeText(getContext(), "Unable to update lists", Toast.LENGTH_SHORT).show();
@@ -279,16 +283,16 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
             * If there is only one word, update the lists for that word entry. If
             * there are more, however, (Because there could be hundreds), have the tabs update themselves entirely
             */
-            if(mSelectedEntries.size()==1) {
-                for(WordEntry wordEntry : mWords) {
-                    if(wordEntry.getId().equals(mSelectedEntries.get(0))) {
-                        updateWordEntryFavoritesForOtherTabs(wordEntry);
-                    }
-                }
-
-            } else {
+//            if(mSelectedEntries.size()==1) {
+//                for(WordEntry wordEntry : mWords) {
+//                    if(wordEntry.getId().equals(mSelectedEntries.get(0))) {
+//                        updateWordEntryFavoritesForOtherTabs(wordEntry);
+//                    }
+//                }
+//
+//            } else {
                 mCallback.notifySavedWordFragmentsChanged(getSelectedIntsAsString(mSelectedEntries));
-            }
+//            }
 
             mSelectedEntries.clear();
             mAdapter.swapDataSet(mWords,mSelectedEntries);
@@ -310,6 +314,9 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
     public void removeKanjiFromList(){
         try {
             final String kanjiString = getSelectedIntsAsString(mSelectedEntries);
+
+
+
             InternalDB.getWordInterfaceInstance(getContext()).removeMultipleWordsFromWordList(kanjiString,mMyListEntry);
             mWords = InternalDB.getWordInterfaceInstance(getContext()).getWordsFromAWordList(mMyListEntry
                     ,mColorThresholds
@@ -317,17 +324,17 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
                     ,null
                     ,null);
 
-
-            if(mSelectedEntries.size()==1) {
-                for(WordEntry wordEntry : mWords) {
-                    if(wordEntry.getId().equals(mSelectedEntries.get(0))) {
-                        updateWordEntryFavoritesForOtherTabs(wordEntry);
-                    }
-                }
-
-            } else {
+//            if(mSelectedEntries.size()==1) {
+//                for(WordEntry wordEntry : mWords) {
+//                    if(wordEntry.getId().equals(mSelectedEntries.get(0))) {
+//                        updateWordEntryFavoritesForOtherTabs(wordEntry);
+//                    }
+//                }
+//
+//            } else {
                 mCallback.notifySavedWordFragmentsChanged(getSelectedIntsAsString(mSelectedEntries));
-            }
+//            }
+
 
             mSelectedEntries.clear();
             mAdapter.swapDataSet(mWords,mSelectedEntries);
@@ -383,16 +390,16 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
                             ,null
                             ,null);
 
-                    if(mSelectedEntries.size()==1) {
-                        for(WordEntry wordEntry : mWords) {
-                            if(wordEntry.getId().equals(mSelectedEntries.get(0))) {
-                                updateWordEntryFavoritesForOtherTabs(wordEntry);
-                            }
-                        }
-
-                    } else {
+//                    if(mSelectedEntries.size()==1) {
+//                        for(WordEntry wordEntry : mWords) {
+//                            if(wordEntry.getId().equals(mSelectedEntries.get(0))) {
+//                                updateWordEntryFavoritesForOtherTabs(wordEntry);
+//                            }
+//                        }
+//
+//                    } else {
                         mCallback.notifySavedWordFragmentsChanged(getSelectedIntsAsString(mSelectedEntries));
-                    }
+//                    }
 
                     mSelectedEntries.clear();
                     mAdapter.swapDataSet(mWords,mSelectedEntries);
@@ -420,56 +427,89 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
     /**
      *  When word entry favorites star is clicked on the {@link BrowseWordsAdapter}, a callback is initiated and the
      *  dataset in this fragment is updated. OR, when this fragment is open in one tab, and the user changes the favorite
-     *  star for a word in another tab, this method may be called from the {@link com.jukuproject.jukutweet.MainActivity#notifySavedWordFragmentsChanged(WordEntry)}
+     *  star for a word in another tab, this method may be called from the {@link com.jukuproject.jukutweet.MainActivity#notifySavedWordFragmentsChanged(String wordEntryIdString)}
      *  It keeps the favorite list stars synchronized across tabs.
      * @param wordEntry WordEntry whose "FavoriteItems" object was updated (i.e. the favorite star was clicked and changed in the adapter)
      */
     public void updateWordEntryItemFavorites(WordEntry wordEntry) {
         boolean wordExistsinList = InternalDB.getWordInterfaceInstance(getContext()).myListContainsWordEntry(mMyListEntry,wordEntry);
-        boolean wordEntryFound = false;
-        for(WordEntry datasetWordEntry : mWords) {
-            if(datasetWordEntry.getId().equals(wordEntry.getId())) {
-                wordEntryFound = true;
-                if(!wordExistsinList) {
-                    //If the word that appeared in the popup window no longer is contained in this list, remove it
-                    mWords.remove(datasetWordEntry);
-                    if(mWords.size()==0) {
-                        //Kick the user back to the main menu if the word that was removed was the last word in the list
-                        mCallback.onBackPressed();
-                    } else {
-                        //Remove word entry from selected entries if applicable
-                        if(mSelectedEntries.contains(datasetWordEntry.getId())) {
-                            mSelectedEntries.remove(datasetWordEntry.getId());
-                        }
-                        if(mSelectedEntries.size()==0) {
-                            mCallback.showMenuMyListBrowse(false,2);
-                        }
+//        boolean wordEntryFound = false;
 
-                        mAdapter.notifyDataSetChanged();
-                    }
-                } else {
-                    mWords.get(mWords.indexOf(wordEntry)).setItemFavorites(wordEntry.getItemFavorites());
-                    mAdapter.notifyDataSetChanged();
-                }
-
+        int indexOfWordEntryToUpdate = -1;
+        for(int i =0;i<mWords.size() && indexOfWordEntryToUpdate==-1;i++) {
+            if(mWords.get(i).getId().equals(wordEntry.getId())) {
+                indexOfWordEntryToUpdate = i;
             }
         }
+        if(indexOfWordEntryToUpdate>-1) {
+            if(!wordExistsinList) {
+                //If the word that appeared in the popup window no longer is contained in this list, remove it
+                mWords.remove(mWords.get(indexOfWordEntryToUpdate));
+                if(mWords.size()==0) {
+                    //Kick the user back to the main menu if the word that was removed was the last word in the list
+                    mCallback.onBackPressed();
+                } else {
+                    //Remove word entry from selected entries if applicable
+                    if(mSelectedEntries.contains(wordEntry.getId())) {
+                        mSelectedEntries.remove(wordEntry.getId());
+                    }
+                    if(mSelectedEntries.size()==0) {
+                        mCallback.showMenuMyListBrowse(false,2);
+                    }
 
+                    mAdapter.notifyDataSetChanged();
+                }
+            } else {
+                mWords.get(indexOfWordEntryToUpdate).setItemFavorites(wordEntry.getItemFavorites());
+                mAdapter.notifyDataSetChanged();
+            }
+        } else
         //If no word entry was found in the list and the word should be there, add the word to the list
-        if(wordExistsinList && !wordEntryFound) {
+        if(wordExistsinList) {
             mWords.add(wordEntry);
             mAdapter.notifyDataSetChanged();
         }
+
+
+//        for(WordEntry datasetWordEntry : mWords) {
+//            if(datasetWordEntry.getId().equals(wordEntry.getId())) {
+//                wordEntryFound = true;
+//                if(!wordExistsinList) {
+//                    //If the word that appeared in the popup window no longer is contained in this list, remove it
+//                    mWords.remove(datasetWordEntry);
+//                    if(mWords.size()==0) {
+//                        //Kick the user back to the main menu if the word that was removed was the last word in the list
+//                        mCallback.onBackPressed();
+//                    } else {
+//                        //Remove word entry from selected entries if applicable
+//                        if(mSelectedEntries.contains(datasetWordEntry.getId())) {
+//                            mSelectedEntries.remove(datasetWordEntry.getId());
+//                        }
+//                        if(mSelectedEntries.size()==0) {
+//                            mCallback.showMenuMyListBrowse(false,2);
+//                        }
+//
+//                        mAdapter.notifyDataSetChanged();
+//                    }
+//                } else {
+//                    datasetWordEntry.setItemFavorites(wordEntry.getItemFavorites());
+//                    mAdapter.notifyDataSetChanged();
+//                }
+//
+//            }
+//        }
+
+
     }
 
     /**
-     *  Initiates the {@link com.jukuproject.jukutweet.MainActivity#notifySavedWordFragmentsChanged(WordEntry)} method when the favorites entries
+     *  Initiates the {@link com.jukuproject.jukutweet.MainActivity#notifySavedWordFragmentsChanged(String wordEntryIdString)} method when the favorites entries
      *  for a word have changed in this tab, so that other tabs that might contain the same word are also updated.
      *  It keeps the favorite list stars synchronized across tabs.
      * @param wordEntry WordEntry whose "FavoriteItems" object was updated (i.e. the favorite star was clicked and changed in the adapter)
      */
     public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {
-        mCallback.notifySavedWordFragmentsChanged(wordEntry);
+        mCallback.notifySavedWordFragmentsChanged(String.valueOf(wordEntry.getId()));
     }
 
     @Override

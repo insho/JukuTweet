@@ -76,8 +76,13 @@ public class CopyMyListItemsAdapter extends RecyclerView.Adapter<CopyMyListItems
 
         if(initialMyListEntry.getSelectionLevel()==1){
             holder.checkbox.setChecked(true);
+            holder.checkbox.setAlpha(1.0f);
+        } else if(initialMyListEntry.getSelectionLevel()==2) {
+            holder.checkbox.setChecked(true);
+            holder.checkbox.setAlpha(.4f);
         } else {
             holder.checkbox.setChecked(false);
+            holder.checkbox.setAlpha(1.0f);
         }
         holder.imageButton.setPadding(0,
                 (int) (2.0f * mDensity + 0.5f),
@@ -98,6 +103,12 @@ public class CopyMyListItemsAdapter extends RecyclerView.Adapter<CopyMyListItems
                     break;
                 case "Yellow":
                     holder.imageButton.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuYellow));
+                    break;
+                case "Purple":
+                    holder.imageButton.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuPurple));
+                    break;
+                case "Orange":
+                    holder.imageButton.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuOrange));
                     break;
                 default:
                     break;
@@ -143,13 +154,16 @@ public class CopyMyListItemsAdapter extends RecyclerView.Adapter<CopyMyListItems
     private void rowSelected(ViewHolder holder, MyListEntry myListEntry) {
 
         //If initially not selected, set selected
-        if(myListEntry.getSelectionLevel() == 0) {
+        if(myListEntry.getSelectionLevel() != 1) {
             holder.checkbox.setChecked(true);
             myListEntry.setSelectionLevel(1);
+            holder.checkbox.setAlpha(1.0f);
 
         } else {
             holder.checkbox.setChecked(false);
             myListEntry.setSelectionLevel(0);
+            holder.checkbox.setAlpha(1.0f);
+
         }
         mRxBus.send(myListEntry);
     }

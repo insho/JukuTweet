@@ -183,10 +183,10 @@ public class ItemFavorites implements Parcelable {
             totalcount += 1;
         }
 
-        if(userListCount==0 && totalcount<=1) {
-            return false;
-        } else {
+        if(activeFavoriteLists.size()==0 || userListCount>0 || totalcount >1) {
             return true;
+        } else {
+            return false;
         }
     }
 

@@ -149,10 +149,12 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
             showSavedTweetsSelected = true;
             mWordEntry = getArguments().getParcelable("mWordEntry");
             mDataSet = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsThatIncludeAWord(String.valueOf(mWordEntry.getId()),mColorThresholds);
+            mCursorString = "-1";
         } else {
             mWordEntry = savedInstanceState.getParcelable("mWordEntry");
             showSavedTweetsSelected = savedInstanceState.getBoolean("showSavedTweetsSelected");
             mDataSet = savedInstanceState.getParcelableArrayList("mDataSet");
+            mCursorString = savedInstanceState.getString("mCursorString","-1");
         }
 
         metrics = new DisplayMetrics();
@@ -264,15 +266,18 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
             }
         });
 
-
-        btnShowSavedTweetsToggle.setText("Saved Tweets");
-        btnSearchForTweetsToggle.setText("Search Twitter");
+        btnShowSavedTweetsToggle.setText(getContext().getString(R.string.menuchildviewsavedtweets));
+        btnSearchForTweetsToggle.setText(getContext().getString(R.string.wordDetailPopup_SearchTwitter));
 
         btnShowSavedTweetsToggle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 setButtonActive(btnSearchForTweetsToggle,false);
                 setButtonActive(btnShowSavedTweetsToggle,true);
+
+                if(searchQuerySubscription!=null) {
+                    searchQuerySubscription.unsubscribe();
+                }
 
                 if(!showSavedTweetsSelected) {
 
@@ -285,9 +290,14 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
 
                     mDataSet.addAll(InternalDB.getTweetInterfaceInstance(getContext()).getTweetsThatIncludeAWord(String.valueOf(mWordEntry.getId()),mColorThresholds));
                     mAdapter = new UserTimeLineAdapter(getContext(), mRxBus, mDataSet, mActiveTweetFavoriteStars,metrics,mWordEntry.getKanji(),false);
-
                     mRecyclerView.setAdapter(mAdapter);
-                    showRecyclerView(true);
+
+                    if(mDataSet.size()>=0) {
+                        showRecyclerView(true);
+                    } else {
+                        showRecyclerView(false);
+                    }
+
                 }
 
             }
@@ -296,6 +306,11 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         btnSearchForTweetsToggle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                if(searchQuerySubscription!=null) {
+                    searchQuerySubscription.unsubscribe();
+                }
+
                 setButtonActive(btnSearchForTweetsToggle,true);
                 setButtonActive(btnShowSavedTweetsToggle,false);
                 if(showSavedTweetsSelected) {
@@ -325,12 +340,30 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
             mRecyclerView.setAdapter(mAdapter);
         }
 
+        /* If user was performing the twitter search when activity was recreated*/
+        if(!showSavedTweetsSelected) {
+            setButtonActive(btnSearchForTweetsToggle,true);
+            setButtonActive(btnShowSavedTweetsToggle,false);
+            mRecyclerView.setVisibility(View.GONE);
+            txtNoTweetsFound.setVisibility(View.GONE);
 
-//        if(mDataSet.size() == 0) {
-//            pullFollowerUserInfoList(mUserInfo,mCursorString,60,0);
-//        }
+            showProgressBar(true);
+            mDataSet.clear();
+            showSavedTweetsSelected = false;
+            mAdapter.notifyDataSetChanged();
+            mCursorString = "-1";
+            runTwitterSearch(mWordEntry.getKanji());
+
+        }
+
     };
 
+    /**
+     * TODO write this
+     * @param view
+     * @param event
+     * @return
+     */
     public boolean onTouch(View view, MotionEvent event) {
 
         // Get finger position on screen
@@ -381,15 +414,6 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
                         if (baseLayout.getHeight() < defaultViewHeight) {
                             baseLayout.getLayoutParams().height = baseLayout.getHeight() - (Y - previousFingerPosition);
                             baseLayout.requestLayout();
-                        } else {
-                            // Has user scroll enough to "auto close" popup ?
-                            if ((baseLayoutPosition - currentYPosition) > defaultViewHeight / 6) {
-                                closeUpAndDismissDialog(currentYPosition);
-
-                                return true;
-                            }
-
-                            //
                         }
                         baseLayout.setY(baseLayout.getY() + (Y - previousFingerPosition));
 
@@ -473,56 +497,6 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         positionAnimator.start();
     }
 
-    /**
-     *
-     * @param currentPosition
-     */
-    private void closeUpAndDismissDialog(int currentPosition) {
-
-
-        isClosing = true;
-        ObjectAnimator positionAnimator = ObjectAnimator.ofFloat(baseLayout, "y", currentPosition, -baseLayout.getHeight());
-        positionAnimator.setDuration(300);
-        positionAnimator.addListener(new Animator.AnimatorListener() {
-
-            @Override
-            public void onAnimationStart(Animator animation) {
-
-            }
-
-
-            @Override
-            public void onAnimationCancel(Animator animation) {
-
-            }
-
-            @Override
-            public void onAnimationRepeat(Animator animation) {
-
-            }
-
-            //            . . .
-            @Override
-            public void onAnimationEnd(Animator animator) {
-
-//                popupWindow.dismiss();
-
-                //reset the position variables
-                previousFingerPosition = 0;
-                baseLayoutPosition = 0;
-                isClosing = false;
-                isScrollingUp = false;
-                isScrollingDown = false;
-                dismiss();
-//                mCallback.showFab(true);
-
-            }
-
-        });
-
-        positionAnimator.start();
-
-    }
 
     /**
      * Shows progress bar during API lookups, hides otherwise
@@ -588,13 +562,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         }
     }
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putParcelable("mWordEntry", mWordEntry);
-        outState.putBoolean("showSavedTweetsSelected", showSavedTweetsSelected);
-        outState.putParcelableArrayList("mDataSet",mDataSet);
-    }
+
 
     private int countNumberOfLinesinDefinition(String definition) {
         int index = 0;
@@ -709,7 +677,6 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         if(favoriteStarHasBeenChanged) {
             mCallback.updateWordEntryItemFavorites(mWordEntry);
             mCallback.updateWordEntryFavoritesForOtherTabs(mWordEntry);
-//            getTargetFragment().
         }
         super.onDismiss(dialog);
     }
@@ -730,21 +697,6 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         super.onPause();
     }
 
-    //    @Override
-//    public void onStart()
-//    {
-//        super.onStart();
-//        Dialog dialog = getDialog();
-//        if (dialog != null)
-//        {
-//            int width = ViewGroup.LayoutParams.MATCH_PARENT;
-//            int height = ViewGroup.LayoutParams.MATCH_PARENT;
-//            dialog.getWindow().setLayout(width, height);
-//        }
-//    }
-//
-//
-
 
     /**
      * Displays the {@link ChooseFavoriteListsPopupWindow} when the "favorites star" is clicked in the WordDetailPopupDialog
@@ -758,7 +710,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
             ) {
         RxBus rxBus = new RxBus();
 
-        ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getWordInterfaceInstance(getContext()).getWordListsForAWord(activeFavoriteStars,String.valueOf(wordEntry.getId()),null);
+        ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getWordInterfaceInstance(getContext()).getWordListsForAWord(activeFavoriteStars,String.valueOf(wordEntry.getId()),1,null);
 
         PopupWindow popupWindow =  ChooseFavoriteListsPopupWindow.createWordFavoritesPopup(getContext(),metrics,rxBus,availableFavoriteLists,wordEntry.getId());
 
@@ -860,6 +812,15 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         }
     }
 
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable("mWordEntry", mWordEntry);
+        outState.putBoolean("showSavedTweetsSelected", showSavedTweetsSelected);
+        outState.putParcelableArrayList("mDataSet",mDataSet);
+        outState.putString("mCursorString",mCursorString);
+    }
 
 }
 

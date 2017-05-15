@@ -26,6 +26,7 @@ public interface WordListOperationsInterface {
     boolean removeMultipleWordsFromWordList(String concatenatedWordIds, MyListEntry myListEntry);
     ArrayList<MyListEntry> getWordListsForAWord(ArrayList<String> activeFavoriteStars
             , String concatenatedWordIds
+            , int countOfWordIds
             , @Nullable MyListEntry entryToExclude);
     ArrayList<WordEntry> getWordsFromAWordList(MyListEntry myListEntry
             , ColorThresholds colorThresholds
