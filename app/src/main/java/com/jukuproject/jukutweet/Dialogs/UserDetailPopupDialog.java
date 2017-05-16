@@ -129,7 +129,7 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
         baseLayout.setOnTouchListener(this);
 
         if(savedInstanceState == null) {
-            //TODO remove
+
             showFriendsSelected = true;
             mUserInfo = getArguments().getParcelable("mUserInfo");
             mDataSet = new ArrayList<>();

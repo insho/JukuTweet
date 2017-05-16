@@ -130,14 +130,8 @@ public class StatsFragmentFillintheBlanks extends Fragment implements WordEntryF
                     topscoreLayout.setBackgroundColor(ContextCompat.getColor(getActivity(), android.R.color.holo_green_light));
                 }
 
-//                Log.d(TAG,"mCorrect: " + mCorrect);
-//                Log.d(TAG,"mPercentage: " + percentage);
-//
-//                textScore.setText(mCorrect);
-//                String txtpercentage =   String.valueOf(percentage) + "%";
-//                textPercentage.setText(txtpercentage);
-                //TODO replace with string vars
-                textScore.setText(String.valueOf(mCorrect) + "/" + String.valueOf(mTotal));
+                textScore.setText(getString(R.string.score,mCorrect,mTotal));;
+//                textScore.setText(String.valueOf(mCorrect) + "/" + String.valueOf(mTotal));
                 String txtpercentage =   String.valueOf((int)percentage) + "%";
                 textPercentage.setText(txtpercentage);
 
@@ -179,6 +173,8 @@ public class StatsFragmentFillintheBlanks extends Fragment implements WordEntryF
     }
 
     public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {}
+    public void notifySavedTweetFragmentsChanged(){};
+
 
     @Override
     public void onSaveInstanceState(Bundle outState) {

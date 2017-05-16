@@ -511,7 +511,9 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
     public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {
         mCallback.notifySavedWordFragmentsChanged(String.valueOf(wordEntry.getId()));
     }
-
+    public void notifySavedTweetFragmentsChanged(){
+        mCallback.notifySavedTweetFragmentsChanged();
+    };
     @Override
     public void onDestroy() {
         super.onDestroy();

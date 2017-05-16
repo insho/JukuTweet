@@ -538,6 +538,9 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
     public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {
         mCallback.notifySavedWordFragmentsChanged(String.valueOf(wordEntry.getId()));
     }
+    public void notifySavedTweetFragmentsChanged(){
+        mCallback.notifySavedTweetFragmentsChanged();
+    };
 
     @Override
     public void onSaveInstanceState(Bundle outState) {

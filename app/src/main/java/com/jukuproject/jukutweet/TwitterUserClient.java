@@ -92,9 +92,15 @@ public class TwitterUserClient {
         return twitterService.getFriendsUserInfo(username,cursor,limit,false,false);
     }
 
-    public Observable<SearchTweetsContainer> getSearchTweets(String query, String languageCode, int limit) {
+    public Observable<SearchTweetsContainer> getSearchTweets(String query, String languageCode, int limit, @Nullable Long maxId) {
         String queryStringWithQuotes = "\"" + query + "\"";
-        return twitterService.getSearchTweets(queryStringWithQuotes, languageCode,limit);
+
+        if(maxId==null) {
+            return twitterService.getSearchTweets(queryStringWithQuotes, languageCode,limit);
+        } else {
+            return twitterService.getMoreSearchTweets(queryStringWithQuotes, languageCode,limit,maxId);
+        }
+
     }
 
     public Observable<List<UserInfo>> getSearchUsers(@NonNull String username, int limit) {

@@ -1,8 +1,4 @@
 package com.jukuproject.jukutweet.Fragments;
-/**
- * Created by JClassic on 2/25/2017.
- */
-
 
 import android.content.Context;
 import android.database.Cursor;
@@ -41,6 +37,7 @@ import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.ItemFavorites;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.Tweet;
+import com.jukuproject.jukutweet.Models.TweetEntities;
 import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.Models.TweetUserMentions;
 import com.jukuproject.jukutweet.Models.WordEntry;
@@ -132,7 +129,6 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
         imgStar = (ImageButton) v.findViewById(R.id.favorite);
         imgStarLayout = (FrameLayout) v.findViewById(R.id.timelineStarLayout);
         txtNoLists = (TextView) v.findViewById(R.id.nolists);
-//        linearLayoutVerticalMain = (LinearLayout) v.findViewById(R.id.sentence_layout);
         return v;
     }
 
@@ -159,104 +155,39 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
 
             txtSentence.setVisibility(View.VISIBLE);
             txtSentence.setText(mTweet.getText());
-//            txtSentence.setClickable(true);
-//            txtSentence.setAlph(.7f);
-
-//        possibleAvailableUserListCount = InternalDB.getWordInterfaceInstance(getContext()).getUserCreatedWordListCount();
 
             final String sentence = mTweet.getText();
 
-            //Try to fill in user info at the top
-            try {
-                txtUserName.setText(mTweet.getUser().getName());
-                txtUserScreenName.setText(mTweet.getUser().getDisplayScreenName());
-            } catch (NullPointerException e) {
-                Log.e(TAG,"TweetBreakDownFragment mTweet doesn't contain user?: " + e);
-                txtUserName.setVisibility(View.INVISIBLE);
-                txtUserScreenName.setVisibility(View.INVISIBLE);
-            }
-
-        /*If it is a saved tweet don't show the favorites star. It would complicate things alot
-         to let the user change the favorites entry for a star from within fthe breakdown fragment */
-        if(mSavedTweet) {
-            //Set up the favorites star
-            imgStar.setVisibility(View.GONE);
-            imgStarLayout.setVisibility(View.GONE);
-        } else {
-
-            //Set up the favorites star
-            imgStarLayout.setClickable(true);
-            imgStarLayout.setLongClickable(true);
-
-
-            try {
-
-                imgStar.setImageResource(FavoritesColors.assignStarResource(mTweet.getItemFavorites(),mActiveTweetFavoriteStars));
-                Integer starColorDrawableInt = FavoritesColors.assignStarResource(mTweet.getItemFavorites(),mActiveTweetFavoriteStars);
-                if(starColorDrawableInt!=R.drawable.ic_star_multicolor) {
-                    imgStar.setColorFilter(ContextCompat.getColor(getContext(), FavoritesColors.assignStarColor(mTweet.getItemFavorites(),mActiveTweetFavoriteStars)));
-                }
-
-
-                imgStarLayout.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if(BuildConfig.DEBUG){Log.d(TAG,"mActiveFavoriteStars: " + mActiveTweetFavoriteStars);}
-
-                        if(mTweet.getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)) {
-                            showTweetFavoriteListPopupWindow();
-                        } else {
-                            if(FavoritesColors.onFavoriteStarToggleTweet(getContext(),mActiveTweetFavoriteStars,mTweet.getUser().getUserId(),mTweet)) {
-                                imgStar.setImageResource(R.drawable.ic_star_black);
-                                imgStar.setColorFilter(ContextCompat.getColor(getContext(),FavoritesColors.assignStarColor(mTweet.getItemFavorites(),mActiveTweetFavoriteStars)));
-                            } else {
-                                Log.e(TAG,"OnFavoriteStarToggle did not work...");
-                            }
-                        }
-                    }
-                });
-
-
-                imgStarLayout.setOnLongClickListener(new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View v) {
-
-                        showTweetFavoriteListPopupWindow();
-
-                        return true;
-                    }
-                });
-
-            }  catch (NullPointerException e) {
-                Log.e(TAG,"TweetBreakDownFragment setting up imgStar doesn't contain itemfavs??: " + e);
-                imgStar.setVisibility(View.GONE);
-            }
-        }
+        setUpFavoritesStar();
 
 
     if(BuildConfig.DEBUG){Log.d(TAG,"SAVED TWEET: " + mSavedTweet);}
 
-    if(mSavedTweet && mTweet.getWordEntries() != null) {
-        if(BuildConfig.DEBUG){ Log.d(TAG,"getWordEntries NOT null - " + mTweet.getWordEntries().size());}
+    if(mSavedTweet && mTweet.getWordEntries()!=null) {
 
-        /* If it is a previously saved tweet, the favorite list information for the WordEntries in the
+        TweetEntities entities = InternalDB.getTweetInterfaceInstance(getContext()).getTweetEntitiesForSavedTweet(mTweet.getIdString());
+        mTweet.setEntities(entities);
+
+            /* If it is a previously saved tweet, the favorite list information for the WordEntries in the
          tweet will not have been previously attached. So attach them now: */
 
-        for(WordEntry wordEntry : mTweet.getWordEntries()) {
-            Cursor c = InternalDB.getWordInterfaceInstance(getContext()).getWordEntryForWordId(wordEntry.getId(),colorThresholds);
-            if(c.getCount()>0) {
-                c.moveToFirst();
-                wordEntry.setItemFavorites(new ItemFavorites(c.getInt(5)
-                        ,c.getInt(6)
-                        ,c.getInt(7)
-                        ,c.getInt(8)
-                        ,c.getInt(9)
-                        ,c.getInt(10)
-                        ,c.getInt(11)));
+            for(WordEntry wordEntry : mTweet.getWordEntries()) {
+                Cursor c = InternalDB.getWordInterfaceInstance(getContext()).getWordEntryForWordId(wordEntry.getId(),colorThresholds);
+                if(c.getCount()>0) {
+                    c.moveToFirst();
+                    wordEntry.setItemFavorites(new ItemFavorites(c.getInt(5)
+                            ,c.getInt(6)
+                            ,c.getInt(7)
+                            ,c.getInt(8)
+                            ,c.getInt(9)
+                            ,c.getInt(10)
+                            ,c.getInt(11)));
 
-                c.close();
+                    c.close();
+                }
             }
-        }
+
+
         showDisectedTweet(mTweet.getWordEntries(),txtSentence);
 
     } else  {
@@ -324,6 +255,78 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
 
         }
     }
+
+
+    private void setUpFavoritesStar() {
+        //Try to fill in user info at the top
+        try {
+            txtUserName.setText(mTweet.getUser().getName());
+            txtUserScreenName.setText(mTweet.getUser().getDisplayScreenName());
+        } catch (NullPointerException e) {
+            Log.e(TAG,"TweetBreakDownFragment mTweet doesn't contain user?: " + e);
+            txtUserName.setVisibility(View.INVISIBLE);
+            txtUserScreenName.setVisibility(View.INVISIBLE);
+        }
+
+        /*If it is a saved tweet don't show the favorites star. It would complicate things alot
+         to let the user change the favorites entry for a star from within fthe breakdown fragment */
+        if(mSavedTweet) {
+            //Set up the favorites star
+            imgStar.setVisibility(View.GONE);
+            imgStarLayout.setVisibility(View.GONE);
+        } else {
+
+            //Set up the favorites star
+            imgStarLayout.setClickable(true);
+            imgStarLayout.setLongClickable(true);
+
+
+            try {
+
+                imgStar.setImageResource(FavoritesColors.assignStarResource(mTweet.getItemFavorites(),mActiveTweetFavoriteStars));
+                Integer starColorDrawableInt = FavoritesColors.assignStarResource(mTweet.getItemFavorites(),mActiveTweetFavoriteStars);
+                if(starColorDrawableInt!=R.drawable.ic_star_multicolor) {
+                    imgStar.setColorFilter(ContextCompat.getColor(getContext(), FavoritesColors.assignStarColor(mTweet.getItemFavorites(),mActiveTweetFavoriteStars)));
+                }
+
+
+                imgStarLayout.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if(BuildConfig.DEBUG){Log.d(TAG,"mActiveFavoriteStars: " + mActiveTweetFavoriteStars);}
+
+                        if(mTweet.getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)) {
+                            showTweetFavoriteListPopupWindow();
+                        } else {
+                            if(FavoritesColors.onFavoriteStarToggleTweet(getContext(),mActiveTweetFavoriteStars,mTweet.getUser().getUserId(),mTweet)) {
+                                imgStar.setImageResource(R.drawable.ic_star_black);
+                                imgStar.setColorFilter(ContextCompat.getColor(getContext(),FavoritesColors.assignStarColor(mTweet.getItemFavorites(),mActiveTweetFavoriteStars)));
+                            } else {
+                                Log.e(TAG,"OnFavoriteStarToggle did not work...");
+                            }
+                        }
+                    }
+                });
+
+
+                imgStarLayout.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+
+                        showTweetFavoriteListPopupWindow();
+
+                        return true;
+                    }
+                });
+
+            }  catch (NullPointerException e) {
+                Log.e(TAG,"TweetBreakDownFragment setting up imgStar doesn't contain itemfavs??: " + e);
+                imgStar.setVisibility(View.GONE);
+            }
+        }
+    };
+
+//    private void
 
 
     @Override
@@ -640,8 +643,10 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
 
     public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {
         mCallback.notifySavedWordFragmentsChanged(String.valueOf(wordEntry.getId()));
-
     }
+    public void notifySavedTweetFragmentsChanged(){
+        mCallback.notifySavedTweetFragmentsChanged();
+    };
     @Override
     public void onDestroy() {
         super.onDestroy();

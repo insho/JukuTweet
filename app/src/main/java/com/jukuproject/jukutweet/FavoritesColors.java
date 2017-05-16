@@ -12,7 +12,6 @@ import com.jukuproject.jukutweet.Models.WordEntry;
 import java.util.ArrayList;
 
 /**
- * Created on 3/28/2017.
  *
  * Container for static methods pertaining to determining/assigning the color of
  * a favorite star for a word or tweet, and updates
@@ -33,7 +32,6 @@ public class FavoritesColors {
      */
     public static int getFavoritesStarColor(ArrayList<String> preferenceFavorites, ItemFavorites itemFavorites){
         if(preferenceFavorites.contains("Blue") && itemFavorites.getSystemBlueCount() > 0) {
-            Log.d("TEST","RETURNING BLUE");
             return R.color.colorJukuBlue;
         } else if(preferenceFavorites.contains("Green") && itemFavorites.getSystemGreenCount() > 0) {
             return R.color.colorJukuGreen;
@@ -53,12 +51,11 @@ public class FavoritesColors {
     @Nullable
     public static Integer assignStarColor(ItemFavorites itemFavorites, ArrayList<String> preferenceFavorites ) {
 
-        if(BuildConfig.DEBUG) {
-            Log.d("TEST","item favs should open popup: " + itemFavorites.shouldOpenFavoritePopup(preferenceFavorites));
-            for(String string : preferenceFavorites) {
-                Log.d("TEST","prefs favs strings: " + string);
-            }
-        }
+//        if(BuildConfig.DEBUG) {
+//            for(String string : preferenceFavorites) {
+//                Log.d("TEST","prefs favs strings: " + string);
+//            }
+//        }
 
         if(itemFavorites.shouldOpenFavoritePopup(preferenceFavorites) &&
                 itemFavorites.systemListCount(preferenceFavorites) >1) {

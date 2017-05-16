@@ -10,6 +10,9 @@
     <string name="dialog_empty">RSS feed is blank</string>
     <string name="nolists">no saved users</string>
 
+
+    <string name="nousersadded">Click the plus button to add a user manually, or search for users/tweets in the search window</string>
+
     <string name="dialog_mylist_title">Enter List Name</string>
     <string name="dialog_mylist_rename_title">Enter New List Name</string>
 
@@ -18,7 +21,7 @@
     <string name="notimeline_nointernet">Unable to access timeline. No internet.</string>
     <string name="nousers_nointernet">Unable to access users. No internet.</string>
 
-    <string name="notimeline_for_user">Unable to get timeline for %1$s?</string>
+    <string name="notimeline_for_user">Unable to get timeline for %1$s</string>
 
 
     <string name="nointernet">No internet.</string>
@@ -76,6 +79,7 @@
 
     <string name="statsComplete">%1$d%% Complete</string>
     <string name="percentage">%1$d%%</string>
+    <string name="score">%1$d/%2$d</string>
 
     <string name="userDetailPopupFriends">%1$s Friends</string>
     <string name="userDetailPopupFollowers">%1$s Followers</string>
@@ -114,6 +118,15 @@
         <item>Orange</item>
     </string-array>
 
+    <string-array name="entryvalues_list_favoritescount_kanji_default">
+        <item>Blue</item>
+        <item>Red</item>
+    </string-array>
+
+    <string-array name="entryvalues_list_favoritescount_tweet_default">
+        <item>Yellow</item>
+        <item>Green</item>
+    </string-array>
 
     <string-array name="menu_mylist">
         <item>Browse/Edit</item>

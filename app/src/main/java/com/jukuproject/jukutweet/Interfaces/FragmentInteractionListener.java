@@ -1,5 +1,7 @@
 package com.jukuproject.jukutweet.Interfaces;
 
+import android.support.annotation.Nullable;
+
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.UserInfo;
 
@@ -26,7 +28,7 @@ public interface FragmentInteractionListener {
     void notifySavedTweetFragmentsChanged();
     void onBackPressed();
     void runDictionarySearch(String query, String queryOn);
-    void runTwitterSearch(String query, String queryOn);
+    void runTwitterSearch(String query, String queryOn, @Nullable Long maxId);
     void showAddUserCheckDialog(UserInfo userInfo);
 
     void parseAndSaveTweet(Tweet tweet);

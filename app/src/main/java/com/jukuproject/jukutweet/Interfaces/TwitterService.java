@@ -120,6 +120,24 @@ public interface TwitterService {
                 , @Query("count") int limit);
 
     /**
+     * Search twitter API for tweets containing a query string
+     * @param query query string (i.e. a japanese kanji)
+     * @param languageCode 2 digit country code
+     * @param limit max number of results
+     * @param maxId Used to pull more results. If an id is supplied, only tweets with lower (i.e. OLDER tweets) will be included in result set.
+     *              Basically can be used like a "cursor" to pull more results
+     * @return Observable list of matching Tweet objects
+     *
+     *  @see com.jukuproject.jukutweet.TwitterUserClient
+     *  @see com.jukuproject.jukutweet.Fragments.SearchFragment
+     *  @see com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog
+     */
+    @GET("search/tweets.json") Observable<SearchTweetsContainer> getMoreSearchTweets(@Query("q") String query
+            , @Query("lang") String languageCode
+            , @Query("count") int limit
+            , @Query("max_id") long maxId);
+
+    /**
      * Search twitter API for users
      * @param query search query (user name or screen_name)
      * @param limit max number of results

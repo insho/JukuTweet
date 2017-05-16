@@ -42,6 +42,8 @@ public class InternalDB extends SQLiteOpenHelper
         public static final String TABLE_FAVORITES_LISTS_TWEETS_ENTRIES = "JFavoritesTweets";
         public static final String TABLE_SAVED_TWEET_KANJI = "JSavedTweetKanji";
         public static final String TABLE_SAVED_TWEET_URLS = "JSavedTweetUrls";
+        public static final String TABLE_SAVED_TWEET_USERMENTIONS = "JSavedTweetUserMentions";
+
         public static final String TABLE_FAVORITES_LIST_ENTRIES = "JFavorites";
     }
 
@@ -213,16 +215,14 @@ public class InternalDB extends SQLiteOpenHelper
         /* Saved Tweets table, one tweet per row */
         String sqlQueryJSavedTweet =
                 String.format("CREATE TABLE IF NOT EXISTS %s (" +
-                                "%s INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                                "%s TEXT, " +
+                                "%s TEXT PRIMARY KEY, " +
                                 "%s TEXT, " +
                                 "%s TEXT, " +
                                 "%s TEXT, " +
                                 "%s TEXT)", Tables.TABLE_SAVED_TWEETS,
-                        Columns.COL_ID, //_id
+                        Columns.TSAVEDTWEET_COL2, //Tweet_id
                         Columns.TSAVEDTWEET_COL0, //UserId
                         Columns.TSAVEDTWEET_COL1, //UserScreenName
-                        Columns.TSAVEDTWEET_COL2, // Tweet_id
                         Columns.TSAVEDTWEET_COL3, //CreatedAt
                         Columns.TSAVEDTWEET_COL4); // Text
 
@@ -251,17 +251,38 @@ public class InternalDB extends SQLiteOpenHelper
         String sqlQueryJSavedTweetUrls =
                 String.format("CREATE TABLE IF NOT EXISTS %s (" +
                                 "%s INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                                "%s INTEGER, " +
+                                "%s TEXT, " +
                                 "%s TEXT, " +
                                 "%s INTEGER, " +
                                 "%s INTEGER)", Tables.TABLE_SAVED_TWEET_URLS,
                         Columns.COL_ID, //_id (unique)
-                        Columns.TSAVEDTWEET_COL2, //STweet_id (JSavedTweet _id)
+                        Columns.TSAVEDTWEET_COL2, //Tweet_id (JSavedTweet _id)
                         Columns.TSAVEDTWEETURLS_COL1, // Url text
                         Columns.TSAVEDTWEETURLS_COL2, // start index of url
                         Columns.TSAVEDTWEETURLS_COL3); // end index of url
 
         sqlDB.execSQL(sqlQueryJSavedTweetUrls);
+
+
+                /* Stores URLs for a tweet in the TABLE_SAVED_TWEETS */
+        String sqlQueryJSavedTweetUserMentions =
+                String.format("CREATE TABLE IF NOT EXISTS %s (" +
+                                "%s INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                "%s TEXT, " +
+                                "%s TEXT, " +
+                                "%s TEXT, " +
+                                "%s TEXT, " +
+                                "%s INTEGER, " +
+                                "%s INTEGER)", Tables.TABLE_SAVED_TWEET_USERMENTIONS,
+                        Columns.COL_ID, //_id (unique)
+                        Columns.TSAVEDTWEET_COL2, //Tweet_id (USED TO LINK TO SAVED TWEETS)
+                        Columns.TMAIN_COL0, //ScreenName (of mentioned user)
+                        Columns.TMAIN_COL7, // Name (of mentioned user)
+                        Columns.TMAIN_COL1, //UserId (of mentioned user)
+                        Columns.TSAVEDTWEETURLS_COL2, // start index of mention
+                        Columns.TSAVEDTWEETURLS_COL3); // end index of mention
+
+        sqlDB.execSQL(sqlQueryJSavedTweetUserMentions);
 
     }
 

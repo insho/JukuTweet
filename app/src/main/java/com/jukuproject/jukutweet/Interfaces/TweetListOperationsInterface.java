@@ -8,6 +8,7 @@ import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.ItemFavorites;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.Tweet;
+import com.jukuproject.jukutweet.Models.TweetEntities;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
 
@@ -42,7 +43,9 @@ public interface TweetListOperationsInterface {
     int tweetExistsInDB(Tweet tweet);
     int tweetParsedKanjiExistsInDB(Tweet tweet);
     int saveTweetToDB(UserInfo userInfo, Tweet tweet);
-    int saveTweetUrls(Tweet tweet);
+//    int saveTweetUrls(Tweet tweet);
+    TweetEntities getTweetEntitiesForSavedTweet(String tweetId);
+
     int saveParsedTweetKanji(ArrayList<WordEntry> wordEntries, String tweet_id);
     HashMap<String,ItemFavorites> getStarFavoriteDataForAUsersTweets(String userId);
 //    HashMap<String,ItemFavorites> getStarFavoriteDataForMultipleTweets(String userIds);

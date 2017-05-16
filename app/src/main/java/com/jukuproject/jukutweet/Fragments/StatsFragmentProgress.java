@@ -359,9 +359,8 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
 
         }
     }
-    public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {
-//        mCallback.notifySavedWordFragmentsChanged(wordEntry);
-    }
+    public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {}
+    public void notifySavedTweetFragmentsChanged(){};
 
     /**
      * Compiles an array of edict kanji Ids from the bottomDataSet, so that they can be passed on to the

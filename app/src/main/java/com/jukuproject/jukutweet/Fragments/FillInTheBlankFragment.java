@@ -765,7 +765,7 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
     }
 
     public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {}
-
+    public void notifySavedTweetFragmentsChanged(){};
 
     @Override
     public void onAttach(Context context) {
@@ -823,5 +823,6 @@ private AdapterView.OnItemSelectedListener spinnerSelectedListener (final WordEn
         }
     };
 }
+
 
 }

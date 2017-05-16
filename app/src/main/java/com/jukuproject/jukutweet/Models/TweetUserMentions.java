@@ -14,10 +14,14 @@ public class TweetUserMentions implements Parcelable {
     private String id_str;
     private int[] indices;
 
-    public TweetUserMentions(String screen_name, String name, String id_str, int[] indices) {
+    public TweetUserMentions(String screen_name, String name, String id_str) {
         this.screen_name = screen_name;
         this.name = name;
         this.id_str = id_str;
+    }
+
+
+    public void setIndices(int[] indices) {
         this.indices = indices;
     }
 

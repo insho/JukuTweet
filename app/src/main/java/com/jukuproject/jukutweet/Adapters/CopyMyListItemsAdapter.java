@@ -74,15 +74,15 @@ public class CopyMyListItemsAdapter extends RecyclerView.Adapter<CopyMyListItems
         holder.gridLayout.setOnClickListener(null);
 
 
-        if(initialMyListEntry.getSelectionLevel()==1){
+        if(initialMyListEntry.getSelectionLevel()>=1){
             holder.checkbox.setChecked(true);
-            holder.checkbox.setAlpha(1.0f);
-        } else if(initialMyListEntry.getSelectionLevel()==2) {
-            holder.checkbox.setChecked(true);
-            holder.checkbox.setAlpha(.4f);
+//            holder.checkbox.setAlpha(1.0f);
+//        } else if(initialMyListEntry.getSelectionLevel()==2) {
+//            holder.checkbox.setChecked(true);
+//            holder.checkbox.setAlpha(.4f);
         } else {
             holder.checkbox.setChecked(false);
-            holder.checkbox.setAlpha(1.0f);
+//            holder.checkbox.setAlpha(1.0f);
         }
         holder.imageButton.setPadding(0,
                 (int) (2.0f * mDensity + 0.5f),
@@ -157,12 +157,12 @@ public class CopyMyListItemsAdapter extends RecyclerView.Adapter<CopyMyListItems
         if(myListEntry.getSelectionLevel() != 1) {
             holder.checkbox.setChecked(true);
             myListEntry.setSelectionLevel(1);
-            holder.checkbox.setAlpha(1.0f);
+//            holder.checkbox.setAlpha(1.0f);
 
         } else {
             holder.checkbox.setChecked(false);
             myListEntry.setSelectionLevel(0);
-            holder.checkbox.setAlpha(1.0f);
+//            holder.checkbox.setAlpha(1.0f);
 
         }
         mRxBus.send(myListEntry);

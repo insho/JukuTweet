@@ -3,6 +3,7 @@ package com.jukuproject.jukutweet.Models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,11 +22,14 @@ public class TweetEntities  implements Parcelable {
         return urls;
     }
 
-    public TweetEntities(List<TweetUrl> urls) {
-
-        this.urls = urls;
+    public TweetEntities() {
+        this.urls = new ArrayList<>();
+        this.user_mentions = new ArrayList<>();
     }
 
+    public void setUrls(List<TweetUrl> urls) {
+        this.urls = urls;
+    }
 
     public List<TweetUserMentions> getUser_mentions() {
         return user_mentions;

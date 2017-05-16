@@ -376,6 +376,9 @@ public class Tweet  implements Parcelable {
         }
     }
 
+    public void setEntities(TweetEntities entities) {
+        this.entities = entities;
+    }
 
     // Parcelling part
     public Tweet(Parcel in){

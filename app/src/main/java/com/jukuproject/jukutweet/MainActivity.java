@@ -12,6 +12,7 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -75,6 +76,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -117,10 +119,13 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     /**
      * The {@link ViewPager} that will host the section contents.
      */
+
+    private static final String TAG = "TEST-Main";
     private ViewPager mViewPager;
     private SmoothProgressBar progressbar;
     private FloatingActionButton fab;
     private Menu mMenu;
+
     /*array keeping track of which tabs (either tab2,tab3, both, or neither)
       have the browsemenu icons showing. defaults to false*/
     private boolean[] tabsShowingBrowseMenu = new boolean[4];
@@ -128,9 +133,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     displayed next to the bak button. An empty string means no back button showed. */
     private String[] tabsShowingBackButton = new String[4];
 
-
+    /* Array of titles in pager adapter */
     private String[] mAdapterTitles;
-    private static final String TAG = "TEST-Main";
     private Subscription searchQuerySubscription;
     private Subscription userInfoSubscription;
 
@@ -139,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
       * and third is the "queryOption" parameter. */
     private String[] searchSubscriptionCriteria;
 
-
+    /* Queues up any parse tweet tasks so they complete one by one */
     Scheduler parseTweetScheduler = Schedulers.from(Executors.newSingleThreadExecutor());
 
     @Override
@@ -185,7 +189,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
              */
             @Override
             public void onPageSelected(int position) {
-
                 /* The fab has different functions and appearance depending on which tab is visible */
                 setUpFabsAndMenus(position);
             }
@@ -214,29 +217,30 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             }
         });
 
+            /* Setting up browse menu and action bar back buttons if activity is being recreated */
             if(savedInstanceState!=null) {
-
             tabsShowingBackButton = savedInstanceState.getStringArray("tabsShowingBackButton");
             tabsShowingBrowseMenu = savedInstanceState.getBooleanArray("tabsShowingBrowseMenu");
-
             try {
                 setUpFabsAndMenus(mViewPager.getCurrentItem());
-
             } catch (NullPointerException e) {
                 Log.e(TAG,"reactivating activity setUpFabsAndMenus Nullpointer");
             }
 
-            if(savedInstanceState.getStringArray("searchSubscriptionCriteria")!=null) {
-                searchSubscriptionCriteria = savedInstanceState.getStringArray("searchSubscriptionCriteria");
-                if(searchSubscriptionCriteria.length==3) {
+            if((searchSubscriptionCriteria = savedInstanceState.getStringArray("searchSubscriptionCriteria")) !=null) {
+                if(searchSubscriptionCriteria.length==4) {
                     if(searchSubscriptionCriteria[0].equals("Dictionary")) {
                         runDictionarySearch(searchSubscriptionCriteria[1],searchSubscriptionCriteria[2]);
                     } else if(searchSubscriptionCriteria[0].equals("Twitter")) {
-                        runTwitterSearch(searchSubscriptionCriteria[1],searchSubscriptionCriteria[2]);
+
+                        Long maxId = null;
+                        if(searchSubscriptionCriteria[3].length()>0) {
+                            maxId = Long.valueOf(searchSubscriptionCriteria[3]);
+                        }
+                        runTwitterSearch(searchSubscriptionCriteria[1],searchSubscriptionCriteria[2],maxId);
                     }
                 }
             }
-
         }
     }
 
@@ -314,7 +318,11 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
 
     /**
-     * Set of
+     * Handle clicks to action bar menu items. Mostly the set of "Delete", "Select All", "Copy" and "Cancel"
+     * buttons that appear when words/tweets are selected in the browse fragments.
+     * @see WordListBrowseFragment
+     * @see TweetListBrowseFragment
+     * @see TweetListSingleUserFragment
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -336,38 +344,28 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                         onBackPressed();
                        break;
 
+            //Cancel the selections
             case R.id.action_cancel:
                 try {
                     switch (mViewPager.getCurrentItem()) {
                         case 0:
                             if(tabsShowingBrowseMenu[0] && findFragmentByPosition(0) != null) {
-                                //Cancel the selections
                                 ((TweetListBrowseFragment)((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowseSingleUser")).deselectAll();
-                                //Hide the action icons
                                 showMenuMyListBrowse(false, 0);
                             }
                             break;
                         case 1:
-                            if(tabsShowingBrowseMenu[1]
-                                    && findFragmentByPosition(1) != null
-                                    ) {
-
-                                //Cancel the selections
+                            if(tabsShowingBrowseMenu[1] && findFragmentByPosition(1) != null) {
                                 ((TweetListBrowseFragment)((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse")).deselectAll();
-                                //Hide the action icons
                                 showMenuMyListBrowse(false, 1);
                             }
                             break;
                         case 2:
                             if(tabsShowingBrowseMenu[2] && findFragmentByPosition(2) != null) {
-
-                                //Cancel the selections
                                 ((WordListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).deselectAll();
-                                //Hide the action icons
                                 showMenuMyListBrowse(false, 2);
                             }
                             break;
-
                     }
 
                 } catch (NullPointerException e) {
@@ -376,6 +374,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
 
                 break;
+
+            //Show copy/move dialog
             case R.id.action_copy:
 
                 try {
@@ -402,49 +402,43 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 }
 
                 break;
+
+            //Delete selected items
             case R.id.action_delete:
                 try {
                     switch (mViewPager.getCurrentItem()) {
                         case 0:
-                            if(tabsShowingBrowseMenu[0] && findFragmentByPosition(0) != null
-                                    ) {
+                            if(tabsShowingBrowseMenu[0] && findFragmentByPosition(0) != null) {
                                 ((TweetListBrowseFragment)((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowseSingleUser")).removeTweetFromList();
-
-                                //Hide the action icons
                                 showMenuMyListBrowse(false, 0);
                             }
                             break;
                         case 1:
                             if(tabsShowingBrowseMenu[1] && findFragmentByPosition(1) != null) {
                                 ((TweetListBrowseFragment)((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowse")).removeTweetFromList();
-
-                                //Hide the action icons
                                 showMenuMyListBrowse(false, 1);
                             }
                             break;
                         case 2:
                             if(tabsShowingBrowseMenu[2] && findFragmentByPosition(2) != null) {
                                 ((WordListBrowseFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistbrowse")).removeKanjiFromList();
-
-                                //Hide the action icons
                                 showMenuMyListBrowse(false, 2);
-
                             }
                             break;
                     }
-
                 } catch (NullPointerException e) {
                     Log.e(TAG,"TabContainer->BrowseFragment delete Nullpointer: " + e.toString());
                 }
 
 
                 break;
+
+            //Select all items in browse list
             case R.id.action_selectall:
                 try {
                 switch (mViewPager.getCurrentItem()) {
                     case 0:
-                        if(tabsShowingBrowseMenu[0] && findFragmentByPosition(0) != null
-                                ) {
+                        if(tabsShowingBrowseMenu[0] && findFragmentByPosition(0) != null) {
                             ((TweetListBrowseFragment)((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("savedtweetsbrowseSingleUser")).selectAll();
                         }
                         break;
@@ -503,11 +497,10 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     @Override
     public void onAddUserDialogPositiveClick(String inputText) {
 
-        /** Check to DB to see if the new feed is a duplicate*/
+        /* Check to DB to see if the new feed is a duplicate*/
         if(InternalDB.getUserInterfaceInstance(getBaseContext()).duplicateUser(inputText.trim())) {
             Toast.makeText(this, "UserInfo already exists", Toast.LENGTH_SHORT).show();
         } else if (!isOnline()) {
-
             if(!InternalDB.getUserInterfaceInstance(getBaseContext()).saveUserWithoutData(inputText.trim())) {
                 Toast.makeText(getBaseContext(), "Unable to save " + inputText.trim(), Toast.LENGTH_SHORT).show();
             } else {
@@ -515,8 +508,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     ((Tab1Container) findFragmentByPosition(0)).updateUserListFragment();
                 } catch (NullPointerException e) {
                     Log.e(TAG,"nullpointer error onRemoveUserDialogPOsitiveclick " + e.toString());
-                } catch (Exception e) {
-                    Log.e(TAG,"generic exception error onRemoveUserDialogPOsitiveclick " + e.toString());
                 }
             }
 
@@ -557,8 +548,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     ((Tab1Container) findFragmentByPosition(0)).updateUserListFragment();
                 } catch (NullPointerException e) {
                     Log.e(TAG,"nullpointer error onRemoveUserDialogPOsitiveclick " + e.getCause());
-                } catch (Exception e) {
-                    Log.e(TAG,"generic exception error onRemoveUserDialogPOsitiveclick " + e.getCause());
                 }
         } else {
             Toast.makeText(this, "Could not remove item", Toast.LENGTH_SHORT).show();
@@ -584,13 +573,13 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      */
     public void getInitialUserInfoForAddUserCheck(final String screenName) {
 
+        if(userInfoSubscription==null) {
             String token = getResources().getString(R.string.access_token);
             String tokenSecret = getResources().getString(R.string.access_token_secret);
-
-
-        userInfoSubscription = TwitterUserClient.getInstance(token,tokenSecret)
+            userInfoSubscription = TwitterUserClient.getInstance(token,tokenSecret)
                     .getUserInfo(screenName)
                     .subscribeOn(Schedulers.io())
+                    .timeout(6, TimeUnit.SECONDS)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Observer<UserInfo>() {
                         UserInfo userInfoInstance;
@@ -605,6 +594,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                             } else {
                                 Toast.makeText(MainActivity.this, "Unable to add user " + screenName, Toast.LENGTH_SHORT).show();
                             }
+                            userInfoSubscription = null;
                         }
 
                         @Override public void onError(Throwable e) {
@@ -616,6 +606,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                             if(!InternalDB.getUserInterfaceInstance(getBaseContext()).duplicateUser(screenName)) {
                                 InternalDB.getUserInterfaceInstance(getBaseContext()).saveUserWithoutData(screenName);
                             }
+                            userInfoSubscription = null;
                             Log.d(TAG,"ERROR CAUSE: " + e.getCause());
                         }
 
@@ -625,7 +616,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                                 Log.d(TAG, "userInfo: " + userInfo.getUserId() + ", " + userInfo.getDescription());
                             }
 
-                            //TODO replace this?
                             if(userInfoInstance == null) {
                                 userInfoInstance = userInfo;
                             }
@@ -634,11 +624,16 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                         }
                     });
 
+        }
+
     }
 
 
-
-
+    /**
+     * Adds a user to {@link com.jukuproject.jukutweet.Fragments.UserListFragment} and downloads icon for user. Called
+     *  from {@link AddUserCheckDialog} when user clicks "Ok"
+     * @param userInfoInstance UserInfo object for prospective user to add to db
+     */
     public void saveAndUpdateUserInfoList(UserInfo userInfoInstance) {
 
         if(InternalDB.getUserInterfaceInstance(getBaseContext()).duplicateUser(userInfoInstance.getScreenName())) {
@@ -675,7 +670,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         return new File(directory, title + ".png");
     }
 
-    //TODO keep checking images if they are not initially downloaded?
     /**
      * Takes the url of an icon image from a UserInfo object, downloads the image with picasso
      * and saves it to a file
@@ -698,8 +692,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, ostream);
                                 ostream.flush();
                                 ostream.close();
-
-                                //TODO == clearer way of saving this image to a file...
 
                                 Uri uri = Uri.fromFile(file);
                                 InternalDB.getUserInterfaceInstance(getBaseContext()).addMediaURItoDB(uri.toString(),screenName);
@@ -745,6 +737,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             clearingSearchOrDismissingPreferences = true;
             SharedPrefManager.initialize(getBaseContext());
 
+            //List fragments may have changed due to preference fragment changes, so update them
             if(((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistfragment") != null) {
                 ((WordListFragment) ((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistfragment")).updateMyListAdapter();
             }
@@ -754,7 +747,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
         } else if(mViewPager.getCurrentItem() == 3) {
             //If it is a searchfragment, and a search has some results, on back should clear the search, not pop the fragment
-
             if(findFragmentByPosition(3) != null
                     && findFragmentByPosition(3) instanceof Tab4Container
                     && ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment") != null) {
@@ -764,6 +756,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             }
         }
 
+        //Otherwise pop the fragment or close the program
         if(!clearingSearchOrDismissingPreferences) {
             showMenuMyListBrowse(false,mViewPager.getCurrentItem());
             isPopFragment = ((BaseContainerFragment)findFragmentByPosition(mViewPager.getCurrentItem())).popFragment();
@@ -853,8 +846,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             getSupportActionBar().setTitle(title);
         }
     }
-
-
 
     /**
      * Shows dialog where user can create a new list (either word list or tweet list)
@@ -1071,36 +1062,11 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      */
     public boolean isTopShowing(int position) {
 
-        switch(position) {
-            case 0:
-                try {
-                    return ((BaseContainerFragment)findFragmentByPosition(0)).isTopFragmentShowing();
-                } catch(NullPointerException e) {
-                    return false;
-                }
-            case 1:
-                try {
-                    return ((BaseContainerFragment)findFragmentByPosition(1)).isTopFragmentShowing();
-                } catch(NullPointerException e) {
-                    return false;
-                }
-            case 2:
-                try {
-                    return  ((BaseContainerFragment)findFragmentByPosition(2)).isTopFragmentShowing();
-                } catch(NullPointerException e) {
-                    return false;
-                }
-            case 3:
-                try {
-                    return  ((BaseContainerFragment)findFragmentByPosition(3)).isTopFragmentShowing();
-
-                } catch(NullPointerException e) {
-                    return false;
-                }
-            default:
-                break;
+        try {
+            return ((BaseContainerFragment)findFragmentByPosition(position)).isTopFragmentShowing();
+        } catch(NullPointerException e) {
+            return false;
         }
-        return true;
     }
 
     /**
@@ -1169,56 +1135,9 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * @see TweetBreakDownFragment
      * @see com.jukuproject.jukutweet.Fragments.UserTimeLineFragment
      */
-//    public void notifySavedTweetFragmentsChanged(Tweet tweet) {
-//
-//        try {
-//            for(int i=0;i<4;i++) {
-//                if(mViewPager.getCurrentItem()!=i) {
-//                    Fragment currentFragment = ((BaseContainerFragment) findFragmentByPosition(i)).getTopFragment();
-//
-//                    if(currentFragment instanceof TweetListSingleUserFragment) {
-//                        ((TweetListSingleUserFragment) currentFragment).updateMyListAdapter();
-//                    } else if(currentFragment instanceof TweetListFragment) {
-//                        ((TweetListFragment) currentFragment).updateMyListAdapter();
-//                    } else if(currentFragment instanceof TweetListBrowseFragment) {
-//                        ((TweetListBrowseFragment) currentFragment).addTweetOrUpdateTweetEntryItemFavorites(tweet);
-//                    }
-//                }
-//            }
-//        } catch (NullPointerException e) {
-//            Log.e(TAG,"currentFragment updates failed for notifySavedTweetFragmentsChanged");
-//        }
-//
-////        if(findFragmentByPosition(0) != null && findFragmentByPosition(0) instanceof Tab1Container) {
-////            if(((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("savedTweetsAllFragmentIndividual") != null){
-////                ((TweetListSingleUserFragment) ((Tab1Container) findFragmentByPosition(0)).getChildFragmentManager().findFragmentByTag("savedTweetsAllFragmentIndividual")).updateMyListAdapter();
-////            }
-////        }
-////
-////        if(findFragmentByPosition(1) != null && findFragmentByPosition(1) instanceof Tab2Container) {
-////            if(((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsallfragment") != null){
-////                TweetListFragment tweetListBrowseFragment = ((TweetListFragment) ((Tab2Container) findFragmentByPosition(1)).getChildFragmentManager().findFragmentByTag("savedtweetsallfragment"));
-////                if(tweetListBrowseFragment.isAdded()) {
-////                    tweetListBrowseFragment.updateMyListAdapter();
-////                }
-////            }
-////        }
-//    }
-
-
-    /**
-     * Looks for current tweet fragment in tab 1 (either saved tweet lists
-     * or individual users saved tweets) and refreshes the list. Initiated from the onSuccess portion of the parseAndSaveTweet method.
-     * @see #parseAndSaveTweet(Tweet)
-     * @see TweetBreakDownFragment
-     * @see com.jukuproject.jukutweet.Fragments.UserTimeLineFragment
-     */
     public void notifySavedTweetFragmentsChanged() {
 
         try {
-//            ArrayList<Tweet> tweetEntries = InternalDB.getTweetInterfaceInstance(getBaseContext()).getTweetsFromAStringofTweetIds(tweetIdString,SharedPrefManager.getInstance(getBaseContext()).getColorThresholds());
-
-//            Log.i(TAG,"HERE IN NOTIFY SAVED TWEETS FRAGMENTS CHANGED: " + tweetEntries.size());
             for(int i=0;i<4;i++) {
                 if(mViewPager.getCurrentItem()!=i) {
                     Fragment currentFragment = ((BaseContainerFragment) findFragmentByPosition(i)).getTopFragment();
@@ -1235,7 +1154,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         } catch (NullPointerException e) {
             Log.e(TAG,"currentFragment updates failed for notifySavedTweetFragmentsChanged");
         }
-
     }
 
     /**
@@ -1245,24 +1163,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * For example, If the user has opened the tweet breakdown
      * fragment in tab 1 (for a single user's saved tweets), and has added a word to a list, the word related fragments in tabs 2 and must
      * be updated to reflect that change, as well as the search tab if applicable..
-     */
-//    public void notifySavedWordFragmentsChanged(WordEntry wordEntry) {
-//
-//        try {
-//            for(int i=0;i<4;i++) {
-//                if(mViewPager.getCurrentItem()!=i) {
-//                    Fragment currentFragment = ((BaseContainerFragment) findFragmentByPosition(i)).getTopFragment();
-//                    updateChildFragment(currentFragment,wordEntry);
-//                }
-//            }
-//        } catch (NullPointerException e) {
-//            Log.e(TAG,"currentFragment updates failed for notifySavedWordFragmentsChanged");
-//        }
-//    }
-
-    /**
-     * Used specifically when multiple words have been deleted/copied from the {@link WordListBrowseFragment}, to update the
-     * other tabs to reflect the changes in the wordlist. It cycles through the other tab positions and updates those tabs if they exist.
+     *
      * @param wordEntryIdString concatenated comma-delimited string of edict kanji ids for the words that were removed
      */
     public void notifySavedWordFragmentsChanged(String wordEntryIdString) {
@@ -1280,30 +1181,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             Log.e(TAG,"currentFragment updates failed for notifySavedWordFragmentsChanged");
         }
     }
-
-//    /**
-//     * Checks if a fragment is one of a certain type (i.e. one that is of interest because the WordEntry
-//     * list it contains might need to be updated to reflect a change in another tab), and updates that fragment if it is. This is
-//     * called via {@link #notifySavedWordFragmentsChanged(WordEntry)} when a word entry favorite association was changed in one of the other tabs
-//     * @param currentFragment an instance of the current visible fragment in one of the tab buckets
-//     * @param wordEntry updated word entry, that will overwrite its counterpart in the currentFragment (if it exists)
-//     */
-//
-//    public void updateChildFragment(Fragment currentFragment, WordEntry wordEntry) {
-//        if(currentFragment instanceof TweetBreakDownFragment) {
-//            ((TweetBreakDownFragment) currentFragment).updateWordEntryItemFavorites(wordEntry);
-//        } else if(currentFragment instanceof FlashCardsFragment) {
-//            ((FlashCardsFragment) currentFragment).updateWordEntryItemFavorites(wordEntry);
-//        } else if(currentFragment instanceof StatsFragmentProgress) {
-//            ((StatsFragmentProgress) currentFragment).updateWordEntryItemFavorites(wordEntry);
-//        } else if(currentFragment instanceof WordListBrowseFragment) {
-//            ((WordListBrowseFragment) currentFragment).updateWordEntryItemFavorites(wordEntry);
-//        } else if(currentFragment instanceof WordListFragment) {
-//            ((WordListFragment) currentFragment).updateMyListAdapter();
-//        } else if(currentFragment instanceof SearchFragment) {
-//            ((SearchFragment) currentFragment).updateWordEntryItemFavorites(wordEntry);
-//        }
-//    }
 
     /**
      * Checks if a fragment is one of a certain type (i.e. one that is of interest because the WordEntry
@@ -1331,16 +1208,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         } else if(currentFragment instanceof WordListFragment) {
             ((WordListFragment) currentFragment).updateMyListAdapter();
         }
-//
-//        if(currentFragment instanceof TweetBreakDownFragment) {
-//            ((TweetBreakDownFragment) currentFragment).updateWordEntryItemFavorites(wordEntries);
-//        } else if(currentFragment instanceof FlashCardsFragment) {
-//            ((FlashCardsFragment) currentFragment).updateWordEntryItemFavorites(wordEntries);
-//        } else if(currentFragment instanceof StatsFragmentProgress) {
-//            ((StatsFragmentProgress) currentFragment).updateWordEntryItemFavorites(wordEntries);
-//        } else if(currentFragment instanceof SearchFragment) {
-//            ((SearchFragment) currentFragment).updateWordEntryItemFavorites(wordEntries);
-//        }
     }
 
     /**
@@ -1366,7 +1233,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
         }
     }
-
 
     /**
      * Traffic control, passing result of  {@link com.jukuproject.jukutweet.Dialogs.CopySavedTweetsDialog}  to the
@@ -1849,7 +1715,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      *
      * @see SearchFragment
      */
- public void runTwitterSearch(final String query, final String queryOption) {
+ public void runTwitterSearch(final String query, final String queryOption, @Nullable Long maxId) {
     if(searchQuerySubscription !=null && !searchQuerySubscription.isUnsubscribed()) {
         searchQuerySubscription.unsubscribe();
     }
@@ -1876,7 +1742,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
 
      searchQuerySubscription = TwitterUserClient.getInstance(token,tokenSecret)
-            .getSearchTweets(kanjiQuery,"ja",25)
+            .getSearchTweets(kanjiQuery,"ja",20,maxId)
 
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -1965,7 +1831,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             });
      } else if(queryOption.equals("User")){
 
-             TwitterUserClient.getInstance(token,tokenSecret)
+         searchQuerySubscription =   TwitterUserClient.getInstance(token,tokenSecret)
                      .getSearchUsers(query,15)
                      .subscribeOn(Schedulers.io())
                      .observeOn(AndroidSchedulers.mainThread())
@@ -2008,7 +1874,11 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                      });
      }
 
-     searchSubscriptionCriteria = new String[]{"Twitter",query,queryOption};
+     String maxIdString = "";
+     if(maxId!=null) {
+         maxIdString = String.valueOf(maxId);
+     }
+     searchSubscriptionCriteria = new String[]{"Twitter",query,queryOption,maxIdString};
 
  }
 
@@ -2069,7 +1939,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     }
                 });
 
-        searchSubscriptionCriteria = new String[]{"Dictionary",query,queryOption};
+        searchSubscriptionCriteria = new String[]{"Dictionary",query,queryOption,""};
     }
 
 

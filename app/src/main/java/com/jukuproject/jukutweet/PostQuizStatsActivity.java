@@ -103,7 +103,7 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
             mQuizPostQuizStatsPagerAdapter = new PostQuizStatsPagerAdapter(getSupportFragmentManager(),mAdapterTitles,fragments);
             mUserInfo = savedInstanceState.getParcelable("mUserInfo");
             mSingleUser = savedInstanceState.getBoolean("mSingleUser");
-            mLastExpandedPosition = savedInstanceState.getInt("mLastExpandedPosition",mLastExpandedPosition);
+            mLastExpandedPosition = savedInstanceState.getInt("mLastExpandedPosition",0);
         } else {
             //Get the intent from the options menu, with the pertinent data
             Intent mIntent = getIntent();

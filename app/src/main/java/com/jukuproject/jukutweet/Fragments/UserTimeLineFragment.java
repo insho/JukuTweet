@@ -20,7 +20,6 @@ import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
-import com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface;
 import com.jukuproject.jukutweet.Models.ItemFavorites;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.TweetUserMentions;
@@ -123,6 +122,7 @@ public class UserTimeLineFragment extends Fragment {
             if(!savedInstanceState.getBoolean("mDataSetMaxIdisNull",true)) {
                 mDataSetMaxId = savedInstanceState.getLong("mDataSetMaxId");
             } else  {
+
                 mDataSetMaxId = null;
             }
             searchInProgress = savedInstanceState.getBoolean("searchInProgress");
@@ -134,7 +134,7 @@ public class UserTimeLineFragment extends Fragment {
         mRecyclerView.setLayoutManager(mLayoutManager);
 
 
-          /* Listen for the user scrolling to the final position in the scrollview. IF it happens, load more
+        /* Listen for the user scrolling to the final position in the scrollview. IF it happens, load more
         * userinfo items into the adapter */
         if (android.os.Build.VERSION.SDK_INT >= 23) {
             mRecyclerView.setOnScrollChangeListener(new View.OnScrollChangeListener() {
@@ -180,7 +180,7 @@ public class UserTimeLineFragment extends Fragment {
                         mNoLists.setTextColor(ContextCompat.getColor(getContext(),android.R.color.holo_red_dark));
                         mNoLists.setText(getResources().getString(R.string.nointernet));
                         mSwipeToRefreshLayout.setRefreshing(false);
-                    } else if(mUserInfo != null  && timeLineSubscription !=null && timeLineSubscription.isUnsubscribed()) {
+                    } else if(mUserInfo != null) {
                         mDataSet = null;
                         mSwipeToRefreshLayout.setRefreshing(false);
                         Log.d(TAG,"Swipe to refresh pull dta");
@@ -428,21 +428,11 @@ public class UserTimeLineFragment extends Fragment {
 
                 if(isUniqueClick(1000) && event instanceof Tweet) {
                     final Tweet tweet = (Tweet) event;
-
-                    //Try to insert urls
-                    final TweetListOperationsInterface helperTweetOps = InternalDB.getTweetInterfaceInstance(getContext());
-                    helperTweetOps.saveTweetUrls(tweet);
-
-                    //Try to insert Kanji if they do not already exist
-                    if(helperTweetOps.tweetParsedKanjiExistsInDB(tweet) == 0) {
-//                        Log.d(TAG,"SAVING TWEET KANJI");
-//                                        final WordLoader wordLoader = helper.getWordLists(db);
+                    //Try to parse and insert Tweet Kanji if they do not already exist
+                    if(InternalDB.getTweetInterfaceInstance(getContext()).tweetParsedKanjiExistsInDB(tweet) == 0) {
                         mCallback.parseAndSaveTweet(tweet);
-                    } else {
-                        mCallback.notifySavedTweetFragmentsChanged();
-                        Log.e(TAG,"Tweet parsed kanji exists code is funky");
                     }
-
+                        mCallback.notifySavedTweetFragmentsChanged();
                 }
 
             }
@@ -478,8 +468,7 @@ public class UserTimeLineFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-            Log.d(TAG,"In saved instance out state...");
-//        outState.putStringArrayList("mActiveTweetFavoriteStars", mActiveTweetFavoriteStars);
+
         outState.putParcelableArrayList("mDataSet", mDataSet);
         outState.putParcelable("mUserInfo", mUserInfo);
 

@@ -53,6 +53,13 @@ public class SharedPrefManager {
         }
         return mSharedPrefManagerInstance;
     }
+
+    /**
+     * Reinitializes the shared preferences. Used when something has changed in the preference fragment,
+     * the fragment closes, and things in the main tab buckets may need to be changed based on the new preferences...
+     * @param context context
+     * @return updated shared preference instance
+     */
     public static SharedPrefManager initialize(Context context){
         if(mSharedPrefManagerInstance == null)
         {

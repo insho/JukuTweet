@@ -188,56 +188,18 @@ public class UserOpsHelper implements UserOperationsInterface {
 //     * be used in the {@link com.jukuproject.jukutweet.Fragments.UserListFragment} recycler
 //     * @return list of UserInfo objects, one for each followed user saved in the db
 //     */
-//    public List<MenuHeader> getSavedUserInfo() {
-//        List<MenuHeader> userInfoList = new ArrayList<MenuHeader>();
+//    public ArrayList<String> getListOfUserIdsinDB() {
+//        ArrayList<String> userIds = new ArrayList<>();
 //
-//        String querySelectAll = "Select distinct ScreenName" +
-//                ",IFNULL(Description,'')" +
-//                ",IFNULL(FollowerCount,-1)" +
-//                ", IFNULL(FriendCount,-1)" +
-//                ", IFNULL(ProfileImgUrl,'')" +
-//                ",UserId" +
-//                ", ProfileImgFilePath" +
-//                ", UserName " +
-//                "From " + InternalDB.Tables.TABLE_USERS;
+//        String queryUserIds = "Select distinct UserId From " + InternalDB.Tables.TABLE_USERS;
 //        SQLiteDatabase db = sqlOpener.getReadableDatabase();
-//        Cursor c = db.rawQuery(querySelectAll, null);
+//        Cursor c = db.rawQuery(queryUserIds, null);
 //
 //
 //        try {
-//            if (c.moveToFirst()) {
+//            if (c.getCount()>0 && c.moveToFirst()) {
 //                do {
-//
-//                    UserInfo userInfo = new UserInfo(c.getString(0));
-//                    userInfo.setDescription(c.getString(1));
-//
-//                    try {
-//                        if(c.getString(5)!=null) {
-//                            userInfo.setUserId(c.getString(5));
-//                        }
-//                        if(c.getInt(2)>=0) {
-//                            userInfo.setFollowerCount(c.getInt(2));
-//                        }
-//                        if(c.getInt(3)>=0) {
-//                            userInfo.setFriendCount(c.getInt(3));
-//                        }
-//                        userInfo.setName(c.getString(7));
-//                        userInfo.setProfile_image_url(c.getString(4));
-//                    } catch (SQLiteException e) {
-//                        Log.e(TAG,"getSavedUserInfo adding extra user info sqlite problem: " + e);
-//                    } catch (NullPointerException e) {
-//                        Log.e(TAG,"getSavedUserInfo adding extra user info NullPointerException... " + e);
-//                    }
-//
-//                    try {
-//                        userInfo.setProfileImageFilePath(c.getString(6));
-//                    }  catch (SQLiteException e) {
-//                        Log.e(TAG,"getSavedUserInfo adding setProfileImgFilePath sqlite problem: " + e);
-//                    } catch (NullPointerException e) {
-//                        Log.e(TAG,"getSavedUserInfo adding setProfileImgFilePath other NullPointerException... " + e);
-//                    }
-//
-//                    userInfoList.add(userInfo);
+//                    userIds.add(c.getString(0));
 //                } while (c.moveToNext());
 //            }
 //
@@ -246,7 +208,7 @@ public class UserOpsHelper implements UserOperationsInterface {
 //            db.close();
 //        }
 //
-//        return userInfoList;
+//        return userIds;
 //    }
 
 

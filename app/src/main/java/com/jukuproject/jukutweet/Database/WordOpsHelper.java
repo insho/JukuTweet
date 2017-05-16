@@ -306,9 +306,10 @@ public class WordOpsHelper implements WordListOperationsInterface {
             //Except for if a certain favorite list exists that we do not want to include (as occurs in the mylist copy dialog)
             Cursor c = db.rawQuery("Select [Lists].[Name] "    +
                     ",[Lists].[Sys] "    +
-                    ",(Case when UserEntries.Name is null then 0 " +
-                                " WHEN UserEntries.UserCount > 0 AND UserEntries.UserCount < " + countOfWordIds + " THEN 2 " +
-                                " else 1 END) as SelectionLevel "    +
+//                    ",(Case when UserEntries.Name is null then 0 " +
+//                                " WHEN UserEntries.UserCount > 0 AND UserEntries.UserCount < " + countOfWordIds + " THEN 2 " +
+//                                " else 1 END) as SelectionLevel "    +
+
                     " "    +
                     "from "    +
                     "( "    +
@@ -348,9 +349,9 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     //Only add system lists (sys==1), but only if the system lists are actived in user preferences
                     if((c.getInt(1) == 0 || activeFavoriteStars.contains(c.getString(0)))
                             && (entryToExclude == null || !(entryToExclude.getListName().equals(c.getString(0)) && entryToExclude.getListsSys() == c.getInt(1)))) {
-                        MyListEntry entry = new MyListEntry(c.getString(0),c.getInt(1),c.getInt(2));
+                        MyListEntry entry = new MyListEntry(c.getString(0),c.getInt(1),0);
                         myListEntries.add(entry);
-                        Log.d(TAG,"RETURN LISTNAME: " + c.getString(0) + ", SYS: " + c.getInt(1));
+//                        Log.d(TAG,"RETURN LISTNAME: " + c.getString(0) + ", SYS: " + c.getInt(1));
                     }
                     c.moveToNext();
                 }
@@ -997,13 +998,18 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     "[Definition]," +
                     "ifnull([Total],0) as [Total] " +
 
-
-                    ",(CASE WHEN ifnull([Total],0) < " + colorThresholds.getGreyThreshold() + " THEN 1 " +
+//
+//                    ",(CASE WHEN ifnull([Total],0) < " + colorThresholds.getGreyThreshold() + " THEN 1 " +
+//                    "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 0  " +
+//                    "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and (CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getRedThreshold() + "  and CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + ") THEN 2  " +
+//                    "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getYellowThreshold() + " THEN 3 " +
+//                    "ELSE 0 END) as [ColorSort] " +
+                    ",(CASE WHEN ifnull([Total],0) < " + colorThresholds.getGreyThreshold() + " and [Total] > 0 THEN 1 " +
+                    "WHEN ifnull([Total],0) < " + colorThresholds.getGreyThreshold() + " THEN 2 " +
                     "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 0  " +
-                    "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and (CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getRedThreshold() + "  and CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + ") THEN 2  " +
-                    "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getYellowThreshold() + " THEN 3 " +
+                    "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and (CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getRedThreshold() + "  and CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + ") THEN 3  " +
+                    "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getYellowThreshold() + " THEN 4 " +
                     "ELSE 0 END) as [ColorSort] " +
-
                     ",ifnull([Correct],0)  as [Correct]" +
                     ",CAST(ifnull([Correct],0)  as float)/[Total] as [Percent] " +
 

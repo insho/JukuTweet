@@ -166,22 +166,17 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                 @Override
                 public void onClick(View v) {
 
+
+
+
                 /* Check for, and save */
                     Tweet currentTweet = mDataset.get(holder.getAdapterPosition());
                     TweetListOperationsInterface helperTweetOps = InternalDB.getTweetInterfaceInstance(mContext);
 
-
-                    if(mDataset.get(holder.getAdapterPosition()).getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)) {
-                        showTweetFavoriteListPopupWindow(mDataset.get(holder.getAdapterPosition()),holder);
-                    } else {
-                        if (FavoritesColors.onFavoriteStarToggleTweet(mContext, mActiveTweetFavoriteStars, mDataset.get(holder.getAdapterPosition()).getUser().getUserId(), mDataset.get(holder.getAdapterPosition()))) {
-                            holder.imgStar.setImageResource(R.drawable.ic_star_black);
-                            holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, FavoritesColors.assignStarColor(mDataset.get(holder.getAdapterPosition()).getItemFavorites(), mActiveTweetFavoriteStars)));
-                            _rxbus.sendSaveTweet(mDataset.get(holder.getAdapterPosition()));
-                        } else {
-                            Log.e(TAG, "OnFavoriteStarToggle did not work...");
-                        }
-                    }
+                    Log.d(TAG,"ON THE CLICK getting favorite star color - "
+                            + "item favs green: " + currentTweet.getItemFavorites().getSystemGreenCount()
+                            + "item favs yellow: " + currentTweet.getItemFavorites().getSystemYellowCount()
+                    );
 
                     //Check for tweet in db
                     try {
@@ -191,16 +186,26 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                             if(BuildConfig.DEBUG) {
                                 Log.d(TAG,"createdAt: " + currentTweet.getCreatedAt() + ", db insert: " + currentTweet.getDatabaseInsertDate());
                             }
+                            Log.d(TAG,"NOW getting favorite star color - "
+                                    + "item favs green: " + currentTweet.getItemFavorites().getSystemGreenCount()
+                                    + "item favs yellow: " + currentTweet.getItemFavorites().getSystemYellowCount()
+                            );
+
+
                             int addTweetResultCode = helperTweetOps.saveTweetToDB(mDataset.get(holder.getAdapterPosition()).getUser(),currentTweet);
-//                            Log.d(TAG,"addTweetResultCode: " + addTweetResultCode);
-                            if(addTweetResultCode < 0) {
-                                Log.e(TAG,"UserTimeline Adapter CAN'T SAVE TWEET!");
+                            if(addTweetResultCode >= 0) {
+                                if(BuildConfig.DEBUG) {
+                                    Log.d(TAG, "saving TWEET:" + mDataset.get(holder.getAdapterPosition()).getText() + " SUCCESSFUL");
+                                }
                             } else {
-                                Log.d(TAG,"saving TWEET:" + mDataset.get(holder.getAdapterPosition()).getText());
-                                /*DB insert successfull, now send callback to fragment and run observable to add
-                                 urls for the tweet to database, as well as parse the kanji (in observable) and add those to database */
-                                _rxbus.sendSaveTweet(mDataset.get(holder.getAdapterPosition()));
+                                Log.e(TAG,"UserTimeline Adapter CAN'T SAVE TWEET!");
                             }
+
+                            Log.d(TAG,"NEXT 2 getting favorite star color - "
+                                    + "item favs green: " + currentTweet.getItemFavorites().getSystemGreenCount()
+                                    + "item favs yellow: " + currentTweet.getItemFavorites().getSystemYellowCount()
+                            );
+
                         }
 
 
@@ -210,6 +215,43 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                     }
 
 
+                    Log.i(TAG,"WOOOO1");
+
+                    if(currentTweet.getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)) {
+                        Log.i(TAG,"WOOOOXX");
+                        Log.d(TAG,"WOOOX getting favorite star color - "
+                                + "item favs green: " + currentTweet.getItemFavorites().getSystemGreenCount()
+                                + "item favs yellow: " + currentTweet.getItemFavorites().getSystemYellowCount()
+                        );
+
+                        showTweetFavoriteListPopupWindow(currentTweet,holder);
+                    } else {
+                        Log.i(TAG,"WOOOO2 - " +mDataset.get(holder.getAdapterPosition()).getUser().getUserId() );
+                        Log.d(TAG,"WOOOO2 ON THE CLICK getting favorite star color - "
+                                + "item favs green: " + currentTweet.getItemFavorites().getSystemGreenCount()
+                                + "item favs yellow: " + currentTweet.getItemFavorites().getSystemYellowCount()
+                        );
+
+                        if (FavoritesColors.onFavoriteStarToggleTweet(mContext, mActiveTweetFavoriteStars, currentTweet.getUser().getUserId(), currentTweet)) {
+                            Log.i(TAG,"WOOOO3");
+                            Log.d(TAG,"WOOO3 ON THE CLICK getting favorite star color - "
+                                    + "item favs green: " + currentTweet.getItemFavorites().getSystemGreenCount()
+                                    + "item favs yellow: " + currentTweet.getItemFavorites().getSystemYellowCount()
+                            );
+
+                            holder.imgStar.setImageResource(R.drawable.ic_star_black);
+                            holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, FavoritesColors.assignStarColor(currentTweet.getItemFavorites(), mActiveTweetFavoriteStars)));
+                        } else {
+                            Log.e(TAG, "OnFavoriteStarToggle did not work...");
+                        }
+                        Log.i(TAG,"WOOOOzZ");
+
+                    }
+
+
+                    /*DB insert successfull, now send callback to fragment and run observable to add
+                    urls/user_mentions for the tweet to database, as well as parse the kanji (in observable) and add those to database */
+                    _rxbus.sendSaveTweet(currentTweet);
 
 
                 }
@@ -344,10 +386,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                 }
 
 
-            } else {
-                Log.e(TAG,"Is mfocused word null? "  + mFocusedWord);
             }
-
             holder.txtTweet.setText(text, TextView.BufferType.SPANNABLE);
             holder.txtTweet.setMovementMethod(LongClickLinkMovementMethod.getInstance());
         } catch (NullPointerException e) {

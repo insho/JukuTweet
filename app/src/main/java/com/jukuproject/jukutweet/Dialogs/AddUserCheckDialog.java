@@ -51,13 +51,10 @@ public class AddUserCheckDialog extends DialogFragment {
     }
 
     public static AddUserCheckDialog newInstance(UserInfo userInfo) {
-
         AddUserCheckDialog frag = new AddUserCheckDialog();
         Bundle args = new Bundle();
         args.putParcelable("userInfo", userInfo);
-
         frag.setArguments(args);
-
         return frag;
     }
 
@@ -156,13 +153,12 @@ public class AddUserCheckDialog extends DialogFragment {
     }
 
     /**
-     * Tries to load the user's profile banner
-     * @param screenName
-     * @param imgBanner
+     * Tries to load the user's profile banner into the top portion of the dialog
+     * @param screenName users screen name
+     * @param imgBanner user profile banner
      */
     private void loadBestFitBanner(final String screenName, final ImageView imgBanner) {
 
-        Log.d(TAG,"INSIDE loading best fit banner");
         String token = getResources().getString(R.string.access_token);
         String tokenSecret = getResources().getString(R.string.access_token_secret);
 
@@ -175,8 +171,7 @@ public class AddUserCheckDialog extends DialogFragment {
 
 
                     @Override public void onCompleted() {
-                        if(BuildConfig.DEBUG){
-                            Log.d(TAG, "In onCompleted()");}
+                        if(BuildConfig.DEBUG){Log.d(TAG, "In onCompleted()");}
 
                             /* If the user exists and a UserInfo object has been populated,
                             * save it to the database and update the UserInfoFragment adapter */

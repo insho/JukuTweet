@@ -154,7 +154,8 @@ public class StatsFragmentMultipleChoice extends Fragment implements WordEntryFa
                     topscoreLayout.setBackgroundColor(ContextCompat.getColor(getActivity(), android.R.color.holo_green_light));
                 }
 
-                textScore.setText(String.valueOf(mCorrect) + "/" + String.valueOf(mTotal));
+                textScore.setText(getString(R.string.score,mCorrect,mTotal));
+//                textScore.setText(String.valueOf(mCorrect) + "/" + String.valueOf(mTotal));
 //                String txtpercentage =   String.valueOf((int)percentage) + "%";
                 textPercentage.setText(getString(R.string.percentage,(int)percentage));
 
@@ -196,7 +197,7 @@ public class StatsFragmentMultipleChoice extends Fragment implements WordEntryFa
     }
 
     public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {}
-
+    public void notifySavedTweetFragmentsChanged(){};
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);

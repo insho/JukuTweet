@@ -17,7 +17,9 @@ import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.ItemFavorites;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.Tweet;
+import com.jukuproject.jukutweet.Models.TweetEntities;
 import com.jukuproject.jukutweet.Models.TweetUrl;
+import com.jukuproject.jukutweet.Models.TweetUserMentions;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
 
@@ -395,11 +397,14 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                 return false;
             } else if(originalColor.equals("Black")) {
                 //Insert statement only
+                Log.i(TAG,"ADDING TWEET TO TWEETLIST...");
                 return addTweetToTweetList(tweetId,userId,updatedColor,1);
             } else if(updatedColor.equals("Black")) {
                 //Delete statement only
+                Log.i(TAG,"REMOVING TWEET FROM  TWEETLIST...");
                 return removeTweetFromTweetList(tweetId,originalColor,1);
             } else {
+                Log.i(TAG,"UPDATING EXISITNG TWEET IN TWEETLIST...");
                 String sql = "Update " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " SET "+ InternalDB.Columns.TFAVORITES_COL0 +" = ? WHERE "+ InternalDB.Columns.TFAVORITES_COL0 +"= ? and " + InternalDB.Columns.TFAVORITES_COL1+" = 1 and " + InternalDB.Columns.COL_ID + " = ?";
                 SQLiteStatement statement = db.compileStatement(sql);
                 statement.bindString(1, updatedColor);
@@ -434,6 +439,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
         SQLiteDatabase db = sqlOpener.getReadableDatabase();
 
         try {
+            Log.i(TAG,"ADDING TO WORDLIST: " + tweetId + ", listname: " + listName + ", sys: " + listSys);
             ContentValues values = new ContentValues();
             values.put(InternalDB.Columns.COL_ID, tweetId);
             values.put(InternalDB.Columns.TSAVEDTWEET_COL0, userId);
@@ -1104,9 +1110,8 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      * {@link com.jukuproject.jukutweet.Fragments.TweetBreakDownFragment} when user clicks on favorites star
      *
      * This is the first step in a three step process:
-     * 1. Save the tweet information
-     * 2. Save associated tweet urls to TABLE_SAVED_TWEET_URLS with {@link #saveTweetUrls(Tweet)}
-     * 3. Save a list of kanji contained in the tweet with {@link #saveParsedTweetKanji(ArrayList, String)}
+     * 1. Save the tweet information, including associated URLS and User_Mentions if they exist
+     * 2. Save a list of kanji contained in the tweet with {@link #saveParsedTweetKanji(ArrayList, String)}
      *
      * @param userInfo UserInfo object, includes user name, user_id
      * @param tweet Tweet object, with all tweet info
@@ -1114,11 +1119,14 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      */
     public int saveTweetToDB(UserInfo userInfo, Tweet tweet){
         int resultCode = -1;
+        SQLiteDatabase db = sqlOpener.getWritableDatabase();
         try {
 
             //At least one of these values have to exist
             if(tweet.getIdString() != null && (userInfo.getScreenName() != null || userInfo.getUserId() != null)) {
                 ContentValues values = new ContentValues();
+
+                values.put(InternalDB.Columns.TSAVEDTWEET_COL2, tweet.getIdString());
 
                 if(userInfo.getUserId() != null) {
                     values.put(InternalDB.Columns.TSAVEDTWEET_COL0, userInfo.getUserId());
@@ -1126,66 +1134,188 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                 if(userInfo.getScreenName() != null) {
                     values.put(InternalDB.Columns.TSAVEDTWEET_COL1, userInfo.getScreenName().trim());
                 }
-                if(tweet.getIdString() != null) {
-                    values.put(InternalDB.Columns.TSAVEDTWEET_COL2, tweet.getIdString());
-                }
 
                 if(tweet.getDatabaseInsertDate() != null) {
                     values.put(InternalDB.Columns.TSAVEDTWEET_COL3, tweet.getDatabaseInsertDate().trim());
                 } else {
                     Log.e(TAG,"DB INSERT DATE IS NUL:? " + tweet.getDatabaseInsertDate());
                 }
-
                 values.put(InternalDB.Columns.TSAVEDTWEET_COL4, tweet.getText().trim());
+                resultCode = (int)db.insertWithOnConflict(InternalDB.Tables.TABLE_SAVED_TWEETS, null, values,SQLiteDatabase.CONFLICT_REPLACE);
+//                return resultCode;
 
-                resultCode = (int)sqlOpener.getWritableDatabase().insertWithOnConflict(InternalDB.Tables.TABLE_SAVED_TWEETS, null, values,SQLiteDatabase.CONFLICT_REPLACE);
+                if(resultCode>=0) {
+                    try {
 
-                return resultCode;
+                        if(tweet.getEntities() != null && tweet.getEntities().getUrls() !=null) {
+                            for(TweetUrl tweetUrl : tweet.getEntities().getUrls()) {
+                                ContentValues Urlvalues = new ContentValues();
+                                Urlvalues.put(InternalDB.Columns.TSAVEDTWEET_COL2, tweet.getIdString());
+                                Urlvalues.put(InternalDB.Columns.TSAVEDTWEETURLS_COL1, tweetUrl.getExpanded_url());
+                                Urlvalues.put(InternalDB.Columns.TSAVEDTWEETURLS_COL2, tweetUrl.getIndices()[0]);
+                                Urlvalues.put(InternalDB.Columns.TSAVEDTWEETURLS_COL3, tweetUrl.getIndices()[1]);
+                                db.insert(InternalDB.Tables.TABLE_SAVED_TWEET_URLS, null, Urlvalues);
+                            }
+
+                        }
+
+                    } catch(SQLiteException exception) {
+                         Log.e(TAG,"Unable to save tweet urls");
+                    } catch (NullPointerException exception2) {
+                        Log.e(TAG,"Unable to save tweet urls, nullpointer: " + exception2.getCause());
+                    }
+
+                    //Attempt to save user_mentions
+                    try {
+                        if(tweet.getEntities() != null && tweet.getEntities().getUser_mentions() !=null) {
+
+                            for (TweetUserMentions userMentions : tweet.getEntities().getUser_mentions()) {
+                                ContentValues userMentionValues = new ContentValues();
+                                userMentionValues.put(InternalDB.Columns.TSAVEDTWEET_COL2, tweet.getIdString());
+                                userMentionValues.put(InternalDB.Columns.TMAIN_COL0, userMentions.getScreen_name());
+                                userMentionValues.put(InternalDB.Columns.TMAIN_COL7, userMentions.getName());
+                                userMentionValues.put(InternalDB.Columns.TMAIN_COL1, userMentions.getId_str());
+                                userMentionValues.put(InternalDB.Columns.TSAVEDTWEETURLS_COL2, userMentions.getIndices()[0]);
+                                userMentionValues.put(InternalDB.Columns.TSAVEDTWEETURLS_COL3, userMentions.getIndices()[1]);
+                                db.insert(InternalDB.Tables.TABLE_SAVED_TWEET_USERMENTIONS, null, userMentionValues);
+                            }
+                        }
+
+                    } catch(SQLiteException exception) {
+                        Log.e(TAG,"Unable to save tweet user mentions sqlite exception : " + exception.getCause());
+                    } catch (NullPointerException exception2) {
+                            Log.e(TAG,"Unable to save tweet user mentions, nullpointer: " + exception2.getCause());
+                    }
+                }
+
             } else {
                 Log.e(TAG,"Can't insert tweet to db. Either tweet.getId() is null: " + (tweet.getIdString()==null)
                         + ", or both userinfo name and id are null");
-                return resultCode;
-            }
-        } catch(SQLiteException exception) {
-            return resultCode;
-        }
-    }
-
-
-
-    /**
-     * Saves the Urls from a tweet into the TABLE_SAVED_TWEET_URLS table. Used in conjunction with
-     * other "Save Tweet" methods. Note: Urls may not exist for a given tweet.
-     *
-     * @see #saveTweetToDB(UserInfo, Tweet)
-     * @see #saveParsedTweetKanji(ArrayList, String)
-     *
-     * @param tweet Tweet to be saved.
-     * @return returnvalue int, -1 for error, otherwise the index value of final inserted row
-     */
-    public int saveTweetUrls(Tweet tweet) {
-        int resultCode= -1;
-        SQLiteDatabase db = sqlOpener.getReadableDatabase();
-
-        try {
-
-            for(TweetUrl tweetUrl : tweet.getEntities().getUrls()) {
-                ContentValues values = new ContentValues();
-                values.put(InternalDB.Columns.TSAVEDTWEET_COL2, tweet.getIdString());
-                values.put(InternalDB.Columns.TSAVEDTWEETURLS_COL1, tweetUrl.getExpanded_url());
-                values.put(InternalDB.Columns.TSAVEDTWEETURLS_COL2, tweetUrl.getIndices()[0]);
-                values.put(InternalDB.Columns.TSAVEDTWEETURLS_COL3, tweetUrl.getIndices()[1]);
-                resultCode = (int)db.insert(InternalDB.Tables.TABLE_SAVED_TWEET_URLS, null, values);
+//                return resultCode;
+//                db.close();
             }
 
-            return resultCode;
+
+
         } catch(SQLiteException exception) {
-            Log.e(TAG,"Unable to save tweet urls");
-            return resultCode;
+//            return resultCode;
         } finally {
             db.close();
         }
+
+        return resultCode;
     }
+
+
+
+    public TweetEntities getTweetEntitiesForSavedTweet(String tweetId) {
+
+        SQLiteDatabase db = sqlOpener.getWritableDatabase();
+
+        TweetEntities tweetEntities = new TweetEntities();
+        ArrayList<TweetUrl> tweetUrls = new ArrayList<>();
+        ArrayList<TweetUserMentions> userMentions = new ArrayList<>();
+
+        try {
+            Cursor cursorUrls = db.rawQuery(
+
+                    " SELECT DISTINCT [Url]" +
+                            ",StartIndex " +
+                            ",EndIndex " +
+                            "FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_URLS + " " +
+                            " WHERE Tweet_id = " + tweetId + " " +
+                                " AND StartIndex is not NULL and EndIndex is not NULL and EndIndex > StartIndex " , null);
+
+            if(BuildConfig.DEBUG) {
+                Log.d(TAG,"cursorUrls: " + cursorUrls.getCount());
+            }
+            if (cursorUrls.moveToFirst()) {
+                do {
+                    TweetUrl url = new TweetUrl(cursorUrls.getString(0));
+                    url.setIndices(new int[]{cursorUrls.getInt(1),cursorUrls.getInt(2)});
+                    tweetUrls.add(url);
+                } while (cursorUrls.moveToNext());
+            }
+            cursorUrls.close();
+
+        } catch (SQLiteException e){
+            Log.e(TAG,"getTweetEntities cursorUrls Sqlite exception: " + e.getCause());
+        }
+
+
+        try {
+            Cursor cursorUserMentions = db.rawQuery(
+
+                    " SELECT DISTINCT [ScreenName]" +
+                            ",UserName " +
+                            ",UserId " +
+                            ",StartIndex " +
+                            ",EndIndex " +
+                            "FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_USERMENTIONS + " " +
+                            " WHERE Tweet_id = " + tweetId + " " +
+                            " AND StartIndex is not NULL and EndIndex is not NULL and EndIndex > StartIndex " , null);
+
+            if(BuildConfig.DEBUG) {
+                Log.d(TAG,"cursorUserMentions: " + cursorUserMentions.getCount());
+            }
+            if (cursorUserMentions.moveToFirst()) {
+                do {
+                    TweetUserMentions mentions = new TweetUserMentions(cursorUserMentions.getString(0)
+                            ,cursorUserMentions.getString(1)
+                            ,cursorUserMentions.getString(2));
+                    mentions.setIndices(new int[]{cursorUserMentions.getInt(3),cursorUserMentions.getInt(4)});
+                    userMentions.add(mentions);
+                } while (cursorUserMentions.moveToNext());
+            }
+            cursorUserMentions.close();
+
+        } catch (SQLiteException e){
+            Log.e(TAG,"getTweetEntities cursorUserMentions Sqlite exception: " + e.getCause());
+        }
+
+        db.close();
+        tweetEntities.setUrls(tweetUrls);
+        tweetEntities.setUser_mentions(userMentions);
+
+        return tweetEntities;
+    }
+
+
+
+
+//    /**
+//     * Saves the Urls from a tweet into the TABLE_SAVED_TWEET_URLS table. Used in conjunction with
+//     * other "Save Tweet" methods. Note: Urls may not exist for a given tweet.
+//     *
+//     * @see #saveTweetToDB(UserInfo, Tweet)
+//     * @see #saveParsedTweetKanji(ArrayList, String)
+//     *
+//     * @param tweet Tweet to be saved.
+//     * @return returnvalue int, -1 for error, otherwise the index value of final inserted row
+//     */
+//    public int saveTweetUrls(Tweet tweet) {
+//        int resultCode= -1;
+//        SQLiteDatabase db = sqlOpener.getReadableDatabase();
+//
+//        try {
+//
+//            for(TweetUrl tweetUrl : tweet.getEntities().getUrls()) {
+//                ContentValues values = new ContentValues();
+//                values.put(InternalDB.Columns.TSAVEDTWEET_COL2, tweet.getIdString());
+//                values.put(InternalDB.Columns.TSAVEDTWEETURLS_COL1, tweetUrl.getExpanded_url());
+//                values.put(InternalDB.Columns.TSAVEDTWEETURLS_COL2, tweetUrl.getIndices()[0]);
+//                values.put(InternalDB.Columns.TSAVEDTWEETURLS_COL3, tweetUrl.getIndices()[1]);
+//                resultCode = (int)db.insert(InternalDB.Tables.TABLE_SAVED_TWEET_URLS, null, values);
+//            }
+//
+//            return resultCode;
+//        } catch(SQLiteException exception) {
+//            Log.e(TAG,"Unable to save tweet urls");
+//            return resultCode;
+//        } finally {
+//            db.close();
+//        }
+//    }
 
     /**
      * Saves the kanji from a broken-up Tweet (represented by a list of ParseSentenceItems) into the
@@ -1341,8 +1471,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             ") as TweetLists " +
                             " LEFT JOIN " +
                             " ( " +
-                            "SELECT  DISTINCT [_id] " +
-                            ",[Tweet_id]" +
+                            "SELECT  DISTINCT [Tweet_id]" +
                             ",[UserScreenName] " +
                             ",[Text]" +
                             ",[CreatedAt]  as [Date] " +
@@ -1581,8 +1710,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             ") as TweetLists " +
                                 " LEFT JOIN " +
                             " ( " +
-                            "SELECT  DISTINCT [_id] " +
-                            ",[Tweet_id]" +
+                            "SELECT  DISTINCT [Tweet_id]" +
                             ",[UserScreenName] " +
                             ",[Text]" +
                             ",[CreatedAt]  as [Date] " +
@@ -2328,10 +2456,11 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                     "[Definition]," +
                     "ifnull([Total],0) as [Total] " +
 
-                    ",(CASE WHEN ifnull([Total],0) < " + colorThresholds.getGreyThreshold() + " THEN 1 " +
+                    ",(CASE WHEN ifnull([Total],0) < " + colorThresholds.getGreyThreshold() + " and [Total] > 0 THEN 1 " +
+                    "WHEN ifnull([Total],0) < " + colorThresholds.getGreyThreshold() + " THEN 2 " +
                     "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 0  " +
-                    "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and (CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getRedThreshold() + "  and CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + ") THEN 2  " +
-                    "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getYellowThreshold() + " THEN 3 " +
+                    "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and (CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getRedThreshold() + "  and CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + ") THEN 3  " +
+                    "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getYellowThreshold() + " THEN 4 " +
                     "ELSE 0 END) as [ColorSort] " +
 
                     ",ifnull([Correct],0)  as [Correct]" +

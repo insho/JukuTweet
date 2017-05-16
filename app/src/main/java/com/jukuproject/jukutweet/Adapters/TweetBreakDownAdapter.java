@@ -68,10 +68,10 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
             , ArrayList<WordEntry> words
             , ArrayList<String> activeFavoriteStars
             , RxBus rxbus) {
-        mContext = context;
-        mMetrics = metrics;
-        mWords = words;
-        mRxBus = rxbus;
+        this.mContext = context;
+        this.mMetrics = metrics;
+        this.mWords = words;
+        this.mRxBus = rxbus;
         this.mActiveFavoriteStars = activeFavoriteStars;
     }
 
@@ -117,24 +117,12 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
             Log.e(TAG,"Tweetbreakdown adding colorbar exception");
         }
 
-
-//        holder.mainLayout.setOnLongClickListener(new View.OnLongClickListener() {
-//            @Override
-//            public boolean onLongClick(View v) {
-//                mRxBus.sendLongClick(mWords.get(holder.getAdapterPosition()));
-//                return false;
-//            }
-//        });
         holder.lstDefinitions.setText(mWords.get(holder.getAdapterPosition()).getDefinitionMultiLineString(10));
         holder.lstDefinitions.setTypeface(null, Typeface.ITALIC);
         holder.lstDefinitions.setTag(mWords.get(holder.getAdapterPosition()).getId());
         holder.lstDefinitions.setFocusable(false);
         holder.lstDefinitions.setClickable(false);
 
-//        holder.txtKanji.setFocusable(false);
-//        holder.txtKanji.setClickable(false);
-//        holder.txtFurigana.setFocusable(false);
-//        holder.txtFurigana.setClickable(false);
 
         holder.imgStarLayout.setOnClickListener(new View.OnClickListener() {
             @Override
