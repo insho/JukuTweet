@@ -368,9 +368,9 @@ public class WordEntry implements Parcelable {
     }
 
     private WordEntry(Parcel in) {
-
-        itemFavorites = (ItemFavorites) in.readParcelable(ItemFavorites.class.getClassLoader());
-        fillinSentencesSpinner = (FillinSentencesSpinner) in.readParcelable(FillinSentencesSpinner.class.getClassLoader());
+//        in.readList(myclassList, getClass().getClassLoader());
+        itemFavorites = (ItemFavorites) in.readParcelable(getClass().getClassLoader());
+        fillinSentencesSpinner = (FillinSentencesSpinner) in.readParcelable(getClass().getClassLoader());
 
 
         id = in.readInt();

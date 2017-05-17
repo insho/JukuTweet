@@ -1,6 +1,5 @@
 package com.jukuproject.jukutweet.Fragments;
 
-import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Paint;
@@ -29,6 +28,7 @@ import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MenuHeader;
 import com.jukuproject.jukutweet.Models.MyListEntry;
+import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
 import com.jukuproject.jukutweet.TabContainers.BaseContainerFragment;
@@ -36,10 +36,9 @@ import com.jukuproject.jukutweet.TabContainers.BaseContainerFragment;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-//import com.jukuproject.jukutweet.TabContainers.BaseContainerFragment;
-
 /**
- * Shows user-created lists of vocabulary
+ * Shows lists of saved vocabulary (both user-created lists and system defaults). Click
+ * on a list to show sub-options ("Browse","Multiple Choice", "Stats" etc)
  */
 
 public class WordListFragment extends Fragment {
@@ -54,7 +53,6 @@ public class WordListFragment extends Fragment {
     private TextView txtNoListsFound;
 
     public static WordListFragment newInstance(Bundle bundle) {
-//        WordListFragment fragment = new WordListFragment();
         return new WordListFragment();
     }
 
@@ -151,19 +149,6 @@ public class WordListFragment extends Fragment {
                 switch (childOption) {
                     case "Browse/Edit":
 
-
-
-//                        ColorThresholds colorThresholds = sharedPrefManager.getColorThresholds();
-//                        ArrayList<WordEntry>  supertext =   InternalDB.getWordInterfaceInstance(getContext()).getWordsFromAWordList(new MyListEntry("Red",1)
-//                                ,colorThresholds
-//                                ,"'Grey','Red','Yellow','Green'"
-//                                ,null
-//                                ,null);
-//
-//                            for(WordEntry wordEntry : supertext) {
-//                                Log.i(TAG,"word: " + wordEntry.getKanji());
-//                            }
-
                         WordListBrowseFragment fragment = WordListBrowseFragment.newInstance(new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).getSystemList()));
                         ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"mylistbrowse");
                         //Hide the fab
@@ -193,7 +178,6 @@ public class WordListFragment extends Fragment {
                                     ,mMenuHeader.get(groupPosition).getMyListEntry()
                                     ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
                                     ,getdimenscore()).show(getActivity().getSupportFragmentManager(),"dialogQuizMenu");
-//                            mCallback.showFab(false,"");
                         }
 
 
@@ -207,13 +191,18 @@ public class WordListFragment extends Fragment {
                                     ,mMenuHeader.get(groupPosition).getMyListEntry()
                                     ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
                                     ,getdimenscore()).show(getActivity().getSupportFragmentManager(),"dialogQuizMenu");
-//                            mCallback.showFab(false,"");
                         }
 
                         break;
                     case "Stats":
                         MyListEntry myListEntry = new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).getSystemList());
-                        ColorBlockMeasurables colorBlockMeasurables = prepareColorBlockDataForList(myListEntry);
+
+                        View colorBlockMinWidthEstimateView = getActivity().getLayoutInflater().inflate(R.layout.expandablelistadapter_listitem, null);
+                        DisplayMetrics metrics = new DisplayMetrics();
+                        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+                        float metricsDensity = metrics.density;
+
+                        ColorBlockMeasurables colorBlockMeasurables = prepareColorBlockDataForAList(getContext(),myListEntry,false,colorBlockMinWidthEstimateView,metricsDensity);
 
 
                         StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newWordListInstance(myListEntry
@@ -230,8 +219,6 @@ public class WordListFragment extends Fragment {
                 return false;
             }
         });
-
-
 
         expListView.setOnItemLongClickListener(new ExpandableListView.OnItemLongClickListener() {
             @Override
@@ -253,6 +240,10 @@ public class WordListFragment extends Fragment {
 
     }
 
+    /**
+     * Expands a listview group at a given position, closing any other open groups
+     * @param position listview position to expand
+     */
     public void expandTheListViewAtPosition(int position) {
 
         if(lastExpandedPosition >=0 && mMenuHeader.size()>lastExpandedPosition) {
@@ -271,14 +262,23 @@ public class WordListFragment extends Fragment {
 
     };
 
+    /**
+     * Prepares header entries for the mMenuHeader dataset, with {@link ColorBlockMeasurables} representing the WordList
+     * broken down by word score color categories (colorblocks are displayed next to the "Browse/Edit" entry for an expanded word list)
+     */
     public void prepareListData() {
         mMenuHeader = new ArrayList<>();
         ArrayList<String> availableFavoritesStars = sharedPrefManager.getActiveFavoriteStars();
         ColorThresholds colorThresholds = sharedPrefManager.getColorThresholds();
        ArrayList<String> childOptions = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.menu_mylist)));
 
-        Cursor c = InternalDB.getWordInterfaceInstance(getContext()).getWordListColorBlockCursor(colorThresholds,null);
+        //pull pieces necessary to getExpandableAdapterColorBlockBasicWidths
+        View colorBlockMinWidthEstimateView = getActivity().getLayoutInflater().inflate(R.layout.expandablelistadapter_listitem, null);
+        DisplayMetrics metrics = new DisplayMetrics();
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        float metricsDensity = metrics.density;
 
+        Cursor c = InternalDB.getWordInterfaceInstance(getContext()).getWordListColorBlockCursor(colorThresholds,null);
         if(c.getCount()>0) {
             c.moveToFirst();
             while (!c.isAfterLast()) {
@@ -286,11 +286,9 @@ public class WordListFragment extends Fragment {
                 if(BuildConfig.DEBUG){Log.d(TAG,"PULLING NAME: " + c.getString(0) + ", SYS: " + c.getString(1) + ", TOTAL: " + c.getString(2)
                         + ", GREY: " + c.getString(3)
                         + ", YELLOW: " + c.getString(5));}
-//                if(BuildConfig.DEBUG){Log.d("yes", "pulling list: " + c.getString(0) + ", sys: " + c.getString(1));}
 
                 /* We do not want to include favorites star lists that are not active in the user
                 * preferences. So if an inactivated list shows up in the sql query, ignore it (don't add to mMenuHeader)*/
-
                 if(c.getInt(1) != 1 || (availableFavoritesStars.contains(c.getString(0)))) {
                     MenuHeader menuHeader = new MenuHeader(c.getString(0));
                     menuHeader.setChildOptions(childOptions);
@@ -302,6 +300,8 @@ public class WordListFragment extends Fragment {
                         menuHeader.setSystemList(true);
                     }
 
+                    /* Coloblock measurables determine which blocks appear next to the "Browse/Edit" listView
+                    * child option. They are based on the word score of the words in the list. */
                     ColorBlockMeasurables colorBlockMeasurables = new ColorBlockMeasurables();
                     colorBlockMeasurables.setGreyCount(c.getInt(3));
                     colorBlockMeasurables.setRedCount(c.getInt(4));
@@ -315,10 +315,10 @@ public class WordListFragment extends Fragment {
                         lastExpandedPosition = mMenuHeader.size();
                     }
 
-                    colorBlockMeasurables.setGreyMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreyCount())));
-                    colorBlockMeasurables.setRedMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getRedCount())));
-                    colorBlockMeasurables.setYellowMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getYellowCount())));
-                    colorBlockMeasurables.setGreenMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreenCount())));
+                    colorBlockMeasurables.setGreyMinWidth(getExpandableAdapterColorBlockBasicWidths(colorBlockMinWidthEstimateView,getContext(), String.valueOf(colorBlockMeasurables.getGreyCount()),metricsDensity));
+                    colorBlockMeasurables.setRedMinWidth(getExpandableAdapterColorBlockBasicWidths(colorBlockMinWidthEstimateView,getContext(), String.valueOf(colorBlockMeasurables.getRedCount()),metricsDensity));
+                    colorBlockMeasurables.setYellowMinWidth(getExpandableAdapterColorBlockBasicWidths(colorBlockMinWidthEstimateView,getContext(), String.valueOf(colorBlockMeasurables.getYellowCount()),metricsDensity));
+                    colorBlockMeasurables.setGreenMinWidth(getExpandableAdapterColorBlockBasicWidths(colorBlockMinWidthEstimateView,getContext(), String.valueOf(colorBlockMeasurables.getGreenCount()),metricsDensity));
                     colorBlockMeasurables.setEmptyMinWidth(0);
                     menuHeader.setColorBlockMeasurables(colorBlockMeasurables);
                     mMenuHeader.add(menuHeader);
@@ -330,9 +330,6 @@ public class WordListFragment extends Fragment {
             }
         }
         c.close();
-//        db.close();
-//        helper.close();
-
     }
 
 
@@ -361,13 +358,24 @@ public class WordListFragment extends Fragment {
     }
 
 
-    public static int getExpandableAdapterColorBlockBasicWidths(Activity activity, String text){
+    /**
+     * Returns the minimum possible width of a "colorblock" textview, given the text that must
+     * be displayed inside the block. If the block has to display "135", it's minimum width will be larger
+     * than if it only had to display a one or two digit string like "5"
+     * @param view inflated "expandablelistadapter_listitem" view to help estimate the minimum width of a color block
+     * @param context context
+     * @param text text to be displayed in colorblock
+     * @param metricDensity density to help get accurate padding for colorblock width estimate
+     * @return min possible width of a colorblock
+     *
+     * @see #prepareColorBlockDataForAList(Context, Object, boolean, View, float)
+     * @see com.jukuproject.jukutweet.PostQuizStatsActivity
+     */
+    public static int getExpandableAdapterColorBlockBasicWidths(View view, Context context, String text, float metricDensity){
         int result = 0;
         if(!text.equals("0")) {
-            View view = activity.getLayoutInflater().inflate(R.layout.expandablelistadapter_listitem, null);
             TextView colorBlock = (TextView) view.findViewById(R.id.listitem_colors_1);
-            Drawable drawablecolorblock1 = ContextCompat.getDrawable(activity, R.drawable.colorblock);
-
+            Drawable drawablecolorblock1 = ContextCompat.getDrawable(context, R.drawable.colorblock);
             if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 colorBlock.setBackground(drawablecolorblock1);
             } else {
@@ -378,16 +386,21 @@ public class WordListFragment extends Fragment {
             Paint textPaint = colorBlock.getPaint();
             textPaint.getTextBounds(text, 0, text.length(), bounds);
             result = (int)textPaint.measureText(text);
-
-            DisplayMetrics metrics = new DisplayMetrics();
-            activity.getWindowManager().getDefaultDisplay().getMetrics(metrics);
-            int padding = (int) (20.0f * metrics.density + 0.5f);
+            int padding = (int) (20.0f * metricDensity + 0.5f);
             result += padding;
         }
         return result;
 
     }
 
+    /**
+     * Pulls a fresh set of wordlist data from the database and resets the adapter. Called from MainActivity when
+     * a wordlist is created/edited/deleted
+     *
+     * @see com.jukuproject.jukutweet.MainActivity#deleteOrClearDialogFinal(String, Boolean, String, boolean)
+     * @see com.jukuproject.jukutweet.MainActivity#onAddMyListDialogPositiveClick(String, String)
+     * @see com.jukuproject.jukutweet.MainActivity#onRenameMyListDialogPositiveClick(String, String, String)
+     */
     public void updateMyListAdapter() {
         if(isAdded() && !isDetached()) {
             prepareListData();
@@ -405,6 +418,70 @@ public class WordListFragment extends Fragment {
         }
     }
 
+    /**
+     * Assembles data for the colorblocks in a WordList, TweetList or Single User Saved Tweets list. Includes
+     * the counts of words assigned to each color block as well as the color block widths
+     * @param context context
+     * @param listEntryOrUserInfo List entry object ({@link MyListEntry} for Word/Tweet list, {@link UserInfo} for SingleUser list)
+     * @param isTweetList bool true if the listentry is a tweetlist or singleuser tweet list, false if it is a wordlist
+     * @param basicWidthEstimateView inflated "expandablelistadapter_listitem" view to pass to {@link #getExpandableAdapterColorBlockBasicWidths(View, Context, String, float)}
+     *             to help estimate the minimum width of a color block
+     * @param metricDensityForBlockEstimate  density to help get accurate padding for colorblock width estimate in getExpandableAdapterColorBlockBasicWidths
+     * @return {@link ColorBlockMeasurables} object with data for the colorblocks in the "Browse/Edit" row of
+     * a WordList, TweetList or Single User Saved Tweets list.
+     *
+     * @see WordListFragment
+     * @see TweetListFragment
+     * @see TweetListSingleUserFragment
+     */
+    public static ColorBlockMeasurables prepareColorBlockDataForAList(Context context
+            , Object listEntryOrUserInfo
+            ,boolean isTweetList
+            ,View basicWidthEstimateView
+            ,float metricDensityForBlockEstimate) {
+        ColorBlockMeasurables colorBlockMeasurables = new ColorBlockMeasurables();
+
+        ColorThresholds colorThresholds = SharedPrefManager.getInstance(context).getColorThresholds();
+
+        Cursor c;
+        if(listEntryOrUserInfo instanceof MyListEntry && isTweetList) {
+            //Pulling ColorBlockMeasurables for a TweetList
+            MyListEntry myListEntry = (MyListEntry) listEntryOrUserInfo;
+            c = InternalDB.getTweetInterfaceInstance(context).getTweetListColorBlocksCursor(colorThresholds,myListEntry);
+        } else if(listEntryOrUserInfo instanceof MyListEntry) {
+            //Pulling ColorBlockMeasurables for a WordList
+            MyListEntry myListEntry = (MyListEntry) listEntryOrUserInfo;
+            c = InternalDB.getWordInterfaceInstance(context).getWordListColorBlockCursor(colorThresholds,myListEntry);
+        } else if(listEntryOrUserInfo instanceof  UserInfo) {
+            UserInfo userInfo = (UserInfo) listEntryOrUserInfo;
+            c = InternalDB.getTweetInterfaceInstance(context).getTweetListColorBlocksCursorForSingleUser(colorThresholds,userInfo.getUserId());
+        } else {
+            return colorBlockMeasurables;
+        }
+
+        if(c.getCount()>0) {
+            c.moveToFirst();
+
+            colorBlockMeasurables.setGreyCount(c.getInt(3));
+            colorBlockMeasurables.setRedCount(c.getInt(4));
+            colorBlockMeasurables.setYellowCount(c.getInt(5));
+            colorBlockMeasurables.setGreenCount(c.getInt(6));
+            colorBlockMeasurables.setEmptyCount(0);
+
+            colorBlockMeasurables.setGreyMinWidth(getExpandableAdapterColorBlockBasicWidths(basicWidthEstimateView,context, String.valueOf(colorBlockMeasurables.getGreyCount()),metricDensityForBlockEstimate));
+            colorBlockMeasurables.setRedMinWidth(getExpandableAdapterColorBlockBasicWidths(basicWidthEstimateView, context, String.valueOf(colorBlockMeasurables.getRedCount()),metricDensityForBlockEstimate));
+            colorBlockMeasurables.setYellowMinWidth(getExpandableAdapterColorBlockBasicWidths(basicWidthEstimateView, context, String.valueOf(colorBlockMeasurables.getYellowCount()),metricDensityForBlockEstimate));
+            colorBlockMeasurables.setGreenMinWidth(getExpandableAdapterColorBlockBasicWidths(basicWidthEstimateView, context, String.valueOf(colorBlockMeasurables.getGreenCount()),metricDensityForBlockEstimate));
+            colorBlockMeasurables.setEmptyMinWidth(0);
+
+        } else {
+            Log.e("TEST-WordListFrag","STATIC prepareColorBlockMeasurables no results for measurable query");
+        }
+        c.close();
+        return  colorBlockMeasurables;
+    }
+
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -414,40 +491,6 @@ public class WordListFragment extends Fragment {
             throw new ClassCastException(context.toString()
                     + " must implement FragmentInteractionListener");
         }
-    }
-
-    public ColorBlockMeasurables prepareColorBlockDataForList(MyListEntry myListEntry) {
-        ColorBlockMeasurables colorBlockMeasurables = new ColorBlockMeasurables();
-
-        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
-        Cursor c = InternalDB.getWordInterfaceInstance(getContext()).getWordListColorBlockCursor(colorThresholds,myListEntry);
-//        InternalDB.getWordInterfaceInstance(getContext()).supertest(colorThresholds,myListEntry);
-        if(c.getCount()>0) {
-            c.moveToFirst();
-
-                /* We do not want to include favorites star lists that are not active in the user
-                * preferences. So if an inactivated list shows up in the sql query, ignore it (don't add to mMenuHeader)*/
-
-            colorBlockMeasurables.setGreyCount(c.getInt(3));
-            colorBlockMeasurables.setRedCount(c.getInt(4));
-            colorBlockMeasurables.setYellowCount(c.getInt(5));
-            colorBlockMeasurables.setGreenCount(c.getInt(6));
-            colorBlockMeasurables.setEmptyCount(0);
-
-            colorBlockMeasurables.setGreyMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreyCount())));
-            colorBlockMeasurables.setRedMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getRedCount())));
-            colorBlockMeasurables.setYellowMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getYellowCount())));
-            colorBlockMeasurables.setGreenMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreenCount())));
-            colorBlockMeasurables.setEmptyMinWidth(0);
-
-
-
-            c.moveToNext();
-        } else {
-            Log.e(TAG,"no results for query listname: " + myListEntry.getListName() + ", sys: " + myListEntry.getListsSys());
-        }
-        c.close();
-        return  colorBlockMeasurables;
     }
 
     @Override

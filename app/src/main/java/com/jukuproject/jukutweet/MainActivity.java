@@ -902,8 +902,11 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
             if(InternalDB.getWordInterfaceInstance(getBaseContext()).saveWordList(listName)) {
             /* Locate Tab2Continer and update the MyList adapter to reflect removed item */
-                if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
-                    ((Tab3Container) findFragmentByPosition(2)).updateMyListFragment();
+                                    /* Locate Tab2Continer and update the MyList adapter to reflect removed item */
+                try {
+                    ((WordListFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistfragment")).updateMyListAdapter();
+                } catch (NullPointerException e) {
+                    Log.e(TAG,"onAddMyListDialogPositiveClick Nullpointer: " + e.getCause());
                 }
             }
         } else if(listType.equals("TweetList")) {
@@ -960,9 +963,13 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     @Override
     public void onRenameMyListDialogPositiveClick(String listType,String oldListName, String listName) {
         if(listType.equals("MyList")) {
+
+            //If save is successful, update wordlist fragment
             if(InternalDB.getWordInterfaceInstance(getBaseContext()).renameWordList(oldListName,listName)) {
-                if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
-                    ((Tab3Container) findFragmentByPosition(2)).updateMyListFragment();
+                try {
+                    ((WordListFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistfragment")).updateMyListAdapter();
+                } catch (NullPointerException e) {
+                    Log.e(TAG,"onRenameMyListDialogPositiveClick Nullpointer: " + e.getCause());
                 }
             } else {
                 Toast.makeText(this, "Unable to rename list", Toast.LENGTH_SHORT).show();
@@ -1019,8 +1026,10 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     }
 
                     /* Locate Tab2Continer and update the MyList adapter to reflect removed item */
-                    if(findFragmentByPosition(2) != null && findFragmentByPosition(2) instanceof Tab3Container) {
-                        ((Tab3Container) findFragmentByPosition(2)).updateMyListFragment();
+                    try {
+                        ((WordListFragment)((Tab3Container) findFragmentByPosition(2)).getChildFragmentManager().findFragmentByTag("mylistfragment")).updateMyListAdapter();
+                    } catch (NullPointerException e) {
+                        Log.e(TAG,"deleteOrClearDialogFinal Nullpointer: " + e.getCause());
                     }
 
                 } else if(listType.equals("TweetList")) {
@@ -1136,10 +1145,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * @see com.jukuproject.jukutweet.Fragments.UserTimeLineFragment
      */
     public void notifySavedTweetFragmentsChanged() {
-
         try {
             for(int i=0;i<4;i++) {
-                if(mViewPager.getCurrentItem()!=i) {
                     Fragment currentFragment = ((BaseContainerFragment) findFragmentByPosition(i)).getTopFragment();
 
                     if(currentFragment instanceof TweetListSingleUserFragment) {
@@ -1149,7 +1156,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     } else if(currentFragment instanceof TweetListBrowseFragment) {
                         ((TweetListBrowseFragment) currentFragment).updateMyListAdapter();
                     }
-                }
             }
         } catch (NullPointerException e) {
             Log.e(TAG,"currentFragment updates failed for notifySavedTweetFragmentsChanged");
@@ -1164,6 +1170,10 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * fragment in tab 1 (for a single user's saved tweets), and has added a word to a list, the word related fragments in tabs 2 and must
      * be updated to reflect that change, as well as the search tab if applicable..
      *
+     * The loop checks if a fragment is one of a certain type (i.e. one that is of interest because the WordEntry
+     * list it contains might need to be updated to reflect a change in another tab), and updates that fragment if it is. This is
+     * called via {@link #notifySavedWordFragmentsChanged(String)} when words were removed from a word list in the {@link WordListBrowseFragment}
+     *
      * @param wordEntryIdString concatenated comma-delimited string of edict kanji ids for the words that were removed
      */
     public void notifySavedWordFragmentsChanged(String wordEntryIdString) {
@@ -1174,7 +1184,21 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             for(int i=0;i<4;i++) {
                 if(mViewPager.getCurrentItem()!=i) {
                     Fragment currentFragment = ((BaseContainerFragment) findFragmentByPosition(i)).getTopFragment();
-                    updateChildFragment(currentFragment,wordEntries);
+                    if(currentFragment instanceof TweetBreakDownFragment) {
+                        ((TweetBreakDownFragment) currentFragment).updateWordEntryItemFavorites(wordEntries);
+                    } else if(currentFragment instanceof FlashCardsFragment) {
+                        ((FlashCardsFragment) currentFragment).updateWordEntryItemFavorites(wordEntries);
+                    } else if(currentFragment instanceof StatsFragmentProgress) {
+                        ((StatsFragmentProgress) currentFragment).updateWordEntryItemFavorites(wordEntries);
+                    } else  if(currentFragment instanceof SearchFragment) {
+                        ((SearchFragment) currentFragment).updateWordEntryItemFavorites(wordEntries);
+                    } else if(currentFragment instanceof WordListBrowseFragment ) {
+                        for(WordEntry wordEntry : wordEntries) {
+                            ((WordListBrowseFragment) currentFragment).updateWordEntryItemFavorites(wordEntry);
+                        }
+                    } else if(currentFragment instanceof WordListFragment) {
+                        ((WordListFragment) currentFragment).updateMyListAdapter();
+                    }
                 }
             }
         } catch (NullPointerException e) {
@@ -1182,33 +1206,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
     }
 
-    /**
-     * Checks if a fragment is one of a certain type (i.e. one that is of interest because the WordEntry
-     * list it contains might need to be updated to reflect a change in another tab), and updates that fragment if it is. This is
-     * called via {@link #notifySavedWordFragmentsChanged(String)} when words were removed from a word list in the {@link WordListBrowseFragment}
-     * @param currentFragment an instance of the current visible fragment in one of the tab buckets
-     * @param wordEntries updated list of word entries, that will overwrite their counterparts in the currentFragment (if they exist)
-     */
-    public void updateChildFragment(Fragment currentFragment, ArrayList<WordEntry> wordEntries) {
-
-        if(currentFragment instanceof TweetBreakDownFragment) {
-            ((TweetBreakDownFragment) currentFragment).updateWordEntryItemFavorites(wordEntries);
-        } else if(currentFragment instanceof FlashCardsFragment) {
-            ((FlashCardsFragment) currentFragment).updateWordEntryItemFavorites(wordEntries);
-        } else if(currentFragment instanceof StatsFragmentProgress) {
-            ((StatsFragmentProgress) currentFragment).updateWordEntryItemFavorites(wordEntries);
-        } else  if(currentFragment instanceof SearchFragment) {
-            ((SearchFragment) currentFragment).updateWordEntryItemFavorites(wordEntries);
-        }
-
-        else if(currentFragment instanceof WordListBrowseFragment ) {
-            for(WordEntry wordEntry : wordEntries) {
-                ((WordListBrowseFragment) currentFragment).updateWordEntryItemFavorites(wordEntry);
-            }
-        } else if(currentFragment instanceof WordListFragment) {
-            ((WordListFragment) currentFragment).updateMyListAdapter();
-        }
-    }
 
     /**
      * Traffic control, passing result of  {@link com.jukuproject.jukutweet.Dialogs.CopyMyListItemsDialog}  to the

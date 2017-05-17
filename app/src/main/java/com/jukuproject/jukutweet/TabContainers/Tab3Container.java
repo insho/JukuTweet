@@ -45,21 +45,8 @@ public class Tab3Container extends BaseContainerFragment {
         replaceFragment(new WordListFragment(), false,"mylistfragment");
     }
 
-    public boolean updateMyListFragment() {
-        try {
-            ((WordListFragment) getChildFragmentManager().findFragmentByTag("mylistfragment")).updateMyListAdapter();
-            return true;
-        } catch (Exception e) {
-            Log.e("Tab3Container","Could not find userListFragment");
-            return false;
-        }
-    }
-
-
-
 
     public boolean isTopFragmentShowing() {
-//        Log.d("TEST-Tab3Container","BACKSTACK COUNT : " + getChildFragmentManager().getBackStackEntryCount() );
         try {
             if(getChildFragmentManager().getBackStackEntryCount() == 0) {
                 return true;

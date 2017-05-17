@@ -43,7 +43,6 @@ public class InternalDB extends SQLiteOpenHelper
         public static final String TABLE_SAVED_TWEET_KANJI = "JSavedTweetKanji";
         public static final String TABLE_SAVED_TWEET_URLS = "JSavedTweetUrls";
         public static final String TABLE_SAVED_TWEET_USERMENTIONS = "JSavedTweetUserMentions";
-
         public static final String TABLE_FAVORITES_LIST_ENTRIES = "JFavorites";
     }
 

@@ -22,6 +22,7 @@ import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
+import com.jukuproject.jukutweet.MainActivity;
 import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MyListEntry;
@@ -311,6 +312,11 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
         }
     }
 
+    /**
+     * If a word entry has been saved to a new word list in the {@link WordDetailPopupDialog}, the message is relayed back to
+     * this method, which updates the  {@link com.jukuproject.jukutweet.Models.ItemFavorites} in the dataset to reflect the change
+     * @param wordEntry WordEntry that was added to/removed from a new list
+     */
     public void updateWordEntryItemFavorites(WordEntry wordEntry) {
         for(WordEntry topWordEntry : mTopFiveDataSet) {
             if(topWordEntry.getId().equals(wordEntry.getId())) {
@@ -324,17 +330,17 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
             }
         }
 
-//        if(mTopFiveDataSet.contains(wordEntry)) {
-//            mTopFiveDataSet.get(mTopFiveDataSet.indexOf(wordEntry)).setItemFavorites(wordEntry.getItemFavorites());
-//        }
-//        if(mBottomFiveDataSet.contains(wordEntry)) {
-//            mBottomFiveDataSet.get(mBottomFiveDataSet.indexOf(wordEntry)).setItemFavorites(wordEntry.getItemFavorites());
-//        }
-
         adapter_bottom.notifyDataSetChanged();
         adapter_top.notifyDataSetChanged();
     }
 
+    /**
+     * If a group of word entries has been saved in another fragment, the message relayed to {@link MainActivity#notifySavedWordFragmentsChanged(String)}
+     * , which then notifies any open tabs in the other fragments which might be affected by the new word that the change
+     * has been made. This method recieves the udpdated list of words and cycles through them, looking for matches. If a match
+     * is found, the {@link com.jukuproject.jukutweet.Models.ItemFavorites} object for the word is updated to reflect the new favorite list/s
+     * @param updatedWordEntries ArrayList of WordEntries that were saved to/removed from a new list
+     */
     public void updateWordEntryItemFavorites(ArrayList<WordEntry> updatedWordEntries) {
 
         if(mTopFiveDataSet!=null && mBottomFiveDataSet !=null ) {
@@ -359,6 +365,7 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
 
         }
     }
+
     public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {}
     public void notifySavedTweetFragmentsChanged(){};
 

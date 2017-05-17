@@ -144,7 +144,11 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
             holder.imgStarLayout.setClickable(true);
             holder.imgStarLayout.setLongClickable(true);
             holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars));
-            holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, FavoritesColors.assignStarColor(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars)));
+            try {
+                holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, FavoritesColors.assignStarColor(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars)));
+            } catch (NullPointerException e) {
+                Log.e(TAG,"userTimeLineAdapter Nullpointer error setting star color filter in word detail popup dialog... Need to assign item favorites to WordEntry(?)" + e.getCause());
+            }
 
             if(mDataset.get(holder.getAdapterPosition()).getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)
                     && mDataset.get(holder.getAdapterPosition()).getItemFavorites().systemListCount(mActiveTweetFavoriteStars) >1) {

@@ -16,9 +16,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
- * Created by JClassic on 4/5/2017.
+ * Tweet Ops interface between the {@link com.jukuproject.jukutweet.Database.InternalDB} {@link com.jukuproject.jukutweet.Database.TweetOpsHelper}
+ * and the app
  */
-
 public interface TweetListOperationsInterface {
     boolean duplicateTweetList(String listName);
     boolean saveTweetList(String listName);
@@ -29,7 +29,7 @@ public interface TweetListOperationsInterface {
     boolean addTweetToTweetList(String tweetId, String userId, String listName, int listSys);
     boolean removeTweetFromTweetList(String tweetId, String listName, int listSys);
     boolean removeMultipleTweetsFromTweetList(String concatenatedTweetIds, MyListEntry myListEntry);
-    //boolean removeTweetsFromAllTweetLists(String concatenatedTweetIds);
+
     ArrayList<Pair<MyListEntry,Tweet>> removeTweetsFromAllTweetLists(String concatenatedTweetIds);
     ArrayList<MyListEntry> getTweetListsForTweet(ArrayList<String> activeFavoriteStars
             , String concatenatedTweetIds
@@ -43,17 +43,13 @@ public interface TweetListOperationsInterface {
     int tweetExistsInDB(Tweet tweet);
     int tweetParsedKanjiExistsInDB(Tweet tweet);
     int saveTweetToDB(UserInfo userInfo, Tweet tweet);
-//    int saveTweetUrls(Tweet tweet);
     TweetEntities getTweetEntitiesForSavedTweet(String tweetId);
-
     int saveParsedTweetKanji(ArrayList<WordEntry> wordEntries, String tweet_id);
     HashMap<String,ItemFavorites> getStarFavoriteDataForAUsersTweets(String userId);
-//    HashMap<String,ItemFavorites> getStarFavoriteDataForMultipleTweets(String userIds);
-
     ArrayList<Tweet> getTweetsForSavedTweetsList(MyListEntry myListEntry , ColorThresholds colorThresholds);
     ArrayList<Tweet> getTweetsForSavedTweetsList(UserInfo userInfo, ColorThresholds colorThresholds);
     ArrayList<Tweet> getTweetsThatIncludeAWord(String wordIds,ColorThresholds colorThresholds);
-    //    Cursor getWordEntryForWordId(int kanjiId, ColorThresholds colorThresholds);
+
     Cursor getTweetListColorBlocksCursor(ColorThresholds colorThresholds, @Nullable MyListEntry myListEntry);
     Cursor getTweetListColorBlocksCursorForSingleUser(ColorThresholds colorThresholds, String userId);
 
@@ -78,8 +74,4 @@ public interface TweetListOperationsInterface {
             ,ColorThresholds colorThresholds
             ,int totalCountLimit
             ,double topbottomThreshold);
-
-    Boolean myListContainsTweet(MyListEntry myListEntry, String tweetid);
-    public Tweet getTweetFromATweetId(String tweetId, ColorThresholds colorThresholds);
-//    int getUserCreatedTweetListCount();
 }

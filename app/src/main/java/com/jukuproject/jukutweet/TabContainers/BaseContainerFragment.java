@@ -10,6 +10,12 @@ import com.jukuproject.jukutweet.R;
 public class BaseContainerFragment extends Fragment {
 
 
+    /**
+     * Replace current fragment in the tab bucket
+     * @param fragment fragment to add
+     * @param addToBackStack bool true to add to backstack, false to not
+     * @param tag backstack entry tag associated with fragment
+     */
     public void replaceFragment(Fragment fragment, boolean addToBackStack, String tag) {
         FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
         if (addToBackStack) {
@@ -21,6 +27,12 @@ public class BaseContainerFragment extends Fragment {
 
     }
 
+    /**
+     * Adds fragment to backstack for tab bucket
+     * @param fragment fragment to add
+     * @param addToBackStack bool true to add to backstack, false to not
+     * @param tag backstack entry tag associated with fragment
+     */
     public void addFragment(Fragment fragment, boolean addToBackStack, String tag) {
         FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
         if (addToBackStack) {
@@ -31,6 +43,9 @@ public class BaseContainerFragment extends Fragment {
         getChildFragmentManager().executePendingTransactions();
     }
 
+    /**
+     * @return bool true if there are no fragments in backstack for a tab bucket
+     */
     public boolean isTopFragmentShowing() {
         try {
             if(getChildFragmentManager().getBackStackEntryCount() == 0) {
@@ -44,13 +59,16 @@ public class BaseContainerFragment extends Fragment {
         }
     }
 
+    /**
+     * Pops the fragment backstack
+     * @return true if popped, false if stack only has one entry
+     */
     public boolean popFragment() {
         boolean isPop = false;
         if (getChildFragmentManager().getBackStackEntryCount() > 0) {
             isPop = true;
             getChildFragmentManager().popBackStack();
         }
-//        Log.d("TEST", "pop fragment NEW BACKSTACK COUNT: " + getChildFragmentManager().getBackStackEntryCount());
         return isPop;
     }
 

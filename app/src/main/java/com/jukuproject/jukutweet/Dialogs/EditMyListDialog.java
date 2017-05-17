@@ -38,16 +38,6 @@ public class EditMyListDialog extends DialogFragment {
         }
     }
 
-//    @Override
-//    public void onAttach(Activity activity) {
-//        super.onAttach(activity);
-//        try {
-//            mEditMyListDialogListener = (DialogInteractionListener) activity;
-//        } catch (ClassCastException e) {
-//            throw new ClassCastException(activity.toString() + " must implement mAddUserDialogListener");
-//        }
-//    }
-
     public static EditMyListDialog newInstance(String listType, String listName, boolean isStarFavorite) {
 
         EditMyListDialog frag = new EditMyListDialog();
@@ -93,8 +83,6 @@ public class EditMyListDialog extends DialogFragment {
             textRename.setVisibility(TextView.VISIBLE);
         }
 
-
-
         textClear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -118,12 +106,9 @@ public class EditMyListDialog extends DialogFragment {
                         textRename.setBackgroundDrawable(null);
                         textDelete.setBackgroundDrawable(null);
                     }
-
                 }
-
             }
         });
-
 
         textRename.setOnClickListener(new View.OnClickListener() {
             @Override

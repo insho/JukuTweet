@@ -53,6 +53,8 @@ public class UserOpsHelper implements UserOperationsInterface {
         return false;
     }
 
+
+
     /**
      * Saves new user feed to DB
      * @param userInfo UserInfo object with user data pulled from twitter api
@@ -134,8 +136,6 @@ public class UserOpsHelper implements UserOperationsInterface {
         if(BuildConfig.DEBUG){Log.d(TAG,"SUCESSFUL INSERT URI for name: " + screenName);}
         } catch (SQLiteException e) {
             Log.e(TAG,"addMediaURItoDB sqlite problem: " + e);
-        } catch (Exception e) {
-            Log.e(TAG,"addMediaURItoDB exception... " + e);
         } finally {
             db.close();
         }
@@ -176,40 +176,10 @@ public class UserOpsHelper implements UserOperationsInterface {
             if(BuildConfig.DEBUG){Log.d(TAG,"SUCESSFUL UPDATE OF USER INFO FOR: " + userInfo.getScreenName());}
         } catch (SQLiteException e) {
             Log.e(TAG,"updateUserInfo sqlite problem: " + e);
-        } catch (Exception e) {
-            Log.e(TAG,"updateUserInfo exception... " + e);
         } finally {
             db.close();
         }
     }
-
-//    /**
-//     * Pulls user information from db and fills a list of UserInfo objects, to
-//     * be used in the {@link com.jukuproject.jukutweet.Fragments.UserListFragment} recycler
-//     * @return list of UserInfo objects, one for each followed user saved in the db
-//     */
-//    public ArrayList<String> getListOfUserIdsinDB() {
-//        ArrayList<String> userIds = new ArrayList<>();
-//
-//        String queryUserIds = "Select distinct UserId From " + InternalDB.Tables.TABLE_USERS;
-//        SQLiteDatabase db = sqlOpener.getReadableDatabase();
-//        Cursor c = db.rawQuery(queryUserIds, null);
-//
-//
-//        try {
-//            if (c.getCount()>0 && c.moveToFirst()) {
-//                do {
-//                    userIds.add(c.getString(0));
-//                } while (c.moveToNext());
-//            }
-//
-//            c.close();
-//        } finally {
-//            db.close();
-//        }
-//
-//        return userIds;
-//    }
 
 
     /**

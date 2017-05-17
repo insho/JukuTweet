@@ -348,8 +348,7 @@ public class MultipleChoiceFragment extends Fragment {
         txtQuestion.setTextSize(TypedValue.COMPLEX_UNIT_SP, 44);
 
         if(mQuizType.equals("Definition to Kanji")) {
-            setTextHeightLoop(getContext()
-                    ,txtQuestion
+            setTextHeightLoop(txtQuestion
                     ,currentCorrectAnswer.getDefinitionMultiLineString(10)
                     ,getResources().getDisplayMetrics());
 

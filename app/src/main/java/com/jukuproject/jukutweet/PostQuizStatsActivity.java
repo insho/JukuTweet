@@ -2,7 +2,6 @@ package com.jukuproject.jukutweet;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -28,9 +27,7 @@ import com.jukuproject.jukutweet.Fragments.MultipleChoiceFragment;
 import com.jukuproject.jukutweet.Fragments.StatsFragmentFillintheBlanks;
 import com.jukuproject.jukutweet.Fragments.StatsFragmentMultipleChoice;
 import com.jukuproject.jukutweet.Interfaces.QuizMenuDialogInteractionListener;
-import com.jukuproject.jukutweet.Interfaces.StatsFragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
-import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MultChoiceResult;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.Tweet;
@@ -41,15 +38,18 @@ import com.jukuproject.jukutweet.TabContainers.PostQuizTab2Container;
 
 import java.util.ArrayList;
 
-import static com.jukuproject.jukutweet.Fragments.WordListFragment.getExpandableAdapterColorBlockBasicWidths;
+import static com.jukuproject.jukutweet.Fragments.WordListFragment.prepareColorBlockDataForAList;
 import static com.jukuproject.jukutweet.MainActivity.assignTweetWeightsAndGetTotalWeight;
 import static com.jukuproject.jukutweet.MainActivity.assignWordWeightsAndGetTotalWeight;
+
+//import com.jukuproject.jukutweet.Interfaces.StatsFragmentInteractionListener;
 
 /**
  * Quiz/PostQuiz Stats activity fragment manager
  */
-public class PostQuizStatsActivity extends AppCompatActivity implements StatsFragmentInteractionListener
-        , QuizMenuDialogInteractionListener {
+public class PostQuizStatsActivity extends AppCompatActivity
+//        implements StatsFragmentInteractionListener
+        implements QuizMenuDialogInteractionListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -109,6 +109,7 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
             Intent mIntent = getIntent();
             typeOfQuizThatWasCompleted = mIntent.getStringExtra("typeOfQuizThatWasCompleted"); //The type of quiz that was chosen inthe menu
             mIsTweetListQuiz = mIntent.getBooleanExtra("isTweetList",false);
+
             /* Depending on the menuOption, pull the appropriate set of data from the intent and run the
              * appropriate fragment */
             String quizType = mIntent.getStringExtra("quizType");
@@ -119,10 +120,14 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
             mUserInfo = mIntent.getParcelableExtra("userInfo");
             mSingleUser = mIntent.getBooleanExtra("singleUser",false);
 
+            View colorBlockMinWidthEstimateView = getLayoutInflater().inflate(R.layout.expandablelistadapter_listitem, null);
+            DisplayMetrics metrics = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(metrics);
+            float metricsDensity = metrics.density;
             if(mSingleUser) {
-                mColorBlockMeasurables= prepareColorBlockDataForSingleUserTweetList(mUserInfo);
+                mColorBlockMeasurables = prepareColorBlockDataForAList(getBaseContext(),mUserInfo,true,colorBlockMinWidthEstimateView,metricsDensity);
             } else {
-                mColorBlockMeasurables = prepareColorBlockDataForList(mMyListEntry,mIsTweetListQuiz);
+                mColorBlockMeasurables = prepareColorBlockDataForAList(getBaseContext(),mMyListEntry,mIsTweetListQuiz,colorBlockMinWidthEstimateView,metricsDensity);
             }
 
             ArrayList<MultChoiceResult> mDataSetMultipleChoice = mIntent.getParcelableArrayListExtra("mDataSetMultipleChoice");
@@ -170,7 +175,6 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
                 fragments[1] = PostQuizTab2Container.newInstance(mColorBlockMeasurables,mMyListEntry,mIsTweetListQuiz);
             }
 
-
             // Create the adapter that will return a fragment for each of the primary sections of the activity.
             mAdapterTitles = new String[2];
             mQuizPostQuizStatsPagerAdapter = new PostQuizStatsPagerAdapter(getSupportFragmentManager(),mAdapterTitles,fragments);
@@ -192,11 +196,6 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
 
         setUpTheFab(typeOfQuizThatWasCompleted,mSingleUser);
 
-
-
-
-
-        Log.d(TAG,"Madapter title: " + mAdapterTitles[0]);
         if(mAdapterTitles != null
                 && mAdapterTitles.length > 0
                 && mAdapterTitles[0].equals("Score")) {
@@ -319,18 +318,17 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
     }
 
 
-
+    /**
+     * Returns fragment for a given position in {@link PostQuizStatsPagerAdapter}
+     * @param position pager adapter position
+     * @return Fragment corresponding to position
+     */
     public Fragment findFragmentByPosition(int position) {
-
-//        Log.d(TAG,"Mviewpager id: " + mViewPager.getId());
-//        Log.d(TAG,"mQuizPostQuizStatsPagerAdapter id: " + mQuizPostQuizStatsPagerAdapter.getItemId(position));
 
         return getSupportFragmentManager().findFragmentByTag(
                 "android:switcher:" + mViewPager.getId() + ":"
                         + mQuizPostQuizStatsPagerAdapter.getItemId(position));
     }
-
-
 
     /**
      * Shows or hides the actionbar back arrow
@@ -378,42 +376,6 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
             mQuizPostQuizStatsPagerAdapter.updateTabs(updatedTabs);
         }
     }
-
-
-
-    public  ColorBlockMeasurables prepareColorBlockDataForList(MyListEntry myListEntry, Boolean isTweetList) {
-        ColorBlockMeasurables colorBlockMeasurables = new ColorBlockMeasurables();
-
-        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getBaseContext()).getColorThresholds();
-        Cursor c;
-                if(isTweetList){
-                    c = InternalDB.getTweetInterfaceInstance(getBaseContext()).getTweetListColorBlocksCursor(colorThresholds,myListEntry);
-                }  else {
-                    c = InternalDB.getWordInterfaceInstance(getBaseContext()).getWordListColorBlockCursor(colorThresholds,myListEntry);
-                }
-
-        if(c.getCount()>0) {
-            c.moveToFirst();
-
-                /* We do not want to include favorites star lists that are not active in the user
-                * preferences. So if an inactivated list shows up in the sql query, ignore it (don't add to mMenuHeader)*/
-
-            colorBlockMeasurables.setGreyCount(c.getInt(3));
-            colorBlockMeasurables.setRedCount(c.getInt(4));
-            colorBlockMeasurables.setYellowCount(c.getInt(5));
-            colorBlockMeasurables.setGreenCount(c.getInt(6));
-            colorBlockMeasurables.setEmptyCount(0);
-
-            colorBlockMeasurables.setGreyMinWidth(getExpandableAdapterColorBlockBasicWidths(this, String.valueOf(colorBlockMeasurables.getGreyCount())));
-            colorBlockMeasurables.setRedMinWidth(getExpandableAdapterColorBlockBasicWidths(this, String.valueOf(colorBlockMeasurables.getRedCount())));
-            colorBlockMeasurables.setYellowMinWidth(getExpandableAdapterColorBlockBasicWidths(this, String.valueOf(colorBlockMeasurables.getYellowCount())));
-            colorBlockMeasurables.setGreenMinWidth(getExpandableAdapterColorBlockBasicWidths(this, String.valueOf(colorBlockMeasurables.getGreenCount())));
-            colorBlockMeasurables.setEmptyMinWidth(0);
-        }
-        c.close();
-        return  colorBlockMeasurables;
-    }
-
 
     /**
      * Maximum width of the color bars in the MenuExpandableListAdapter. Right that vlue is set
@@ -465,52 +427,52 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
         , String quizTimer
         , String selectedColorString) {
 
-    ArrayList<WordEntry> dataset = new ArrayList<>();
-    String dataType = "";
-    if (tabNumber == 1) {
+        ArrayList<WordEntry> dataset = new ArrayList<>();
+        String dataType = "";
+        if (tabNumber == 1) {
 
-        //Its a tweetlist fragment
-        dataset = InternalDB.getTweetInterfaceInstance(getBaseContext())
-                .getWordsFromATweetList(listEntry
-                        , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
-                        , selectedColorString
-                        , null
-                        , Integer.parseInt(quizSize));
-        dataType = "Tweet";
+            //Its a tweetlist fragment
+            dataset = InternalDB.getTweetInterfaceInstance(getBaseContext())
+                    .getWordsFromATweetList(listEntry
+                            , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
+                            , selectedColorString
+                            , null
+                            , Integer.parseInt(quizSize));
+            dataType = "Tweet";
 
-    } else if (tabNumber == 2) {
+        } else if (tabNumber == 2) {
 
-        //Its a mylist fragment
-        dataset = InternalDB.getWordInterfaceInstance(getBaseContext())
-                .getWordsFromAWordList(listEntry
-                        , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
-                        , selectedColorString
-                        , null
-                        , Integer.parseInt(quizSize));
-        dataType = "Word";
+            //Its a mylist fragment
+            dataset = InternalDB.getWordInterfaceInstance(getBaseContext())
+                    .getWordsFromAWordList(listEntry
+                            , SharedPrefManager.getInstance(getBaseContext()).getColorThresholds()
+                            , selectedColorString
+                            , null
+                            , Integer.parseInt(quizSize));
+            dataType = "Word";
+        }
+
+        if(dataset.size()>0) {
+
+            double totalweight = assignWordWeightsAndGetTotalWeight(getBaseContext(),dataset,.50,.025,30);
+            Intent intent = new Intent(getBaseContext(), QuizActivity.class);
+
+            intent.putExtra("typeOfQuizThatWasCompleted","Multiple Choice"); //The type of quiz that was chosen inthe menu
+            intent.putExtra("quizType",quizType);
+            intent.putExtra("tabNumber", 2);
+            intent.putExtra("myListEntry",listEntry);
+            intent.putExtra("quizSize",quizSize);
+            intent.putExtra("colorString",selectedColorString);
+            intent.putExtra("timer",quizTimer); //Timer can be "none" so passing it on raw as string
+            intent.putExtra("totalweight",totalweight);
+            intent.putParcelableArrayListExtra("dataset",dataset);
+            intent.putExtra("dataType",dataType);
+            intent.putExtra("lastExpandedPosition",currentExpandedPosition);
+            startActivity(intent);
+        } else {
+            Toast.makeText(this, "No words found to quiz on", Toast.LENGTH_SHORT).show();
+        }
     }
-
-    if(dataset.size()>0) {
-
-        double totalweight = assignWordWeightsAndGetTotalWeight(getBaseContext(),dataset,.50,.025,30);
-        Intent intent = new Intent(getBaseContext(), QuizActivity.class);
-
-        intent.putExtra("typeOfQuizThatWasCompleted","Multiple Choice"); //The type of quiz that was chosen inthe menu
-        intent.putExtra("quizType",quizType);
-        intent.putExtra("tabNumber", 2);
-        intent.putExtra("myListEntry",listEntry);
-        intent.putExtra("quizSize",quizSize);
-        intent.putExtra("colorString",selectedColorString);
-        intent.putExtra("timer",quizTimer); //Timer can be "none" so passing it on raw as string
-        intent.putExtra("totalweight",totalweight);
-        intent.putParcelableArrayListExtra("dataset",dataset);
-        intent.putExtra("dataType",dataType);
-        intent.putExtra("lastExpandedPosition",currentExpandedPosition);
-        startActivity(intent);
-    } else {
-        Toast.makeText(this, "No words found to quiz on", Toast.LENGTH_SHORT).show();
-    }
-}
 
     /**
      * Sends intent to {@link QuizActivity} to begin the {@link com.jukuproject.jukutweet.Fragments.MultipleChoiceFragment}
@@ -645,13 +607,9 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
             , Integer currentExpandedPosition
             , String quizSize
             , String selectedColorString) {
-
-//        Log.i(TAG,"HERE CHECK I OUT2: " + tabNumber);
-
         ArrayList<Tweet> dataset = new ArrayList<>();
         String dataType = "";
 
-//        Log.i(TAG,"HERE IN MAIN ACTIVITY SINGLE USER : " + userInfo.getUserId());
         //The request is coming from the saved tweets fragment
         if (tabNumber == 0) {
             dataset = InternalDB.getQuizInterfaceInstance(getBaseContext())
@@ -692,38 +650,14 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
 
     }
 
-    public ColorBlockMeasurables prepareColorBlockDataForSingleUserTweetList(UserInfo userInfo) {
-        ColorBlockMeasurables colorBlockMeasurables = new ColorBlockMeasurables();
 
-        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getBaseContext()).getColorThresholds();
-        Cursor c = InternalDB.getTweetInterfaceInstance(getBaseContext()).getTweetListColorBlocksCursorForSingleUser(colorThresholds,userInfo.getUserId());
-
-        if(c.getCount()>0) {
-            c.moveToFirst();
-
-                /* We do not want to include favorites star lists that are not active in the user
-                * preferences. So if an inactivated list shows up in the sql query, ignore it (don't add to mMenuHeader)*/
-            colorBlockMeasurables.setGreyCount(c.getInt(3));
-            colorBlockMeasurables.setRedCount(c.getInt(4));
-            colorBlockMeasurables.setYellowCount(c.getInt(5));
-            colorBlockMeasurables.setGreenCount(c.getInt(6));
-            colorBlockMeasurables.setEmptyCount(0);
-
-            colorBlockMeasurables.setGreyMinWidth(getExpandableAdapterColorBlockBasicWidths(this, String.valueOf(colorBlockMeasurables.getGreyCount())));
-            colorBlockMeasurables.setRedMinWidth(getExpandableAdapterColorBlockBasicWidths(this, String.valueOf(colorBlockMeasurables.getRedCount())));
-            colorBlockMeasurables.setYellowMinWidth(getExpandableAdapterColorBlockBasicWidths(this, String.valueOf(colorBlockMeasurables.getYellowCount())));
-            colorBlockMeasurables.setGreenMinWidth(getExpandableAdapterColorBlockBasicWidths(this, String.valueOf(colorBlockMeasurables.getGreenCount())));
-            colorBlockMeasurables.setEmptyMinWidth(0);
-
-
-        } else {
-            Log.e(TAG,"prepareColorBlockDataForSingleUserTweetList no results for query single user: " + userInfo.getDisplayScreenName());
-        }
-        c.close();
-        return  colorBlockMeasurables;
-    }
-
-
+    /**
+     * Sets up the action of the floating action button. Clicking it will always pull up the {@link QuizMenuDialog}, but
+     * the type of dialog depends on the type of quiz that was completed, and whether that quiz was for a word/tweet list or
+     * for a single user's saved tweets
+     * @param typeOfQuizThatWasCompleted string with the type of quiz completed ("Multiple Choice", "Fill in the Blanks")
+     * @param singleUser true if the completed quiz was a single user's saved tweets, or a word/tweet list
+     */
     private void setUpTheFab(String typeOfQuizThatWasCompleted, boolean singleUser) {
         if(typeOfQuizThatWasCompleted.equals("Multiple Choice")) {
             if(singleUser) {
@@ -815,7 +749,5 @@ public class PostQuizStatsActivity extends AppCompatActivity implements StatsFra
         outState.putInt("mLastExpandedPosition",mLastExpandedPosition);
 
     }
-
-
 
 }

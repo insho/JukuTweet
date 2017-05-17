@@ -29,6 +29,7 @@ import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
+import com.jukuproject.jukutweet.MainActivity;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
@@ -360,6 +361,11 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
         });
     }
 
+
+    /**
+     * When user scrolls to the bottom of a twitter search result set, decides whether or not to pull more
+     * results from the Twitter API and add them to the dataset.
+     */
     private void addMoreTwitterSearchResults() {
         if(!checkBoxDictionary.isChecked()
                 && checkBoxDefinition.isChecked()
@@ -383,26 +389,6 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                 mCallback.runTwitterSearch(currentActiveTwitterSearchQuery, "Tweet", mDataSetMaxId);
             }
         }
-//        else if(!checkBoxDictionary.isChecked()
-//                && checkBoxRomaji.isChecked()
-//                && mLayoutManager != null
-//                && mTwitterUserResults!=null
-//                && currentActiveTwitterSearchQuery !=null
-//                && mTwitterUserResults.size()>0
-//                && mLayoutManager.findFirstCompletelyVisibleItemPosition()>0
-//                && mLayoutManager.findLastCompletelyVisibleItemPosition()==mTwitterUserResults.size()-1
-//                && mTwitterUserResults.size()-1>mPreviousMaxScrollPosition) {
-//            if (BuildConfig.DEBUG) {
-//                Log.d(TAG, "pulling timeline after scroll. dataset size: " + mTwitterUserResults.size() + ", prev pos: " + mPreviousMaxScrollPosition);
-//            }
-//                    mPreviousMaxScrollPosition = mTwitterUserResults.size() - 1;
-//            if (!mCallback.isOnline()) {
-//                Toast.makeText(getContext(), "Device is not online", Toast.LENGTH_SHORT).show();
-//            } else  {
-//                showProgressBar(true);
-//                mCallback.runTwitterSearch(currentActiveTwitterSearchQuery, "User", mDataSetMaxId);
-//            }
-//        }
     }
 
 
@@ -490,10 +476,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
             mTwitterUserResults = null;
             mTwitterResults = results;
 
-
-
-            if(mTwitterResults!=null
-                    && currentActiveTwitterSearchQuery!=null
+            if(currentActiveTwitterSearchQuery!=null
                     && currentActiveTwitterSearchQuery.equals(queryText)
                     && mTwitterAdapter!=null) {
                 mTwitterResults.addAll(results);
@@ -611,10 +594,6 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
 
                     });
             mRecyclerView.setAdapter(listAdapter);
-
-
-
-//            mDataSetMaxId = (Long) Long.valueOf(mTwitterUserResults.get(mTwitterUserResults.size()-1).getIdString());
         } else {
             showRecyclerView(false);
         }
@@ -653,38 +632,6 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
         }
     }
 
-    /**
-     * Updates WordEntries in the dataset of dictionary results when the user has changed the
-     * favorites for a word in the {@link WordDetailPopupDialog} via the {@link WordEntryFavoritesChangedListener}
-     * @param wordEntry WordEntry for the word that has new itemfavorites info
-     */
-    public void updateWordEntryItemFavorites(WordEntry wordEntry) {
-
-        if(mDictionaryResults!=null ) {
-            for(WordEntry tweetWordEntry : mDictionaryResults) {
-                if(tweetWordEntry.getId().equals(wordEntry.getId())) {
-
-                    tweetWordEntry.setItemFavorites(wordEntry.getItemFavorites());
-                }
-            }
-            mDictionaryAdapter.notifyDataSetChanged();
-        }
-
-    }
-
-    public void updateWordEntryItemFavorites(ArrayList<WordEntry> updatedWordEntries) {
-
-        if(mDictionaryResults!=null ) {
-            for(WordEntry dataSetWordEntry : mDictionaryResults) {
-                for(WordEntry updatedWordEntry : updatedWordEntries ) {
-                    if(dataSetWordEntry.getId().equals(updatedWordEntry.getId())) {
-                        dataSetWordEntry.setItemFavorites(updatedWordEntry.getItemFavorites());
-                    }
-                }
-            }
-            mDictionaryAdapter.notifyDataSetChanged();
-        }
-    }
 
     /**
      * Verifies if this fragment is showing some search results or not. When user clicks "onBackPressed"
@@ -707,12 +654,75 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
         }
     }
 
+
+    /**
+     * Updates WordEntries in the dataset of dictionary results when the user has changed the
+     * favorites for a word in the {@link WordDetailPopupDialog} via the {@link WordEntryFavoritesChangedListener}
+     * @param wordEntry WordEntry for the word that has new itemfavorites info
+     */
+    public void updateWordEntryItemFavorites(WordEntry wordEntry) {
+
+        if(mDictionaryResults!=null ) {
+            for(WordEntry tweetWordEntry : mDictionaryResults) {
+                if(tweetWordEntry.getId().equals(wordEntry.getId())) {
+
+                    tweetWordEntry.setItemFavorites(wordEntry.getItemFavorites());
+                }
+            }
+            mDictionaryAdapter.notifyDataSetChanged();
+        }
+
+    }
+
+    /**
+     * If a group of word entries has been saved in another fragment, the message relayed to {@link MainActivity#notifySavedWordFragmentsChanged(String)}
+     * , which then notifies any open tabs in the other fragments which might be affected by the new word that the change
+     * has been made. This method recieves the udpdated list of words and cycles through them, looking for matches. If a match
+     * is found, the {@link com.jukuproject.jukutweet.Models.ItemFavorites} object for the word is updated to reflect the new favorite list/s
+     * @param updatedWordEntries ArrayList of WordEntries that were saved to/removed from a new list
+     */
+    public void updateWordEntryItemFavorites(ArrayList<WordEntry> updatedWordEntries) {
+
+        if(mDictionaryResults!=null ) {
+            for(WordEntry dataSetWordEntry : mDictionaryResults) {
+                for(WordEntry updatedWordEntry : updatedWordEntries ) {
+                    if(dataSetWordEntry.getId().equals(updatedWordEntry.getId())) {
+                        dataSetWordEntry.setItemFavorites(updatedWordEntry.getItemFavorites());
+                    }
+                }
+            }
+            mDictionaryAdapter.notifyDataSetChanged();
+        }
+    }
+
+    /**
+     * If a word has been saved in the {@link WordDetailPopupDialog}, a message is passed
+     * from worddetail to this fragment, and then back to {@link MainActivity#notifySavedWordFragmentsChanged(String)}
+     * notifying to updated any fragments affected by the new word
+     * @param wordEntry WordEntry that was saved
+     */
     public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {
         mCallback.notifySavedWordFragmentsChanged(String.valueOf(wordEntry.getId()));
     }
+
+    /**
+     * If a tweet has been saved in the {@link WordDetailPopupDialog}, a message is passed
+     * from worddetail to this fragment, and then back to {@link MainActivity#notifySavedTweetFragmentsChanged()}
+     * notifying to updated any fragments affected by the new tweet
+     */
     public void notifySavedTweetFragmentsChanged(){
         mCallback.notifySavedTweetFragmentsChanged();
     };
+
+
+
+    @Override
+    public void onPause() {
+        if(searchView!=null) {
+            searchView.clearFocus();
+        }
+        super.onPause();
+    }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -731,12 +741,5 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
         outState.putString("currentActiveTwitterSearchQuery",currentActiveTwitterSearchQuery);
     }
 
-    @Override
-    public void onPause() {
-        if(searchView!=null) {
-            searchView.clearFocus();
-        }
-        super.onPause();
-    }
 }
 

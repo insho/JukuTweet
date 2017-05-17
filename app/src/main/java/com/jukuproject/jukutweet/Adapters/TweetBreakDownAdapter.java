@@ -106,7 +106,11 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         Integer starColorDrawableInt = FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars);
         holder.imgStar.setImageResource(starColorDrawableInt);
         if(starColorDrawableInt!=R.drawable.ic_star_multicolor) {
-            holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
+            try {
+                holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
+            } catch (NullPointerException e) {
+                Log.e(TAG,"tweetBreakDownAdapter multistar Nullpointer error setting star color filter in word detail popup dialog... Need to assign item favorites to WordEntry(?)" + e.getCause());
+            }
         } else {
             holder.imgStar.setColorFilter(null);
         }
@@ -177,21 +181,17 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         RxBus rxBus = new RxBus();
 
         ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getWordInterfaceInstance(mContext).getWordListsForAWord(mActiveFavoriteStars,String.valueOf(mWords.get(holder.getAdapterPosition()).getId()),1,null);
-
         PopupWindow popupWindow =  ChooseFavoriteListsPopupWindow.createWordFavoritesPopup(mContext,mMetrics,rxBus,availableFavoriteLists,mWords.get(holder.getAdapterPosition()).getId());
-
         popupWindow.getContentView().measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
 
         int xadjust = popupWindow.getContentView().getMeasuredWidth() + (int) (25 * mMetrics.density + 0.5f);
-
         int yadjust;
         if(availableFavoriteLists.size()<4) {
             yadjust = (int)((popupWindow.getContentView().getMeasuredHeight()  + holder.imgStar.getMeasuredHeight())/2.0f);
         } else {
             yadjust = getYAdjustmentForPopupWindowBigList(availableFavoriteLists.size(),holder.getAdapterPosition(),mMetrics.scaledDensity,holder.itemView.getMeasuredHeight());
         }
-
 
         if(BuildConfig.DEBUG) {
             Log.d("TEST", "pop width: " + popupWindow.getContentView().getMeasuredWidth() + " height: " + popupWindow.getContentView().getMeasuredHeight());
@@ -205,13 +205,12 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
             }
         });
 
-
         rxBus.toClickObserverable().subscribe(new Action1<Object>() {
             @Override
             public void call(Object event) {
 
-                                    /* Recieve a MyListEntry (containing an updated list entry for this row kanji) from
-                                    * the ChooseFavoritesAdapter in the ChooseFavorites popup window */
+                /* Recieve a MyListEntry (containing an updated list entry for this row kanji) from
+                 * the ChooseFavoritesAdapter in the ChooseFavorites popup window */
                 if(event instanceof MyListEntry) {
                     MyListEntry myListEntry = (MyListEntry) event;
 
@@ -255,7 +254,11 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
 
                     } else {
                         holder.imgStar.setImageResource(R.drawable.ic_star_black);
-                        holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
+                        try {
+                            holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
+                        } catch (NullPointerException e) {
+                            Log.e(TAG,"tweetBreakDownAdapter Nullpointer error setting star color filter in word detail popup dialog... Need to assign item favorites to WordEntry(?)" + e.getCause());
+                        }
                     }
                 }
             }

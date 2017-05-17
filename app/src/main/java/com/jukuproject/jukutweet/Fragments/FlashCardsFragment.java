@@ -30,6 +30,7 @@ import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
+import com.jukuproject.jukutweet.MainActivity;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
 
@@ -37,7 +38,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 /**
- * Displays a deck of flashcards that user can swipe through, corresponding to a list of WordEntry ({@link WordEntry}) objects
+ * Displays a deck of flashcards that user can swipe through, corresponding to a list of WordEntry ({@link WordEntry}) objects.
+ * Double-tap or swipe up/down to show "reverse side" of card. Long click to show {@link WordDetailPopupDialog} for card entry
  */
 
 public class FlashCardsFragment extends Fragment implements WordEntryFavoritesChangedListener {
@@ -117,9 +119,8 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
             mFrontShowing = savedInstanceState.getBoolean("mFrontShowing");
             cardNumber = savedInstanceState.getInt("cardNumber");
         }
-//        mCallback.showFab(false);
-        totalCardCount = mDataset.size();
 
+        totalCardCount = mDataset.size();
         vp.setAdapter(new MyPagesAdapter_Array());
 
         //When shuffle button is clicked, shuffles dataset, animates cards to simulate a "shuffle", and sets card count to 0
@@ -151,16 +152,13 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
                     animator_rightin.start();
                     animator_rightin.setStartDelay(100);
                     animator_rightin.start();
-
-                    String stringcount = cardNumber + "/" + totalCardCount;
-                    ((TextView) page.findViewById(R.id.scorecount)).setText(stringcount);
+                    ((TextView) page.findViewById(R.id.scorecount)).setText(getString(R.string.score,cardNumber,totalCardCount));
                 }
             }
         });
 
 
         final GestureDetector.SimpleOnGestureListener listener = new GestureDetector.SimpleOnGestureListener() {
-
 
             //Shows the reverse side of the card
             @Override
@@ -192,7 +190,6 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
                 WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(mDataset.get(currentPosition));
                 wordDetailPopupDialog.setTargetFragment(FlashCardsFragment.this, 0);
                 wordDetailPopupDialog.show(getFragmentManager(),"wordDetailPopup");
-//                WordDetailPopupDialog.newWordListInstance(mDataset.get(currentPosition)).show(getFragmentManager(),"wordDetailPopup");
             };
 
 
@@ -216,6 +213,7 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
                 return true;
             }
 
+            //Fling up or down shows reverse side of card, same as double tap
             @Override
             public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
                 if(BuildConfig.DEBUG){Log.d(TAG, "onFling " + e1.getX() + " - " + e2.getX());}
@@ -264,8 +262,6 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
         mGestureDetector = new GestureDetector(getContext(), listener);
         mGestureDetector.setOnDoubleTapListener(listener);
 
-
-
     }
 
     // Implement PagerAdapter Class to handle individual page creation
@@ -290,7 +286,7 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
             final WordEntry wordEntry = mDataset.get(position);
             page.setTag(wordEntry.getId());
 
-            ((TextView) page.findViewById(R.id.scorecount)).setText(cardNumber + "/" + totalCardCount);
+            ((TextView) page.findViewById(R.id.scorecount)).setText(getString(R.string.score,cardNumber,totalCardCount));
 
             //Set the flipped tag false to start with
             page.setOnTouchListener(new View.OnTouchListener() {
@@ -301,26 +297,14 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
                     return true;
                 }
             });
-//
-//            if (freshdeck) {
-//                ((TextView) page.findViewById(R.id.scorecount)).setText(cardNumber + "/" + totalCardCount);
-//                freshdeck = false;
-//            }
 
-            Log.d(TAG,"Setting card on instatiate");
             setCard(wordEntry,true);
-
-
             vp.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
 
                 @Override
                 public void onPageSelected(int pos) {
-//                    if(freshdeck) {
-//                        cardNumber = pos+1;
-//                    } else {
-                        cardNumber = pos+1;
-//                    }
-                    ((TextView) page.findViewById(R.id.scorecount)).setText(cardNumber + "/" + totalCardCount);
+                    cardNumber = pos+1;
+                    ((TextView) page.findViewById(R.id.scorecount)).setText(getString(R.string.score,cardNumber,totalCardCount));
                     if(vp.findViewWithTag(wordEntry.getId()) != null) {
                     setCard(wordEntry,true);
                     }
@@ -356,8 +340,15 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
 
     }
 
+    /**
+     * Sets up the next card in the deck when user swipes forward/backwards. Each "face" of a card has
+     * three options: 1. show Kanji with hidden furigana (that will show with a single click) 2. Show Furigana only
+     * 3. Show definition only
+     * @param wordEntry WordEntry for this card
+     * @param frontShowing whether or not the front "face" of the card is showing. true for showing, false for back "face" showing.
+     */
     public void setCard(WordEntry wordEntry, boolean frontShowing) {
-        Log.d(TAG,"SETTING CARD: flipped to front? - " + frontShowing);
+        if(BuildConfig.DEBUG){Log.d(TAG,"SETTING CARD: flipped to front? - " + frontShowing);}
         mFrontShowing = frontShowing;
         String cardValue;
         if(frontShowing) {
@@ -368,28 +359,20 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
 
         int currentTag = wordEntry.getId();
 
-//        if(vp == null) {
-//            Log.d(TAG,"VP IS NULL ");
-//        } else {
-//            Log.d(TAG,"vp view with tag (" + currentTag + ") null: " + ((vp.findViewWithTag(currentTag)) == null));
-//        }
-
         try {
-            ((TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.scorecount)).setText(cardNumber + "/" + totalCardCount);
+            ((TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.scorecount)).setText(getString(R.string.score,cardNumber,totalCardCount));
             TextView textMain = (TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.textMessage);
             TextView textFurigana = (TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.furigana);
             TextView defarraylistview = (TextView) (vp.findViewWithTag(currentTag)).findViewById(R.id.flashcard_listview);
 
             switch (cardValue) {
                 case "Kanji":
-                    //Show kanji textview, hide definition listview
                     textMain.setVisibility(View.VISIBLE);
                     textFurigana.setVisibility(View.INVISIBLE);
                     defarraylistview.setVisibility(View.GONE);
 
                     textMain.setText(wordEntry.getKanji());
                     textFurigana.setText(wordEntry.getFurigana());
-                    Log.d(TAG,"KANJI VISIBLE");
                     break;
                 case "Kana":
                     textMain.setVisibility(View.VISIBLE);
@@ -397,13 +380,10 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
                     defarraylistview.setVisibility(View.GONE);
 
                     if(wordEntry.getFurigana() == null || wordEntry.getFurigana().length() == 0) { //If the furigana entry is null, use the kanji one homie
-                        if(BuildConfig.DEBUG){ Log.d(TAG,"we're doing this (2)");}
                         textMain.setText(wordEntry.getKanji());
                     } else {
-                        Log.d(TAG,"SETTING FURIGANA");
                         textMain.setText(wordEntry.getFurigana());
                     }
-                    Log.d(TAG,"KANA VISIBLE");
 
                     break;
                 case "Definition":
@@ -417,12 +397,12 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
                         defarraylistview.setText(definition);
 
 
-                        setTextHeightLoop(getContext(),defarraylistview,definition,getResources().getDisplayMetrics());
+                        setTextHeightLoop(defarraylistview,definition,getResources().getDisplayMetrics());
                     } else {
                         textMain.setVisibility(View.VISIBLE);
                         defarraylistview.setVisibility(View.GONE);
                         textMain.setText(definition);
-                        setTextHeightLoop(getContext(),textMain,definition,getResources().getDisplayMetrics());
+                        setTextHeightLoop(textMain,definition,getResources().getDisplayMetrics());
                     }
 
 
@@ -434,13 +414,16 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
             Log.e(TAG,"Setting flashcard nullpointer: " + e);
         }
 
-
-
     }
 
-
-    public static void setTextHeightLoop(Context context
-            , TextView textView
+    /**
+     * Measures text height for the contents of a flashcard, and if the height is greater than the bounds
+     * of the card, reduces text size by 2 points and tries again in a loop until the text fits
+     * @param textView textView container for flashcard (that text must fit in to)
+     * @param text text that is being fit into container
+     * @param metrics display metrics
+     */
+    public static void setTextHeightLoop(TextView textView
             , String text
             , DisplayMetrics metrics) {
         Rect bounds = new Rect();
@@ -455,35 +438,40 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
         int  pxCardSize = (int) (TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP, 400, metrics));
 
-
-//        int measuredTextHeight = getHeight(context, text, pxText, 300, padding);
         if(BuildConfig.DEBUG) {
-            Log.d("TEST","BOUNDS WIDTH: " + width);
-            Log.d("TEST","BOUNDS HEIGHT: " + height);
-            Log.d("TEST","MEASURE TEXT WIDTH: " + Math.round(textPaint.measureText(text)));
-            Log.d("TEST","SPECIAL MEASURED TEXT HEIGHT: " + method1UsingTextPaintAndStaticLayout(text,pxText,300,4));
-//                    Log.d(TAG,"SPECIAL 2 MEASURED TEXT HEIGHT: " + measuredTextHeight);
-            Log.d("TEST","pxCardSize: " + pxCardSize);
-            Log.d("TEST","SETTING DEFINITION");
+            Log.d("TEST-txtheight","BOUNDS WIDTH: " + width);
+            Log.d("TEST-txtheight","BOUNDS HEIGHT: " + height);
+            Log.d("TEST-txtheight","MEASURE TEXT WIDTH: " + Math.round(textPaint.measureText(text)));
+            Log.d("TEST-txtheight","SPECIAL MEASURED TEXT HEIGHT: " + estimateHeightOfTextView(text,pxText,300,4));
+            Log.d("TEST-txtheight","pxCardSize: " + pxCardSize);
+            Log.d("TEST-txtheight","SETTING DEFINITION");
 
         }
-        int specialMethodTextHeight = method1UsingTextPaintAndStaticLayout(text,pxText,300,4);
+        int specialMethodTextHeight = estimateHeightOfTextView(text,pxText,300,4);
 
         while (specialMethodTextHeight > pxCardSize && pxTextDP>22) {
 
             pxTextDP -= 2;
-            Log.d("TEST","specialMethodTextHeight OVERRUN. " + specialMethodTextHeight + " > " + pxCardSize + ", lowering to: " + pxTextDP );
+            if(BuildConfig.DEBUG){Log.d("TEST-txtheight","specialMethodTextHeight OVERRUN. " + specialMethodTextHeight + " > " + pxCardSize + ", lowering to: " + pxTextDP );}
 
             textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, pxTextDP);
             pxText = (int) (TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP
                     , pxTextDP
                     , metrics));
-            specialMethodTextHeight = method1UsingTextPaintAndStaticLayout(text,pxText,300,4);
+            specialMethodTextHeight = estimateHeightOfTextView(text,pxText,300,4);
 
         }
     }
 
-    public static int method1UsingTextPaintAndStaticLayout(
+    /**
+     * Method for measuring prospective height of a string of text
+     * @param text text that is being measured
+     * @param textSize text size
+     * @param deviceWidth width of device
+     * @param padding any padding
+     * @return estimated height of textview with text inside
+     */
+    public static int estimateHeightOfTextView(
             final CharSequence text,
             final int textSize, // in pixels
             final int deviceWidth, // in pixels
@@ -495,31 +483,33 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
         myTextPaint.setTextSize(textSize);
         Layout.Alignment alignment = Layout.Alignment.ALIGN_NORMAL;
         float spacingMultiplier = 1;
-        float spacingAddition = padding; // optionally apply padding here
+        float spacingAddition = padding;
         boolean includePadding = padding != 0;
         StaticLayout myStaticLayout = new StaticLayout(text, myTextPaint, deviceWidth, alignment, spacingMultiplier, spacingAddition, includePadding);
         return myStaticLayout.getHeight();
     }
 
-//    public static int getHeight(Context context, CharSequence text, int textSize, int deviceWidth,  int padding) {
-//        TextView textView = new TextView(context);
-//        textView.setPadding(padding,0,padding,padding);
-//        textView.setText(text, TextView.BufferType.SPANNABLE);
-//        textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
-//        int widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(deviceWidth, View.MeasureSpec.AT_MOST);
-//        int heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
-//        textView.measure(widthMeasureSpec, heightMeasureSpec);
-//        return textView.getMeasuredHeight();
-//    }
 
+    /**
+     * If a word entry has been saved to a new word list in the {@link WordDetailPopupDialog}, the message is relayed back to
+     * this method, which updates the  {@link com.jukuproject.jukutweet.Models.ItemFavorites} in the dataset to reflect the change
+     * @param wordEntry WordEntry that was added to/removed from a new list
+     */
     public void updateWordEntryItemFavorites(WordEntry wordEntry) {
         if(mDataset.contains(wordEntry)) {
             mDataset.get(mDataset.indexOf(wordEntry)).setItemFavorites(wordEntry.getItemFavorites());
         } else {
             Log.e(TAG,"Dataset doesn't contain word entry y'all...");
         }
-
     }
+
+    /**
+     * If a group of word entries has been saved in another fragment, the message relayed to {@link MainActivity#notifySavedWordFragmentsChanged(String)}
+     * , which then notifies any open tabs in the other fragments which might be affected by the new word that the change
+     * has been made. This method recieves the udpdated list of words and cycles through them, looking for matches. If a match
+     * is found, the {@link com.jukuproject.jukutweet.Models.ItemFavorites} object for the word is updated to reflect the new favorite list/s
+     * @param updatedWordEntries ArrayList of WordEntries that were saved to/removed from a new list
+     */
     public void updateWordEntryItemFavorites(ArrayList<WordEntry> updatedWordEntries) {
         if(mDataset!=null ) {
             for(WordEntry dataSetWordEntry : mDataset) {
@@ -532,12 +522,22 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
         }
 
     }
-    //        }
 
-
+    /**
+     * If a word has been saved in the {@link WordDetailPopupDialog}, a message is passed
+     * from worddetail to this fragment, and then back to {@link MainActivity#notifySavedWordFragmentsChanged(String)}
+     * notifying to updated any fragments affected by the new word
+     * @param wordEntry WordEntry that was saved
+     */
     public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {
         mCallback.notifySavedWordFragmentsChanged(String.valueOf(wordEntry.getId()));
     }
+
+    /**
+     * If a tweet has been saved in the {@link WordDetailPopupDialog}, a message is passed
+     * from worddetail to this fragment, and then back to {@link MainActivity#notifySavedTweetFragmentsChanged()}
+     * notifying to updated any fragments affected by the new tweet
+     */
     public void notifySavedTweetFragmentsChanged(){
         mCallback.notifySavedTweetFragmentsChanged();
     };

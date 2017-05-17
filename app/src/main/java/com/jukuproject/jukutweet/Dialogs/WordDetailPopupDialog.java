@@ -413,7 +413,12 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
     }
 
 
-
+    /**
+     * Toggle between "show saved tweets" and "search twitter" buttons.
+     * If one is clicked it is "Activated and the other muted, and visa versa.
+     * @param textView textView "button" that is to be activated or deactivated
+     * @param active true to activate "highlight", false to deactivate
+     */
     private void setButtonActive(TextView textView,boolean active){
         textView.setSelected(active);
 

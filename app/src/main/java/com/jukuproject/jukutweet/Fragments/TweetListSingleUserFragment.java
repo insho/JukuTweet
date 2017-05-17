@@ -1,16 +1,10 @@
 package com.jukuproject.jukutweet.Fragments;
 
-import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
-import android.graphics.Paint;
-import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -37,12 +31,15 @@ import com.jukuproject.jukutweet.TabContainers.BaseContainerFragment;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-//import com.jukuproject.jukutweet.TabContainers.BaseContainerFragment;
+import static com.jukuproject.jukutweet.Fragments.WordListFragment.getExpandableAdapterColorBlockBasicWidths;
+import static com.jukuproject.jukutweet.Fragments.WordListFragment.prepareColorBlockDataForAList;
 
 /**
- * Shows user-created lists of vocabulary
+ * Shows saved tweets for a single user only. User can Browse and Quiz on these saved words.
+ * Cosmetically similar to {@link TweetListFragment}, but internally the process for pulling those tweets is different
+ * because the tweets are not necessarily tied to any "TweetList". They are tied to the user. So all data is pulled
+ * using a {@link UserInfo} object as the key instead of a {@link MyListEntry}
  */
-
 public class TweetListSingleUserFragment extends Fragment {
 
     String TAG = "TEST-TweetLstSin";
@@ -151,7 +148,6 @@ public class TweetListSingleUserFragment extends Fragment {
                     return false;
                 }
 
-
                 switch (childOption) {
                     case "Browse/Edit":
                             TweetListBrowseFragment fragment = TweetListBrowseFragment.newInstance(mUserInfo);
@@ -197,8 +193,13 @@ public class TweetListSingleUserFragment extends Fragment {
 
                         break;
                     case "Stats":
-//                        MyListEntry myListEntry = new MyListEntry(mMenuHeader.get(groupPosition).getHeaderTitle(),mMenuHeader.get(groupPosition).getSystemList());
-                        ColorBlockMeasurables colorBlockMeasurables = prepareColorBlockDataForSingleUserTweetList(mUserInfo);
+
+                        View colorBlockMinWidthEstimateView = getActivity().getLayoutInflater().inflate(R.layout.expandablelistadapter_listitem, null);
+                        DisplayMetrics metrics = new DisplayMetrics();
+                        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+                        float metricsDensity = metrics.density;
+
+                        ColorBlockMeasurables colorBlockMeasurables = prepareColorBlockDataForAList(getContext(),mUserInfo,true,colorBlockMinWidthEstimateView,metricsDensity);
                         StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newSingleUserTweetsInstance(mUserInfo
                                 , 10
                                 ,colorBlockMeasurables);
@@ -206,12 +207,8 @@ public class TweetListSingleUserFragment extends Fragment {
                         mCallback.showFab(false);
                         break;
 
-
-
                     default:
-
                         break;
-
                 }
                 return false;
             }
@@ -226,8 +223,6 @@ public class TweetListSingleUserFragment extends Fragment {
             }
         });
 
-
-
         /* deciding which mylist to open on activity start */
         expListView.setGroupIndicator(null);
 
@@ -235,16 +230,24 @@ public class TweetListSingleUserFragment extends Fragment {
         if(lastExpandedPosition >=0) {
             expandTheListViewAtPosition(lastExpandedPosition);
         }
-
-//        setRetainInstance(true);
     }
 
+    /**
+     * Prepares header entries for the mMenuHeader dataset, with {@link ColorBlockMeasurables} representing the saved tweet words
+     * broken down by word score color categories (colorblocks are displayed next to the "Browse/Edit" entry for an expanded saved tweet list)
+     */
     public void prepareListData(UserInfo userInfo) {
         mMenuHeader = new ArrayList<>();
 
         ArrayList<String> availableFavoritesStars = sharedPrefManager.getActiveTweetFavoriteStars();
         ColorThresholds colorThresholds = sharedPrefManager.getColorThresholds();
         ArrayList<String> childOptions = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.menu_mylist)));
+
+        //pull pieces necessary to getExpandableAdapterColorBlockBasicWidths
+        View colorBlockMinWidthEstimateView = getActivity().getLayoutInflater().inflate(R.layout.expandablelistadapter_listitem, null);
+        DisplayMetrics metrics = new DisplayMetrics();
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        float metricsDensity = metrics.density;
 
         Cursor c  = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListColorBlocksCursorForSingleUser(colorThresholds,userInfo.getUserId());
         if(c.getCount()>0) {
@@ -253,7 +256,6 @@ public class TweetListSingleUserFragment extends Fragment {
 
                 /* We do not want to include favorites star lists that are not active in the user
                 * preferences. So if an inactivated list shows up in the sql query, ignore it (don't add to mMenuHeader)*/
-
                 if(c.getInt(1) != 1 || (availableFavoritesStars.contains(c.getString(0)))) {
                     MenuHeader menuHeader = new MenuHeader();
 
@@ -264,7 +266,6 @@ public class TweetListSingleUserFragment extends Fragment {
 
                     menuHeader.setMyListEntry(new MyListEntry(c.getString(0),c.getInt(1)));
                     if(c.getInt(1) == 1 ) {
-//                        if(BuildConfig.DEBUG){Log.d(TAG,c.getString(0) + " sys ==1 so adding to starlist");}
                         menuHeader.setSystemList(true);
                     }
 
@@ -283,12 +284,11 @@ public class TweetListSingleUserFragment extends Fragment {
                         lastExpandedPosition = mMenuHeader.size();
                     }
 
-                    colorBlockMeasurables.setGreyMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreyCount())));
-                    colorBlockMeasurables.setRedMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getRedCount())));
-                    colorBlockMeasurables.setYellowMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getYellowCount())));
-                    colorBlockMeasurables.setGreenMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreenCount())));
-                    colorBlockMeasurables.setEmptyMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getEmptyCount())));
-
+                    colorBlockMeasurables.setGreyMinWidth(getExpandableAdapterColorBlockBasicWidths(colorBlockMinWidthEstimateView,getContext(), String.valueOf(colorBlockMeasurables.getGreyCount()),metricsDensity));
+                    colorBlockMeasurables.setRedMinWidth(getExpandableAdapterColorBlockBasicWidths(colorBlockMinWidthEstimateView,getContext(), String.valueOf(colorBlockMeasurables.getRedCount()),metricsDensity));
+                    colorBlockMeasurables.setYellowMinWidth(getExpandableAdapterColorBlockBasicWidths(colorBlockMinWidthEstimateView,getContext(), String.valueOf(colorBlockMeasurables.getYellowCount()),metricsDensity));
+                    colorBlockMeasurables.setGreenMinWidth(getExpandableAdapterColorBlockBasicWidths(colorBlockMinWidthEstimateView,getContext(), String.valueOf(colorBlockMeasurables.getGreenCount()),metricsDensity));
+                    colorBlockMeasurables.setEmptyMinWidth(getExpandableAdapterColorBlockBasicWidths(colorBlockMinWidthEstimateView,getContext(), String.valueOf(colorBlockMeasurables.getEmptyCount()),metricsDensity));
                     menuHeader.setColorBlockMeasurables(colorBlockMeasurables);
                     mMenuHeader.add(menuHeader);
                 }
@@ -302,37 +302,6 @@ public class TweetListSingleUserFragment extends Fragment {
     }
 
 
-    public ColorBlockMeasurables prepareColorBlockDataForSingleUserTweetList(UserInfo userInfo) {
-        ColorBlockMeasurables colorBlockMeasurables = new ColorBlockMeasurables();
-
-        ColorThresholds colorThresholds = SharedPrefManager.getInstance(getContext()).getColorThresholds();
-        Cursor c = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListColorBlocksCursorForSingleUser(colorThresholds,userInfo.getUserId());
-//        InternalDB.getWordInterfaceInstance(getContext()).supertest(colorThresholds,myListEntry);
-        if(c.getCount()>0) {
-            c.moveToFirst();
-
-                /* We do not want to include favorites star lists that are not active in the user
-                * preferences. So if an inactivated list shows up in the sql query, ignore it (don't add to mMenuHeader)*/
-
-            colorBlockMeasurables.setGreyCount(c.getInt(3));
-            colorBlockMeasurables.setRedCount(c.getInt(4));
-            colorBlockMeasurables.setYellowCount(c.getInt(5));
-            colorBlockMeasurables.setGreenCount(c.getInt(6));
-            colorBlockMeasurables.setEmptyCount(0);
-
-            colorBlockMeasurables.setGreyMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreyCount())));
-            colorBlockMeasurables.setRedMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getRedCount())));
-            colorBlockMeasurables.setYellowMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getYellowCount())));
-            colorBlockMeasurables.setGreenMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreenCount())));
-            colorBlockMeasurables.setEmptyMinWidth(0);
-
-            c.moveToNext();
-        } else {
-            Log.e(TAG,"prepareColorBlockDataForSingleUserTweetList no results for query single user: " + userInfo.getDisplayScreenName());
-        }
-        c.close();
-        return  colorBlockMeasurables;
-    }
 
     @Override
     public void onResume() {
@@ -350,7 +319,6 @@ public class TweetListSingleUserFragment extends Fragment {
 
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
-//        return Math.round((float)metrics.widthPixels*(float).5);
         if(metrics.heightPixels>metrics.widthPixels) {
             return Math.round((float)metrics.widthPixels*multiplier);
         } else {
@@ -365,32 +333,6 @@ public class TweetListSingleUserFragment extends Fragment {
         lastExpandedPosition = position;
     };
 
-
-    public static int getExpandableAdapterColorBlockBasicWidths(Activity activity, String text){
-        int result = 0;
-        if(!text.equals("0")) {
-            View view = activity.getLayoutInflater().inflate(R.layout.expandablelistadapter_listitem, null);
-            TextView colorBlock = (TextView) view.findViewById(R.id.listitem_colors_1);
-            Drawable drawablecolorblock1 = ContextCompat.getDrawable(activity, R.drawable.colorblock);
-
-            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                colorBlock.setBackground(drawablecolorblock1);
-            } else {
-                colorBlock.setBackgroundDrawable(drawablecolorblock1);
-            }
-
-            Rect bounds = new Rect();
-            Paint textPaint = colorBlock.getPaint();
-            textPaint.getTextBounds(text, 0, text.length(), bounds);
-            result = (int)textPaint.measureText(text);
-
-            DisplayMetrics metrics = new DisplayMetrics();
-            activity.getWindowManager().getDefaultDisplay().getMetrics(metrics);
-            int padding = (int) (20.0f * metrics.density + 0.5f);
-            result += padding;
-        }
-        return result;
-    }
 
     public void updateMyListAdapter() {
         prepareListData(mUserInfo);

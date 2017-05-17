@@ -404,8 +404,11 @@ public class Tweet  implements Parcelable {
 
         this.text = in.readString();
         this.quizWeight = in.readDouble();
-        this.itemFavorites = in.readParcelable(ItemFavorites.class.getClassLoader());
-        this.entities = in.readParcelable(TweetEntities.class.getClassLoader());
+
+        itemFavorites = (ItemFavorites) in.readParcelable(getClass().getClassLoader());
+//        this.itemFavorites = in.readParcelable(ItemFavorites.class.getClassLoader());
+        entities = (TweetEntities) in.readParcelable(getClass().getClassLoader());
+//        this.entities = in.readParcelable(TweetEntities.class.getClassLoader());
 //        this.wordEntries = in.readArrayList(WordEntry.class.getClassLoader());
         wordEntries = new ArrayList<>();
             in.readTypedList(wordEntries,WordEntry.CREATOR);

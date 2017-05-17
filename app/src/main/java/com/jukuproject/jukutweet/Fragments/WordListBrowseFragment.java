@@ -433,7 +433,6 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
      */
     public void updateWordEntryItemFavorites(WordEntry wordEntry) {
         boolean wordExistsinList = InternalDB.getWordInterfaceInstance(getContext()).myListContainsWordEntry(mMyListEntry,wordEntry);
-//        boolean wordEntryFound = false;
 
         int indexOfWordEntryToUpdate = -1;
         for(int i =0;i<mWords.size() && indexOfWordEntryToUpdate==-1;i++) {
@@ -469,36 +468,6 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
             mWords.add(wordEntry);
             mAdapter.notifyDataSetChanged();
         }
-
-
-//        for(WordEntry datasetWordEntry : mWords) {
-//            if(datasetWordEntry.getId().equals(wordEntry.getId())) {
-//                wordEntryFound = true;
-//                if(!wordExistsinList) {
-//                    //If the word that appeared in the popup window no longer is contained in this list, remove it
-//                    mWords.remove(datasetWordEntry);
-//                    if(mWords.size()==0) {
-//                        //Kick the user back to the main menu if the word that was removed was the last word in the list
-//                        mCallback.onBackPressed();
-//                    } else {
-//                        //Remove word entry from selected entries if applicable
-//                        if(mSelectedEntries.contains(datasetWordEntry.getId())) {
-//                            mSelectedEntries.remove(datasetWordEntry.getId());
-//                        }
-//                        if(mSelectedEntries.size()==0) {
-//                            mCallback.showMenuMyListBrowse(false,2);
-//                        }
-//
-//                        mAdapter.notifyDataSetChanged();
-//                    }
-//                } else {
-//                    datasetWordEntry.setItemFavorites(wordEntry.getItemFavorites());
-//                    mAdapter.notifyDataSetChanged();
-//                }
-//
-//            }
-//        }
-
 
     }
 

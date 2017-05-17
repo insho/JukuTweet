@@ -13,9 +13,8 @@ import com.jukuproject.jukutweet.Models.WordEntry;
 import java.util.ArrayList;
 
 /**
- * Created by JClassic on 4/5/2017.
+ * Manages database calls to {@link com.jukuproject.jukutweet.Database.QuizOpsHelper}
  */
-
 public interface QuizOperationsInterface {
 
     Cursor getPossibleMultipleChoiceMatch(String quizType

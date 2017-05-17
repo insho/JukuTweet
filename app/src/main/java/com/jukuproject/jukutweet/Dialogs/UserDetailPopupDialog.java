@@ -44,11 +44,11 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
-
 /**
- * Created by Joe on 11/21/2015.
+ * Shows detail for a user from the {@link com.jukuproject.jukutweet.Fragments.UserListFragment} when user is long-clicked.
+ * PopupDialog allows user to be removed (calling {@link RemoveUserDialog}), as well as a search of the saved user's friends
+ * and followers.
  */
-
 public class UserDetailPopupDialog extends DialogFragment implements View.OnTouchListener, DialogRemoveUserInteractionListener {
 
     String TAG = "TEST-userdetailpop";
@@ -129,7 +129,6 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
         baseLayout.setOnTouchListener(this);
 
         if(savedInstanceState == null) {
-
             showFriendsSelected = true;
             mUserInfo = getArguments().getParcelable("mUserInfo");
             mDataSet = new ArrayList<>();
@@ -143,8 +142,6 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
         btnRemoveUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                Toast.makeText(getContext(), "REMOVE USER", Toast.LENGTH_SHORT).show();
-                        //mCallback.showRemoveUserDialog(userInfo.getScreenName());
                 if(getFragmentManager().findFragmentByTag("dialogRemove") == null || !getFragmentManager().findFragmentByTag("dialogRemove").isAdded()) {
                     RemoveUserDialog removeUserDialog = RemoveUserDialog.newInstance(mUserInfo);
                     RemoveUserDialog.newInstance(mUserInfo).show(getFragmentManager(),"dialogRemove");
@@ -155,11 +152,11 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
             }
         });
 
-        setButtonActive(btnShowFriendsToggle,true);
-        setButtonActive(btnShowFollowersToggle,false);
-
         mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
+
+
+
 
         /* Listen for the user scrolling to the final position in the scrollview. IF it happens, load more
         * userinfo items into the adapter */
@@ -204,16 +201,18 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
 
             try {
                 loadBestFitBanner(mUserInfo.getScreenName(),imgBanner);
-                //TODO set onclick listener for the banner
-
             } catch (NullPointerException e) {
-                //TODO HIDE BANNER
                 Log.e(TAG,"loadbestfit Nullpointer: " + e);
             } catch (Exception e) {
-                //TODO HIDE BANNER
                 Log.e(TAG,"loadbestfit failed: " + e);
             }
-//        }
+
+
+
+
+
+
+
 
         if(mUserInfo.getProfileImageUrl()!=null) {
 
@@ -283,13 +282,22 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
 
         });
 
+
+        setButtonActive(btnShowFriendsToggle,showFriendsSelected);
+        setButtonActive(btnShowFollowersToggle,!showFriendsSelected);
+
         if(mDataSet.size() == 0) {
             mDataSet = new ArrayList<UserInfo>();
             mCursorString = "-1";
-            pullFriendsUserInfoList(mUserInfo,mCursorString,60,0);
-            showFriendsSelected = true;
-
-//            pullFollowerUserInfoList(mUserInfo,mCursorString,60,0);
+            if(showFriendsSelected) {
+                pullFriendsUserInfoList(mUserInfo,mCursorString,60,0);
+            } else {
+                pullFollowerUserInfoList(mUserInfo,mCursorString,60,0);
+            }
+        } else {
+            mAdapter = new UserListAdapter(getContext(),mDataSet, _rxBus);
+            mRecyclerView.setAdapter(mAdapter);
+            showRecyclerView(true);
         }
     };
 
@@ -346,8 +354,6 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
                         } else {
                             // Has user scroll enough to "auto close" popup ?
                             if ((baseLayoutPosition - currentYPosition) > defaultViewHeight / 6) {
-                                closeUpAndDismissDialog(currentYPosition);
-
                                 return true;
                             }
 
@@ -433,57 +439,6 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
         positionAnimator.start();
     }
 
-    /**
-     *
-     * @param currentPosition
-     */
-    private void closeUpAndDismissDialog(int currentPosition) {
-
-
-        isClosing = true;
-        ObjectAnimator positionAnimator = ObjectAnimator.ofFloat(baseLayout, "y", currentPosition, -baseLayout.getHeight());
-        positionAnimator.setDuration(300);
-        positionAnimator.addListener(new Animator.AnimatorListener() {
-
-            @Override
-            public void onAnimationStart(Animator animation) {
-
-            }
-
-
-            @Override
-            public void onAnimationCancel(Animator animation) {
-
-            }
-
-            @Override
-            public void onAnimationRepeat(Animator animation) {
-
-            }
-
-            //            . . .
-            @Override
-            public void onAnimationEnd(Animator animator) {
-
-//                popupWindow.dismiss();
-                mCallback.onBackPressed();
-                //reset the position variables
-                previousFingerPosition = 0;
-                baseLayoutPosition = 0;
-                isClosing = false;
-                isScrollingUp = false;
-                isScrollingDown = false;
-                dismiss();
-                mCallback.showFab(true);
-//                mCallback.onBackPressed();
-            }
-
-        });
-
-        positionAnimator.start();
-
-    }
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -501,16 +456,18 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
      */
     public void showProgressBar(Boolean show) {
         if(show) {
-//            divider.setVisibility(View.GONE);
             progressBar.setVisibility(View.VISIBLE);
         } else {
-//            divider.setVisibility(View.VISIBLE);
             progressBar.setVisibility(View.GONE);
         }
     }
 
-
-
+    /**
+     * Toggle between "search friend" and "search follower" buttons. If one is clicked it is "Activated and the other muted, and
+     * visa versa.
+     * @param textView textView "button" that is to be activated or deactivated
+     * @param active true to activate "highlight", false to deactivate
+     */
     private void setButtonActive(TextView textView,boolean active){
         textView.setSelected(active);
 
@@ -530,23 +487,16 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
 
     public void pullFollowerUserInfoList(final UserInfo userInfo,String cursorString,int limit,final int prevMaxPosition){
 
-
         if(mCallback.isOnline()) {
-
-
-
             showProgressBar(true);
-
             String token = getResources().getString(R.string.access_token);
             String tokenSecret = getResources().getString(R.string.access_token_secret);
 
-            //TODO make the number of twitter responses an option! not just 10
             TwitterUserClient.getInstance(token,tokenSecret)
                     .getFollowersUserInfo(userInfo.getScreenName(),Long.parseLong(cursorString),limit)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Observer<UserFollowersListContainer>() {
-//                        List<UserInfo> mDataSet;
                         @Override public void onCompleted() {
                             if(BuildConfig.DEBUG){Log.d(TAG, "In onCompleted()");}
                             showProgressBar(false);
@@ -716,10 +666,6 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
         }
     }
 
-
-
-
-
     /**
      * Toggles between showing recycler (if there are followed users in the database)
      * and hiding the recycler while showing the "no users found" message if there are not
@@ -751,13 +697,18 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
         }
     }
 
+
+    /**
+     * Tries to load the user's profile banner into the top portion of the dialog
+     * @param screenName users screen name
+     * @param imgBanner user profile banner
+     */
     private void loadBestFitBanner(final String screenName, final ImageView imgBanner) {
 
         Log.d(TAG,"INSIDE loading best fit banner");
         String token = getResources().getString(R.string.access_token);
         String tokenSecret = getResources().getString(R.string.access_token_secret);
 
-//        final String bestFitUrl;
         TwitterUserClient.getInstance(token,tokenSecret)
                 .getProfileBanner(screenName)
                 .subscribeOn(Schedulers.io())
@@ -784,19 +735,13 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
                                     Picasso.with(getActivity()).load(bannerUrl).fit() // resizes the image to these dimensions (in pixel). does not respect aspect ratio
                                             .into(imgBanner, new com.squareup.picasso.Callback() {
                                                 @Override
-                                                public void onSuccess() {
-                                                    //TODO load with banner
-                                                }
+                                                public void onSuccess() {}
 
                                                 @Override
                                                 public void onError() {
-                                                    //TODO load without banner
                                                     onCreateDialog(null);
                                                 }
                                             });
-
-
-
 
                                 }
                             } catch (NullPointerException e) {
@@ -804,11 +749,6 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
                             } catch (Exception e) {
                                 Log.e(TAG,"Banner url pull Other Exception: " + e);
                             }
-
-
-
-                        } else {
-//                            Toast.makeText(MainActivity.this, "Unable to add user " + screenName, Toast.LENGTH_SHORT).show();
                         }
                     }
 
@@ -822,13 +762,9 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
                         if(BuildConfig.DEBUG) {
                             Log.d(TAG, "BestFitBannerURL In onNext()");
                         }
-
-                        /***TMP**/
                         if(bannerInstance == null) {
                             bannerInstance = userProfileBanner;
                         }
-
-
                     }
                 });
 
@@ -839,7 +775,7 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
     /**
      * Removes a users screenName from the database and updates recyclerview in main fragment.
      * Is called from {@link RemoveUserDialog} via the {@link DialogInteractionListener}
-//     * @param screenName UserInfo to remove from database
+     * @param userId userId for user to remove from database
      *
      */
     @Override
@@ -854,6 +790,7 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
         outState.putParcelable("mUserInfo", mUserInfo);
         outState.putBoolean("showFriendsSelected", showFriendsSelected);
         outState.putParcelableArrayList("mDataSet",mDataSet);
+
     }
 
 

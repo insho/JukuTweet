@@ -6,9 +6,8 @@ import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.UserInfo;
 
 /**
- * Created by JukuProject on 3/19/2017.
+ * Manages interactions between fragments and {@link com.jukuproject.jukutweet.MainActivity}
  */
-
 public interface FragmentInteractionListener {
     void getInitialUserInfoForAddUserCheck(final String user);
     void showRemoveUserDialog(UserInfo userInfo);
@@ -21,17 +20,11 @@ public interface FragmentInteractionListener {
     boolean isOnline();
     void updateTabs(String[] updatedTabs);
     void showMenuMyListBrowse(boolean show, int tabNumber);
-
-//    void notifySavedTweetFragmentsChanged(Tweet tweet);
-//    void notifySavedWordFragmentsChanged(WordEntry wordEntry);
     void notifySavedWordFragmentsChanged(String wordEntriesString);
     void notifySavedTweetFragmentsChanged();
     void onBackPressed();
     void runDictionarySearch(String query, String queryOn);
     void runTwitterSearch(String query, String queryOn, @Nullable Long maxId);
     void showAddUserCheckDialog(UserInfo userInfo);
-
     void parseAndSaveTweet(Tweet tweet);
-
-//    void updateAllOtherTabs();
 }

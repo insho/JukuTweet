@@ -63,26 +63,26 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                     ",(CASE WHEN [Total] >0 THEN CAST(ifnull([Correct],0)  as float)/[Total] ELSE 0 END) as [Percent] " +
                     "FROM " +
                     "(" +
-                    "SELECT [_id]" +
-                    ",[Kanji]" +
-                    ",[Furigana]" +
-                    ",[Definition]  " +
-                    "FROM [Edict] " +
-                    "Where  [Common] = 1 " +
-                    "and [Furigana] is not null " +
-                    "AND [_ID] <>  " + correctWordEntry.getId() + " " +
-                    "AND [_ID] not in (" + alreadyaddedkanji + ") " +
-                    "and [Furigana] <> \"" + correctWordEntry.getFurigana() + "\"  " +
-                    "and Length([Furigana]) between " + (kanjiToBreak.length()) + " and " + (kanjiToBreak.length() + 1) + " " +
-                    "and [Furigana] like \"%" + possibleKanjiPart + "%\"   LIMIT 5" +
+                        "SELECT [_id]" +
+                        ",[Kanji]" +
+                        ",[Furigana]" +
+                        ",[Definition]  " +
+                        "FROM [Edict] " +
+                        "Where  [Common] = 1 " +
+                        "and [Furigana] is not null " +
+                        "AND [_ID] <>  " + correctWordEntry.getId() + " " +
+                        "AND [_ID] not in (" + alreadyaddedkanji + ") " +
+                        "and [Furigana] <> \"" + correctWordEntry.getFurigana() + "\"  " +
+                        "and Length([Furigana]) between " + (kanjiToBreak.length()) + " and " + (kanjiToBreak.length() + 1) + " " +
+                        "and [Furigana] like \"%" + possibleKanjiPart + "%\"   LIMIT 5" +
                     ") as x " +
                     "LEFT JOIN " +
                     "(" +
-                    "SELECT [_id]" +
-                    ",sum([Correct]) as [Correct]" +
-                    ",sum([Total]) as [Total]  " +
-                    "FROM [JScoreboard] " +
-                    "GROUP BY [_id]" +
+                        "SELECT [_id]" +
+                        ",sum([Correct]) as [Correct]" +
+                        ",sum([Total]) as [Total]  " +
+                        "FROM [JScoreboard] " +
+                        "GROUP BY [_id]" +
                     ") as y " +
                     "ON x.[_id] = y.[_id] ", null);
         } else {
@@ -95,29 +95,28 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                     ",(CASE WHEN [Total] >0 THEN CAST(ifnull([Correct],0)  as float)/[Total] ELSE 0 END) as [Percent] " +
                     "FROM " +
                     "(" +
-                    "SELECT [_id]" +
-                    ",[Kanji]" +
-                    ",[Furigana]" +
-                    ",[Definition]  " +
-                    "FROM [Edict] " +
-                    "Where  [Common] = 1 " +
-                    "and [_ID] <> " + correctWordEntry.getId() + " " +
-                    "AND [_ID] not in (" + alreadyaddedkanji + ") " +
-                    "and Length([Kanji]) between " + (kanjiToBreak.length()) + " and " + (kanjiToBreak.length() + 1) + " " +
-                    "and [Kanji] <> \"" + correctWordEntry.getKanji() + "\" " +
-                    "and [Kanji] like \"%" + possibleKanjiPart + "%\"   LIMIT 5" +
+                        "SELECT [_id]" +
+                        ",[Kanji]" +
+                        ",[Furigana]" +
+                        ",[Definition]  " +
+                        "FROM [Edict] " +
+                        "Where  [Common] = 1 " +
+                        "and [_ID] <> " + correctWordEntry.getId() + " " +
+                        "AND [_ID] not in (" + alreadyaddedkanji + ") " +
+                        "and Length([Kanji]) between " + (kanjiToBreak.length()) + " and " + (kanjiToBreak.length() + 1) + " " +
+                        "and [Kanji] <> \"" + correctWordEntry.getKanji() + "\" " +
+                        "and [Kanji] like \"%" + possibleKanjiPart + "%\"   LIMIT 5" +
                     ") as x " +
                     "LEFT JOIN " +
                     "(" +
-                    "SELECT [_id]" +
-                    ",sum([Correct]) as [Correct]" +
-                    ",sum([Total]) as [Total]  " +
-                    "FROM [JScoreboard] " +
-                    "GROUP BY [_id]" +
+                        "SELECT [_id]" +
+                        ",sum([Correct]) as [Correct]" +
+                        ",sum([Total]) as [Total]  " +
+                        "FROM [JScoreboard] " +
+                        "GROUP BY [_id]" +
                     ") as y " +
                     "ON x.[_id] = y.[_id] ", null);
         }
-
     }
 
 
@@ -137,23 +136,23 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                 ",(CASE WHEN [Total] >0 THEN CAST(ifnull([Correct],0)  as float)/[Total] ELSE 0 END) as [Percent] " +
                 "FROM " +
                 "(" +
-                "SELECT [_id]" +
-                ",[Kanji]" +
-                ",[Furigana]" +
-                ",[Definition]  " +
-                "FROM [Edict] " +
-                "where [Common] = 1 " +
-                " and [_id]  not in ( " +  keysToExclude + ")" +
-                " and [Furigana] is not null " +
-                " ORDER BY RANDOM() LIMIT "+ limit +" " +
+                    "SELECT [_id]" +
+                    ",[Kanji]" +
+                    ",[Furigana]" +
+                    ",[Definition]  " +
+                    "FROM [Edict] " +
+                    "where [Common] = 1 " +
+                    " and [_id]  not in ( " +  keysToExclude + ")" +
+                    " and [Furigana] is not null " +
+                    " ORDER BY RANDOM() LIMIT "+ limit +" " +
                 ") " +
                 " NATURAL LEFT JOIN " +
                 "(" +
-                "SELECT [_id]" +
-                ",sum([Correct]) as [Correct]" +
-                ",sum([Total]) as [Total] " +
-                "from [JScoreboard] " +
-                "GROUP BY [_id]" +
+                    "SELECT [_id]" +
+                    ",sum([Correct]) as [Correct]" +
+                    ",sum([Total]) as [Total] " +
+                    "from [JScoreboard] " +
+                    "GROUP BY [_id]" +
                 ") ORDER BY RANDOM()  Limit " + limit + " ",null);
     }
 
@@ -267,18 +266,18 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                         "SELECT [Kanji] " +
                         "FROM " +
                         "(" +
-                        "Select DISTINCT [Kanji] " +
-                        "FROM [Edict] where [_id] in (" +
-                        "SELECT DISTINCT [_id] " +
-                        "FROM " +  InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
-                        " WHERE [Name] = ? and [Sys] = ? and [_id] <> ? " +
-                        "ORDER BY RANDOM()  LIMIT 8 " +
-                        ") OR [_id] in (" +
-                        "SELECT DISTINCT [_id] " +
-                        "FROM [XRef] " +
-                        "WHERE [_id] <> ? " +
-                        "ORDER BY RANDOM()  LIMIT 4" +
-                        ") ORDER BY RANDOM() LIMIT 3)  " +
+                            "Select DISTINCT [Kanji] " +
+                            "FROM [Edict] where [_id] in (" +
+                            "SELECT DISTINCT [_id] " +
+                            "FROM " +  InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
+                            " WHERE [Name] = ? and [Sys] = ? and [_id] <> ? " +
+                            "ORDER BY RANDOM()  LIMIT 8 " +
+                            ") OR [_id] in (" +
+                            "SELECT DISTINCT [_id] " +
+                            "FROM [XRef] " +
+                            "WHERE [_id] <> ? " +
+                            "ORDER BY RANDOM()  LIMIT 4" +
+                            ") ORDER BY RANDOM() LIMIT 3)  " +
                         "UNION " +
                         "SELECT '" + wordEntry.getCoreKanjiBlock() + "' as [Kanji]) " +
                         "ORDER BY RANDOM() ",new String[]{myListEntry.getListName()
@@ -286,7 +285,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                         ,String.valueOf(wordEntry.getId())
                         ,String.valueOf(wordEntry.getId())});
             }
-            Log.i(TAG,mylistType +" CCOUNT RANDOM: " + c.getCount() + ", for word: " + wordEntry.getKanji());
             if(c.getCount()>0) {
                 c.moveToFirst();
                 while (!c.isAfterLast()) {
@@ -347,8 +345,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                         ,String.valueOf(wordEntry.getId())
                     ,String.valueOf(wordEntry.getId())});
 
-
-//            Log.i(TAG,"USER INFO CCOUNT RANDOM: " + c.getCount() + ", for word: " + wordEntry.getKanji());
             if(c.getCount()>0) {
                 c.moveToFirst();
                 while (!c.isAfterLast()) {
@@ -379,8 +375,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
             , ColorThresholds colorThresholds
             , String colorString
             , Integer resultLimit) {
-
-            String limit = "LIMIT " + String.valueOf(resultLimit);
 
         ArrayList<Tweet> savedTweets = new ArrayList<>();
         SQLiteDatabase db = sqlOpener.getReadableDatabase();
@@ -414,11 +408,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                                 "WHEN CAST(ifnull(b.[Correct],0)  as float)/b.[Total] < " + colorThresholds.getRedThreshold() + "  THEN 'Red' " +
                                 "WHEN CAST(ifnull(b.[Correct],0)  as float)/b.[Total] <  " + colorThresholds.getYellowThreshold() + " THEN 'Yellow' " +
                                 "ELSE 'Green' END) as [Color]" +
-//                                ",c.Furigana as [Furigana]" +
-//                                ",c.Definition as [Definition] " +
-////                                ",c.Kanji as [Kanji] " +
-//                                ",b.[Total] as [Total]" +
-//                                ",b.[Correct] as [Correct] " +
                                 "FROM " +
                                 "( " +
                                 " SELECT DISTINCT Tweet_id" +
@@ -445,15 +434,8 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                                 " GROUP BY [_id]" +
                                 ") as b " +
                                 "ON a.[Edict_id] = b.[Edict_id] " +
-
-
-
                             ") as [TweetsandColors] " +
                             " WHERE Color in (" + colorString + ") " +
-
-
-
-
                             ") as [TweetIds] " +
 
                             " LEFT JOIN " +
@@ -475,7 +457,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             " FROM "+ InternalDB.Tables.TABLE_SAVED_TWEETS + " " +
                             ") as [TweetData] " +
 
-
                             "LEFT JOIN " +
                             " (" +
                             "SELECT DISTINCT [UserId] " +
@@ -486,7 +467,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             "On TweetData.UserId = UserData.UserId " +
                             ") as [MetaData] " +
                             " On TweetIds.Tweet_id = MetaData.Tweet_id " +
-
 
                             "LEFT JOIN " +
                            /* Attach all the rows for individual kanji in each saved tweet */
@@ -554,11 +534,8 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             "Order by date(MetaData.Date) Desc,TweetIds.[Tweet_id] asc,TweetKanji.StartIndex asc"
                     ,  new String[]{myListEntry.getListName()
                             ,String.valueOf(myListEntry.getListsSys())
-//                            ,myListEntry.getListName()
-//                            ,String.valueOf(myListEntry.getListsSys())
                             ,myListEntry.getListName()
                             ,String.valueOf(myListEntry.getListsSys())});
-
 
             /* The query pulls a list of tweetdata paired with each parsed-kanji in the tweet, resulting in
             * multiple duplicate lines of tweetdata. So the cursor ony adds the tweet "metadata" once when a new tweetid is found.
@@ -571,13 +548,14 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                 while (!c.isAfterLast())
                 {
 
-                    Log.d(TAG,"adding setIdString: " + c.getString(0));
-                    Log.d(TAG,"adding tweet text: " + c.getString(4));
-                    Log.d(TAG,"adding setName: " + c.getString(2));
-                    Log.d(TAG,"adding setScreen_name: " + c.getString(1));
-                    Log.d(TAG,"adding WORDID: " + c.getString(6));
-                    Log.d(TAG,"adding KANJI: " + c.getString(7));
-
+                    if(BuildConfig.DEBUG) {
+                        Log.d(TAG,"adding setIdString: " + c.getString(0));
+                        Log.d(TAG,"adding tweet text: " + c.getString(4));
+                        Log.d(TAG,"adding setName: " + c.getString(2));
+                        Log.d(TAG,"adding setScreen_name: " + c.getString(1));
+                        Log.d(TAG,"adding WORDID: " + c.getString(6));
+                        Log.d(TAG,"adding KANJI: " + c.getString(7));
+                    }
 
                     if(c.isFirst()) {
                         tweet.setIdString(c.getString(0));
@@ -592,7 +570,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                         Tweet tweetToAdd = new Tweet(tweet);
                         if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0 && (setRandomSpinnersForTweet(tweetToAdd,db,myListEntry,"Tweet")>0)) {
                             savedTweets.add(tweetToAdd);
-
                         }
 
                         currentTweetId = c.getString(0);
@@ -616,23 +593,18 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                                 , c.getInt(13)
                                 , c.getInt(14));
                         wordEntry.setCoreKanjiBlock(c.getString(15));
-                        Log.d(TAG,"adding word entry: " + c.getString(6) + " - " + c.getString(7));
+                        if(BuildConfig.DEBUG){Log.d(TAG,"adding word entry: " + c.getString(6) + " - " + c.getString(7));}
                         tweet.addWordEntry(wordEntry);
                     }
 
-
                     if(c.isLast()) {
                         Tweet lastTweet = new Tweet(tweet);
-//                        setSpinnersForTweetWithMyListWords(db,"Word",myListEntry,lastTweet,possibleSpinners);
-
                         if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0 && (setRandomSpinnersForTweet(lastTweet,db,myListEntry,"Tweet")>0)) {
                             savedTweets.add(lastTweet);
                         }
                     }
                     c.moveToNext();
                 }
-
-
             } else {if(BuildConfig.DEBUG) {Log.d(TAG,"c.getcount was 0!!");}}
             c.close();
 
@@ -679,13 +651,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
             , String colorString
             , Integer resultLimit) {
 
-        String limit;
-//        if(resultLimit == null) {
-//            limit = "";
-//        } else {
-            limit = "LIMIT " + String.valueOf(resultLimit);
-//        }
-
         ArrayList<Tweet> savedTweets = new ArrayList<>();
         SQLiteDatabase db = sqlOpener.getReadableDatabase();
         try {
@@ -711,9 +676,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             "Select DISTINCT Tweet_id " +
                             " FROM (" +
 
-
-
-
                                 " SELECT DISTINCT [Tweet_id]" +
                                 " FROM " +
                                 "(" +
@@ -723,9 +685,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                                 "WHEN CAST(ifnull(b.[Correct],0)  as float)/b.[Total] < " + colorThresholds.getRedThreshold() + "  THEN 'Red' " +
                                 "WHEN CAST(ifnull(b.[Correct],0)  as float)/b.[Total] <  " + colorThresholds.getYellowThreshold() + " THEN 'Yellow' " +
                                 "ELSE 'Green' END) as [Color]" +
-//                                ",c.Furigana as [Furigana]" +
-//                                ",c.Definition as [Definition] " +
-//                                ",c.Kanji as [Kanji] " +
                                 ",b.[Total] as [Total]" +
                                 ",b.[Correct] as [Correct] " +
                                 "FROM " +
@@ -871,8 +830,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             ,userInfo.getUserId()
                     ,userInfo.getUserId()});
 
-
-
             /* The query pulls a list of tweetdata paired with each parsed-kanji in the tweet, resulting in
             * multiple duplicate lines of tweetdata. So the cursor ony adds tweet data once, when a new tweetid is found. Meanwhile
             * the kanji data for each row is added to a TweetKanjiColor object, which is then added to the kanji and the kanji
@@ -968,8 +925,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
             db.close();
         }
 
-
-
         return savedTweets;
     }
 
@@ -989,14 +944,12 @@ public class QuizOpsHelper implements QuizOperationsInterface {
             , String colorString
             , Integer resultLimit) {
 
-        supertest(colorThresholds,myListEntry);
         if(BuildConfig.DEBUG) {
             Log.d(TAG,"mylist entry name: " + myListEntry.getListName());
             Log.d(TAG,"mylist entry sys: " + myListEntry.getListsSys());
             Log.d(TAG,"colorString: " + colorString);
             Log.d(TAG,"resultLimit: " + resultLimit);
         }
-
 
         ArrayList<Tweet> savedTweets = new ArrayList<>();
 
@@ -1014,7 +967,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
         SQLiteDatabase db = sqlOpener.getReadableDatabase();
         try {
 
-
             Cursor c = db.rawQuery("SELECT TweetIds.[Tweet_id]" +
                             ",[MetaData].ScreenName " +
                             ",[MetaData].UserName " +
@@ -1031,12 +983,8 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             ",TweetKanjiData.StartIndex " +
                             ",TweetKanjiData.EndIndex " +
                             ",TweetKanjiData.CoreKanjiBlock " +
-
-
                             "FROM  " +
-
                             " ( " +
-
                             /* Now to pull together ListName, Tweet and the totals (by color) of the kanji in those tweets */
                             "SELECT DISTINCT ListsTweetsAndAllKanjis.[Tweet_id] "+
 
@@ -1063,8 +1011,8 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                                             " FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + " " +
                                             "WHERE [Edict_id] in (" +
 
-                                                        /* We want Tweet_ids for tweets that contain the words in the word list that is being quizzed. AND, we only
-                                                        * want tweet_ids for tweets that contain words for the given color string */
+                                        /* We want Tweet_ids for tweets that contain the words in the word list that is being quizzed. AND, we only
+                                         * want tweet_ids for tweets that contain words for the given color string */
                                         "SELECT DISTINCT [_id] " +
                                         " FROM " +
                                         " (" +
@@ -1076,13 +1024,9 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                                             "ELSE 'Green' END) as [Color] " +
                                             "FROM " +
                                             "(" +
-//                                                "SELECT DISTINCT [_id] " +
-//                                                " FROM [Edict] " +
-//                                                " WHERE [_id] IN (" +
                                                 " SELECT DISTINCT [_id] " +
                                                 " FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES +  "  " +
                                                 " WHERE [Name] = ?  and [Sys] = " + myListEntry.getListsSys() +" " +
-//                                                ") " +
                                             ") as x " +
                                             "LEFT JOIN " +
                                             "(" +
@@ -1145,11 +1089,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
 
                             ") as [ListsTweetsAndAllKanjis] " +
                             "GROUP BY [Tweet_id]" +
-//                            ") as [ListandTweets]  " +
-//                            ") as [Lists] " +
-//                            "WHERE [Category] in (" + colorString + ") " +
                             "ORDER BY RANDOM() " + limit + " " +
-
                             ") as [TweetIds] " +
 
                             " LEFT JOIN " +
@@ -1240,8 +1180,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             "FROM [Edict] " +
                             "WHERE [_id] in (" +
 
-
-
                             " SELECT DISTINCT Edict_id " +
                             "From " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + " " +
                             " WHERE [Edict_id] is not NULL " +
@@ -1268,7 +1206,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
             * the kanji data for each row is added to a TweetKanjiColor object, which is then added to the kanji and the kanji
             * added to the final "savedTweets" list when a new tweetid appears (or the cursor finishes) */
 
-
             if(c.getCount()>0) {
                 c.moveToFirst();
                 String currentTweetId = c.getString(0);
@@ -1285,11 +1222,11 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                     } else if(!currentTweetId.equals(c.getString(0))){
 
                             //FLush old tweet
-
-
                             if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0 && setSpinnersForTweetWithMyListWords(db,"Word",myListEntry,tweet,possibleSpinners)>0) {
-                                Log.d(TAG,"Flushing tweet: " + tweet.getText());
-                                Log.d(TAG,"number of kanji in tweet: " + tweet.getWordEntries().size());
+                                if(BuildConfig.DEBUG) {
+                                    Log.d(TAG,"Flushing tweet: " + tweet.getText());
+                                    Log.d(TAG,"number of kanji in tweet: " + tweet.getWordEntries().size());
+                                }
                                 savedTweets.add(new Tweet(tweet));
                             }
 
@@ -1302,8 +1239,9 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             tweet.getUser().setScreen_name(c.getString(1));
                             tweet.getUser().setName(c.getString(2));
                         }
-
-                    Log.d(TAG,"adding word entry: " + c.getString(6) + " - " + c.getString(7));
+                    if(BuildConfig.DEBUG) {
+                        Log.d(TAG,"adding word entry: " + c.getString(6) + " - " + c.getString(7));
+                    }
 
                     if(c.getString(6) != null && c.getString(7) != null) {
                         WordEntry wordEntry = new WordEntry(c.getInt(6)
@@ -1321,18 +1259,17 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                     }
 
                     if(c.isLast()) {
-                        Log.d(TAG,"Flushing last tweet: " + tweet.getText());
-                        Log.d(TAG,"last  number of kanji in tweet: " + tweet.getWordEntries().size());
+                        if(BuildConfig.DEBUG) {
+                            Log.d(TAG,"Flushing last tweet: " + tweet.getText());
+                            Log.d(TAG,"last  number of kanji in tweet: " + tweet.getWordEntries().size());
+                        }
                         Tweet lastTweet = new Tweet(tweet);
                         if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0 && setSpinnersForTweetWithMyListWords(db,"Word",myListEntry,lastTweet,possibleSpinners)>0) {
                             savedTweets.add(new Tweet(tweet));
                         }
-//                        setSpinnersForTweetWithMyListWords(db,"Word",myListEntry,lastTweet,possibleSpinners);
-//                        savedTweets.add(lastTweet);
                     }
                     c.moveToNext();
                 }
-
 
             /* If there are not enough unique results to fill out the quiz size, start doubling the
             * savedTweets until there are enough entries, and then shuffle them. */
@@ -1363,63 +1300,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
         }
         return savedTweets;
     }
-
-
-        public void supertest(ColorThresholds colorThresholds,MyListEntry myListEntry) {
-        SQLiteDatabase db = sqlOpener.getReadableDatabase();
-
-            Cursor c = db.rawQuery(
-                    "SELECT  x.[_id]" +
-                            " ,(CASE WHEN [Total] is NULL THEN 'Grey' " +
-                            "WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 'Grey' " +
-                            "WHEN CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 'Red' " +
-                            "WHEN CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + " THEN 'Yellow' " +
-                            "ELSE 'Green' END) as [Color] " +
-                            ",[Total] " +
-                            ",[Correct] " +
-                    "FROM " +
-                            "(" +
-//                                                "SELECT DISTINCT [_id] " +
-//                                                " FROM [Edict] " +
-//                                                " WHERE [_id] IN (" +
-                            " SELECT DISTINCT [_id] " +
-                            " FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES +  "  " +
-                            " WHERE [Name] = ?  and [Sys] = " + myListEntry.getListsSys() +" " +
-//                                                ") " +
-                            ") as x " +
-                            "LEFT JOIN " +
-                            "(" +
-                            "SELECT [_id]" +
-                            ",sum([Correct]) as [Correct]" +
-                            ",sum([Total]) as [Total]  " +
-                            " FROM [JScoreboard] " +
-                            " WHERE [_id] IN (" +
-                            " SELECT [_id] " +
-                            " FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES +  "  " +
-                            " WHERE [Name] = ?  and [Sys] = " + myListEntry.getListsSys() +" " +
-                            ") " +
-                            "GROUP BY [_id]" +
-                            ") as y " +
-                            "ON x.[_id] = y.[_id] "
-
-//                            ") as [IdsForWordsWithColorString] "
-                ,new String[]{myListEntry.getListName()
-                            ,myListEntry.getListName()});
-
-        if(c.getCount()>0) {
-            c.moveToFirst();
-            while (!c.isAfterLast()) {
-                    Log.d(TAG,"SuperTESt id:  "  + c.getString(0) + ", color: " + c.getString(1)
-//                            + ", total: " + c.getString(2)
-                            + ", correct/total: " + c.getString(3) + "/" + c.getString(2) );
-
-                    c.moveToNext();
-
-                }
-            }
-            c.close();
-
-    };
 
     /**
      * Pulls edict ids of all saved kanji in a WordList. These will be used as "possible spinners" in the getFillintheBlanksTweetsforAWordList method.
@@ -1488,8 +1368,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
 
         for(int i=0;i<shuffledEntries.size() && spinnerAddedCount<spinnerLimit;i++) {
 
-//                if(BuildConfig.DEBUG){Log.d(TAG,"setting word spinner TRUE " + wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))).getKanji());}
-
             ArrayList<String> arrayOptions = getDummySpinnerOptions(db
                     ,userInfo
                     ,wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))));
@@ -1507,8 +1385,8 @@ public class QuizOpsHelper implements QuizOperationsInterface {
             for(WordEntry wordEntry :wordEntries) {
                 Log.d(TAG,"randomspinner wordentries: " + wordEntry.getKanji() + ", spinner: " + wordEntry.isSpinner());
             }
+            Log.i(TAG,"spinner limit: " + spinnerLimit + ", Spinner count! - " + spinnerAddedCount);
         }
-        Log.i(TAG,"spinner limit: " + spinnerLimit + ", Spinner count! - " + spinnerAddedCount);
         return spinnerAddedCount;
     }
 
@@ -1530,20 +1408,15 @@ public class QuizOpsHelper implements QuizOperationsInterface {
             }
         }
 
-
         /* Determine maxiumum number of spinners that can be added to the tweet, from 1 - 3,
         with a 60% chance of 1, 30% chance of 2 and a 10 % chance of 3*/
         int[] possibleSpinnerLimits = new int[]{1,1,1,1,1,1,2,2,2,3};
         int spinnerLimit = possibleSpinnerLimits[(new Random()).nextInt(possibleSpinnerLimits.length)];
 
         /* Pick random kanji from the wordEntries list to be spinners (with maximum of the spinner limit)*/
-//        Collections.shuffle(wordEntries);\
-
-                /* Pick random kanji from the wordEntries list to be spinners (with maximum of the spinner limit)*/
         ArrayList<WordEntry> shuffledEntries =  new ArrayList<>(wordEntries);
         Collections.shuffle(shuffledEntries);
         for(int i=0;i<wordEntries.size() && spinnerAddedCount<spinnerLimit;i++) {
-
 
             ArrayList<String> arrayOptions = getDummySpinnerOptions(db
                     ,myListEntry
@@ -1556,10 +1429,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
             }
         }
 
-
         for(int i=0;i<shuffledEntries.size() && spinnerAddedCount<spinnerLimit;i++) {
-
-//            if(BuildConfig.DEBUG){Log.d(TAG,"setting word spinner TRUE " + wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))).getKanji());}
 
             ArrayList<String> arrayOptions = getDummySpinnerOptions(db
                     ,myListEntry
@@ -1573,13 +1443,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
             }
         }
 
-
-//        if(BuildConfig.DEBUG) {
-//            for(WordEntry wordEntry :wordEntries) {
-//                Log.d(TAG,"randomspinner wordentries: " + wordEntry.getKanji());
-//            }
-//        }
-        Log.i(TAG,"spinner limit: " + spinnerLimit + ", Spinner count! - " + spinnerAddedCount);
+        if(BuildConfig.DEBUG){Log.i(TAG,"spinner limit: " + spinnerLimit + ", Spinner count! - " + spinnerAddedCount);}
         return spinnerAddedCount;
     }
 
@@ -1606,7 +1470,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
         } catch (SQLiteException e) {
             Log.e(TAG, "addWordScoreToScoreBoard sqlite exception: " + e);
             return false;
-
         } catch (NullPointerException e) {
             Log.e(TAG, "addWordScoreToScoreBoard something was null: " + e);
             return false;

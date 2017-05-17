@@ -37,12 +37,9 @@ import java.util.Arrays;
 import rx.functions.Action1;
 
 /**
- * Created by JukuProject on 11/21/2016
- *
- * Popup dialog with option spinners for a quiz
+ * Popup dialog with option spinners for a quiz (or flashcards)
  * The choices are then passed on to the quiz activity
  */
-
 public class QuizMenuDialog extends DialogFragment {
 
     private final String TAG = "Test-quizmendlog";
@@ -88,6 +85,11 @@ public class QuizMenuDialog extends DialogFragment {
         return frag;
     }
 
+    /**
+     * Quizzes started from {@link com.jukuproject.jukutweet.Fragments.TweetListSingleUserFragment} require
+     * different datasets than those called from {@link com.jukuproject.jukutweet.Fragments.WordListFragment} or
+     * {@link com.jukuproject.jukutweet.Fragments.TweetListFragment}
+     */
     public static QuizMenuDialog newSingleUserInstance(String quizType
             , int tabNumber
             ,int currentExpandedPosition
@@ -172,7 +174,6 @@ public class QuizMenuDialog extends DialogFragment {
                 txtViewRow3.setText("Timer: ");
                 txtView3.setText(getActivity().getString(R.string.menuoptionsnone));
 
-
                 final String[] optionsMultipleChoiceType = getResources().getStringArray(R.array.menuoptions_multiplechoicetype);
                 final String[] optionsMultipleChoiceSize = getResources().getStringArray(R.array.menuoptions_quizSize);
                 final String[] optionsMultipleChoiceTimer = getResources().getStringArray(R.array.menuoptions_timer);
@@ -235,8 +236,6 @@ public class QuizMenuDialog extends DialogFragment {
                 popupWindowColors().showAsDropDown(v, -yadjustment, 0);
             }
         });
-
-
 
         //Set up the colorblocks
         textViewColorBlock_grey = (TextView) view.findViewById(R.id.listitem_colors_1);
@@ -348,6 +347,12 @@ public class QuizMenuDialog extends DialogFragment {
         return builder.show() ;
     }
 
+    /**
+     * Popup dropdown shown when user clicks one of the "textviewrow" textviews with quiz options
+     * @param buttonNumber number identifying which textview was clicked (1,2 or 3)
+     * @param options array of possible options for that textview button
+     * @return popup window with options to select
+     */
     private PopupWindow popupDropDownWindow(int buttonNumber, String[] options) {
 
         final PopupWindow popupWindow = new PopupWindow(getActivity());
@@ -392,10 +397,14 @@ public class QuizMenuDialog extends DialogFragment {
         popupWindow.setClippingEnabled(false);
         popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
 
-
         return popupWindow;
     }
 
+    /**
+     * Popup window dropdown where user can choose colorblocks representing which word color categories
+     * will be included in the quiz (via SelectedColorString)
+     * @return colorblock popup dropdown window
+     */
     private PopupWindow popupWindowColors() {
 
         final PopupWindow popupWindow = new PopupWindow(getActivity());
@@ -438,7 +447,16 @@ public class QuizMenuDialog extends DialogFragment {
         return popupWindow;
     }
 
-    //TODO share this with menuexpandable adapters (and share among adapters) globally
+    /**
+     * Sets up the colorblocks that appear as the select colors "button" which is really
+     * just a linear layout with textviews representing available word colors
+     * @param colorBlockMeasurables color block measurable object for the given set (with counts etc)
+     * @param availableWidth maximum available width for the group of colorblocks
+     * @param txtGrey  textView representing the "grey" colorblock
+     * @param txtRed textView representing the "red" colorblock
+     * @param txtYellow textView representing the "yellow" colorblock
+     * @param txtGreen textView representing the "green" colorblock
+     */
     public void setColorBlocks(ColorBlockMeasurables colorBlockMeasurables
             ,int availableWidth
             , TextView txtGrey
@@ -558,7 +576,12 @@ public class QuizMenuDialog extends DialogFragment {
 
     }
 
-
+    /**
+     * When use clicks on a color in the {@link #popupWindowColors()}, if the color is
+     * selected this method runs to set that color visible in the "colorblocks button" layout. Likewise,
+     * it hides that textview's color if it should not be visible
+     * @param option
+     */
     public void setColorBlockVisibility(DropDownMenuOption option) {
 
             if(option.isColorSelected()) {
@@ -592,16 +615,9 @@ public class QuizMenuDialog extends DialogFragment {
                             textViewColorBlock_green.setVisibility(View.GONE);
                             break;
                     }
-//                }
             }
-
     }
 
-//    @Override
-//    public void onDismiss(DialogInterface dialog) {
-//        mCallback.showFab(true);
-//        super.onDismiss(dialog);
-//    }
 
     @Override
     public void onCancel(DialogInterface dialog) {

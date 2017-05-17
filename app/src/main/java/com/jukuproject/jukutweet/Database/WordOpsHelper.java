@@ -306,10 +306,10 @@ public class WordOpsHelper implements WordListOperationsInterface {
             //Except for if a certain favorite list exists that we do not want to include (as occurs in the mylist copy dialog)
             Cursor c = db.rawQuery("Select [Lists].[Name] "    +
                     ",[Lists].[Sys] "    +
+                    ",(Case when UserEntries.Name is null then 0 else 1 END) as SelectionLevel "    +
 //                    ",(Case when UserEntries.Name is null then 0 " +
 //                                " WHEN UserEntries.UserCount > 0 AND UserEntries.UserCount < " + countOfWordIds + " THEN 2 " +
 //                                " else 1 END) as SelectionLevel "    +
-
                     " "    +
                     "from "    +
                     "( "    +
@@ -339,7 +339,8 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     " Group by Name, Sys " +
                     ") as UserEntries "    +
                     " "    +
-                    "ON Lists.Name = UserEntries.Name and Lists.Sys = UserEntries.Sys", null);
+                    "ON Lists.Name = UserEntries.Name and Lists.Sys = UserEntries.Sys" +
+                    "  ORDER BY Lists.Sys desc, Lists.Name asc ", null);
 
 
             if(c.getCount()>0) {
@@ -349,7 +350,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     //Only add system lists (sys==1), but only if the system lists are actived in user preferences
                     if((c.getInt(1) == 0 || activeFavoriteStars.contains(c.getString(0)))
                             && (entryToExclude == null || !(entryToExclude.getListName().equals(c.getString(0)) && entryToExclude.getListsSys() == c.getInt(1)))) {
-                        MyListEntry entry = new MyListEntry(c.getString(0),c.getInt(1),0);
+                        MyListEntry entry = new MyListEntry(c.getString(0),c.getInt(1),c.getInt(1));
                         myListEntries.add(entry);
 //                        Log.d(TAG,"RETURN LISTNAME: " + c.getString(0) + ", SYS: " + c.getInt(1));
                     }
