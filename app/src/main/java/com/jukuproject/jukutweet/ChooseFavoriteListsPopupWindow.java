@@ -19,24 +19,14 @@ import com.jukuproject.jukutweet.Models.MyListEntry;
 import java.util.ArrayList;
 
 /**
- * Created by JClassic on 3/24/2017.
+ * Static methods for creating the popup window that allows a user to choose multiple lists for
+ * a tweet or word to belong to. Appears when a tweet/word favorite star is long-pressed
+ *
+ * @see com.jukuproject.jukutweet.Adapters.TweetBreakDownAdapter
+ * @see com.jukuproject.jukutweet.Fragments.TweetBreakDownFragment
+ * @see com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog
  */
-
 public class ChooseFavoriteListsPopupWindow {
-
-//    private Context mContext;
-//    private final DisplayMetrics mMetrics;
-//    private int mKanjiId;
-//    private RxBus mRxBusTweetBreak;
-//    private ArrayList<MyListEntry> mFavoritesLists;
-
-//    public ChooseFavoriteListsPopupWindow(Context context, DisplayMetrics metrics, RxBus rxBus , ArrayList<MyListEntry> favoritesLists,int kanjiId) {
-//        mContext = context;
-//        mMetrics = metrics;
-//        mRxBusTweetBreak = rxBus;
-//        mFavoritesLists = favoritesLists;
-//        mKanjiId = kanjiId;
-//    }
 
     public ChooseFavoriteListsPopupWindow() {}
 
@@ -63,8 +53,6 @@ public class ChooseFavoriteListsPopupWindow {
         } else {
             popupWindow.setWidth(Math.round((float) metrics.widthPixels * (float) 0.26));
         }
-//        popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-
         if(favoritesLists.size()>12) {
             popupWindow.setHeight((int)((float)metrics.heightPixels/2.0f));
         } else {
@@ -103,9 +91,6 @@ public class ChooseFavoriteListsPopupWindow {
         } else {
             popupWindow.setWidth(Math.round((float) metrics.widthPixels * (float) 0.26));
         }
-
-//        popupWindow.setWidth(ViewGroup.LayoutParams.WRAP_CONTENT);
-//        popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         if(favoritesLists.size()>12) {
             popupWindow.setHeight((int)((float)metrics.heightPixels/2.0f));
         } else {

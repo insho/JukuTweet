@@ -179,11 +179,7 @@ public class ItemFavorites implements Parcelable {
             totalcount += 1;
         }
 
-        if(activeFavoriteLists.size()==0 || userListCount>0 || totalcount >1) {
-            return true;
-        } else {
-            return false;
-        }
+        return (activeFavoriteLists.size()==0 || userListCount>0 || totalcount >1);
     }
 
     public int systemListCount(ArrayList<String> activeFavoriteLists){
@@ -234,11 +230,7 @@ public class ItemFavorites implements Parcelable {
             totalcount += 1;
         }
 
-        if(userListCount + totalcount == 0) {
-            return true;
-        } else {
-            return false;
-        }
+        return(userListCount + totalcount == 0);
     }
 
 

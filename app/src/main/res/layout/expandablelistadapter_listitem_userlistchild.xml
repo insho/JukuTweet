@@ -31,7 +31,8 @@
         android:focusable="false"
         android:clickable="false"
         android:paddingLeft="2dp"
-        android:contentDescription="tweet"
+        android:paddingStart="2dp"
+        android:contentDescription="@string/favorites_star"
         android:background="@android:color/transparent" />
 
     <TextView

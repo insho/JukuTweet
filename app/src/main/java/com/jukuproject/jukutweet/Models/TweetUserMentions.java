@@ -4,9 +4,12 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 /**
- * Created by JClassic on 5/4/2017.
+ * Object representing UserMention information (i.e. retweets related info) contained within "TweetEntities" within a Tweet.
+ * Used to add highlights and links and such to Tweets.
+ *
+ * @see TweetEntities
+ * @see Tweet
  */
-
 public class TweetUserMentions implements Parcelable {
 
     private String screen_name;

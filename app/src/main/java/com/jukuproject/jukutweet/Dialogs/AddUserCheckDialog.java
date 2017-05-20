@@ -37,7 +37,6 @@ import rx.schedulers.Schedulers;
 public class AddUserCheckDialog extends DialogFragment {
 
     public DialogInteractionListener mAddUserDialogListener;
-    private ImageView imgBanner;
     private SmoothProgressBar progressBar;
     String TAG = "TEST-AddUser";
 
@@ -73,7 +72,7 @@ public class AddUserCheckDialog extends DialogFragment {
             dialogView  = inflater.inflate(R.layout.fragment_dialog_addusercheck_simple, null);
         } else {
             dialogView  = inflater.inflate(R.layout.fragment_dialog_addusercheck, null);
-            imgBanner = (ImageView) dialogView.findViewById(R.id.imgBanner);
+            ImageView imgBanner = (ImageView) dialogView.findViewById(R.id.imgBanner);
             progressBar = (SmoothProgressBar) dialogView.findViewById(R.id.progressbar);
             try {
                 loadBestFitBanner(userInfo.getScreenName(),imgBanner);

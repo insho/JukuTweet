@@ -75,7 +75,7 @@ public class ExternalDB extends SQLiteOpenHelper {
 
     /**
      * Returns true if database file exists, false otherwise.
-     * @return
+     * @return bool true if db file exists, false if not
      */
     private boolean jquizinternal_exists() {
         File dbFile = mContext.getDatabasePath(INTERNAL_DATABASE_NAME);

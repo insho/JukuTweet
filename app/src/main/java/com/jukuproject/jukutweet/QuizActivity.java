@@ -218,7 +218,7 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
                 } catch (NullPointerException e) {
                     Log.e(TAG,"Pause timer from quizactivity nullpointer: " + e);
                 } catch (Exception e) {
-                    Log.e(TAG,"pause timer other exception" + e);;
+                    Log.e(TAG,"pause timer other exception" + e);
                 }
             }
 
@@ -466,8 +466,8 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
      *
      * @return Intent with some basic extras
      *
-     * @see #showPostQuizStatsFillintheBlanks(ArrayList, MyListEntry, int, int)
-     * @see #showPostQuizStatsMultipleChoice(ArrayList, String, MyListEntry, boolean, boolean, Integer, int, int)
+     * @see #showPostQuizStatsMultipleChoice(ArrayList, String, Object, boolean, boolean, Integer, int, int)
+     * @see #showPostQuizStatsFillintheBlanks(ArrayList, Object, int, int)
      */
     private Intent getPostQuizStatsGenericIntent() {
         Intent intent = new Intent(getBaseContext(), PostQuizStatsActivity.class);

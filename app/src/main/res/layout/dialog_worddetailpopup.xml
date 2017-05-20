@@ -41,7 +41,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="start"
-                android:text="Kanji"
+                android:text="@string/kanji"
                 android:layout_row="0"
                 android:layout_column="0"
                 android:layout_columnSpan="2"
@@ -70,7 +70,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
-                    android:text="-"
+                    android:text="@string/singledash"
                     android:id="@+id/textViewCollapsButton1"
                     android:textColor="@android:color/white"
                     android:background="@android:color/transparent"
@@ -103,6 +103,7 @@
         android:layout_height="wrap_content"
         android:background="@android:color/white"
         android:weightSum="2"
+            android:baselineAligned="false"
         android:id="@+id/linearlayout1">
         
 
@@ -126,7 +127,7 @@
                 android:layout_column="0"
                 android:layout_marginLeft="20dp"
                 android:layout_marginStart="20dp"
-                android:text="Score: "
+                android:text="@string/score_text"
                 android:textColor="@android:color/black"
                 android:textSize="22sp" />
 
@@ -169,7 +170,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
-                android:contentDescription="star"
+                android:contentDescription="@string/favorites_star"
                 android:background="@android:color/transparent"
 
                 android:clickable="false"
@@ -197,7 +198,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
-                android:text="Following"
+                android:text="@string/following_text"
                 android:id="@+id/txtShowFollowingToggle"
                 android:layout_gravity="center"
                 android:clickable="true"
@@ -218,7 +219,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
-                android:text="Followers"
+                android:text="@string/followers_text"
                 android:clickable="true"
                 android:id="@+id/txtShowFollowersToggle"
                 android:layout_gravity="center"

@@ -280,7 +280,7 @@ public class TweetListFragment extends Fragment {
         }
         ArrayList<String> availableFavoritesStars = sharedPrefManager.getActiveTweetFavoriteStars();
         ColorThresholds colorThresholds = sharedPrefManager.getColorThresholds();
-        ArrayList<String> childOptions = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.menu_mylist)));
+        ArrayList<String> childOptions = new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.menu_mylist)));
 
         //pull pieces necessary to getExpandableAdapterColorBlockBasicWidths
         View colorBlockMinWidthEstimateView = getActivity().getLayoutInflater().inflate(R.layout.expandablelistadapter_listitem, null);
@@ -368,7 +368,7 @@ public class TweetListFragment extends Fragment {
             lastExpandedPosition = -1;
         }
 
-    };
+    }
 
 
     public void updateMyListAdapter() {

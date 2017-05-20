@@ -311,12 +311,12 @@ public class PostQuizStatsActivity extends AppCompatActivity
             , MyListEntry listEntry
             , String frontValue
             , String backValue
-            , String selectedColorString) {};
+            , String selectedColorString) {}
     public void showSingleUserFlashCardFragment(int tabNumber
             , UserInfo userInfo
             , String frontValue
             , String backValue
-            , String selectedColorString) {};
+            , String selectedColorString) {}
 
     /**
      * Runs the multiple choice quiz activity.
@@ -409,8 +409,8 @@ public class PostQuizStatsActivity extends AppCompatActivity
             , String quizTimer
             , String selectedColorString) {
 
-        ArrayList<WordEntry> dataset = new ArrayList<>();
-        String dataType = "";
+        ArrayList<WordEntry> dataset;
+        String dataType;
 
         dataset = InternalDB.getTweetInterfaceInstance(getBaseContext())
                 .getWordsFromAUsersSavedTweets(userInfo

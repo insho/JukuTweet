@@ -26,30 +26,20 @@ public class MultipleChoiceAdapter extends ArrayAdapter<WordEntry> {
     public MultipleChoiceAdapter(Context context
             , ArrayList<WordEntry> dataset
             , int textViewResourceId
-//            , String[] currentArray
             , int rowheight
-            , int displaywidth
             , String quizType
     ,ArrayList<Integer> wrongAnswerIds
-//    ,@Nullable Integer gradeCorrectAnswerId
     ) {
 
         super(context,textViewResourceId, dataset);
         mFieldId = textViewResourceId;
-        mDataSet = dataset;
         mrowheight = rowheight;
-        mContext = context;
-        mDisplayWidth = displaywidth;
         mQuizType = quizType;
         mWrongAnswerIds =wrongAnswerIds;
-//        mGradeCorrectAnswerId = gradeCorrectAnswerId;
     }
 
-    private Context mContext;
-    private ArrayList<WordEntry> mDataSet;
     private int mFieldId;
     private int mrowheight;
-    private int mDisplayWidth;
     private String mQuizType;
     private ArrayList<Integer> mWrongAnswerIds;
     private Integer mGradeCorrectAnswerId;
@@ -69,7 +59,7 @@ public class MultipleChoiceAdapter extends ArrayAdapter<WordEntry> {
         if(mWrongAnswerIds.contains(wordEntry.getId())) {
             answer.setOnClickListener(null);
             answer.setVisibility(View.INVISIBLE);
-        } else if (mGradeCorrectAnswerId != null && mGradeCorrectAnswerId == wordEntry.getId()) {
+        } else if (mGradeCorrectAnswerId != null && mGradeCorrectAnswerId.equals(wordEntry.getId())) {
             answer.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorJukuGreen));
         } else {
 

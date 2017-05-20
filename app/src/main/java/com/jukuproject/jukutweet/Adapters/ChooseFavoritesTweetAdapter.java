@@ -121,7 +121,7 @@ public class ChooseFavoritesTweetAdapter extends RecyclerView.Adapter<ChooseFavo
             }
 
             holder.checkbox.setText(null);
-            holder.textView.setText("Favorites");
+            holder.textView.setText(mContext.getString(R.string.favorites_text));
             holder.textView.setVisibility(View.VISIBLE);
             holder.imageButton.setVisibility(View.VISIBLE);
         } else {

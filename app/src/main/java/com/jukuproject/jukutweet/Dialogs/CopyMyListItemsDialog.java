@@ -117,7 +117,7 @@ public class CopyMyListItemsDialog extends DialogFragment {
             kanjiString = getSelectedIntsAsString(selectedEntries);
 
             int selectedEntryCount = 1;
-            if(selectedEntries==null) {
+            if(selectedEntries!=null) {
                 selectedEntryCount = selectedEntries.size();
             }
             mFavoritesLists = InternalDB.getWordInterfaceInstance(getContext()).getWordListsForAWord(activeFavoriteStars,kanjiString,selectedEntryCount,mCurrentList);

@@ -203,7 +203,7 @@ public class StatsFragmentMultipleChoice extends Fragment implements WordEntryFa
 
     public void updateWordEntryItemFavorites(WordEntry wordEntry) {
         for(MultChoiceResult multChoiceResult: mDataset) {
-            if(multChoiceResult.getWordEntry()!=null && multChoiceResult.getWordEntry().getId() == wordEntry.getId()) {
+            if(multChoiceResult.getWordEntry()!=null && multChoiceResult.getWordEntry().getId().equals(wordEntry.getId())) {
                 multChoiceResult.getWordEntry().setItemFavorites(wordEntry.getItemFavorites());
             }
         }
@@ -211,7 +211,7 @@ public class StatsFragmentMultipleChoice extends Fragment implements WordEntryFa
     }
 
     public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {}
-    public void notifySavedTweetFragmentsChanged(){};
+    public void notifySavedTweetFragmentsChanged(){}
 
     /**
      * If a tweet has been saved in {@link WordDetailPopupDialog}, and the user for that tweet

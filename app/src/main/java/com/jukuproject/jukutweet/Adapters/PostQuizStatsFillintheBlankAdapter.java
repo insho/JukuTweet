@@ -76,8 +76,7 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
         // create a new view
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.fillinsentences_stats_listitem, parent, false);
         // set the view's size, margins, paddings and layout parameters
-        ViewHolder vh = new ViewHolder(v);
-        return vh;
+        return new ViewHolder(v);
     }
 
 
@@ -113,13 +112,10 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
             } else {
                 holder.txtSentence.setText(tweet.getText());
             }
-            holder.txtRowNumber.setText(String.valueOf(holder.getAdapterPosition()+1) +".");
+            holder.txtRowNumber.setText(mContext.getString(R.string.rownumber, holder.getAdapterPosition()+1));
         } catch (NullPointerException e) {
             holder.txtSentence.setText(tweet.getText());
             Log.e(TAG,"fillblank Postquizstats setting tweet right/wrong word colors nullpointer failure : " + e);
-        } catch (Exception e) {
-            holder.txtSentence.setText(tweet.getText());
-            Log.e(TAG,"fillblank Postquizstats setting tweet right/wrong word colors generic failure: " + e);
         }
 
             /* Create list of word results that appears below the tweet. Due to there being an adapter within an adapter

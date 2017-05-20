@@ -493,26 +493,21 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                         holder.imgStar.setImageResource(R.drawable.ic_twitter_multicolor_24dp);
 
                     } else {
+                        holder.imgStar.setImageResource(R.drawable.ic_twitter_black_24dp);
                         try {
-                            holder.imgStar.setImageResource(R.drawable.ic_twitter_black_24dp);
                             holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mTweet.getItemFavorites(),mActiveTweetFavoriteStars)));
                         } catch (NullPointerException e) {
                             Log.e(TAG,"UserTimeLineAdapter setting colorfilter nullpointer: " + e.getMessage());
                         }
 
                     }
-//                    holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars));
-
                 }
-
             }
 
         });
 
-
         popupWindow.showAsDropDown(holder.imgStar,-xadjust,-yadjust);
-
-    };
+    }
 
 
     public int getYAdjustmentForPopupWindowBigTweetList(int totalActiveLists
@@ -543,7 +538,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
             float defmult = heightOfView;
 
-            float listizemultiplier = 0;
+            float listizemultiplier;
             switch (totalActiveLists) {
                 case 0:
                     listizemultiplier = 35.0f+defmult;

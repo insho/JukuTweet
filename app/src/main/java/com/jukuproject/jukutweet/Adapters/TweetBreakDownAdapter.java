@@ -141,7 +141,12 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                 } else {
                     if(FavoritesColors.onFavoriteStarToggle(mContext,mActiveFavoriteStars,mWords.get(holder.getAdapterPosition()))) {
                         holder.imgStar.setImageResource(R.drawable.ic_star_black);
-                        holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
+
+                        try {
+                            holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars)));
+                        } catch (NullPointerException e) {
+                            Log.e(TAG,"tweetBreakDownAdapter blackstar Nullpointer error setting star color filter in word detail popup dialog... Need to assign item favorites to WordEntry(?)" + e.getCause());
+                        }
                         mRxBus.send(mWords.get(holder.getAdapterPosition()));
                     } else {
                         Log.e(TAG,"OnFavoriteStarToggle did not work...");
@@ -268,7 +273,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
 
         popupWindow.showAsDropDown(holder.imgStar,-xadjust,-yadjust);
 
-};
+}
 
     /**
      * Used to adjust the positioning of the {@link ChooseFavoriteListsPopupWindow} when {@link TweetBreakDownAdapter#showFavoriteListPopupWindow(ViewHolder)} appears

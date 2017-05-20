@@ -72,11 +72,7 @@ public class Tab1Container extends BaseContainerFragment {
 
     public boolean isTopFragmentShowing() {
         try {
-            if(getChildFragmentManager().getBackStackEntryCount() == 0) {
-                return true;
-            } else {
-                return false;
-            }
+            return (getChildFragmentManager().getBackStackEntryCount() == 0);
         } catch (Exception e) {
             Log.e("TEST-Tab1Container","isTopFragmentShowing failed");
             return false;

@@ -186,7 +186,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
         Collections.shuffle(shuffledEntries);
         if(BuildConfig.DEBUG){Log.d(TAG,"spinnerlimit: " + spinnerLimit);}
         for(int i=0;i<shuffledEntries.size() && spinnerAddedCount<spinnerLimit;i++) {
-            if(BuildConfig.DEBUG){Log.d(TAG,"adding word: " + wordEntries.get(i).getKanji());};
+            if(BuildConfig.DEBUG){Log.d(TAG,"adding word: " + wordEntries.get(i).getKanji());}
             if(wordListEdictIds.contains(shuffledEntries.get(i).getId())) {
                 wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))).setSpinner(true);
                 if(BuildConfig.DEBUG){Log.d(TAG,"setting word spinner TRUE " + wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))).getKanji());}

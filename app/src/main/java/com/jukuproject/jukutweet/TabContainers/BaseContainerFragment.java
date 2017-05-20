@@ -48,11 +48,7 @@ public class BaseContainerFragment extends Fragment {
      */
     public boolean isTopFragmentShowing() {
         try {
-            if(getChildFragmentManager().getBackStackEntryCount() == 0) {
-                return true;
-            } else {
-                return false;
-            }
+            return (getChildFragmentManager().getBackStackEntryCount() == 0);
         } catch (Exception e) {
             Log.e("TEST","isTopFragmentShowing error");
             return false;

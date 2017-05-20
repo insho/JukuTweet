@@ -259,8 +259,7 @@ public class WordListFragment extends Fragment {
             Log.e(TAG,"expandthelistview at position " + position + " index out of bounds");
             lastExpandedPosition = -1;
         }
-
-    };
+    }
 
     /**
      * Prepares header entries for the mMenuHeader dataset, with {@link ColorBlockMeasurables} representing the WordList
@@ -270,7 +269,7 @@ public class WordListFragment extends Fragment {
         mMenuHeader = new ArrayList<>();
         ArrayList<String> availableFavoritesStars = sharedPrefManager.getActiveFavoriteStars();
         ColorThresholds colorThresholds = sharedPrefManager.getColorThresholds();
-       ArrayList<String> childOptions = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.menu_mylist)));
+       ArrayList<String> childOptions = new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.menu_mylist)));
 
         //pull pieces necessary to getExpandableAdapterColorBlockBasicWidths
         View colorBlockMinWidthEstimateView = getActivity().getLayoutInflater().inflate(R.layout.expandablelistadapter_listitem, null);

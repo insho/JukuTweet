@@ -229,7 +229,6 @@ public class TweetListSingleUserFragment extends Fragment {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 if (ExpandableListView.getPackedPositionType(id) == ExpandableListView.PACKED_POSITION_TYPE_GROUP) {
-                    int groupPosition = ExpandableListView.getPackedPositionGroup(id);
                     mCallback.showEditMyListDialog("TweetList",mMenuHeader.get(position).getHeaderTitle(),mMenuHeader.get(position).isSystemList());
                 }
                 return false;
@@ -254,7 +253,7 @@ public class TweetListSingleUserFragment extends Fragment {
 
         ArrayList<String> availableFavoritesStars = sharedPrefManager.getActiveTweetFavoriteStars();
         ColorThresholds colorThresholds = sharedPrefManager.getColorThresholds();
-        ArrayList<String> childOptions = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.menu_mylist)));
+        ArrayList<String> childOptions = new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.menu_mylist)));
 
         //pull pieces necessary to getExpandableAdapterColorBlockBasicWidths
         View colorBlockMinWidthEstimateView = getActivity().getLayoutInflater().inflate(R.layout.expandablelistadapter_listitem, null);
@@ -344,7 +343,7 @@ public class TweetListSingleUserFragment extends Fragment {
         expListView.setSelectedGroup(position);
         mMenuHeader.get(position).setExpanded(true);
         lastExpandedPosition = position;
-    };
+    }
 
 
     public void updateMyListAdapter() {

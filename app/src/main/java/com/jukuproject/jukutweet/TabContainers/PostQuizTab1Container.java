@@ -94,20 +94,13 @@ public class PostQuizTab1Container extends BaseContainerFragment {
             mQuiz = getArguments().getString("mQuiz");
         }
 
-        if (savedInstanceState != null) {
-
-        } else
-        if (!mIsViewInited) {
+        if (savedInstanceState == null && !mIsViewInited) {
             mIsViewInited = true;
             initView(mQuiz);
         }
-
-
     }
 
     private void initView(String quiz) {
-//        Log.e("test", "tab 1 init view");
-
         switch (quiz){
             case "MultipleChoice":
 

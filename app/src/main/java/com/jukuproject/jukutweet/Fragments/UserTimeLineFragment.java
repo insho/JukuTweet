@@ -42,8 +42,6 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
-
-
 /**
  * Shows last X tweets from a twitter timeline. User can click on a tweet to bring up
  * the WordBreakDown Popup window, save the tweet and/or specific kanji from the tweet
@@ -57,7 +55,6 @@ public class UserTimeLineFragment extends Fragment {
     private RxBus _rxBus = new RxBus();
     private RecyclerView mRecyclerView;
     private SwipeRefreshLayout mSwipeToRefreshLayout;
-    private UserTimeLineAdapter mAdapter;
     private TextView mNoLists;
     private UserInfo mUserInfo;
     private ArrayList<Tweet> mDataSet;
@@ -161,15 +158,20 @@ public class UserTimeLineFragment extends Fragment {
                 @Override
                 public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                     super.onScrolled(recyclerView, dx, dy);
-                    if (mLayoutManager == null || mDataSet == null || mDataSet.size()==0) {
-                        return;
-                    } else {
-                        if(mDataSet.size()>0 && mLayoutManager.findFirstCompletelyVisibleItemPosition()>0 &&  mLayoutManager.findLastCompletelyVisibleItemPosition()==mDataSet.size()-1 && mDataSet.size()-1>mPreviousMaxScrollPosition) {
+
+                    if(mLayoutManager != null
+                            && mDataSet!=null
+                            && mDataSet.size()>0
+                            && mLayoutManager.findFirstCompletelyVisibleItemPosition()>0
+                            &&  mLayoutManager.findLastCompletelyVisibleItemPosition()==mDataSet.size()-1
+                            && mDataSet.size()-1>mPreviousMaxScrollPosition) {
+                        if(BuildConfig.DEBUG) {
                             Log.d(TAG,"pulling timeline after scroll. dataset size: " + mDataSet.size() + ", prev pos: " + mPreviousMaxScrollPosition);
+                        }
                             mPreviousMaxScrollPosition = mDataSet.size()-1;
                             pullTimeLineData(mUserInfo);
                         }
-                    }
+
                 }
             });
         }
@@ -236,7 +238,7 @@ public class UserTimeLineFragment extends Fragment {
                             public void call(Long aLong) {
                                 if(mDataSet ==null || mDataSet.size()==0 && isVisible()) {
                                     showRecyclerView(false);
-                                    mNoLists.setText("Still working...");
+                                    mNoLists.setText(getString(R.string.usertimeline_stillworking));
                                     mNoLists.setTextColor(ContextCompat.getColor(getContext(),android.R.color.black));
                                 }
                             }
@@ -397,7 +399,7 @@ public class UserTimeLineFragment extends Fragment {
 
     public void setUpAdapter() {
 
-        mAdapter = new UserTimeLineAdapter(getContext(),_rxBus, mDataSet,mActiveTweetFavoriteStars,mMetrics,null,true);
+        UserTimeLineAdapter mAdapter = new UserTimeLineAdapter(getContext(),_rxBus, mDataSet,mActiveTweetFavoriteStars,mMetrics,null,true);
         /* If user info is missing from db, update the user information in db*/
         if(mUserInfo.getUserId()==null && mDataSet.size()>0 && mDataSet.get(0).getUser() != null) {
             InternalDB.getUserInterfaceInstance(getContext()).updateUserInfo(mDataSet.get(0).getUser());
@@ -432,22 +434,10 @@ public class UserTimeLineFragment extends Fragment {
 
             @Override
             public void call(Object event) {
-
                 if(isUniqueClick(1000) && event instanceof Tweet) {
                     final Tweet tweet = (Tweet) event;
-//                    //Try to parse and insert Tweet Kanji if they do not already exist
-//                    if(InternalDB.getTweetInterfaceInstance(getContext()).tweetParsedKanjiExistsInDB(tweet) == 0) {
-//                        mCallback.parseAndSaveTweet(tweet);
-//                    }
-//                    if(((Tweet)event).getUser()!=null
-//                            && !InternalDB.getUserInterfaceInstance(getContext()).duplicateUser(((Tweet)event).getUser().getUserId())) {
-//                        mCallback.downloadTweetUserIcons(((Tweet)event).getUser());
-//                    }
-//                        mCallback.notifySavedTweetFragmentsChanged();
-
                     saveOrDeleteTweet(tweet);
                 }
-
             }
 
         });
@@ -455,35 +445,22 @@ public class UserTimeLineFragment extends Fragment {
 
 
         if(mDataSet !=null && mDataSet.size()>0) {
-//            Log.d(TAG,"HERE IN SET ADAPTER!");
-            Log.d(TAG,"HERE IN SET ADAPTER! dataset size: " + mDataSet.size() + ", prev pos: " + mPreviousMaxScrollPosition);
-
             mRecyclerView.setAdapter(mAdapter);
             if(mDataSet.size()-1>mPreviousMaxScrollPosition ) {
-                Log.d(TAG,"SCrolling to position...");
                 mRecyclerView.scrollToPosition(mPreviousMaxScrollPosition);
             }
             showRecyclerView(true);
-//            mSwipeToRefreshLayout.setEnabled(false);
-
         } else {
             showRecyclerView(false);
-//            mSwipeToRefreshLayout.setEnabled(true);
         }
     }
-
-    //    @Override
-//    public void onResume() {
-//        super.onResume();
-//        if()
-//    }
 
     /**
      * Decides via {@link com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface#saveOrDeleteTweet(Tweet)} whether to
      * save the tweet or remove it from the db (if it already exists and is unnecessary). If it saves the tweet, it also decides via
      * whether or not to download the tweet icon with a callback to the "downloadTweetUserIcons" method in the activity. Lastly
      * it notifies tweet related fragments that a change has been made
-     * @param tweet
+     * @param tweet Tweet that will be saved or deleted
      */
     public void saveOrDeleteTweet(Tweet tweet){
         //Check for tweet in db
@@ -518,7 +495,6 @@ public class UserTimeLineFragment extends Fragment {
             Log.e(TAG,"saveOrDeleteTweet - nullpointer when tweet saving, UNABLE to save!");
 
         }
-
     }
 
     @Override

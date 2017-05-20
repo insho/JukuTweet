@@ -309,7 +309,7 @@ public class MultipleChoiceFragment extends Fragment {
 
         MultipleChoiceAdapter adapter;
         int rowheight = (int) ((float) totalheightofanswergrid / (float) 6);
-        adapter = new MultipleChoiceAdapter(getContext(), questionSet, R.layout.quizmultchoice_listitem, rowheight, getResources().getDisplayMetrics().widthPixels, mQuizType, wrongAnswerIds);
+        adapter = new MultipleChoiceAdapter(getContext(), questionSet, R.layout.quizmultchoice_listitem, rowheight, mQuizType, wrongAnswerIds);
         answerGrid.setAdapter(adapter);
 
         txtQuestion.setText(currentCorrectAnswer.getQuizQuestion(mQuizType));
@@ -589,7 +589,7 @@ public class MultipleChoiceFragment extends Fragment {
                     randomIndex = i;
                     /*If its the last spin on the counter, just take whatever word is found,
                      even if it is a repeat */
-                    if ((randomIndex >= 0 && wordEntries.size() > randomIndex && wordEntries.get(randomIndex).getId() != previousId)) {
+                    if ((randomIndex >= 0 && wordEntries.size() > randomIndex && !wordEntries.get(randomIndex).getId().equals(previousId))) {
                         foundFreshIndex = true;
                     } else {
                         spinnerCounter += 1;

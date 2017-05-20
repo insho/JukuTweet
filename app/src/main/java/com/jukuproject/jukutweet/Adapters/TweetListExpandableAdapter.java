@@ -157,16 +157,11 @@ public class TweetListExpandableAdapter extends BaseExpandableListAdapter {
     @Override
     public View getGroupView(int groupPosition, boolean isExpanded,
                              View convertView, ViewGroup parent) {
-
-        int availableWidth = mMaxWidthForColorBlocks;
-
         if (convertView == null) {
             LayoutInflater infalInflater = (LayoutInflater) this.mContext
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             convertView = infalInflater.inflate(R.layout.expandablelistadapter_groupitem, null);
         }
-
-
 
         TextView lblListHeader = (TextView) convertView.findViewById(R.id.lblListHeader);
         lblListHeader.setAlpha(1.0f);
@@ -206,7 +201,7 @@ public class TweetListExpandableAdapter extends BaseExpandableListAdapter {
 
             imageButton.setImageResource(R.drawable.ic_star_black);
             imageButton.setVisibility(ImageButton.VISIBLE);
-            lblListHeader.setText("Favorite Tweets");
+            lblListHeader.setText(mContext.getString(R.string.tweetadapter_favoritetweets));
             final TextView lblListHeaderCount = (TextView) convertView.findViewById(R.id.lblListHeaderCount);
 
             if(mMenuHeader.get(groupPosition).isShowLblHeaderCount()) {

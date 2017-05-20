@@ -10,9 +10,13 @@ import com.jukuproject.jukutweet.Models.WordEntry;
 import java.util.ArrayList;
 
 /**
- * Created by JClassic on 4/5/2017.
+ * Collection of internal sqlite database calls related to WordList operations
+ *
+ * @see com.jukuproject.jukutweet.Fragments.WordListFragment
+ * @see com.jukuproject.jukutweet.Fragments.WordListBrowseFragment
+ *
+ *
  */
-
 public interface WordListOperationsInterface {
 
     boolean duplicateWordList(String listName);

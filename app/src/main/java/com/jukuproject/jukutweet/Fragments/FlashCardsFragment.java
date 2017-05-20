@@ -191,7 +191,7 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
                 WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(mDataset.get(currentPosition));
                 wordDetailPopupDialog.setTargetFragment(FlashCardsFragment.this, 0);
                 wordDetailPopupDialog.show(getFragmentManager(),"wordDetailPopup");
-            };
+            }
 
 
             //If the Kanji entry is showing on the card, a single tap shows the Kana below the kanji
@@ -336,7 +336,6 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
         @Override
         public void destroyItem(ViewGroup container, int position, Object object) {
             container.removeView((View) object);
-            object=null;
         }
 
     }
@@ -484,9 +483,9 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
         myTextPaint.setTextSize(textSize);
         Layout.Alignment alignment = Layout.Alignment.ALIGN_NORMAL;
         float spacingMultiplier = 1;
-        float spacingAddition = padding;
+//        float spacingAddition = padding;
         boolean includePadding = padding != 0;
-        StaticLayout myStaticLayout = new StaticLayout(text, myTextPaint, deviceWidth, alignment, spacingMultiplier, spacingAddition, includePadding);
+        StaticLayout myStaticLayout = new StaticLayout(text, myTextPaint, deviceWidth, alignment, spacingMultiplier, padding, includePadding);
         return myStaticLayout.getHeight();
     }
 
@@ -541,7 +540,7 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
      */
     public void notifySavedTweetFragmentsChanged(){
         mCallback.notifySavedTweetFragmentsChanged();
-    };
+    }
 
     /**
      * If a tweet has been saved in {@link WordDetailPopupDialog}, and the user for that tweet

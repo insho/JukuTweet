@@ -4,9 +4,9 @@ import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.UserInfo;
 
 /**
- * Created by JClassic on 4/14/2017.
+ * Interface between {@link com.jukuproject.jukutweet.Dialogs.QuizMenuDialog} and the activity (either {@link com.jukuproject.jukutweet.MainActivity} or
+ * {@link com.jukuproject.jukutweet.PostQuizStatsActivity} from which the actual quiz activity will be initiated.
  */
-
 public interface QuizMenuDialogInteractionListener {
     //From quizmenu popup to main activity (starting quizzes)
     void showFlashCardFragment(int tabNumber

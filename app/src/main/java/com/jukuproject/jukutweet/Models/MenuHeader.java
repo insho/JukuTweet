@@ -222,6 +222,7 @@ public class MenuHeader implements  Parcelable,Parent<MenuChild> {
         dest.writeParcelable(this.myListEntry,flags);
         dest.writeByte((byte) (this.isExpanded ? 1 : 0));
         dest.writeTypedList(this.menuChildren);
+
         dest.writeParcelable(this.userInfo,flags);
 //        dest.(this.menuChildren);
     }

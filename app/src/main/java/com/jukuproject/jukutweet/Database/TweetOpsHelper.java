@@ -54,16 +54,12 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
         String queryRecordExists = "Select Name From " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS + " where " + InternalDB.Columns.TFAVORITES_COL0 + " = ?" ;
         Cursor c = sqlOpener.getWritableDatabase().rawQuery(queryRecordExists, new String[]{listName});
         try {
-            if (c.moveToFirst()) {
-                return true;
-            } else {
-                return false;
-            }
+            return c.moveToFirst();
         } catch (SQLiteException e) {
             Log.e(TAG,"duplicateTweetList Sqlite exception: " + e);
-        } finally {
-            c.close();
         }
+        c.close();
+
         return false;
     }
 
@@ -324,7 +320,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
             if(c.getCount()>0) {
                 c.moveToFirst();
                 while (!c.isAfterLast()) {
-                    undoArray.add(new Pair<MyListEntry, Tweet>(new MyListEntry(c.getString(1),c.getInt(2)),new Tweet(c.getString(0),c.getString(3))));
+                    undoArray.add(new Pair<>(new MyListEntry(c.getString(1),c.getInt(2)),new Tweet(c.getString(0),c.getString(3))));
                     c.moveToNext();
                 }
             }
@@ -382,9 +378,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                 " ON x.Tweet_id = y.Tweet_id " +
                 " WHERE y.Tweet_id is NULL " +
                 " ) ",null);
-
-
-    };
+    }
 
     /**
      * Deletes Tweet entries and Saved Kanji for a Tweet from the database
@@ -434,9 +428,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
     } catch (NullPointerException e) {
         Log.e(TAG, "deleteTweetIfNecessary something was null: " + e);
     }
-    };
-
-
+    }
 
     /**
      * Pulls full list of available tweet lists, as well as how many of those lists contain the given tweets. Used when

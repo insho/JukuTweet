@@ -44,16 +44,11 @@ public class WordOpsHelper implements WordListOperationsInterface {
         String queryRecordExists = "Select Name From " + InternalDB.Tables.TABLE_FAVORITES_LISTS + " where " + InternalDB.Columns.TFAVORITES_COL0 + " = ?" ;
         Cursor c = sqlOpener.getReadableDatabase().rawQuery(queryRecordExists, new String[]{listName});
         try {
-            if (c.moveToFirst()) {
-                return true;
-            } else {
-                return false;
-            }
+            return c.moveToFirst();
         } catch (SQLiteException e) {
             Log.e(TAG,"Sqlite exception: " + e);
-        } finally {
-            c.close();
         }
+        c.close();
         return false;
     }
 
@@ -511,9 +506,9 @@ public class WordOpsHelper implements WordListOperationsInterface {
     /**
      *  Retrieves a list of word entries (and corresponding edict dictionary info) for a string of concatenated edict kanji ids.
      *  Used update fragments from {@link com.jukuproject.jukutweet.MainActivity#notifySavedWordFragmentsChanged(String)}
-     * @param wordIds String of concatenated word ids
+     * @param wordIds String of concatenated word ids for which the WordEntries will be created
      * @param colorThresholds Collection of thresholds which together determine what color to assign to a word/tweet based on its quiz scores
-     * @return list of words from the word list filtered by color
+     * @return list of words objects from the word list filtered by color
      */
 
     public ArrayList<WordEntry> getWordsFromAStringofWordIds(String wordIds
@@ -1013,9 +1008,9 @@ public class WordOpsHelper implements WordListOperationsInterface {
     /**
      * Dictionary search query for a list of wordIds. Used in {@link com.jukuproject.jukutweet.Fragments.SearchFragment} process.
      * @param hiraganaKatakanaPlaceholders
-     * @param wordIds
-     * @param colorThresholds
-     * @return
+     * @param wordIds String of concatenated word ids for which the WordEntries will be created
+     * @param colorThresholds Collection of thresholds which together determine what color to assign to a word/tweet based on its quiz scores
+     * @return list of WordEntry objects, result set of the search
      */
     public ArrayList<WordEntry> getSearchWordEntriesForKanji(String hiraganaKatakanaPlaceholders
             , String wordIds
@@ -1147,9 +1142,9 @@ public class WordOpsHelper implements WordListOperationsInterface {
 
     /**
      * Searches dictionary for word entries with definitions that match the query string
-     * @param wordIds
-     * @param colorThresholds
-     * @return
+     * @param wordIds String of concatenated word ids for which the WordEntries will be created
+     * @param colorThresholds Collection of thresholds which together determine what color to assign to a word/tweet based on its quiz scores
+     * @return list of WordEntry objects, result set of the search
      */
     public ArrayList<WordEntry> getSearchWordEntriesForDefinition(String wordIds, ColorThresholds colorThresholds) {
 

@@ -49,16 +49,12 @@ public class UserOpsHelper implements UserOperationsInterface {
         String queryRecordExists = "Select _id From " + InternalDB.Tables.TABLE_USERS + " where " + InternalDB.Columns.TMAIN_COL0 + " = ? OR " + InternalDB.Columns.TMAIN_COL1 + " = ?" ;
         Cursor c = sqlOpener.getReadableDatabase().rawQuery(queryRecordExists, new String[]{user});
         try {
-            if (c.moveToFirst()) {
-                return true;
-            } else {
-                return false;
-            }
+            return c.moveToFirst();
         } catch (SQLiteException e) {
             Log.e(TAG,"Sqlite exception: " + e);
-        } finally {
-            c.close();
         }
+        c.close();
+
         return false;
     }
 
@@ -393,8 +389,8 @@ public class UserOpsHelper implements UserOperationsInterface {
      * the {@link com.jukuproject.jukutweet.Dialogs.AddUserDialog}, and the device is not able to access the internet
      * or generally to complete the search necessary to pull up the {@link com.jukuproject.jukutweet.Dialogs.AddUserCheckDialog}. The
      * potential screen name is added, and can be updated later with {@link #compareUserInfoAndUpdate(UserInfo, UserInfo)}
-     * @param screenName
-     * @return
+     * @param screenName ScreenName of potential user to be partially saved offline
+     * @return bool true if successful, false if not
      */
     public boolean saveUserWithoutData(String screenName) {
         try {
@@ -409,8 +405,7 @@ public class UserOpsHelper implements UserOperationsInterface {
         } catch(SQLiteException exception) {
             return false;
         }
-    };
-
+    }
 
     /**
      * Takes the url of an icon image from a UserInfo object, downloads the image with picasso
@@ -556,7 +551,6 @@ public class UserOpsHelper implements UserOperationsInterface {
         if(userURLS.size()>0) {
             ContextWrapper cw = new ContextWrapper(context);
             File directory = cw.getDir("icons", Context.MODE_PRIVATE);
-            File lister = directory.getAbsoluteFile();
 
             for (File file : directory.listFiles()) {
                 Uri uri = Uri.fromFile(file);

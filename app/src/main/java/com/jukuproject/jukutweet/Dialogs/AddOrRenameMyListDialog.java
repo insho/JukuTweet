@@ -63,7 +63,7 @@ public class AddOrRenameMyListDialog extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 
         final Boolean isRename = getArguments().getBoolean("isRename");
-        final String listType = getArguments().getString("listType");
+        final String listType = getArguments().getString("listType","");
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 

@@ -7,7 +7,6 @@
     <string name="dialog_title">Enter User Name</string>
 
     <string name="remove_dialog_title">Remove %1$s?</string>
-    <string name="dialog_empty">RSS feed is blank</string>
     <string name="nolists">no saved users</string>
 
 
@@ -18,28 +17,22 @@
 
     <string name="notweets">no tweets found</string>
     <string name="nousers">no users found</string>
-    <string name="notimeline_nointernet">Unable to access timeline. No internet.</string>
-    <string name="nousers_nointernet">Unable to access users. No internet.</string>
+
 
     <string name="notimeline_for_user">Unable to get timeline for %1$s</string>
 
 
     <string name="nointernet">No internet.</string>
 
-
-
-    <string name="testUser">jukuproject</string>
     <string name="atsign">\u0040</string>
 
 
-    <string name="timeline_created">Created: %1$s</string>
-    <string name="timeline_favorited">Favorited: %1$s</string>
-    <string name="timeline_retweeted">ReTweeted: %1$s</string>
+    <!--<string name="timeline_created">Created: %1$s</string>-->
+    <!--<string name="timeline_favorited">Favorited: %1$s</string>-->
+    <!--<string name="timeline_retweeted">ReTweeted: %1$s</string>-->
 
-    <string name="timeline_created_plain">Created: </string>
-    <string name="timeline_favorited_plain">Favorited: </string>
-    <string name="timeline_retweeted_plain">ReTweeted: </string>
-
+    <string name="retweeted_text">retweeted</string>
+    <string name="favorited_text">favorited</string>
 
     <string name="access_token">843793669106909186-rxzRHDQGzVza0NstjljujV6cp4bpfwY</string>
     <string name="access_token_secret">DYlvYn05mKz8otLKzQHI6naiNhDWuyoyFSrzvMDP9GYtG</string>
@@ -52,15 +45,7 @@
     <string name="mylistcount">(%1$d)</string>
 
     <string name="menuchildbrowse">Browse/Edit</string>
-    <string name="menuchildflashcards">Flash Cards</string>
-    <string name="menuchildmultiplechoice">Multiple Choice</string>
-    <string name="menuchildfillinblanks">Fill in the Blanks</string>
-    <string name="menuchildwordbuilder">Word Builder</string>
-    <string name="menuchildwordmatch">Word Match</string>
-    <string name="menuchildstats">Stats</string>
-    <string name="menuchildbrowseentries">Browse Entries</string>
 
-    <string name="menuchildviewtimeline">Timeline</string>
     <string name="menuchildviewsavedtweets">Saved Tweets</string>
     <string name="wordDetailPopup_SearchTwitter">Search Twitter</string>
 
@@ -69,29 +54,41 @@
 
     <string name="clickanoption">Click on one of the options to select it</string>
 
-    <string name="title_favoriteslist">Kanji Favorites Lists</string>
+    <string name="kanji">Kanji</string>
+    <string name="singledash">-</string>
+
     <string name="list_favoriteslistcount"># of Kanji Favorites Lists</string>
-    <string name="list_favoriteslistcount_summary">Yellow, Blue, Red Stars!</string>
     <string name="dialog_title_list_favoritescount">Kanji Favorites Lists</string>
 
 
-    <string name="title_favoriteslist_tweet">Tweet Favorites Lists</string>
+
     <string name="list_favoriteslistcount_tweet"># of Tweet Favorites Lists</string>
     <string name="dialog_title_list_favoritescount_tweet">Tweet Favorites Lists</string>
 
     <string name="statsComplete">%1$d%% Complete</string>
     <string name="percentage">%1$d%%</string>
     <string name="score">%1$d/%2$d</string>
+    <string name="score_text">Score: </string>
 
     <string name="tweetcount">x%1$d</string>
 
     <string name="userDetailPopupFriends">%1$s Friends</string>
     <string name="userDetailPopupFollowers">%1$s Followers</string>
 
+    <string name="following_text">Following</string>
+    <string name="followers_text">Followers</string>
+
+    <string name="following_text_upper">FOLLOWING</string>
+    <string name="followers_text_upper">FOLLOWERS</string>
+
     <string name="actionicon_cancel">Cancel</string>
     <string name="actionicon_delete">Remove</string>
     <string name="actionicon_copy">Copy</string>
     <string name="actionicon_selectall">Select All</string>
+
+    <string name="action_move">Move</string>
+
+    <string name="rownumber">%1$d.</string>
 
     <string name="search_romaji">日本語/Romaji</string>
     <string name="search_definition">Defn.</string>
@@ -100,8 +97,21 @@
     <string name="searchquerytoolong">Query must be 25 characters or less</string>
     <string name="searchinputtexttosearch">Input some text to search</string>
     <string name="searchchoosecriteria">Choose search criteria (Romaji or Definition)</string>
-    <string name="searchalphanumericsonly">Search with alphanumeric characters only</string>
 
+    <string name="search_search_text">Search: </string>
+    <string name="search_criteria_text">Criteria: </string>
+    <string name="search_noresultsfound_text">No results found...</string>
+    <string name="search_user_text">User</string>
+    <string name="search_tweet_text">Tweet</string>
+
+    <string name="tweetbreak_unabletoparse">Unable to parse tweet</string>
+    <string name="tweetadapter_favoritetweets">Favorite Tweets</string>
+
+    <string name="usertimeline_stillworking">Still working...</string>
+
+    <string name="wordlistadapter_favoritewords">Favorite Words</string>
+
+    <string name="fillintheblanks_score">Score</string>
 
     <string name="statsfrag_multchoice_wordbuilder_highscore">High Score! %1$d</string>
     <string name="statsfrag_multchoice_wordbuilder_total">Total: %1$d</string>
@@ -109,6 +119,24 @@
 
 
     <string name="exitquiz">Exit Quiz?</string>
+
+
+    <string name="flashcards_front_text">Front: </string>
+    <string name="flashcards_back_text">Back: </string>
+asdf
+    <string name="user_icon">User Icon</string>
+    <string name="user_banner">User Banner</string>
+    <string name="favorites_star">Add to Favorites</string>
+
+    <string name="favorites_text">Favorites</string>
+
+    <string name="menuoption_text_type">Type: </string>
+    <string name="menuoption_text_size">Size: </string>
+    <string name="menuoption_text_timer">Timer: </string>
+    <string name="menuoption_text_colors">Colors: </string>
+
+
+
 
     <string-array name="entryvalues_list_favoritescount_kanji">
         <item>Blue</item>
@@ -233,12 +261,12 @@
     </string-array>
 
     <string name="menuoptionskanjitodef">Kanji to Definition</string>
-    <string name="menuoptionskanjitokana">Kanji to Kana</string>
     <string name="menuoptionskanji">Kanji</string>
     <string name="menuoptionsdefinition">Definition</string>
     <string name="menuoptionsnone">None</string>
     <string name="menuoptionsten">10</string>
-    <string name="menuoptionssixty">60</string>
-    <string name="menuoptionswordbuildertype">Repeating</string>
+
+
+
 
 </resources>

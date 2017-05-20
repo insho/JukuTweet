@@ -30,6 +30,7 @@
                 android:minWidth="30dp"
                 android:layout_gravity="start|center_vertical"
                 android:visibility="visible"
+                android:contentDescription="@string/user_icon"
                 android:clickable="false"
                 android:focusable="false"
                 />
@@ -66,8 +67,6 @@
                     android:layout_gravity="start"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_toRightOf="@+id/timelineName"
-                    android:layout_toEndOf="@+id/timelineName"
                     android:clickable="false"
                     android:ellipsize="marquee"
                     android:maxLines="1"
@@ -85,16 +84,12 @@
                 android:id="@+id/timelineStarLayout"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
-                android:minHeight="30dp"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
-                android:layout_toRightOf="@+id/timelineDisplayScreenName"
-                android:layout_toEndOf="@+id/timelineDisplayScreenName">
+                android:minHeight="30dp">
 
                 <ImageButton  android:id="@+id/favorite"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:contentDescription="star"
+                    android:contentDescription="@string/favorites_star"
                     android:src="@drawable/ic_twitter_black_24dp"
                     android:visibility="visible"
                     android:background="@android:color/transparent"

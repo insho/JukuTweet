@@ -135,10 +135,10 @@ public class QuizMenuDialog extends DialogFragment {
 
         switch(quizType) {
             case "flashcards":
-                txtViewRow1.setText("Front: ");
+                txtViewRow1.setText(getString(R.string.flashcards_front_text));
                 txtView1.setText(getActivity().getString(R.string.menuoptionskanji));
 
-                txtViewRow2.setText("Back: ");
+                txtViewRow2.setText(getString(R.string.flashcards_back_text));
                 txtView2.setText(getActivity().getString(R.string.menuoptionsdefinition));
 
                 ((TextView)view.findViewById(R.id.txtRow3)).setVisibility(View.GONE);
@@ -162,16 +162,16 @@ public class QuizMenuDialog extends DialogFragment {
 
                 break;
             case "multiplechoice":
-                txtViewRow1.setText("Type: ");
+                txtViewRow1.setText(getString(R.string.menuoption_text_type));
                 txtView1.setText(getActivity().getString(R.string.menuoptionskanjitodef));
 
-                txtViewRow2.setText("Size: ");
-                txtView2.setText(getActivity().getString(R.string.menuoptionsten));
+                txtViewRow2.setText(getString(R.string.menuoption_text_size));
+                txtView2.setText(getString(R.string.menuoptionsten));
 
                 ((TextView)view.findViewById(R.id.txtRow3)).setVisibility(View.VISIBLE);
                 ((TextView) view.findViewById(R.id.btnRow3)).setVisibility(View.VISIBLE);
 
-                txtViewRow3.setText("Timer: ");
+                txtViewRow3.setText(getString(R.string.menuoption_text_timer));
                 txtView3.setText(getActivity().getString(R.string.menuoptionsnone));
 
                 final String[] optionsMultipleChoiceType = getResources().getStringArray(R.array.menuoptions_multiplechoicetype);
@@ -206,7 +206,7 @@ public class QuizMenuDialog extends DialogFragment {
                 ((TextView)view.findViewById(R.id.txtRow1)).setVisibility(View.GONE);
                 ((TextView) view.findViewById(R.id.btnRow1)).setVisibility(View.GONE);
 
-                txtViewRow2.setText("Size: ");
+                txtViewRow2.setText(getString(R.string.menuoption_text_size));
                 txtView2.setText(getActivity().getString(R.string.menuoptionsten));
 
                 ((TextView)view.findViewById(R.id.txtRow3)).setVisibility(View.GONE);
@@ -361,7 +361,7 @@ public class QuizMenuDialog extends DialogFragment {
 
         RecyclerView recyclerView = new RecyclerView(getContext());
 
-        ArrayList<String> optionsArray = new ArrayList<String>(Arrays.asList(options));
+        ArrayList<String> optionsArray = new ArrayList<>(Arrays.asList(options));
         MenuDropDownPopupAdapter adapter = new MenuDropDownPopupAdapter(buttonNumber,optionsArray,mRxBus);
 
         mRxBus.toClickObserverable()
@@ -479,9 +479,6 @@ public class QuizMenuDialog extends DialogFragment {
             txtYellow.setBackground(drawablecolorblock3);
             drawablecolorblock4.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuGreen), PorterDuff.Mode.MULTIPLY);
             txtGreen.setBackground(drawablecolorblock4);
-
-
-
         } else {
             drawablecolorblock1.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuGrey), PorterDuff.Mode.MULTIPLY);
             txtGrey.setBackgroundDrawable(drawablecolorblock1);
@@ -581,7 +578,7 @@ public class QuizMenuDialog extends DialogFragment {
      * When use clicks on a color in the {@link #popupWindowColors()}, if the color is
      * selected this method runs to set that color visible in the "colorblocks button" layout. Likewise,
      * it hides that textview's color if it should not be visible
-     * @param option
+     * @param option DropDownMenu object representing the dropdown menu option that was chosen
      */
     public void setColorBlockVisibility(DropDownMenuOption option) {
 

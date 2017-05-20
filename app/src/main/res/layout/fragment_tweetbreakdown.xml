@@ -15,7 +15,7 @@
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:orientation="vertical" android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:id="@+id/popuptab_layout"
         android:weightSum="5"
         android:background="@android:color/white">
@@ -24,6 +24,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clickable="false"
+                android:baselineAligned="false"
             android:descendantFocusability="blocksDescendants"
             android:focusable="false"
             android:focusableInTouchMode="false"
@@ -51,8 +52,6 @@
                     android:id="@+id/timelineName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentLeft="true"
-                    android:layout_alignParentStart="true"
                     android:clickable="false"
                     android:ellipsize="marquee"
                     android:layout_gravity="start"
@@ -67,8 +66,6 @@
                     android:layout_gravity="start"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_toRightOf="@+id/timelineName"
-                    android:layout_toEndOf="@+id/timelineName"
                     android:clickable="false"
                     android:ellipsize="marquee"
                     android:alpha=".8"
@@ -85,11 +82,7 @@
                 android:id="@+id/timelineStarLayout"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
-                android:minHeight="30dp"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
-                android:layout_toRightOf="@+id/timelineDisplayScreenName"
-                android:layout_toEndOf="@+id/timelineDisplayScreenName">
+                android:minHeight="30dp">
 
                 <ImageButton  android:id="@+id/favorite"
                     android:layout_width="wrap_content"

@@ -14,7 +14,7 @@ public class TweetUrl implements Parcelable {
         this.expanded_url = dbUrl;
         this.url = dbUrl;
         this.display_url = dbUrl;
-    };
+    }
 
     public void setIndices(int[] indices) {
         this.indices = indices;

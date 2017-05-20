@@ -278,7 +278,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                             and show no sentences found message in place of recyclerview */
                             mRecyclerView.setVisibility(View.GONE);
                             txtNoLists.setVisibility(View.VISIBLE);
-                            txtNoLists.setText("Unable to parse tweet");
+                            txtNoLists.setText(getString(R.string.tweetbreak_unabletoparse));
                             txtNoLists.setTextColor(ContextCompat.getColor(getContext(),android.R.color.holo_red_dark));
                         }
                     }
@@ -290,7 +290,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
 //                        linearLayoutVerticalMain.setVisibility(View.GONE);
                         mRecyclerView.setVisibility(View.GONE);
                         txtNoLists.setVisibility(View.VISIBLE);
-                        txtNoLists.setText("Unable to parse tweet");
+                        txtNoLists.setText(getString(R.string.tweetbreak_unabletoparse));
                         txtNoLists.setTextColor(ContextCompat.getColor(getContext(),android.R.color.holo_red_dark));
                     }
                 });
@@ -385,7 +385,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                 imgStar.setVisibility(View.GONE);
             }
         }
-    };
+    }
 
 
 
@@ -426,7 +426,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
 
                     }
 
-                };
+                }
 
                 if(mTweet.getEntities() != null && mTweet.getEntities().getUser_mentions()!=null) {
 
@@ -459,7 +459,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                         text.setSpan(userMentionClickableSpan, startingLinkPos, startingLinkPos + mentionToLinkify.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
                     }
 
-                };
+                }
 
                 for(final WordEntry wordEntry : disectedSavedTweet) {
 
@@ -639,7 +639,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
 
         popupWindow.showAsDropDown(imgStar,-xadjust,-yadjust);
 
-    };
+    }
 
 
     /**
@@ -744,7 +744,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
      */
     public void notifySavedTweetFragmentsChanged(){
         mCallback.notifySavedTweetFragmentsChanged();
-    };
+    }
 
     /**
      * If a tweet has been saved in {@link WordDetailPopupDialog}, and the user for that tweet

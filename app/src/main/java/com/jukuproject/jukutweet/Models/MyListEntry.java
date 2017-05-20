@@ -4,10 +4,10 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 /**
- * Created by JClassic on 3/24/2017.
+ * Object representing a user list, either WordList ({@link com.jukuproject.jukutweet.Fragments.WordListFragment}) or
+ * Tweet ({@link com.jukuproject.jukutweet.Fragments.TweetListFragment}).
+ * Note: Listsys is an integer designating the list as a "System list" (AKA the ones with the star) or a user-created list
  */
-//See mylistbrowsefragment
-
 public class MyListEntry implements Parcelable {
 
     public MyListEntry(String listName, Integer listsSys) {

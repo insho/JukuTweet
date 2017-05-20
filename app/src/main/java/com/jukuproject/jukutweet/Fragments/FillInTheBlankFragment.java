@@ -243,7 +243,6 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
                             addToLayout(sb);
                         }
 
-//                    startIndex = wordEntry.getEndIndex();
                         sb = new SpannableStringBuilder();
 
                     }
@@ -258,7 +257,6 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
                         ClickableSpan kanjiClick = new ClickableSpan() {
                             @Override
                             public void onClick(View textView) {
-//                            WordDetailPopupDialog.newWordListInstance(wordEntry).show(getFragmentManager(),"wordDetailPopup");
                                 WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(wordEntry);
                                 wordDetailPopupDialog.setTargetFragment(FillInTheBlankFragment.this, 0);
                                 wordDetailPopupDialog.show(getFragmentManager(),"wordDetailPopup");
@@ -373,27 +371,17 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
                         textView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
                         linearLayoutHorizontalLine.addView(textView);
 
-                            insertLineIntoParagraph();
+                        insertLineIntoParagraph();
 
-//                        substringstart = estimatedSubStringEnd;
-//                        estimatedSubStringEnd = textRemaining.length();
                     } else if(substringstart == estimatedSubStringEnd ){
                             insertLineIntoParagraph();
                     }
-//                    else {
-//                        Log.e(TAG,"Width extra is 0 for " + textRemaining);
-//                        widthExtra=0;
-//                    }
 
-
-//                    textRemaining = textRemaining.subSequence(estimatedSubStringEnd, textRemaining.length());
                     estimatedTextViewWidth = getEstimatedTextViewWidth(textRemaining.subSequence(estimatedSubStringEnd, textRemaining.length()).toString());
                     maxWidthAllowed = displayWidth - currentLineWidth - displayMarginPadding;
                     widthExtra = estimatedTextViewWidth - maxWidthAllowed;
 
-
                     /* ADD THE TRAILING TEXT */
-
                     if(widthExtra<0) {
                         CharSequence textToAdd = textRemaining.subSequence(estimatedSubStringEnd, textRemaining.length());
                         if (BuildConfig.DEBUG) {
@@ -410,16 +398,10 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
                         textView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
                         linearLayoutHorizontalLine.addView(textView);
 
-                        currentLineWidth = currentLineWidth + getEstimatedTextViewWidth(textToAdd.toString());;
+                        currentLineWidth = currentLineWidth + getEstimatedTextViewWidth(textToAdd.toString());
                     }
 
-
-//                        //Its a new line
-//                        widthExtra = widthExtra - estimatedWidthOfTextViewThatWasAdded;
-//                        estimatedTextViewWidth = estimatedTextViewWidth - estimatedWidthOfTextViewThatWasAdded;\
-
                         substringstart = estimatedSubStringEnd;
-
                         textRemaining = text.subSequence(substringstart, text.length());
                         estimatedSubStringEnd = Math.round(((float) maxWidthAllowed / (float) estimatedTextViewWidth) * textRemaining.length());
                         if(BuildConfig.DEBUG) {
@@ -475,21 +457,18 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
         spinner.setMinimumWidth(spinnerWidth);
         spinner.setLayoutParams(new ViewGroup.LayoutParams(spinnerWidth, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        Log.i(TAG,"spinnerdata: " + wordEntry.getKanji() + ", " + spinnerData.hasBeenAnswered() + ", " + spinnerData.isCorrect());
+        if(BuildConfig.DEBUG){Log.d(TAG,"spinnerdata: " + wordEntry.getKanji() + ", " + spinnerData.hasBeenAnswered() + ", " + spinnerData.isCorrect());}
         if (spinnerData.hasBeenAnswered()) {
             if(spinnerData.isCorrect()) {
 
                 spinner.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorJukuGreen));
                 ArrayList<String> spinnerArray = new ArrayList<>();
                 spinnerArray.add(wordEntry.getKanji());
-                ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item, spinnerArray);
-//                spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, spinnerArray);
                 spinner.setAdapter(spinnerArrayAdapter);
                 spinner.setClickable(false);
             } else {
-//                ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(getContext(), R.layout.spinneritem_red, spinnerData.getOptions()); //selected item will look like a spinner set from XML
-
-                ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item, spinnerData.getOptions()); //selected item will look like a spinner set from XML
+                ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, spinnerData.getOptions()); //selected item will look like a spinner set from XML
                 spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spinner.setAdapter(spinnerArrayAdapter);
                 spinner.setMinimumWidth(spinnerWidth);
@@ -499,19 +478,11 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
                 }
                 spinner.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorJukuRed));
                 spinner.setOnItemSelectedListener(spinnerSelectedListener(wordEntry));
-
-
-//                Log.d(TAG,"spinnerwidth: " + spinnerWidth);
-//                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(spinnerWidth, ViewGroup.LayoutParams.WRAP_CONTENT);
-//                params.weight = 1.0f;
-//                params.gravity = Gravity.BOTTOM;
-//                spinner.setLayoutParams(params);
             }
-
 
         } else {
 
-            ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item, spinnerData.getOptions()); //selected item will look like a spinner set from XML
+            ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, spinnerData.getOptions()); //selected item will look like a spinner set from XML
             spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinner.setAdapter(spinnerArrayAdapter);
 
@@ -520,16 +491,11 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
             } else {
                 spinnerData.setSelectedOption(spinnerData.getOptions().get(0));
             }
-
-            Log.d(TAG,"spinner option selected: " + spinnerData.getOptions().get(0));
-
+            if(BuildConfig.DEBUG) {Log.d(TAG, "spinner option selected: " + spinnerData.getOptions().get(0));}
             spinner.setOnItemSelectedListener(spinnerSelectedListener(wordEntry));
-
             spinner.setMinimumWidth(spinnerWidth);
             spinner.setLayoutParams(new ViewGroup.LayoutParams(spinnerWidth, ViewGroup.LayoutParams.WRAP_CONTENT));
-
         }
-
 
         linearLayoutHorizontalLine.addView(spinner);
         currentLineWidth = currentLineWidth + spinnerWidth;
@@ -577,7 +543,7 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
                 Log.d(TAG, "Direct BIGLAYOUT childcount: " + linearLayoutVerticalParagraph.getChildCount());
                 Log.d(TAG, "Direct insertLineIntoParagraph Completed");
             }
-    };
+    }
 
     public int getEstimatedTextViewWidth(String text) {
         TextView textView_Test = new TextView(getContext());
@@ -609,15 +575,17 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
         for (WordEntry wordEntry : mDataset.get(currentDataSetindex).getWordEntries()) {
             if(wordEntry.isSpinner()) {
                 //If correct
-                Log.d(TAG,"word kanji: " + wordEntry.getKanji());
-                Log.d(TAG,"selected: " + wordEntry.getFillinSentencesSpinner().getSelectedOption());
+                if(BuildConfig.DEBUG) {
+                    Log.d(TAG, "word kanji: " + wordEntry.getKanji());
+                    Log.d(TAG, "selected: " + wordEntry.getFillinSentencesSpinner().getSelectedOption());
+                }
 
                 if(wordEntry.getCoreKanjiBlock() != null && wordEntry.getCoreKanjiBlock().equals(wordEntry.getFillinSentencesSpinner().getSelectedOption())) {
                     wordEntry.getFillinSentencesSpinner().setCorrect(true);
                     if(!wordEntry.getFillinSentencesSpinner().hasBeenAnswered()) {
                         wordEntry.getFillinSentencesSpinner().setCorrectFirstTry(true);
                         wordEntry.getFillinSentencesSpinner().setHasBeenAnswered(true);
-                        Log.i(TAG,"Setting correct first try: " + wordEntry.getKanji());
+                        if(BuildConfig.DEBUG){Log.i(TAG,"Setting correct first try: " + wordEntry.getKanji());}
                     }
 
                     Spinner correctSpinner = (Spinner)linearLayoutVerticalParagraph.findViewWithTag(wordEntry.getStartIndex());
@@ -629,7 +597,7 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
                     wordEntry.getFillinSentencesSpinner().setHasBeenAnswered(true);
                     wordEntry.getFillinSentencesSpinner().setCorrectFirstTry(false);
 
-                    Log.d(TAG,"Incorrect psinner found!");
+                    if(BuildConfig.DEBUG){Log.d(TAG,"Incorrect spinner found!");}
                     ((Spinner)linearLayoutVerticalParagraph.findViewWithTag(wordEntry.getStartIndex())).setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorJukuRed));
                     allSpinnersAreCorrect = false;
                 }
@@ -641,9 +609,7 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
             }
         }
 
-
         final int additiontoCorrectTotal = tweetWasAnsweredCorrectlyFirstTry;
-
 
         //IF everything is correct, score answers and move on
         if(allSpinnersAreCorrect) {
@@ -663,27 +629,18 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
                             if(SharedPrefManager.getInstance(getContext()).getIncludefillinsentencesscores()) {
                                 InternalDB.getQuizInterfaceInstance(getContext()).addWordScoreToScoreBoard(wordEntry.getId(),wordEntry.getTotal()+1,correct);
                             }
-
                         }
-
-                        //Also reset the word entry spinner information
-//                        wordEntry.getFillinSentencesSpinner().resetSpinnerInformation();
                     }
 
                     //Move to the next question
-//                    currentDataSetindex += 1;
                     currentTotal += 1;
                     currentCorrect += additiontoCorrectTotal;
-
                     redundentQuestionCounter = 0;
                     moveToNextQuestion();
-
                 }
             };
             Handler myHandler = new Handler();
             myHandler.postDelayed(questionFinishedRunnable, 100); //Message will delivered after delay
-
-
         }
     }
 
@@ -691,7 +648,7 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
         for(Tweet tweet: mDataset) {
             if(tweet.getWordEntries()!=null && tweet.getWordEntries().contains(wordEntry)) {
                 for(WordEntry tweetWordEntry : tweet.getWordEntries()) {
-                    if(tweetWordEntry.getId()==wordEntry.getId()) {
+                    if(tweetWordEntry.getId().equals(wordEntry.getId())) {
                         wordEntry.setItemFavorites(wordEntry.getItemFavorites());
                     }
                 }
@@ -728,15 +685,13 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
 
     private void insertTextWithLineSeperators(String textToInsert) {
         String remainingLineSepText = textToInsert;
-//                            int lineSepStartIndex = 0;
 
         while(remainingLineSepText.contains(System.getProperty("line.separator"))) {
             int lineSepEndIndex = remainingLineSepText.indexOf(System.getProperty("line.separator"));
             String preLineSepTextToAdd = remainingLineSepText.substring(0,lineSepEndIndex);
             addToLayout(new SpannableStringBuilder(preLineSepTextToAdd));
-            if(BuildConfig.DEBUG) {
-                Log.d(TAG,"ADding to layout pre line sep text: " + preLineSepTextToAdd);
-            }
+            if(BuildConfig.DEBUG) {Log.d(TAG,"ADding to layout pre line sep text: " + preLineSepTextToAdd);}
+
             //Mimic the line seperator by creating a new line
             insertLineIntoParagraph();
 
@@ -746,16 +701,14 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
                 Log.d(TAG, "remainingLineSepText: " + remainingLineSepText);
             }
         }
-
-
         if(remainingLineSepText.length()>0) {
-            Log.d(TAG,"final remainingLineSepText to add: " + remainingLineSepText);
+            if(BuildConfig.DEBUG){Log.d(TAG,"final remainingLineSepText to add: " + remainingLineSepText);}
             addToLayout(new SpannableStringBuilder(remainingLineSepText));
         }
     }
 
     public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {}
-    public void notifySavedTweetFragmentsChanged(){};
+    public void notifySavedTweetFragmentsChanged(){}
 
     /**
      * If a tweet has been saved in {@link WordDetailPopupDialog}, and the user for that tweet

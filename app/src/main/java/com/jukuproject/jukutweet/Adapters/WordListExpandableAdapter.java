@@ -194,7 +194,7 @@ public class WordListExpandableAdapter extends BaseExpandableListAdapter {
 
                     imageButton.setImageResource(R.drawable.ic_star_black);
                     imageButton.setVisibility(ImageButton.VISIBLE);
-                        lblListHeader.setText("Favorite Words");
+                        lblListHeader.setText(mContext.getString(R.string.wordlistadapter_favoritewords));
                     final TextView lblListHeaderCount = (TextView) convertView.findViewById(R.id.lblListHeaderCount);
 
                     if(mMenuHeader.get(groupPosition).isShowLblHeaderCount()) {

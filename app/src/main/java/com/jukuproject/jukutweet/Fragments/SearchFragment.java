@@ -351,8 +351,8 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     mCheckedOption = "Twitter";
-                    checkBoxRomaji.setText("User");
-                    checkBoxDefinition.setText("Tweet");
+                    checkBoxRomaji.setText(getString(R.string.search_user_text));
+                    checkBoxDefinition.setText(getString(R.string.search_tweet_text));
                     checkBoxDictionary.setChecked(false);
                     mDictionarySearchLayout.setVisibility(View.VISIBLE);
                 } else if(!checkBoxDictionary.isChecked()){
@@ -717,7 +717,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
      */
     public void notifySavedTweetFragmentsChanged(){
         mCallback.notifySavedTweetFragmentsChanged();
-    };
+    }
 
     /**
      * If a tweet has been saved in {@link WordDetailPopupDialog}, and the user for that tweet
@@ -738,7 +738,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
      * save the tweet or remove it from the db (if it already exists and is unnecessary). If it saves the tweet, it also decides via
      * whether or not to download the tweet icon with a callback to the "downloadTweetUserIcons" method in the activity. Lastly
      * it notifies tweet related fragments that a change has been made
-     * @param tweet
+     * @param tweet Tweet to be saved or deleted
      */
     public void saveOrDeleteTweet(Tweet tweet){
         //Check for tweet in db

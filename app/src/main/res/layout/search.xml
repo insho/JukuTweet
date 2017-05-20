@@ -11,11 +11,12 @@
         android:layout_height="wrap_content"
         android:id="@+id/searchtoplayout"
         android:layout_marginLeft="2dp"
+        android:layout_marginStart="2dp"
         android:layout_marginBottom="4dp">
 
         <TextView
             android:layout_gravity="start|center_vertical"
-            android:text="Search: "
+            android:text="@string/search_search_text"
             android:textSize="19sp"
             android:textColor="@android:color/black"
             android:clickable="false"
@@ -58,10 +59,11 @@
         android:layout_height="wrap_content"
         android:id="@+id/searchOnOptionLayout"
         android:layout_marginLeft="2dp"
+        android:layout_marginStart="2dp"
         android:layout_marginBottom="4dp">
         <TextView
             android:layout_gravity="start|center_vertical"
-            android:text="Criteria: "
+            android:text="@string/search_criteria_text"
             android:textSize="19sp"
             android:textColor="@android:color/black"
             android:clickable="false"
@@ -147,7 +149,7 @@
     <TextView
         android:gravity="start"
         android:id="@+id/noresults"
-        android:text="No results found..."
+        android:text="@string/search_noresultsfound_text"
         android:textSize="20sp"
         android:textColor="@android:color/black"
         android:layout_marginTop="10dp"

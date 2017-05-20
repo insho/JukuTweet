@@ -483,7 +483,7 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
     }
     public void notifySavedTweetFragmentsChanged(){
         mCallback.notifySavedTweetFragmentsChanged();
-    };
+    }
 
     /**
      * If a tweet has been saved in {@link WordDetailPopupDialog}, and the user for that tweet

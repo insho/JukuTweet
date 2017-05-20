@@ -143,8 +143,7 @@ public class StatsFragmentFillintheBlanks extends Fragment implements WordEntryF
                     topscoreLayout.setBackgroundColor(ContextCompat.getColor(getActivity(), android.R.color.holo_green_light));
                 }
 
-                textScore.setText(getString(R.string.score,mCorrect,mTotal));;
-//                textScore.setText(String.valueOf(mCorrect) + "/" + String.valueOf(mTotal));
+                textScore.setText(getString(R.string.score,mCorrect,mTotal));
                 String txtpercentage =   String.valueOf((int)percentage) + "%";
                 textPercentage.setText(txtpercentage);
 
@@ -175,7 +174,7 @@ public class StatsFragmentFillintheBlanks extends Fragment implements WordEntryF
         for(Tweet tweet: mDataset) {
             if(tweet.getWordEntries()!=null && tweet.getWordEntries().contains(wordEntry)) {
                 for(WordEntry tweetWordEntry : tweet.getWordEntries()) {
-                    if(tweetWordEntry.getId()==wordEntry.getId()) {
+                    if(tweetWordEntry.getId().equals(wordEntry.getId())) {
                         wordEntry.setItemFavorites(wordEntry.getItemFavorites());
                     }
                 }
@@ -186,7 +185,7 @@ public class StatsFragmentFillintheBlanks extends Fragment implements WordEntryF
     }
 
     public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {}
-    public void notifySavedTweetFragmentsChanged(){};
+    public void notifySavedTweetFragmentsChanged(){}
 
     /**
      * If a tweet has been saved in {@link WordDetailPopupDialog}, and the user for that tweet

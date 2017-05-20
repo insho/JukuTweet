@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--<LinearLayout-->
-    <!--xmlns:android="http://schemas.android.com/apk/res/android"-->
-    <!--android:layout_width="match_parent"-->
-    <!--android:layout_height="match_parent"-->
-    <!--android:orientation="vertical"-->
-    <!--android:background="@android:color/transparent">-->
+
+
+
 
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
@@ -38,12 +35,10 @@
                 android:layout_alignParentTop="true"
                 android:id="@+id/layoutBanner">
 
-
-
-
                 <ImageView
                     android:layout_width="match_parent"
                     android:layout_height="130dp"
+                    android:contentDescription="@string/user_banner"
                     android:layout_marginBottom="20dp"
                     android:id="@+id/imgBanner"
                     />
@@ -73,32 +68,12 @@
                 android:minWidth="80dp"
                 android:minHeight="80dp"
                 android:id="@+id/imgUser"
+                android:contentDescription="@string/user_icon"
                 app:layout_anchor="@id/layoutBanner"
                 app:layout_anchorGravity="bottom|start"
                 android:layout_marginLeft="20dp"
                 android:layout_marginStart="20dp"
                 />
-            <!--<fr.castorflex.android.smoothprogressbar.SmoothProgressBar-->
-                <!--xmlns:android="http://schemas.android.com/apk/res/android"-->
-                <!--xmlns:app="http://schemas.android.com/apk/res-auto"-->
-                <!--android:id="@+id/progressbar"-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:indeterminate="true"-->
-                <!--android:visibility="visible"-->
-                <!--app:spb_sections_count="6"-->
-                <!--app:spb_color="#000000"-->
-                <!--app:spb_speed="2.0"-->
-                <!--app:spb_stroke_width="1dp"-->
-                <!--app:spb_stroke_separator_length="4dp"-->
-                <!--app:spb_reversed="false"-->
-                <!--app:spb_mirror_mode="false"-->
-                <!--app:spb_progressiveStart_activated="true"-->
-                <!--app:spb_progressiveStart_speed="3.0"-->
-                <!--app:layout_anchor="@id/imgBanner"-->
-                <!--app:layout_anchorGravity="bottom"-->
-                <!--app:spb_progressiveStop_speed="3.4"-->
-                <!--/>-->
 
         </android.support.design.widget.CoordinatorLayout>
 
@@ -131,88 +106,10 @@
                 android:textSize="20sp"
                 android:textColor="@color/colorJukuGrey" />
 
-            <!--<TextView-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:id="@+id/txtUrl"-->
-                <!--android:visibility="gone"-->
-                <!--android:ellipsize="marquee"-->
-                <!--android:layout_gravity="start"-->
-                <!--android:textSize="16sp"-->
-                <!--android:textColor="@color/colorJukuGrey" />-->
-
-            <!--<LinearLayout-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:layout_marginTop="10dp"-->
-                <!--android:layout_marginBottom="20dp"-->
-                <!--android:orientation="horizontal">-->
-                <!--<TextView-->
-                    <!--android:layout_width="wrap_content"-->
-                    <!--android:layout_height="wrap_content"-->
-                    <!--android:id="@+id/txtFollowing"-->
-                    <!--android:ellipsize="marquee"-->
-                    <!--android:layout_gravity="start"-->
-                    <!--android:textSize="14sp"-->
-                    <!--android:textStyle="bold"-->
-                    <!--android:textColor="@android:color/black" />-->
-                <!--<TextView-->
-                    <!--android:layout_width="wrap_content"-->
-                    <!--android:layout_height="wrap_content"-->
-                    <!--android:layout_marginLeft="2dp"-->
-                    <!--android:layout_marginStart="2dp"-->
-                    <!--android:ellipsize="marquee"-->
-                    <!--android:text="FOLLOWING"-->
-                    <!--android:layout_gravity="start"-->
-                    <!--android:textSize="14sp"-->
-                    <!--android:textColor="@color/colorJukuGrey" />-->
-
-                <!--<TextView-->
-                    <!--android:layout_width="wrap_content"-->
-                    <!--android:layout_height="wrap_content"-->
-                    <!--android:layout_marginLeft="10dp"-->
-                    <!--android:layout_marginStart="10dp"-->
-                    <!--android:id="@+id/txtFollowers"-->
-                    <!--android:text=""-->
-                    <!--android:ellipsize="marquee"-->
-                    <!--android:layout_gravity="start"-->
-                    <!--android:textSize="14sp"-->
-                    <!--android:textStyle="bold"-->
-                    <!--android:textColor="@android:color/black" />-->
-
-                <!--<TextView-->
-                    <!--android:layout_width="wrap_content"-->
-                    <!--android:layout_height="wrap_content"-->
-                    <!--android:layout_marginLeft="2dp"-->
-                    <!--android:layout_marginStart="2dp"-->
-                    <!--android:text="FOLLOWERS"-->
-                    <!--android:ellipsize="marquee"-->
-                    <!--android:layout_gravity="start"-->
-                    <!--android:textSize="14sp"-->
-                    <!--android:textColor="@color/colorJukuGrey" />-->
-
-            <!--</LinearLayout>-->
-
         </LinearLayout>
 
 
     </RelativeLayout>
-
-
-
-    <!---->
-    <!--<LinearLayout-->
-    <!--android:layout_width="match_parent"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:layout_alignParentTop="true"-->
-    <!--android:layout_marginTop="5dp"-->
-    <!--android:layout_marginLeft="20dp"-->
-    <!--android:layout_marginStart="20dp"-->
-    <!--android:orientation="vertical"-->
-    <!--android:id="@+id/layoutInfo">-->
-
-
-
 
 
     <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"

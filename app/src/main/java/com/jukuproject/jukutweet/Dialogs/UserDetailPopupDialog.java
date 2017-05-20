@@ -143,7 +143,6 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
             @Override
             public void onClick(View v) {
                 if(getFragmentManager().findFragmentByTag("dialogRemove") == null || !getFragmentManager().findFragmentByTag("dialogRemove").isAdded()) {
-                    RemoveUserDialog removeUserDialog = RemoveUserDialog.newInstance(mUserInfo);
                     RemoveUserDialog.newInstance(mUserInfo).show(getFragmentManager(),"dialogRemove");
                 }
                 dismiss();
@@ -164,18 +163,19 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
             mRecyclerView.setOnScrollChangeListener(new View.OnScrollChangeListener() {
                 @Override
                 public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-                    if (mLayoutManager == null || mDataSet == null || mDataSet.size()==0) {
 
-                        return;
-                    } else {
-                        if(mDataSet.size()>0 && mLayoutManager.findFirstCompletelyVisibleItemPosition()>0 && mLayoutManager.findLastCompletelyVisibleItemPosition()==mDataSet.size()-1) {
+                        if(mLayoutManager != null
+                                && mDataSet != null
+                                && mDataSet.size()>0
+                                && mLayoutManager.findFirstCompletelyVisibleItemPosition()>0
+                                && mLayoutManager.findLastCompletelyVisibleItemPosition()==mDataSet.size()-1) {
                             if(showFriendsSelected) {
                                 pullFriendsUserInfoList(mUserInfo,mCursorString,60,mDataSet.size()-1);
                             } else {
                                 pullFollowerUserInfoList(mUserInfo,mCursorString,60,mDataSet.size()-1);
                             }
                         }
-                    }
+
                 }
             });
         } else {
@@ -183,18 +183,18 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
     @Override
     public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
         super.onScrolled(recyclerView, dx, dy);
-        if (mLayoutManager == null || mDataSet == null || mDataSet.size()==0) {
-
-            return;
-        } else {
-            if(mDataSet.size()>0 && mLayoutManager.findFirstCompletelyVisibleItemPosition()>0  && mLayoutManager.findLastCompletelyVisibleItemPosition()==mDataSet.size()-1) {
+            if(mLayoutManager != null
+                    && mDataSet != null
+                    && mDataSet.size()>0
+                    && mLayoutManager.findFirstCompletelyVisibleItemPosition()>0
+                    && mLayoutManager.findLastCompletelyVisibleItemPosition()==mDataSet.size()-1) {
                 if(showFriendsSelected) {
                     pullFriendsUserInfoList(mUserInfo,mCursorString,60,mDataSet.size()-1);
                 } else {
                     pullFollowerUserInfoList(mUserInfo,mCursorString,60,mDataSet.size()-1);
                 }
             }
-        }
+
     }
 });
         }
@@ -255,7 +255,7 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
                     mRecyclerView.setVisibility(View.GONE);
                     txtNoUsers.setVisibility(View.GONE);
 
-                    mDataSet = new ArrayList<UserInfo>();
+                    mDataSet = new ArrayList<>();
                     mCursorString = "-1";
                     pullFriendsUserInfoList(mUserInfo,mCursorString,60,0);
                     showFriendsSelected = true;
@@ -273,7 +273,7 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
                     mRecyclerView.setVisibility(View.GONE);
                     txtNoUsers.setVisibility(View.GONE);
 
-                    mDataSet = new ArrayList<UserInfo>();
+                    mDataSet = new ArrayList<>();
                     mCursorString = "-1";
                     pullFollowerUserInfoList(mUserInfo,mCursorString,60,0);
                     showFriendsSelected = false;
@@ -287,7 +287,7 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
         setButtonActive(btnShowFollowersToggle,!showFriendsSelected);
 
         if(mDataSet.size() == 0) {
-            mDataSet = new ArrayList<UserInfo>();
+            mDataSet = new ArrayList<>();
             mCursorString = "-1";
             if(showFriendsSelected) {
                 pullFriendsUserInfoList(mUserInfo,mCursorString,60,0);
@@ -299,7 +299,7 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
             mRecyclerView.setAdapter(mAdapter);
             showRecyclerView(true);
         }
-    };
+    }
 
     public boolean onTouch(View view, MotionEvent event) {
 

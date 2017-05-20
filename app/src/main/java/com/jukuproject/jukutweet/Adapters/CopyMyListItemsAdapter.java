@@ -115,7 +115,7 @@ public class CopyMyListItemsAdapter extends RecyclerView.Adapter<CopyMyListItems
             }
 
             holder.checkbox.setText(null);
-            holder.textView.setText("Favorites");
+            holder.textView.setText(mContext.getString(R.string.favorites_text));
             holder.textView.setVisibility(View.VISIBLE);
             holder.imageButton.setVisibility(View.VISIBLE);
         } else {

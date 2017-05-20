@@ -14,7 +14,7 @@
         android:focusable="false"
         android:clickable="false"
         android:visibility="gone"
-        android:contentDescription="star"
+        android:contentDescription="@string/favorites_star"
         android:background="@android:color/transparent" />
 
     <TextView
@@ -68,8 +68,6 @@
         android:textColor="@android:color/black"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_row="0"
-        android:layout_column="1"
         android:textAppearance="?android:attr/textAppearanceMedium"
         xmlns:android="http://schemas.android.com/apk/res/android" />
 
@@ -81,8 +79,6 @@
         android:textColor="@android:color/black"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_row="0"
-        android:layout_column="1"
         android:textAppearance="?android:attr/textAppearanceMedium"
         xmlns:android="http://schemas.android.com/apk/res/android" />
 
@@ -95,8 +91,6 @@
         android:textColor="@android:color/black"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_row="0"
-        android:layout_column="1"
         android:textAppearance="?android:attr/textAppearanceMedium"
         xmlns:android="http://schemas.android.com/apk/res/android" />
 

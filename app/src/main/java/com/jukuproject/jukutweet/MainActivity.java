@@ -963,7 +963,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 }
             }
         }
-    };
+    }
 
     /**
      * Action that occurs when the user presses OK on the edit my list dialog. They can either clear a list of its
@@ -1028,7 +1028,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 Toast.makeText(this, "Unable to rename list", Toast.LENGTH_SHORT).show();
             }
         }
-    };
+    }
 
     /**
      * Action that occurs when the user presses OK to delete or clear a list (which occurs in the {@link #onEditMyListDialogPositiveClick(String, int, String, boolean)}.
@@ -1304,7 +1304,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             }
 
         }
-    };
+    }
 
     /**
      * Shows the flashcard fragment (Replacing the current fragment) for specified words in a wordlist or savedtweet list
@@ -1356,7 +1356,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 ((BaseContainerFragment)findFragmentByPosition(tabNumber)).replaceFragment(flashCardsFragment,true,"flashcards");
             }
         }
-    };
+    }
 
     /**
      * Shows the flashcard fragment (Replacing the current fragment) for specified words in the saved tweets of
@@ -1480,7 +1480,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             , String selectedColorString) {
 
         ArrayList<WordEntry> dataset;
-        String dataType = "";
+        String dataType;
 
             dataset = InternalDB.getTweetInterfaceInstance(getBaseContext())
                     .getWordsFromAUsersSavedTweets(userInfo
@@ -1729,7 +1729,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
 
         return totalWeight;
-    };
+    }
 
     /**
      * Called during activity recreation to expand the previously expanded position in the word or tweet list.
@@ -1784,7 +1784,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
     } else {
         kanjiQuery = query;
-    };
+    }
 
 
      searchQuerySubscription = TwitterUserClient.getInstance(token,tokenSecret)
@@ -1887,9 +1887,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
                                  } catch (NullPointerException e) {
                                      Log.e(TAG,"runTwitterSearch onsuccess error updating SearchFragment, null: " + e.toString());
-                                 } catch (Exception e) {
-                                     Log.e(TAG,"runTwitterSearch onsuccess error updating SearchFragment, generic exception: " + e.toString());
-
                                  }
                              searchSubscriptionCriteria = null;
 
@@ -1953,7 +1950,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<ArrayList<WordEntry>>() {
-                    ArrayList<WordEntry> searchResults = new ArrayList<WordEntry>();
+                    ArrayList<WordEntry> searchResults = new ArrayList<>();
                     @Override
                     public void onCompleted() {
 
@@ -2090,7 +2087,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
                         //an even number, meaning its a hiragana
                         StringBuilder matchBuilder = new StringBuilder();
-                        ArrayList<String> newPossibleHiraganaSearchQueries = new ArrayList<String>();
+                        ArrayList<String> newPossibleHiraganaSearchQueries = new ArrayList<>();
                         if(possibleHiraganaSearchQueries.size()>0){
                             for(int ii=0;ii<possibleHiraganaSearchQueries.size();ii++){
                                 matchBuilder.append(possibleHiraganaSearchQueries.get(ii));
@@ -2099,7 +2096,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                                 if(BuildConfig.DEBUG){Log.d(TAG,"(1)Appending hiragana chunk: " + possibleHiraganaSearchQueries.get(ii) + " + " + matchBuilder.toString());}
                                 matchBuilder.setLength(0);
                             }
-                            possibleHiraganaSearchQueries = new ArrayList<String>(newPossibleHiraganaSearchQueries);
+                            possibleHiraganaSearchQueries = new ArrayList<>(newPossibleHiraganaSearchQueries);
 
                         } else{
                             if(BuildConfig.DEBUG){Log.d(TAG,"Adding first hiragana chunk: " + "っ");}
@@ -2108,7 +2105,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
                         //an odd number, meaning its a Katakana
                         StringBuilder matchBuilder2 = new StringBuilder();
-                        ArrayList<String> newPossibleKatakanaSearchQueries = new ArrayList<String>();
+                        ArrayList<String> newPossibleKatakanaSearchQueries = new ArrayList<>();
                         if(possibleKatakanaSearchQueries.size()>0){
                             for(int ii=0;ii<possibleKatakanaSearchQueries.size();ii++){
                                 matchBuilder2.append(possibleKatakanaSearchQueries.get(ii));
@@ -2117,7 +2114,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                                 if(BuildConfig.DEBUG){Log.d(TAG,"(1)Appending katakana chunk: " + possibleKatakanaSearchQueries.get(ii) + " + " + matchBuilder2.toString());}
                                 matchBuilder2.setLength(0);
                             }
-                            possibleKatakanaSearchQueries = new ArrayList<String>(newPossibleKatakanaSearchQueries);
+                            possibleKatakanaSearchQueries = new ArrayList<>(newPossibleKatakanaSearchQueries);
 
                         } else{
                             if(BuildConfig.DEBUG){Log.d(TAG,"Adding first katakana chunk: ッ");}
@@ -2138,7 +2135,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                                 if((i%2)==0){
                                     //an even number, meaning its a hiragana
                                     StringBuilder matchBuilder = new StringBuilder();
-                                    ArrayList<String> newPossibleHiraganaSearchQueries = new ArrayList<String>();
+                                    ArrayList<String> newPossibleHiraganaSearchQueries = new ArrayList<>();
                                     if(possibleHiraganaSearchQueries.size()>0){
                                         for(int ii=0;ii<possibleHiraganaSearchQueries.size();ii++){
                                             matchBuilder.append(possibleHiraganaSearchQueries.get(ii));
@@ -2147,7 +2144,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                                             if(BuildConfig.DEBUG){Log.d(TAG,"Appending hiragana chunk: " + possibleHiraganaSearchQueries.get(ii) + " + " + matchBuilder.toString());}
                                             matchBuilder.setLength(0);
                                         }
-                                        possibleHiraganaSearchQueries = new ArrayList<String>(newPossibleHiraganaSearchQueries);
+                                        possibleHiraganaSearchQueries = new ArrayList<>(newPossibleHiraganaSearchQueries);
 
                                     } else{
                                         if(BuildConfig.DEBUG){Log.d(TAG,"Adding first hiragana chunk: " + currentFuriganaOption);}
@@ -2157,7 +2154,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                                 } else {
                                     //an odd number, meaning its a Katakana
                                     StringBuilder matchBuilder = new StringBuilder();
-                                    ArrayList<String> newPossibleKatakanaSearchQueries = new ArrayList<String>();
+                                    ArrayList<String> newPossibleKatakanaSearchQueries = new ArrayList<>();
                                     if(possibleKatakanaSearchQueries.size()>0){
                                         for(int ii=0;ii<possibleKatakanaSearchQueries.size();ii++){
                                             matchBuilder.append(possibleKatakanaSearchQueries.get(ii));
@@ -2177,7 +2174,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
                                             matchBuilder.setLength(0);
                                         }
-                                        possibleKatakanaSearchQueries = new ArrayList<String>(newPossibleKatakanaSearchQueries);
+                                        possibleKatakanaSearchQueries = new ArrayList<>(newPossibleKatakanaSearchQueries);
 
                                     } else{
                                         if(BuildConfig.DEBUG){Log.d(TAG,"Adding first katakana chunk: " + currentFuriganaOption);}

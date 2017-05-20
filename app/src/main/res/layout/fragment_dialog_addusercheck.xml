@@ -35,6 +35,7 @@
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="130dp"
+        android:contentDescription="@string/user_icon"
         android:layout_marginBottom="40dp"
         android:id="@+id/imgBanner"
         />
@@ -51,7 +52,7 @@
             android:minWidth="80dp"
             android:minHeight="80dp"
             android:id="@+id/imgUser"
-
+            android:contentDescription="@string/user_icon"
             app:layout_anchor="@id/layoutBanner"
             app:layout_anchorGravity="bottom|start"
             android:layout_marginLeft="20dp"
@@ -141,7 +142,7 @@
                 android:layout_marginLeft="2dp"
                 android:layout_marginStart="2dp"
                 android:ellipsize="marquee"
-                android:text="FOLLOWING"
+                android:text="@string/following_text_upper"
                 android:layout_gravity="start"
                 android:textSize="14sp"
                 android:textColor="@color/colorJukuGrey" />
@@ -164,7 +165,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="2dp"
                 android:layout_marginStart="2dp"
-                android:text="FOLLOWERS"
+                android:text="@string/followers_text_upper"
                 android:ellipsize="marquee"
                 android:layout_gravity="start"
                 android:textSize="14sp"

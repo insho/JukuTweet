@@ -2,14 +2,25 @@ package com.jukuproject.jukutweet.Models;
 
 import java.util.ArrayList;
 
-/**
- * Created by JClassic on 3/22/2017.
- */
 
+/**
+ * The {@link com.jukuproject.jukutweet.TweetParser} uses these objects to represent possible kanji in a string of text while
+ * the method determines if the piece of text is a kanji in the dictionary (and can become the final "WordEntry" object with definition, furigana
+ * etc). Its a sort of placeholder object for possible kanji.
+ *
+ * @see com.jukuproject.jukutweet.TweetParser
+ */
 public class ParseSentenceMatchCombination {
 
     private Integer matchCount;
     private ArrayList<String> matches;
+
+    public ParseSentenceMatchCombination(){
+        this.matches = new ArrayList<>();
+        this.matchIDs = new ArrayList<>();
+        this.matchCount = 0;
+        this.noMatchforFinalKanji = false;
+    }
 
     public Boolean getNoMatchforFinalKanji() {
         return noMatchforFinalKanji;
@@ -71,15 +82,6 @@ public class ParseSentenceMatchCombination {
         }
 
     }
-
-
-    public ParseSentenceMatchCombination(){
-        this.matches = new ArrayList<>();
-        this.matchIDs = new ArrayList<>();
-        this.matchCount = 0;
-        this.noMatchforFinalKanji = false;
-    };
-
 
 
 }

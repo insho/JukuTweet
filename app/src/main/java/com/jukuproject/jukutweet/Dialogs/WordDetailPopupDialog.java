@@ -235,11 +235,8 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
                 @Override
                 public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                     super.onScrolled(recyclerView, dx, dy);
-                    if (mLayoutManager == null || mDataSet == null || mDataSet.size()==0) {
-                        return;
-                    } else {
-                        if(mLayoutManager != null
-                                && mDataSet!=null
+                    if(mLayoutManager != null
+                            && mDataSet != null
                                 && !showSavedTweetsSelected
                                 && mDataSet.size()>0
                                 && mLayoutManager.findFirstCompletelyVisibleItemPosition()>0
@@ -249,12 +246,12 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
                             mPreviousMaxScrollPosition = mDataSet.size()-1;
                             runTwitterSearch(mWordEntry.getKanji());
                         }
-                    }
+
                 }
             });
         }
 
-    };
+    }
 
 
 
@@ -544,7 +541,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
                 return true;
             }
         });
-    };
+    }
 
     /**
      * Sets up initial state of buttons that toggle between showing saved tweets for the Kanji, and
@@ -751,7 +748,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
                         mDataSetMaxId = (Long) Long.valueOf(mDataSet.get(mDataSet.size()-1).getIdString());
                     }
                 });
-    };
+    }
 
 
     /**
@@ -916,16 +913,12 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
                             Log.e(TAG,"showFavoriteListPopupWindow Nullpointer error setting star color filter in word detail popup dialog... Need to assign item favorites to WordEntry(?)" + e.getCause());
                         }
                     }
-
                 }
-
             }
 
         });
-
         popupWindow.showAsDropDown(imgStar,-xadjust,-yadjust);
-
-    };
+    }
 
 
     /**
@@ -933,7 +926,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
      * save the tweet or remove it from the db (if it already exists and is unnecessary). If it saves the tweet, it also decides via
      * whether or not to download the tweet icon with a callback to the "downloadTweetUserIcons" method in the activity. Lastly
      * it notifies tweet related fragments that a change has been made
-     * @param tweet
+     * @param tweet Tweet to be saved or deleted
      */
     public void saveOrDeleteTweet(Tweet tweet){
         //Check for tweet in db

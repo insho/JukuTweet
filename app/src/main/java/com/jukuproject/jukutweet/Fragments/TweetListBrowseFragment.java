@@ -80,7 +80,7 @@ public class TweetListBrowseFragment extends Fragment {
     /**
      * Create new instance of fragment focusing on saved tweets of a SINGLE USER
      * @param userInfo Info of specific user whose saved tweets will be displayed
-     * @return
+     * @return TweetListBrowseFragment
      */
     public static TweetListBrowseFragment newInstance(UserInfo userInfo) {
         TweetListBrowseFragment fragment = new TweetListBrowseFragment();
@@ -176,11 +176,11 @@ public class TweetListBrowseFragment extends Fragment {
                                 if (!mSelectedEntries.contains(tweet_id)) {
                                     if (mSelectedEntries.size() == 0) {
                                         showMenuMyListBrowse(true);
-                                        if(BuildConfig.DEBUG){Log.d(TAG, "showing menu");};
+                                        if(BuildConfig.DEBUG){Log.d(TAG, "showing menu");}
                                     }
-                                    if(BuildConfig.DEBUG){Log.d(TAG, "selected adding: " + tweet_id);};
+                                    if(BuildConfig.DEBUG){Log.d(TAG, "selected adding: " + tweet_id);}
                                     mSelectedEntries.add(tweet_id);
-                                    if(BuildConfig.DEBUG){Log.d(TAG, "selected size: " + mSelectedEntries.size());};
+                                    if(BuildConfig.DEBUG){Log.d(TAG, "selected size: " + mSelectedEntries.size());}
 
                                 } else {
                                     mSelectedEntries.remove(tweet_id);
@@ -542,8 +542,8 @@ public class TweetListBrowseFragment extends Fragment {
                     try {
                         popupWindow.dismiss();
                         undoSubscription.unsubscribe();
-                    } catch (Exception e) {
-
+                    } catch (NullPointerException e) {
+                        Log.e(TAG,"tweetlistbrowsefragment nullpointer on undo button : " + e.getCause());
                     }
 
                 } catch (NullPointerException e) {
@@ -588,10 +588,8 @@ public class TweetListBrowseFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        try {
+        if(undoSubscription!=null ) {
             undoSubscription.unsubscribe();
-        } catch (Exception e) {
-
         }
     }
 

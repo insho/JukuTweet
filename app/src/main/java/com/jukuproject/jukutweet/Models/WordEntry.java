@@ -338,7 +338,7 @@ public class WordEntry implements Parcelable {
                 return kanji;
 
         }
-    };
+    }
 
     /**
      * Used in {@link com.jukuproject.jukutweet.Fragments.MultipleChoiceFragment} and {@link com.jukuproject.jukutweet.Fragments.FillInTheBlankFragment}
@@ -360,7 +360,7 @@ public class WordEntry implements Parcelable {
                 return definition;
 
         }
-    };
+    }
 
     public double getQuizWeight() {
         return quizWeight;

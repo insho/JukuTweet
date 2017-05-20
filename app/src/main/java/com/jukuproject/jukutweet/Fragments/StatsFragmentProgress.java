@@ -370,7 +370,7 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
     }
 
     public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {}
-    public void notifySavedTweetFragmentsChanged(){};
+    public void notifySavedTweetFragmentsChanged(){}
 
     /**
      * If a tweet has been saved in {@link WordDetailPopupDialog}, and the user for that tweet

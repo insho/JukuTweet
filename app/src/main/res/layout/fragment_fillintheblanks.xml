@@ -20,7 +20,6 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:id="@+id/fillinsentences_layout"
     android:layout_height="wrap_content"
-    android:layout_alignParentTop="true"
     android:weightSum="1"
     android:background="@android:color/white">
 
@@ -41,7 +40,6 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Question: 0/10"
             android:id="@+id/textViewTotal"
             android:layout_row="0"
             android:layout_rowSpan="2"
@@ -91,13 +89,12 @@
         android:layout_height="wrap_content"
         android:minHeight="80dp"
         android:layout_marginTop="20dp"
-        android:layout_alignParentBottom="true"
         android:background="@color/colorPrimary"
         android:textColor="@android:color/white"
         android:gravity="center"
         android:layout_gravity="center"
         android:layout_weight="1"
-        android:text="Score"
+        android:text="@string/fillintheblanks_score"
         android:id="@+id/scoreButton"
         android:textSize="26sp" />
 

@@ -82,11 +82,7 @@ public class UserProfileBanner {
         }
 
         public boolean isEmpty() {
-            if(url==null) {
-                return true;
-            } else {
-                return false;
-            }
+            return (url==null);
         }
 
         public int getSizeDiff(int screenWidth) {

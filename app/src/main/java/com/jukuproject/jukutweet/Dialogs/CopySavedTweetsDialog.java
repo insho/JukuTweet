@@ -1,8 +1,8 @@
 package com.jukuproject.jukutweet.Dialogs;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -40,36 +40,26 @@ import static com.jukuproject.jukutweet.Fragments.TweetListBrowseFragment.joinSe
  */
 public class CopySavedTweetsDialog extends DialogFragment {
 
-    private AlertDialog.Builder builder;
     public DialogInteractionListener mCallback;
-
-    private ArrayList<String> mActiveFavoriteTweetStars;
     private MyListEntry mCurrentList;
-    private ArrayList<MyListEntry> mFavoritesLists;
 
     /*Tracks elapsed time since last click of a recyclerview row. Used to
      * keep from constantly recieving button clicks through the RxBus */
     private long mLastClickTime = 0;
     private boolean moveSelected =false;
     private ArrayList<MyListEntry> mListsToCopyTo = new ArrayList<>();
-
-
     private RxBus mRxBus = new RxBus();
-
-    String TAG = "TEST-AddUser";
+    private String TAG = "TEST-AddUser";
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onAttach(Context context) {
+        super.onAttach(context);
         try {
-            mCallback = (DialogInteractionListener) activity;
+            mCallback = (DialogInteractionListener) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString() + " must implement mAddUserDialogListener");
+            throw new ClassCastException(context.toString() + " must implement mAddUserDialogListener");
         }
-        Log.d(TAG,"ON ATTACH");
     }
-
-
 
     public static CopySavedTweetsDialog newInstance(MyListEntry currentList, ArrayList<String> selectedEntries) {
         CopySavedTweetsDialog frag = new CopySavedTweetsDialog();
@@ -86,7 +76,7 @@ public class CopySavedTweetsDialog extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 //        final UserInfo userInfo = getArguments().getParcelable("userInfo");
 
-        mActiveFavoriteTweetStars = SharedPrefManager.getInstance(getContext()).getActiveTweetFavoriteStars();
+        ArrayList<String> mActiveFavoriteTweetStars = SharedPrefManager.getInstance(getContext()).getActiveTweetFavoriteStars();
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = getActivity().getLayoutInflater();
@@ -125,7 +115,7 @@ public class CopySavedTweetsDialog extends DialogFragment {
         final ArrayList<String> selectedEntries = getArguments().getStringArrayList("selectedEntries");
         mCurrentList = getArguments().getParcelable("currentList");
         final String tweetids = joinSelectedStrings(selectedEntries);
-        mFavoritesLists = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListsForTweet(mActiveFavoriteTweetStars,"",mCurrentList);
+        ArrayList<MyListEntry> mFavoritesLists = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListsForTweet(mActiveFavoriteTweetStars,"",mCurrentList);
 
         if(mFavoritesLists.contains(mCurrentList)) {
             mFavoritesLists.remove(mCurrentList);

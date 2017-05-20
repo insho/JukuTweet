@@ -41,7 +41,7 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
             default:
                 return Tab1Container.newInstance();
         }
-    };
+    }
 
 
     @Override

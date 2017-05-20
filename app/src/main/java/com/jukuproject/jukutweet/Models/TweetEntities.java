@@ -7,9 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by JClassic on 3/20/2017.
+ * Container for "Entities" returned as part of tweets in a twitter api call. Entities
+ * contains "User_Mentions" {@link TweetUserMentions} and url data {@link TweetUrl}
  */
-
 public class TweetEntities  implements Parcelable {
 
 
@@ -40,11 +40,9 @@ public class TweetEntities  implements Parcelable {
     }
 
     // Parcelling part
-    public TweetEntities(Parcel in){
+    private TweetEntities(Parcel in){
         urls = in.createTypedArrayList(TweetUrl.CREATOR);
         user_mentions = in.createTypedArrayList(TweetUserMentions.CREATOR);
-//        this.urls = in.readArrayList(TweetUrl.class.getClassLoader());
-//        this.user_mentions = in.readArrayList(TweetUserMentions.class.getClassLoader());
     }
 
     public int describeContents(){
