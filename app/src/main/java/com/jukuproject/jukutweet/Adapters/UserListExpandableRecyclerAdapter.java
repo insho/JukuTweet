@@ -24,10 +24,10 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 
 /**
- * Created by JClassic on 5/9/2017.
+ * Shows twitter users saved to the db (name, icon etc) as "parent rows", that expand when clicked to show
+ * child entries ("Timeline","Saved Tweets")
+ * @see com.jukuproject.jukutweet.Fragments.UserListFragment
  */
-
-
 public class UserListExpandableRecyclerAdapter extends ExpandableRecyclerAdapter<MenuHeader, MenuChild, UserListExpandableRecyclerAdapter.ParentOptionViewHolder, UserListExpandableRecyclerAdapter.ChildOptionViewHolder> {
 
     private LayoutInflater mInflater;
@@ -42,7 +42,6 @@ public class UserListExpandableRecyclerAdapter extends ExpandableRecyclerAdapter
         mRxBus = rxBus;
     }
 
-    // onCreate ...
     @Override
     public ParentOptionViewHolder  onCreateParentViewHolder(@NonNull ViewGroup parentViewGroup, int viewType) {
 
@@ -129,7 +128,7 @@ public class UserListExpandableRecyclerAdapter extends ExpandableRecyclerAdapter
                 mImageIcon.setVisibility(View.VISIBLE);
 
                 String path;
-                if(userInfo.getProfileImageFilePath()==null) {
+                if(userInfo.getProfileImageFilePath()!=null) {
                     path = userInfo.getProfileImageFilePath();
                 } else {
                     path = userInfo.getProfileImageUrlBig();

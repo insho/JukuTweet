@@ -1268,13 +1268,14 @@ public class QuizOpsHelper implements QuizOperationsInterface {
             * savedTweets until there are enough entries, and then shuffle them. */
                 if(savedTweets.size()>0) {
 
+                    Parcel p = Parcel.obtain();
                     while (savedTweets.size()<resultLimit) {
-                        ArrayList<Tweet> tmpSavedTweets = new ArrayList<>(savedTweets);
-                        Collections.shuffle(tmpSavedTweets);
-
+//                        ArrayList<Tweet> tmpSavedTweets = new ArrayList<>(savedTweets);
+//                        Collections.shuffle(tmpSavedTweets);
+                        int randomSavedTweetIndex = new Random().nextInt(savedTweets.size());
                         //Create deep copy of Tweet via parcel
-                        Parcel p = Parcel.obtain();
-                        p.writeValue(tmpSavedTweets.get(0));
+
+                        p.writeValue(savedTweets.get(randomSavedTweetIndex));
                         p.setDataPosition(0);
                         Tweet randomTweet = (Tweet)p.readValue(Tweet.class.getClassLoader());
                         p.recycle();

@@ -1,29 +1,22 @@
 package com.jukuproject.jukutweet;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Adapters.WordListExpandableAdapter;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.QuizMenuDialog;
-import com.jukuproject.jukutweet.Fragments.MultipleChoiceFragment;
 import com.jukuproject.jukutweet.Fragments.SearchFragment;
 import com.jukuproject.jukutweet.Fragments.StatsFragmentFillintheBlanks;
 import com.jukuproject.jukutweet.Fragments.StatsFragmentMultipleChoice;
@@ -46,6 +39,10 @@ import static com.jukuproject.jukutweet.MainActivity.assignWordWeightsAndGetTota
 
 /**
  * Quiz/PostQuiz Stats activity fragment manager
+ *
+ * @see StatsFragmentMultipleChoice
+ * @see StatsFragmentFillintheBlanks
+ * @see com.jukuproject.jukutweet.Fragments.StatsFragmentProgress
  */
 public class PostQuizStatsActivity extends AppCompatActivity
         implements QuizMenuDialogInteractionListener
@@ -110,8 +107,6 @@ public class PostQuizStatsActivity extends AppCompatActivity
             typeOfQuizThatWasCompleted = mIntent.getStringExtra("typeOfQuizThatWasCompleted"); //The type of quiz that was chosen inthe menu
             mIsTweetListQuiz = mIntent.getBooleanExtra("isTweetList",false);
 
-            /* Depending on the menuOption, pull the appropriate set of data from the intent and run the
-             * appropriate fragment */
             String quizType = mIntent.getStringExtra("quizType");
             mMyListEntry = mIntent.getParcelableExtra("myListEntry");
             mTabNumber = mIntent.getIntExtra("tabNumber",2);
@@ -222,21 +217,9 @@ public class PostQuizStatsActivity extends AppCompatActivity
         }
     }
 
-    /**
-     * If the top bucket is visible after popping the fragment in the backstack, use {@link #updateTabs(String[])} to
-     * include the mylist bucket and show the main page title strip items. Basically reset everything
-     */
+
     @Override
     public void onBackPressed() {
-
-        /*Check to see if current 1st tab fragment is the stats fragment (and not  quiz). If it is
-         * just go straight back to main menu
-         * If it is not a stats fragment, it must be a quiz, so show the "Are you sure" dialog.
-         */
-
-        if(mAdapterTitles != null
-                && mAdapterTitles.length>0
-                && mAdapterTitles[0].equals("Score")) {
 
             Intent intent = new Intent(getBaseContext(), MainActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -245,75 +228,6 @@ public class PostQuizStatsActivity extends AppCompatActivity
             intent.putExtra("lastExpandedPosition",mLastExpandedPosition);
             startActivity(intent);
             finish();
-        } else {
-
-            if(typeOfQuizThatWasCompleted.equals("Multiple Choice")) {
-
-                try {
-                    ((MultipleChoiceFragment) findFragmentByPosition(0)).pauseTimer();
-                } catch (NullPointerException e) {
-                    Log.e(TAG,"Pause timer from quizactivity nullpointer: " + e);
-                } catch (Exception e) {
-                    Log.e(TAG,"pause timer other exception" + e);;
-                }
-            }
-
-            final  AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            final AlertDialog dialog;
-            LinearLayout layout = new LinearLayout(this);
-            layout.setOrientation(LinearLayout.VERTICAL);
-            TextView text = new TextView(this);
-            text.setText(getString(R.string.exitquiz));
-            text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
-            text.setTextColor(ContextCompat.getColor(getBaseContext(), android.R.color.black));
-            layout.addView(text);
-
-            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-
-
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-
-                    Intent intent = new Intent(getBaseContext(), MainActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    intent.putExtra("fragmentWasChanged", true);
-                    startActivity(intent);
-                    finish();
-                }
-            });
-
-
-            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-
-
-                }
-            });
-            builder.setView(layout);
-            dialog = builder.create();
-            dialog.show();
-            dialog.setCanceledOnTouchOutside(true);
-
-
-
-               if(typeOfQuizThatWasCompleted.equals("Multiple Choice")) {
-                dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                    @Override
-                    public void onDismiss(DialogInterface dialog) {
-                            try {
-                                ((MultipleChoiceFragment) findFragmentByPosition(0)).resumeTimer();
-                            } catch (NullPointerException e) {
-                                Log.e(TAG,"Pause timer from quizactivity nullpointer: " + e);
-                            }
-                    }
-                });
-
-
-            }
-
-        }
 
     }
 

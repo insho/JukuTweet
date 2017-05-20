@@ -13,11 +13,11 @@ import com.jukuproject.jukutweet.TabContainers.Tab4Container;
  * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
  * one of the sections/tabs/pages.
  */
-public class SectionsPagerAdapter2 extends FragmentPagerAdapter {
+public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
     private String[] mCurrentTabs;
 
-    public SectionsPagerAdapter2(FragmentManager fm, String[] currentTabs) {
+    public SectionsPagerAdapter(FragmentManager fm, String[] currentTabs) {
         super(fm);
         this.mCurrentTabs = currentTabs;
     }

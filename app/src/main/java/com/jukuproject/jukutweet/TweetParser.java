@@ -84,7 +84,7 @@ public class TweetParser {
      *                          so it is unnecessary to break them down or match them against the dictionary
      * @return An array list of ParseSentencePossibleKanji, representing the core of each possible kanji in the sentence
      */
-    public static ArrayList<ParseSentencePossibleKanji> findCoreKanjiBlocksInSentence(String entireSentence, WordLoader wordLoader, ArrayList<String> spansToExclude) {
+    private static ArrayList<ParseSentencePossibleKanji> findCoreKanjiBlocksInSentence(String entireSentence, WordLoader wordLoader, ArrayList<String> spansToExclude) {
         ArrayList<Integer> IndexPositionsToExclude = getExcludedSpanIndexes(entireSentence,spansToExclude);
         ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence = new ArrayList<>();
         StringBuilder builder = new StringBuilder();
@@ -135,12 +135,6 @@ public class TweetParser {
         addOrReleaseBuilderContents(entireSentence.length(),builder,possibleKanjiInSentence);
         addOrReleaseBuilderContents(entireSentence.length(),builder_katakana,possibleKanjiInSentence,true);
 
-// FOR TESTING
-//        for (int i = 0; i<possibleKanjiInSentence.size(); i ++ )
-//        {
-//                System.out.println("answerList.add(\"" + possibleKanjiInSentence.get(i).getPositionInSentence() + " -- " + possibleKanjiInSentence.get(i).getKanji() + "\");");
-//        }
-
         return possibleKanjiInSentence;
     }
 
@@ -150,7 +144,7 @@ public class TweetParser {
      * @param s string (a single character from the sentence)
      * @return true if it is alphanumeric, false if not
      */
-    public static boolean isAlphaNumericChar(String s) {
+    private static boolean isAlphaNumericChar(String s) {
         return !s.matches("^.*[^\\\\dA-Za-z0-9].*$");
     }
 
@@ -180,7 +174,7 @@ public class TweetParser {
      * @param isKatakana bool true if the contents of the builder are katakana items (which must be marked when the possible kanji is added)
      * @see #findCoreKanjiBlocksInSentence(String, WordLoader, ArrayList)
      */
-    public static void addOrReleaseBuilderContents(Integer index, StringBuilder builder, ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence, Boolean isKatakana) {
+    private static void addOrReleaseBuilderContents(Integer index, StringBuilder builder, ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence, Boolean isKatakana) {
         if (builder.length() > 0) {
             possibleKanjiInSentence.add(new ParseSentencePossibleKanji(index,possibleKanjiInSentence.size(),builder.toString(),isKatakana));
             builder.setLength(0);
@@ -192,7 +186,7 @@ public class TweetParser {
      * @param possibleKanjiInSentence Array of ParseSentencePossibleKanji objects, representing possible kanji within the sentence
      *                                (intial core kanji, furigana, position, better matches for kanji etc)
      */
-    public void attachPrefixesandSuffixesToCoreKanji(ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence) {
+    private void attachPrefixesandSuffixesToCoreKanji(ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence) {
         for (int i = 0; i < possibleKanjiInSentence.size(); i++) {
 
             int prevposition; //Initially set the prevposition to 0 (to avoid out of index errors)
@@ -244,16 +238,8 @@ public class TweetParser {
      *
      * @see #attachPrefixesandSuffixesToCoreKanji(ArrayList)
      */
-    public static int findTrailingHiraganaLength(int indexOfCurrentPossibleKanji, int entireSentenceLength, ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence) {
-////FOR TESTING
-//        System.out.println("--------------------------");
-//        System.out.println("int indexOfCurrentPossibleKanji = " + indexOfCurrentPossibleKanji + ";");
-//            System.out.println("int entireSentenceLength = " + entireSentenceLength + ";");
-//            System.out.println("ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence = new ArrayList();");
-//        for (int i = 0; i<possibleKanjiInSentence.size(); i ++ ) {
-//            System.out.println(" possibleKanjiInSentence.add(new ParseSentencePossibleKanji(" + possibleKanjiInSentence.get(i).getPositionInSentence() + ", \"" + possibleKanjiInSentence.get(i).getKanji() + "\"));");
-//        }
-//        int possibleHiraganaLength;
+    private static int findTrailingHiraganaLength(int indexOfCurrentPossibleKanji, int entireSentenceLength, ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence) {
+
         if ((indexOfCurrentPossibleKanji + 1) < possibleKanjiInSentence.size()) {
             String nextkanji = possibleKanjiInSentence.get(indexOfCurrentPossibleKanji + 1).getKanji();
             return possibleKanjiInSentence.get(indexOfCurrentPossibleKanji + 1).getPositionInSentence() - nextkanji.length();
@@ -274,7 +260,7 @@ public class TweetParser {
      *
      * @see #attachPrefixesandSuffixesToCoreKanji(ArrayList)
      */
-    public ArrayList<String> fillTheSuffixLists(ParseSentencePossibleKanji possibleKanji, int hiraganalength, WordLoader wordLoader ) {
+    private ArrayList<String> fillTheSuffixLists(ParseSentencePossibleKanji possibleKanji, int hiraganalength, WordLoader wordLoader ) {
 
         StringBuilder builder_hiragana = new StringBuilder();
         ArrayList<String> suffixes = new ArrayList<>();
@@ -325,7 +311,7 @@ public class TweetParser {
      *
      * @see #fillTheSuffixLists(ParseSentencePossibleKanji, int, WordLoader)
      */
-    public static int extendedHiraganaLength(int hiraganalength, int entireSentenceLength, int kanjiPositioninSentence) {
+    private static int extendedHiraganaLength(int hiraganalength, int entireSentenceLength, int kanjiPositioninSentence) {
         if(hiraganalength > kanjiPositioninSentence && (hiraganalength - kanjiPositioninSentence)<4) {
             if(hiraganalength + 5 > entireSentenceLength) {
                 return entireSentenceLength;
@@ -345,7 +331,7 @@ public class TweetParser {
      *
      * @see #attachPrefixesandSuffixesToCoreKanji(ArrayList)
      */
-    public ArrayList<String> fillThePrefixList(int prevposition, ParseSentencePossibleKanji possibleKanji) {
+    private ArrayList<String> fillThePrefixList(int prevposition, ParseSentencePossibleKanji possibleKanji) {
 
         StringBuilder builder_hiragana_prev = new StringBuilder();
         ArrayList<String> prefixes = new ArrayList<>();
@@ -379,7 +365,7 @@ public class TweetParser {
      * @see #addEntrytoFinalKanjiIDs(ParseSentencePossibleKanji, ArrayList)
      * @see #chopandCompare(ParseSentencePossibleKanji)
      */
-    public void matchKanjiPiecesAgainstDB(ParseSentencePossibleKanji possibleKanji, ArrayList<ArrayList<String>> brokenUpKanjiCombinations, boolean isFinalMatching, @Nullable ArrayList<Integer> cleanKanjiIDs) {
+    private void matchKanjiPiecesAgainstDB(ParseSentencePossibleKanji possibleKanji, ArrayList<ArrayList<String>> brokenUpKanjiCombinations, boolean isFinalMatching, @Nullable ArrayList<Integer> cleanKanjiIDs) {
 
         boolean shutoff = false;
         for (int m = 0; m < brokenUpKanjiCombinations.size() && !shutoff ; m++) {
@@ -443,7 +429,7 @@ public class TweetParser {
      *
      * @see #matchKanjiPiecesAgainstDB(ParseSentencePossibleKanji, ArrayList, boolean, ArrayList)
      */
-    public ParseSentenceMatchCombination getCountofMatchingPieces(ArrayList<String> possibleCombination) {
+    private ParseSentenceMatchCombination getCountofMatchingPieces(ArrayList<String> possibleCombination) {
 
         ParseSentenceMatchCombination combination = new ParseSentenceMatchCombination();
         int matchingPieces = 0;
@@ -478,7 +464,7 @@ public class TweetParser {
      * @param kanji possible Kanji
      * @return Cursor
      */
-    public Cursor cursorMatchStringAgainstDB(String kanji) {
+    private Cursor cursorMatchStringAgainstDB(String kanji) {
         return InternalDB.getInstance(mContext).getWritableDatabase().rawQuery("SELECT [_id],[Kanji] FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{kanji});
     }
 
@@ -486,15 +472,14 @@ public class TweetParser {
      * Searches dictionary for matches with prefix + core kanji. Ex: "お" + "元気" = "お元気"
      * If match exists, add it to the ParseSentenceMatchCombination
      *
-     //     * @param db Sqlite database connection
      * @param possibleKanji ParseSentencePossibleKanji object, representing possible kanji within the sentence
      * @param possibleCombination Array of a possible combination of a chopped up kanji, to be checked against the database
      * @param matchCombination input ParseSentenceMatchCombination object, representing a broken up core kanji, to be matched against the dictionary
      * @return  Updated ParseSentenceMatchCombination object, representing one, or even several, correctly matched kanji within the sentence. Returnvalue for testing.
      *
-    //     * @see #matchKanjiPiecesAgainstDB(SQLiteDatabase, ParseSentencePossibleKanji, ArrayList, boolean, ArrayList)
+     * @see #matchKanjiPiecesAgainstDB(ParseSentencePossibleKanji, ArrayList, boolean, ArrayList)
      */
-    public ParseSentenceMatchCombination setMatchesPrefix(ParseSentencePossibleKanji possibleKanji, ArrayList<String> possibleCombination, ParseSentenceMatchCombination matchCombination) {
+    private ParseSentenceMatchCombination setMatchesPrefix(ParseSentencePossibleKanji possibleKanji, ArrayList<String> possibleCombination, ParseSentenceMatchCombination matchCombination) {
 
         int kanjibreakupArraySize = possibleCombination.size();
         for(int w = 0;w<kanjibreakupArraySize;w++) {
@@ -560,7 +545,7 @@ public class TweetParser {
      *
      * @see #matchKanjiPiecesAgainstDB(ParseSentencePossibleKanji, ArrayList, boolean, ArrayList)
      */
-    public ParseSentenceMatchCombination setMatchesSuffix(boolean lookForVerbCombos, ParseSentencePossibleKanji possibleKanji, ArrayList<String> possibleCombination, ParseSentenceMatchCombination matchCombination) {
+    private ParseSentenceMatchCombination setMatchesSuffix(boolean lookForVerbCombos, ParseSentencePossibleKanji possibleKanji, ArrayList<String> possibleCombination, ParseSentenceMatchCombination matchCombination) {
         int kanjibreakupArraySize = possibleCombination.size();
         for(int w = 0;w<kanjibreakupArraySize;w++) {
 
@@ -634,7 +619,7 @@ public class TweetParser {
      * @see #chopandCompare(ParseSentencePossibleKanji)
      * @see #addEntrytoFinalKanjiIDs(ParseSentencePossibleKanji, ArrayList)
      */
-    public ArrayList<ArrayList<String>> chopKanjiIntoDifferentCombinations(String coreKanjiBlock) {
+    private ArrayList<ArrayList<String>> chopKanjiIntoDifferentCombinations(String coreKanjiBlock) {
         ArrayList<ArrayList<String>> kanjibreakupArray = new ArrayList<>();
         StringBuilder kanjibreakupBuilder = new StringBuilder();
         int divisor = coreKanjiBlock.length() - 1;
@@ -702,7 +687,7 @@ public class TweetParser {
      *
      * @see #chopandCompare(ParseSentencePossibleKanji)
      */
-    public boolean verbInfinitiveExists( ParseSentencePossibleKanji possibleKanji){
+    private boolean verbInfinitiveExists( ParseSentencePossibleKanji possibleKanji){
         boolean foundVerbInfinitive = false;
         int x = possibleKanji.getVerbCombos().size() - 1;
         while (x >= 0 && !foundVerbInfinitive) {  // we're cycling backwards because the later matches for the verb ending are longer, and therefore more accurate
@@ -742,7 +727,7 @@ public class TweetParser {
      *                                (intial core kanji, furigana, position, better matches for kanji etc)
      * @return Array of finalized Kanji ids
      */
-    public ArrayList<Integer> getCleanKanjiIDsFromBetterMatches(ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence) {
+    private ArrayList<Integer> getCleanKanjiIDsFromBetterMatches(ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence) {
 
 
         int kanjiarrayReOrderIndex = 0;
@@ -783,7 +768,7 @@ public class TweetParser {
      *
      * @see #getCleanKanjiIDsFromBetterMatches(ArrayList)
      */
-    public void addEntrytoFinalKanjiIDs(ParseSentencePossibleKanji possibleKanji, ArrayList<Integer> cleanKanjiIds) {
+    private void addEntrytoFinalKanjiIDs(ParseSentencePossibleKanji possibleKanji, ArrayList<Integer> cleanKanjiIds) {
 
         Cursor cursorDBMatch = cursorMatchStringAgainstDB(possibleKanji.getKanji());
         if(BuildConfig.DEBUG) {
@@ -824,7 +809,7 @@ public class TweetParser {
      * @return List of ParseSentenceItems, some of which are kanji (to be used for lists of kanji in a sentence), others of which are the
      *          text between those kanji (to be used in laying out the FillInTheBlanks questions)
      */
-    public ArrayList<WordEntry>  compileFinalSentenceMap(ArrayList<Integer> cleanKanjiIDs) {
+    private ArrayList<WordEntry>  compileFinalSentenceMap(ArrayList<Integer> cleanKanjiIDs) {
 
         ArrayList<WordEntry> resultMap = new ArrayList<>();
         int foundKanjiPosition = 0;
@@ -845,23 +830,10 @@ public class TweetParser {
                     coreKanji = assignCoreKanji(c.getString(0));
                 }
 
-//                if(BuildConfig.DEBUG) {
-//                    Log.d(TAG, "edictKanji: " + edictKanji);
-//                    Log.d(TAG, "foundkanjiposition: " + foundKanjiPosition);
-//                    Log.d(TAG, "newSentenceFragment: " + newSentenceFragment);
-//                    Log.d(TAG, "OLDsimplekanjistring: " + coreKanji);
-//                }
                 if (newSentenceFragment.contains(coreKanji)) {
 
                     final int startposition = newSentenceFragment.indexOf(coreKanji);
                     final int endposition = startposition + coreKanji.length();
-
-//                    if(BuildConfig.DEBUG) {
-//                        Log.d(TAG, "edictKanji: " + edictKanji);
-//                        Log.d(TAG, "foundkanjiposition + startposition: " + (foundKanjiPosition + startposition));
-//                        Log.d(TAG, "prevkanjiposition + prevkanjilength: " + (prevkanjiposition + prevkanjilength));
-//                    }
-//                    if((foundKanjiPosition + startposition) >= (prevkanjiposition+prevkanjilength)) {
 
                     WordEntry wordEntry = new WordEntry(cleanKanjiIDs.get(index)
                             ,c.getString(0)
@@ -903,7 +875,7 @@ public class TweetParser {
      *
      * @see #compileFinalSentenceMap(ArrayList)
      */
-    public String assignCoreKanji(String edictKanji) {
+    private String assignCoreKanji(String edictKanji) {
 
         if (VerbChunksAndPositions.containsKey(edictKanji)) {
             return  VerbChunksAndPositions.get(edictKanji);
@@ -912,48 +884,47 @@ public class TweetParser {
         }
     }
 
-    /**
-     * Returns the conjugated form (i.e. form as it should be read when a kanji word is clicked on) of a kanji.
-     * This can mean shortening the dictionary furigana entry if the kanji is a conjugated verb.
-     * Ex: For the conjugated verb "失った" the furigana should read "うしな" instead of the full "うしなった"
-     * @param edictKanji clean kanji from dictionary
-     * @param coreKanji conjugated version of the kanji
-     * @param edictFurigana clean furigana from dictionary
-     * @return conjugated (or shortened) form of the dictionary furigana
-     *
-     * @see #compileFinalSentenceMap(ArrayList)
-     */
-    public String assignCoreFurigana(String edictKanji, String coreKanji, String edictFurigana) {
-        if (VerbChunksAndPositions.containsKey(coreKanji)) {
-            String root = coreKanji.substring(VerbChunksAndPositions.get(coreKanji).length());
-            return edictFurigana.substring(0, edictFurigana.length() - root.length());
-        } else if(edictFurigana != null && edictFurigana.length()>=edictKanji.length()) {
-            if(BuildConfig.DEBUG){
-                Log.d(TAG,"onscreenfurigana last furigana char: " + edictFurigana.charAt(edictFurigana.length()-1));
-                Log.d(TAG,"onscreenfurigana last kanji char: " + edictKanji.charAt(edictKanji.length()-1));
-            }
-            int charstosubtractfromfurigana = 0;
-            int furiganaSubtractionMatchCounter  =  1 ;
-            boolean stopiterating= false;
-
-            while(furiganaSubtractionMatchCounter<=edictKanji.length() && !stopiterating){
-                String lastcharfurigana = String.valueOf(edictFurigana.charAt(edictFurigana.length()-furiganaSubtractionMatchCounter));
-                String lastcharkanji = String.valueOf(edictKanji.charAt(edictKanji.length() - furiganaSubtractionMatchCounter));
-                if(lastcharfurigana.equalsIgnoreCase(lastcharkanji)) {
-                    charstosubtractfromfurigana += 1;
-                    Log.d(TAG,"onscreenfurigana lastcharmatch: " + lastcharfurigana);
-                    furiganaSubtractionMatchCounter += 1;
-                } else {
-                    stopiterating = true;
-                }
-
-            }
-            return edictFurigana.substring(0, edictFurigana.length()-charstosubtractfromfurigana);
-        } else {
-            return edictFurigana;
-        }
-    }
-
+//    /**
+//     * Returns the conjugated form (i.e. form as it should be read when a kanji word is clicked on) of a kanji.
+//     * This can mean shortening the dictionary furigana entry if the kanji is a conjugated verb.
+//     * Ex: For the conjugated verb "失った" the furigana should read "うしな" instead of the full "うしなった"
+//     * @param edictKanji clean kanji from dictionary
+//     * @param coreKanji conjugated version of the kanji
+//     * @param edictFurigana clean furigana from dictionary
+//     * @return conjugated (or shortened) form of the dictionary furigana
+//     *
+//     * @see #compileFinalSentenceMap(ArrayList)
+//     */
+//    public String assignCoreFurigana(String edictKanji, String coreKanji, String edictFurigana) {
+//        if (VerbChunksAndPositions.containsKey(coreKanji)) {
+//            String root = coreKanji.substring(VerbChunksAndPositions.get(coreKanji).length());
+//            return edictFurigana.substring(0, edictFurigana.length() - root.length());
+//        } else if(edictFurigana != null && edictFurigana.length()>=edictKanji.length()) {
+//            if(BuildConfig.DEBUG){
+//                Log.d(TAG,"onscreenfurigana last furigana char: " + edictFurigana.charAt(edictFurigana.length()-1));
+//                Log.d(TAG,"onscreenfurigana last kanji char: " + edictKanji.charAt(edictKanji.length()-1));
+//            }
+//            int charstosubtractfromfurigana = 0;
+//            int furiganaSubtractionMatchCounter  =  1 ;
+//            boolean stopiterating= false;
+//
+//            while(furiganaSubtractionMatchCounter<=edictKanji.length() && !stopiterating){
+//                String lastcharfurigana = String.valueOf(edictFurigana.charAt(edictFurigana.length()-furiganaSubtractionMatchCounter));
+//                String lastcharkanji = String.valueOf(edictKanji.charAt(edictKanji.length() - furiganaSubtractionMatchCounter));
+//                if(lastcharfurigana.equalsIgnoreCase(lastcharkanji)) {
+//                    charstosubtractfromfurigana += 1;
+//                    Log.d(TAG,"onscreenfurigana lastcharmatch: " + lastcharfurigana);
+//                    furiganaSubtractionMatchCounter += 1;
+//                } else {
+//                    stopiterating = true;
+//                }
+//
+//            }
+//            return edictFurigana.substring(0, edictFurigana.length()-charstosubtractfromfurigana);
+//        } else {
+//            return edictFurigana;
+//        }
+//    }
 
 
     /**
@@ -1058,7 +1029,7 @@ public class TweetParser {
      *
      * @see #createBetterMatchesForPossibleKanji(ArrayList)
      */
-    public void chopandCompare(ParseSentencePossibleKanji possibleKanji) {
+    private void chopandCompare(ParseSentencePossibleKanji possibleKanji) {
         if (!verbInfinitiveExists(possibleKanji) && possibleKanji.getKanji().length() >= minKanjiLengthtoSplit && !possibleKanji.isFoundInDictionary()) {
             ArrayList<ArrayList<String>> brokenUpKanjiCombinations = chopKanjiIntoDifferentCombinations(possibleKanji.getKanji());
             if(BuildConfig.DEBUG){Log.d(TAG, "BREAKUP(1) brokenUpKanjiCombinations size: " + brokenUpKanjiCombinations.size());}
@@ -1073,7 +1044,7 @@ public class TweetParser {
      *
      * @see #createBetterMatchesForPossibleKanji(ArrayList)
      */
-    public ArrayList<String>  createPrefixSuffixCombinations(ParseSentencePossibleKanji possibleKanji) {
+    private ArrayList<String>  createPrefixSuffixCombinations(ParseSentencePossibleKanji possibleKanji) {
         if(BuildConfig.DEBUG){Log.d(TAG, "ITERATING: " + possibleKanji.getKanji());}
         ArrayList<String> prefixsuffixKanjiCombos = new ArrayList<>();
 
@@ -1121,7 +1092,7 @@ public class TweetParser {
      *
      * @see #createPrefixSuffixCombinations(ParseSentencePossibleKanji)
      */
-    public ArrayList<String>  addCompoundKanjiBlocks(ParseSentencePossibleKanji possibleKanji, ArrayList<String> prefixsuffixKanjiCombos ) {
+    private ArrayList<String>  addCompoundKanjiBlocks(ParseSentencePossibleKanji possibleKanji, ArrayList<String> prefixsuffixKanjiCombos ) {
 
         for (String suffix : possibleKanji.getSuffixes()) {
 
@@ -1176,7 +1147,7 @@ public class TweetParser {
      *
      * @see #findCoreKanjiBlocksInSentence(String, WordLoader, ArrayList)
      */
-    public static ArrayList<Integer> getExcludedSpanIndexes(String entireSentence, ArrayList<String> spansToExclude) {
+    private static ArrayList<Integer> getExcludedSpanIndexes(String entireSentence, ArrayList<String> spansToExclude) {
         ArrayList<Integer> spanIndexes = new ArrayList<>();
         for(String span : spansToExclude) {
             if(entireSentence.contains(span)) {

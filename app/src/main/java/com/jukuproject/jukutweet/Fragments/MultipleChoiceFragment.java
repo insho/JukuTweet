@@ -530,26 +530,22 @@ public class MultipleChoiceFragment extends Fragment {
                 wrongAnswerIds.clear();
 
                 if (mQuizSize <= currentTotal) {
+
+                    Object listInformationObject;
                     if(mSingleUser) {
-                        mCallback.showPostQuizStatsMultipleChoiceForSingleUsersTweets(questionResults
-                                , mQuizType
-                                , mUserInfo
-                                , false
-                                , false
-                                , 0
-                                , currentCorrect
-                                , currentTotal);
+                        listInformationObject = mUserInfo;
                     } else {
+                        listInformationObject = mMyListEntry;
+                    }
                         mCallback.showPostQuizStatsMultipleChoice(questionResults
                                 , mQuizType
-                                , mMyListEntry
+                                , listInformationObject
                                 , false
                                 , false
                                 , 0
                                 , currentCorrect
                                 , currentTotal);
 
-                    }
 
                 } else {
                     setUpQuestion(true);

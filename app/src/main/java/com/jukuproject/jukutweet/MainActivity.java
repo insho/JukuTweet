@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * may be best to switch to a
      * {@link android.support.v4.app.FragmentStatePagerAdapter}.
      */
-    private SectionsPagerAdapter2 mSectionsPagerAdapter;
+    private SectionsPagerAdapter mSectionsPagerAdapter;
 
     /**
      * The {@link ViewPager} that will host the section contents.
@@ -163,7 +163,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
         mAdapterTitles = new String[]{"Users","Tweet Lists","Word Lists","Search"};
         // Create the adapter that will return a fragment for each of the primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter2(getSupportFragmentManager(),mAdapterTitles);
+        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(),mAdapterTitles);
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);

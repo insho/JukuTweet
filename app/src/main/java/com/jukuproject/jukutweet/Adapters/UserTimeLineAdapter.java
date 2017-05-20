@@ -159,9 +159,6 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                 public void onClick(View v) {
 
                 /* Check for, and save */
-//                    Tweet currentTweet = mDataset.get(holder.getAdapterPosition());
-//                    TweetListOperationsInterface helperTweetOps = InternalDB.getTweetInterfaceInstance(mContext);
-
                     if(tweet.getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)) {
 
                         showTweetFavoriteListPopupWindow(tweet,holder);

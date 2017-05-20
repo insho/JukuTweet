@@ -44,8 +44,9 @@ import java.util.ArrayList;
  * Fill in the blank quiz. For each question, a tweet is broken down into component pieces (Kanji, "spinner" quiz questions,
  * and other miscellanious text), and reassembled in the question window. User selects kanji from the spinners and clicks "Score"
  * to score answers. User cannot go on to the next question until all incorrect answers have been corrected.
+ *
+ * @see com.jukuproject.jukutweet.QuizActivity
  */
-
 public class FillInTheBlankFragment extends Fragment implements WordEntryFavoritesChangedListener {
 
     String TAG = "TEST-fillinblank";
@@ -85,7 +86,6 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
             , String colorString
             , MyListEntry myListEntry
     ) {
-
         FillInTheBlankFragment fragment = new FillInTheBlankFragment();
         Bundle args = new Bundle();
         args.putParcelableArrayList("dataset", tweets);
@@ -97,13 +97,13 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
         return  fragment;
     }
 
+
     public static FillInTheBlankFragment newSingleUserInstance(ArrayList<Tweet> tweets
             , String quizSize
             , double totalWeight
             , String colorString
             , UserInfo userInfo
     ) {
-
         FillInTheBlankFragment fragment = new FillInTheBlankFragment();
         Bundle args = new Bundle();
         args.putParcelableArrayList("dataset", tweets);
@@ -124,8 +124,6 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
         linearLayoutVerticalParagraph = (LinearLayout) view.findViewById(R.id.sentence_layout);
         txtQuestionNumber = (TextView) view.findViewById(R.id.textViewTotal);
         scoreButton = (TextView) view.findViewById(R.id.scoreButton);
-
-
         return view;
     }
 
@@ -163,8 +161,6 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
             mUserInfo = savedInstanceState.getParcelable("mUserInfo");
             mSingleUser = savedInstanceState.getBoolean("mSingleUser",false);
             currentDataSetindex = savedInstanceState.getInt("currentDataSetindex",0);
-//            //Randomize the dataset
-//            Collections.shuffle(mDataset);
         } else {
             mDataset = getArguments().getParcelableArrayList("dataset");
             mQuizSize = Integer.parseInt(getArguments().getString("quizSize"));
@@ -187,12 +183,6 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
             }
         });
 
-//        for(int i=0;i<mDataset.size();i++) {
-//            for(WordEntry wordEntry : mDataset.get(i).getWordEntries()) {
-//                Log.i(TAG,"TWEET (" + i + ") " + wordEntry.getKanji() + ", spinner: " + wordEntry.isSpinner());
-//            }
-//        }
-
         //Set up tweet and spinners
         setUpQuestion(mDataset.get(currentDataSetindex));
     }
@@ -201,7 +191,6 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
 
 
     public void setUpQuestion(Tweet tweet) {
-//        Log.i(TAG,"Setting up question with current index: " + currentDataSetindex);
         String sentence = tweet.getText();
         ArrayList<WordEntry> disectedSavedTweet = tweet.getWordEntries();
 
@@ -719,18 +708,16 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
             mCallback.emergencyGoBackToMainActivity();
         } else if(currentTotal>= mQuizSize || currentDataSetindex >= mDataset.size()) {
 
-                if(mSingleUser) {
-                    mCallback.showPostQuizStatsFillintheBlanksForSingleUsersTweets(mDataset
-                            ,mUserInfo
-                            ,currentCorrect
-                            ,currentTotal);
-                } else {
+            Object listInformationObject;
+            if(mSingleUser) {
+                listInformationObject = mUserInfo;
+            } else {
+                listInformationObject = mMyListEntry;
+            }
                     mCallback.showPostQuizStatsFillintheBlanks(mDataset
-                            ,mMyListEntry
+                            ,listInformationObject
                             ,currentCorrect
                             ,currentTotal);
-                }
-
         } else {
                 txtQuestionNumber.setText((currentTotal +1) + "/" + mQuizSize);
                 redundentQuestionCounter += 1;
