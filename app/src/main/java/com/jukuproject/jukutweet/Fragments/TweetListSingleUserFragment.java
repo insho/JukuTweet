@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -12,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ExpandableListView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,14 +44,15 @@ import static com.jukuproject.jukutweet.Fragments.WordListFragment.prepareColorB
  */
 public class TweetListSingleUserFragment extends Fragment {
 
-    String TAG = "TEST-TweetLstSin";
-    FragmentInteractionListener mCallback;
-    TweetListExpandableAdapter SavedTweetsFragmentAdapter;
-    ExpandableListView expListView;
-    ArrayList<MenuHeader> mMenuHeader;
+    private String TAG = "TEST-TweetLstSin";
+    private FragmentInteractionListener mCallback;
+    private TweetListExpandableAdapter SavedTweetsFragmentAdapter;
+    private ExpandableListView expListView;
+    private ArrayList<MenuHeader> mMenuHeader;
     private int lastExpandedPosition = -1;
     private SharedPrefManager sharedPrefManager;
     private UserInfo mUserInfo;
+    private LinearLayout layoutMain;
 
     public static TweetListSingleUserFragment newInstance(UserInfo userInfo) {
         TweetListSingleUserFragment fragment = new TweetListSingleUserFragment();
@@ -63,6 +66,7 @@ public class TweetListSingleUserFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_wordandtweet_lists, container, false);
         expListView = (ExpandableListView) v.findViewById(R.id.lvMyListCategory);
+        layoutMain = (LinearLayout) v.findViewById(R.id.linearLayoutMenuMyLists);
         return v;
     }
 
@@ -90,9 +94,10 @@ public class TweetListSingleUserFragment extends Fragment {
             @Override
             public boolean onGroupClick(ExpandableListView parent, View v,
                                         int groupPosition, long id) {
-
+                ColorBlockMeasurables headerColorBlockMeasurables = mMenuHeader.get(groupPosition).getColorBlockMeasurables();
                 //If the list being clicked on is empty, show (or hide) the "(empty)" header label
-                if(mMenuHeader.get(groupPosition).getColorBlockMeasurables().getTotalCount() == 0) {
+                if(headerColorBlockMeasurables.getTotalCount() == 0
+                        && headerColorBlockMeasurables.getTweetCount()==0) {
                     TextView lblListHeaderCount = (TextView) v.findViewById(R.id.lblListHeaderCount);
                     if (lblListHeaderCount.getVisibility() == TextView.VISIBLE && lblListHeaderCount.getText().toString().length() > 0) {
                         lblListHeaderCount.setVisibility(TextView.GONE);
@@ -140,14 +145,20 @@ public class TweetListSingleUserFragment extends Fragment {
                                         int groupPosition, int childPosition, long id) {
                 String childOption = mMenuHeader.get(groupPosition).getChildOptions().get(childPosition); //This is the text in the child that the user clicked
 
-                /* User shouldn't be able to click on an empty list */
-                if(mMenuHeader.get(groupPosition).getColorBlockMeasurables() == null
-                        || mMenuHeader.get(groupPosition).getColorBlockMeasurables() == null
-                        || mMenuHeader.get(groupPosition).getColorBlockMeasurables().getTotalCount()==0) {
+                /* User shouldn't be able to click on an empty list, but should be able to open a list with
+                 * saved tweets but no parsed vocab so that they can browse the list and parse the vocab in TweetBreakDown Fragment */
+                ColorBlockMeasurables colorBlockMeasurables = mMenuHeader.get(groupPosition).getColorBlockMeasurables();
+                if(colorBlockMeasurables == null
+                        || (colorBlockMeasurables.getTotalCount()==0 && colorBlockMeasurables.getTweetCount()==0)) {
                     Toast.makeText(getContext(), "List is empty", Toast.LENGTH_SHORT).show();
                     return false;
+                } else if(!childOption.equals("Browse/Edit")
+                        && colorBlockMeasurables.getTotalCount()==0 && colorBlockMeasurables.getTweetCount()>0) {
+                    Snackbar snackbar = Snackbar
+                            .make(layoutMain, "Tweets are saved, but vocab has not been extracted from them. Go to Browse/Edit " +
+                                    "and click on a tweet to create the vocab for it. ", Snackbar.LENGTH_LONG);
+                    snackbar.show();
                 }
-
                 switch (childOption) {
                     case "Browse/Edit":
                             TweetListBrowseFragment fragment = TweetListBrowseFragment.newInstance(mUserInfo);
@@ -199,10 +210,10 @@ public class TweetListSingleUserFragment extends Fragment {
                         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
                         float metricsDensity = metrics.density;
 
-                        ColorBlockMeasurables colorBlockMeasurables = prepareColorBlockDataForAList(getContext(),mUserInfo,true,colorBlockMinWidthEstimateView,metricsDensity);
+                        ColorBlockMeasurables colorBlockMeasurablesSingleList = prepareColorBlockDataForAList(getContext(),mUserInfo,true,colorBlockMinWidthEstimateView,metricsDensity);
                         StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newSingleUserTweetsInstance(mUserInfo
                                 , 10
-                                ,colorBlockMeasurables);
+                                ,colorBlockMeasurablesSingleList);
                         ((BaseContainerFragment)getParentFragment()).replaceFragment(statsFragmentProgress, true,"singleUserStats");
                         mCallback.showFab(false);
                         break;
@@ -217,8 +228,10 @@ public class TweetListSingleUserFragment extends Fragment {
         expListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                mCallback.showEditMyListDialog("TweetList",mMenuHeader.get(position).getHeaderTitle(),mMenuHeader.get(position).isSystemList());
-
+                if (ExpandableListView.getPackedPositionType(id) == ExpandableListView.PACKED_POSITION_TYPE_GROUP) {
+                    int groupPosition = ExpandableListView.getPackedPositionGroup(id);
+                    mCallback.showEditMyListDialog("TweetList",mMenuHeader.get(position).getHeaderTitle(),mMenuHeader.get(position).isSystemList());
+                }
                 return false;
             }
         });

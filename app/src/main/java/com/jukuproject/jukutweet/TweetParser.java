@@ -800,7 +800,7 @@ public class TweetParser {
 
             if(BuildConfig.DEBUG){
                 Log.d(TAG, possibleKanji.getKanji() + " NOT found. Sending it to Kanji Breakup Process");
-                Log.e(TAG, "CHECKING/CHOPPING POSSIBLE COMPOUND KANJI COMBOS, ADDING TO KANJIFINAL_CLEAN_INTEGER");
+                Log.i(TAG, "CHECKING/CHOPPING POSSIBLE COMPOUND KANJI COMBOS, ADDING TO KANJIFINAL_CLEAN_INTEGER");
             }
 
 

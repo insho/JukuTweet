@@ -27,4 +27,5 @@ public interface FragmentInteractionListener {
     void runTwitterSearch(String query, String queryOn, @Nullable Long maxId);
     void showAddUserCheckDialog(UserInfo userInfo);
     void parseAndSaveTweet(Tweet tweet);
+    void downloadTweetUserIcons(UserInfo userInfo);
 }

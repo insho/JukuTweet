@@ -46,7 +46,9 @@
 
 
     <string name="empty">empty</string>
+    <string name="empty_parenthesis_space"> (empty)</string>
     <string name="empty_parenthesis">(empty)</string>
+    <string name="dotdotdot">...</string>
     <string name="mylistcount">(%1$d)</string>
 
     <string name="menuchildbrowse">Browse/Edit</string>
@@ -80,6 +82,8 @@
     <string name="statsComplete">%1$d%% Complete</string>
     <string name="percentage">%1$d%%</string>
     <string name="score">%1$d/%2$d</string>
+
+    <string name="tweetcount">x%1$d</string>
 
     <string name="userDetailPopupFriends">%1$s Friends</string>
     <string name="userDetailPopupFollowers">%1$s Followers</string>
@@ -233,7 +237,7 @@
     <string name="menuoptionskanji">Kanji</string>
     <string name="menuoptionsdefinition">Definition</string>
     <string name="menuoptionsnone">None</string>
-    <string name="menuoptionsten">2</string>
+    <string name="menuoptionsten">10</string>
     <string name="menuoptionssixty">60</string>
     <string name="menuoptionswordbuildertype">Repeating</string>
 

@@ -25,6 +25,7 @@ import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.TwitterUserClient;
 import com.squareup.picasso.Picasso;
 
+import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
 import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
@@ -37,6 +38,7 @@ public class AddUserCheckDialog extends DialogFragment {
 
     public DialogInteractionListener mAddUserDialogListener;
     private ImageView imgBanner;
+    private SmoothProgressBar progressBar;
     String TAG = "TEST-AddUser";
 
 
@@ -72,6 +74,7 @@ public class AddUserCheckDialog extends DialogFragment {
         } else {
             dialogView  = inflater.inflate(R.layout.fragment_dialog_addusercheck, null);
             imgBanner = (ImageView) dialogView.findViewById(R.id.imgBanner);
+            progressBar = (SmoothProgressBar) dialogView.findViewById(R.id.progressbar);
             try {
                 loadBestFitBanner(userInfo.getScreenName(),imgBanner);
             } catch (NullPointerException e) {
@@ -158,7 +161,9 @@ public class AddUserCheckDialog extends DialogFragment {
      * @param imgBanner user profile banner
      */
     private void loadBestFitBanner(final String screenName, final ImageView imgBanner) {
-
+        if(progressBar!=null) {
+            progressBar.setVisibility(View.VISIBLE);
+        }
         String token = getResources().getString(R.string.access_token);
         String tokenSecret = getResources().getString(R.string.access_token_secret);
 
@@ -172,6 +177,9 @@ public class AddUserCheckDialog extends DialogFragment {
 
                     @Override public void onCompleted() {
                         if(BuildConfig.DEBUG){Log.d(TAG, "In onCompleted()");}
+                        if(progressBar!=null) {
+                            progressBar.setVisibility(View.GONE);
+                        }
 
                             /* If the user exists and a UserInfo object has been populated,
                             * save it to the database and update the UserInfoFragment adapter */
@@ -205,6 +213,10 @@ public class AddUserCheckDialog extends DialogFragment {
                     }
 
                     @Override public void onError(Throwable e) {
+                        if(progressBar!=null) {
+                            progressBar.setVisibility(View.GONE);
+                        }
+
                         e.printStackTrace();
                         if(BuildConfig.DEBUG){Log.d(TAG, "BestFitBannerURL In onError()");}
                     }

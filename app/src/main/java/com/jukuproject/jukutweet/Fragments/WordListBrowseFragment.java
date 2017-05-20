@@ -30,6 +30,7 @@ import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
 import com.jukuproject.jukutweet.Interfaces.WordListOperationsInterface;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MyListEntry;
+import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
@@ -58,7 +59,7 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
     /*Tracks elapsed time since last click of a recyclerview row. Used to
     * keep from constantly recieving button clicks through the RxBus */
     private long mLastClickTime = 0;
-    FragmentInteractionListener mCallback;
+    private FragmentInteractionListener mCallback;
     private BrowseWordsAdapter mAdapter;
     private ArrayList<WordEntry> mWords;
     private MyListEntry mMyListEntry;
@@ -483,6 +484,19 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
     public void notifySavedTweetFragmentsChanged(){
         mCallback.notifySavedTweetFragmentsChanged();
     };
+
+    /**
+     * If a tweet has been saved in {@link WordDetailPopupDialog}, and the user for that tweet
+     * is not saved in the db (which therefore means the user's icon is not saved in the db), this passes
+     * on the message to save the icon from the {@link com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter} to the Activity,
+     * which uses {@link com.jukuproject.jukutweet.Database.UserOpsHelper#downloadTweetUserIcon(Context, String, String)} in a
+     * subscription to download the icon
+     * @param userInfo UserInfo of user whose icon will be downloaded
+     */
+    public void downloadTweetUserIcons(UserInfo userInfo) {
+        mCallback.downloadTweetUserIcons(userInfo);
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();

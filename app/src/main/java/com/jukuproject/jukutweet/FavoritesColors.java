@@ -16,7 +16,6 @@ import java.util.ArrayList;
  * Container for static methods pertaining to determining/assigning the color of
  * a favorite star for a word or tweet, and updates
  */
-
 public class FavoritesColors {
 
 
@@ -51,12 +50,6 @@ public class FavoritesColors {
     @Nullable
     public static Integer assignStarColor(ItemFavorites itemFavorites, ArrayList<String> preferenceFavorites ) {
 
-//        if(BuildConfig.DEBUG) {
-//            for(String string : preferenceFavorites) {
-//                Log.d("TEST","prefs favs strings: " + string);
-//            }
-//        }
-
         if(itemFavorites.shouldOpenFavoritePopup(preferenceFavorites) &&
                 itemFavorites.systemListCount(preferenceFavorites) >1) {
             return android.R.color.black;
@@ -65,12 +58,35 @@ public class FavoritesColors {
         }
     }
 
-    public static Integer assignStarResource(ItemFavorites itemFavorites, ArrayList<String> preferenceFavorites ) {
+    /**
+     * Depending on input criteria, chooses which favorites icon to assign to the
+     * favorites star (in adapters, tweet breakdown, word detail, etc -- anywhere there are favorite
+     * stars for lists)
+     * @param isTweet bool true if the favorite star in question is for a tweetlist (which requires tweet icon), false if for
+     *                a wordlist (which requires a star)
+     * @param itemFavorites {@link ItemFavorites} object with favorite counts for lists associated with the favorite star
+     * @param preferenceFavorites Array of favorite lists that are available for a word/tweet to be added to
+     * @return resource integer
+     *
+     * @see ItemFavorites
+     * @see com.jukuproject.jukutweet.Adapters.TweetBreakDownAdapter
+     * @see com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog
+     * @see com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter
+     */
+    public static Integer assignStarResource(boolean isTweet,ItemFavorites itemFavorites, ArrayList<String> preferenceFavorites ) {
         if(itemFavorites.shouldOpenFavoritePopup(preferenceFavorites) &&
                 itemFavorites.systemListCount(preferenceFavorites) >1) {
-            return R.drawable.ic_star_multicolor;
+            if(isTweet) {
+                return R.drawable.ic_twitter_multicolor_24dp;
+            } else {
+                return R.drawable.ic_star_multicolor;
+            }
         } else {
-            return R.drawable.ic_star_black;
+            if(isTweet) {
+                return R.drawable.ic_twitter_black_24dp;
+            } else {
+                return R.drawable.ic_star_black;
+            }
         }
     }
 

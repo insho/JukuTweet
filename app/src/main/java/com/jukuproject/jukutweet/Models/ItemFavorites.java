@@ -47,11 +47,7 @@ public class ItemFavorites implements Parcelable {
         this.userListCount = 0;
     }
 
-    /**
-     *
-     * @param userListCount
-     * @see  com.jukuproject.jukutweet.Fragments.UserTimeLineFragment
-     */
+
     public ItemFavorites(int userListCount) {
         this.systemBlueCount = 0;
         this.systemRedCount = 0;

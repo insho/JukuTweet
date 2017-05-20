@@ -2,6 +2,7 @@ package com.jukuproject.jukutweet.Fragments;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.app.Fragment;
@@ -41,6 +42,7 @@ import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.TweetEntities;
 import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.Models.TweetUserMentions;
+import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
@@ -182,13 +184,24 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
 
     if(BuildConfig.DEBUG){Log.d(TAG,"SAVED TWEET: " + mSavedTweet);}
 
+        //Set the tweet entities (urls and user_mentions) for a saved tweet
+        if(mSavedTweet) {
+            TweetEntities entities = InternalDB.getTweetInterfaceInstance(getContext()).getTweetEntitiesForSavedTweet(mTweet.getIdString());
+            mTweet.setEntities(entities);
+        }
+
     /* In the case that the tweet is saved to the db, and that it has already been parsed and the words in it saved
     * to the db as well, all that needs to be done is pull relevent favorite list information for those words and then
     * pass the dataset onto the adapter */
     if(mSavedTweet && mTweet.getWordEntries()!=null) {
 
-        TweetEntities entities = InternalDB.getTweetInterfaceInstance(getContext()).getTweetEntitiesForSavedTweet(mTweet.getIdString());
-        mTweet.setEntities(entities);
+        //If the user icon was not saved, save it
+        if(mTweet.getUser()!=null
+                && !InternalDB.getUserInterfaceInstance(getContext()).duplicateUser(mTweet.getUser().getUserId())) {
+            mCallback.downloadTweetUserIcons(mTweet.getUser());
+        }
+
+
 
             /* If it is a previously saved tweet, the favorite list information for the WordEntries in the
          tweet will not have been previously attached. So attach them now: */
@@ -310,30 +323,33 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
             imgStarLayout.setClickable(true);
             imgStarLayout.setLongClickable(true);
 
-
             try {
 
-                imgStar.setImageResource(FavoritesColors.assignStarResource(mTweet.getItemFavorites(),mActiveTweetFavoriteStars));
-                Integer starColorDrawableInt = FavoritesColors.assignStarResource(mTweet.getItemFavorites(),mActiveTweetFavoriteStars);
-                if(starColorDrawableInt!=R.drawable.ic_star_multicolor) {
-                    try {
-                        imgStar.setColorFilter(ContextCompat.getColor(getContext(), FavoritesColors.assignStarColor(mTweet.getItemFavorites(),mActiveTweetFavoriteStars)));
-                    } catch (NullPointerException e) {
-                        Log.e(TAG,"tweetbreakdown fragment Nullpointer error setting star color filter in word detail popup dialog... Need to assign item favorites to WordEntry(?)" + e.getCause());
-                    }
-                }
+                Integer starColorDrawableInt = FavoritesColors.assignStarResource(true,mTweet.getItemFavorites(),mActiveTweetFavoriteStars);
+                imgStar.setImageResource(starColorDrawableInt);
 
+                if(starColorDrawableInt!=R.drawable.ic_twitter_multicolor_24dp) {
+                    try {
+                        imgStar.setColorFilter(ContextCompat.getColor(getContext(),FavoritesColors.assignStarColor(mTweet.getItemFavorites(),mActiveTweetFavoriteStars)));
+                    } catch (NullPointerException e) {
+                        Log.e(TAG,"tweetBreakDownAdapter multistar Nullpointer error setting star color filter in word detail popup dialog... Need to assign item favorites to WordEntry(?)" + e.getCause());
+                    }
+                } else {
+                    imgStar.setColorFilter(null);
+                }
 
                 imgStarLayout.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         if(BuildConfig.DEBUG){Log.d(TAG,"mActiveFavoriteStars: " + mActiveTweetFavoriteStars);}
 
+
+
                         if(mTweet.getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)) {
                             showTweetFavoriteListPopupWindow();
                         } else {
                             if(FavoritesColors.onFavoriteStarToggleTweet(getContext(),mActiveTweetFavoriteStars,mTweet.getUser().getUserId(),mTweet)) {
-                                imgStar.setImageResource(R.drawable.ic_star_black);
+                                imgStar.setImageResource(R.drawable.ic_twitter_black_24dp);
                                 try {
                                     imgStar.setColorFilter(ContextCompat.getColor(getContext(),FavoritesColors.assignStarColor(mTweet.getItemFavorites(),mActiveTweetFavoriteStars)));
                                 } catch (NullPointerException e) {
@@ -342,10 +358,17 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                             } else {
                                 Log.e(TAG,"OnFavoriteStarToggle did not work...");
                             }
+
+                            /*Check to see if tweet must be deleted from db. Delete if necessary.
+                            * Likewise adds a tweet to the db if it has just been added to a favorites list.
+                            * This bit MUST come after the favorite star toggle, because it determines whether to
+                            * add or delete a tweet based on whether that tweet is in a favorites list. */
+                            saveOrDeleteTweet(mTweet);
                         }
+
+
                     }
                 });
-
 
                 imgStarLayout.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
@@ -542,6 +565,11 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
             @Override
             public void onDismiss() {
                 mCallback.notifySavedTweetFragmentsChanged();
+                /*Check to see if tweet must be deleted from db. Delete if necessary.
+                            * Likewise adds a tweet to the db if it has just been added to a favorites list.
+                            * This bit MUST come after the favorite star toggle, because it determines whether to
+                            * add or delete a tweet based on whether that tweet is in a favorites list. */
+                saveOrDeleteTweet(mTweet);
             }
         });
 
@@ -554,8 +582,8 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                 if(event instanceof MyListEntry) {
                     MyListEntry myListEntry = (MyListEntry) event;
 
-                                        /* Ascertain the type of list that the kanji was added to (or subtracted from),
-                                        and update that list's count */
+                    /* Ascertain the type of list that the kanji was added to (or subtracted from),
+                     and update that list's count */
                     if(myListEntry.getListsSys() == 1) {
                         //Update the color
                         switch (myListEntry.getListName()) {
@@ -591,10 +619,10 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                     if(mTweet.getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)
                             && mTweet.getItemFavorites().systemListCount(mActiveTweetFavoriteStars) >1) {
                         imgStar.setColorFilter(null);
-                        imgStar.setImageResource(R.drawable.ic_star_multicolor);
+                        imgStar.setImageResource(R.drawable.ic_twitter_multicolor_24dp);
 
                     } else {
-                        imgStar.setImageResource(R.drawable.ic_star_black);
+                        imgStar.setImageResource(R.drawable.ic_twitter_black_24dp);
                         try {
                             imgStar.setColorFilter(ContextCompat.getColor(getContext(),FavoritesColors.assignStarColor(mTweet.getItemFavorites(),mActiveTweetFavoriteStars)));
                         } catch (NullPointerException e) {
@@ -621,18 +649,10 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
      */
     public void updateWordEntryItemFavorites(WordEntry wordEntry) {
 
-//        if(BuildConfig.DEBUG) {
-//            Log.i(TAG,"updateWordEntryItemFavorites WordEntry: " + wordEntry.getKanji()
-//                    + ", favs: " + wordEntry.getItemFavorites().getSystemBlueCount());
-//        }
                 if(mTweet.getWordEntries()!=null ) {
                     for(WordEntry tweetWordEntry : mTweet.getWordEntries()) {
                         if(tweetWordEntry.getId().equals(wordEntry.getId())) {
                             tweetWordEntry.setItemFavorites(wordEntry.getItemFavorites());
-//                            if(BuildConfig.DEBUG) {
-//                                Log.i(TAG, "updateWordEntryItemFavorites MATCH! : " + tweetWordEntry.getKanji()
-//                                        + ", updating favs: " + wordEntry.getItemFavorites().getSystemBlueCount());
-//                            }
                         }
                     }
                 }
@@ -654,10 +674,6 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
             for(WordEntry tweetWordEntry : mTweet.getWordEntries()) {
                 for(WordEntry updatedWordEntry : updatedWordEntries ) {
                     if(tweetWordEntry.getId().equals(updatedWordEntry.getId())) {
-//                                if(BuildConfig.DEBUG) {
-//            Log.i(TAG,"updateWordEntryItemFavorites SUPER match found: " + updatedWordEntry.getKanji()
-//                    + ", favs: " + updatedWordEntry.getItemFavorites().getSystemBlueCount() );
-//        }
                         tweetWordEntry.setItemFavorites(updatedWordEntry.getItemFavorites());
                         mAdapter.notifyItemChanged(mTweet.getWordEntries().indexOf(tweetWordEntry));
                     }
@@ -667,6 +683,49 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
 
         mAdapter.notifyDataSetChanged();
     }
+
+    /**
+     * Decides via {@link com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface#saveOrDeleteTweet(Tweet)} whether to
+     * save the tweet or remove it from the db (if it already exists and is unnecessary). If it saves the tweet, it also decides via
+     * whether or not to download the tweet icon with a callback to the "downloadTweetUserIcons" method in the activity. Lastly
+     * it notifies tweet related fragments that a change has been made
+     * @param tweet Tweet to be saved
+     */
+    public void saveOrDeleteTweet(Tweet tweet){
+        //Check for tweet in db
+        try {
+
+            //If tweet was not in the saved tweets database, and was then successfully saved, download tweet icon
+            int savedOrDeleteResultCode = InternalDB.getTweetInterfaceInstance(getContext()).saveOrDeleteTweet(tweet);
+            if(savedOrDeleteResultCode==1) {
+                if(tweet.getUser()!=null
+                        && !InternalDB.getUserInterfaceInstance(getContext()).duplicateUser(tweet.getUser().getUserId())) {
+                    mCallback.downloadTweetUserIcons(tweet.getUser());
+                }
+
+                //Try to parse and insert Tweet Kanji if they do not already exist
+                if(InternalDB.getTweetInterfaceInstance(getContext()).tweetParsedKanjiExistsInDB(tweet) == 0) {
+                    mCallback.parseAndSaveTweet(tweet);
+                }
+            }
+
+
+            if(savedOrDeleteResultCode>=1) {
+
+                mCallback.notifySavedTweetFragmentsChanged();
+            }
+
+        } catch (SQLiteException sqlexception){
+            Log.e(TAG,"saveOrDeleteTweet - sqlite exception when tweet saving, UNABLE to save!");
+
+        } catch (NullPointerException e){
+            Log.e(TAG,"saveOrDeleteTweet - nullpointer when tweet saving, UNABLE to save!");
+
+        }
+
+    }
+
+
 
     /**
      * If a word has been saved in the {@link WordDetailPopupDialog}, a message is passed
@@ -686,6 +745,19 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
     public void notifySavedTweetFragmentsChanged(){
         mCallback.notifySavedTweetFragmentsChanged();
     };
+
+    /**
+     * If a tweet has been saved in {@link WordDetailPopupDialog}, and the user for that tweet
+     * is not saved in the db (which therefore means the user's icon is not saved in the db), this passes
+     * on the message to save the icon from the {@link com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter} to the Activity,
+     * which uses {@link com.jukuproject.jukutweet.Database.UserOpsHelper#downloadTweetUserIcon(Context, String, String)} in a
+     * subscription to download the icon
+     * @param userInfo UserInfo of user whose icon will be downloaded
+     */
+    public void downloadTweetUserIcons(UserInfo userInfo) {
+        mCallback.downloadTweetUserIcons(userInfo);
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();

@@ -8,7 +8,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,9 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bignerdranch.expandablerecyclerview.ExpandableRecyclerAdapter;
-import com.jukuproject.jukutweet.Adapters.TweetListExpandableAdapter;
 import com.jukuproject.jukutweet.Adapters.UserListExpandableRecyclerAdapter;
-import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.UserDetailPopupDialog;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
@@ -32,18 +29,14 @@ import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
 import com.jukuproject.jukutweet.TabContainers.BaseContainerFragment;
-import com.jukuproject.jukutweet.TwitterUserClient;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import rx.Observer;
 import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
-import rx.schedulers.Schedulers;
 
-import static com.jukuproject.jukutweet.Fragments.TweetListSingleUserFragment.getExpandableAdapterColorBlockBasicWidths;
+//import static com.jukuproject.jukutweet.Fragments.TweetListSingleUserFragment.getExpandableAdapterColorBlockBasicWidths;
 
 
 public class UserListFragment extends Fragment {
@@ -152,6 +145,7 @@ public class UserListFragment extends Fragment {
                             Log.e(TAG,"getSavedUserInfo adding extra user info NullPointerException... " + e);
                         }
 
+                        Log.i(TAG,"USER INFO LIST PROFILE PATH: " + c.getString(0) + " - " + c.getString(6));
                         try {
                             userInfo.setProfileImageFilePath(c.getString(6));
                         } catch (NullPointerException e) {
@@ -162,21 +156,10 @@ public class UserListFragment extends Fragment {
 
 
                         ColorBlockMeasurables colorBlockMeasurables = new ColorBlockMeasurables();
-                        colorBlockMeasurables.setGreyCount(c.getInt(9));
-                        colorBlockMeasurables.setRedCount(c.getInt(10));
-                        colorBlockMeasurables.setYellowCount(c.getInt(11));
-                        colorBlockMeasurables.setGreenCount(c.getInt(12));
-                        colorBlockMeasurables.setEmptyCount(0);
                         colorBlockMeasurables.setTweetCount(c.getInt(13));
 
                     /* Set the first available non-empty list to be automatically expanded when
                       fragment is created. This is achieved by making it the "lastexpandedposition" from the get-go */
-
-                        colorBlockMeasurables.setGreyMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreyCount())));
-                        colorBlockMeasurables.setRedMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getRedCount())));
-                        colorBlockMeasurables.setYellowMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getYellowCount())));
-                        colorBlockMeasurables.setGreenMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getGreenCount())));
-                        colorBlockMeasurables.setEmptyMinWidth(getExpandableAdapterColorBlockBasicWidths(getActivity(), String.valueOf(colorBlockMeasurables.getEmptyCount())));
 
                         menuHeader.setColorBlockMeasurables(colorBlockMeasurables);
                         menuHeader.setMenuChildren(childOptions,colorBlockMeasurables,userInfo);
@@ -192,7 +175,7 @@ public class UserListFragment extends Fragment {
         //Pull list of followed twitter users from the database
 //        List<MenuHeader> savedUserInfo = InternalDB.getUserInterfaceInstance(getContext()).getSavedUserInfo();
 
-        //Create UserfListAdapter and attach rxBus click listeners to it
+        //Create UserListAdapter and attach rxBus click listeners to it
         if(mMenuHeader != null && mMenuHeader.size() > 0) {
 
             mAdapter = new UserListExpandableRecyclerAdapter(getContext(),mMenuHeader,_rxBus);
@@ -389,18 +372,18 @@ public class UserListFragment extends Fragment {
                     switch (menuChild.getChildTitle()) {
                         case "Timeline":
 
-                            if(menuChild.getUserInfo()!=null && menuChild.getUserInfo().getUserId()==null) {
-                                if(!mCallback.isOnline()) {
-                                    Toast.makeText(getContext(), "Connect to internet to access information/timeline for " + menuChild.getUserInfo().getDisplayScreenName(), Toast.LENGTH_SHORT).show();
-                                } else if(menuChild.getUserInfo()!=null && menuChild.getUserInfo().getScreenName()!=null){
-                                    updateUserInfoBeforeShowingUserTimeline(menuChild.getUserInfo().getScreenName());
-                                } else {
-                                    /* This would be considered an error.*/
-                                    Log.e(TAG,"Userinfo has null screenname and null user id!?");
-                                }
-
+                            if(!mCallback.isOnline()) {
+//                                if(!mCallback.isOnline()) {
+//                                    Toast.makeText(getContext(), "Connect to internet to access information/timeline for " + menuChild.getUserInfo().getDisplayScreenName(), Toast.LENGTH_SHORT).show();
+//                                } else if(menuChild.getUserInfo()!=null && menuChild.getUserInfo().getScreenName()!=null){
+////                                    updateUserInfoBeforeShowingUserTimeline(menuChild.getUserInfo().getScreenName());
+//                                } else {asdf
+//                                    /* This would be considered an error.*/
+//                                    Log.e(TAG,"Userinfo has null screenname and null user id!?");
+//                                }
+                                Toast.makeText(getContext(), "No internet", Toast.LENGTH_SHORT).show();
                             } else {
-                                Log.d(TAG,"Showing timeline off of button click");
+//                                Log.d(TAG,"Showing timeline off of button click");
                                 showUserTimelineFragment(menuChild.getUserInfo());
                             }
 
@@ -511,61 +494,60 @@ public class UserListFragment extends Fragment {
     }
 
 
-    public void updateUserInfoBeforeShowingUserTimeline(final String screenName) {
-
-        String token = getResources().getString(R.string.access_token);
-        String tokenSecret = getResources().getString(R.string.access_token_secret);
-
-
-        userInfoSubscription = TwitterUserClient.getInstance(token,tokenSecret)
-                .getUserInfo(screenName)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<UserInfo>() {
-                    UserInfo userInfoInstance;
-
-                    @Override public void onCompleted() {
-                        if(BuildConfig.DEBUG){
-                            Log.d(TAG, "In onCompleted()");}
-
-                            /* If the user exists and a UserInfo object has been populated,
-                            * save it to the database and update the UserInfoFragment adapter */
-                        if(userInfoInstance != null) {
-                            InternalDB.getUserInterfaceInstance(getContext()).updateUserInfo(userInfoInstance);
-                            showUserTimelineFragment(userInfoInstance);
-                        } else {
-                            Toast.makeText(getContext(), "Unable to access timeline for " + screenName, Toast.LENGTH_SHORT).show();
-                        }
-                    }
-
-                    @Override public void onError(Throwable e) {
-                        e.printStackTrace();
-                        if(BuildConfig.DEBUG){Log.d(TAG, "In onError()");}
-                        Toast.makeText(getContext(), "Unable to connect to Twitter API", Toast.LENGTH_SHORT).show();
-                        Log.d(TAG,"ERROR CAUSE: " + e.getCause());
-                    }
-
-                    @Override public void onNext(UserInfo userInfo) {
-                        if(BuildConfig.DEBUG) {
-                            Log.d(TAG, "In onNext()");
-                            Log.d(TAG, "userInfo: " + userInfo.getUserId() + ", " + userInfo.getDescription());
-                        }
-                        if(userInfoInstance == null) {
-                            userInfoInstance = userInfo;
-                        }
-
-
-                    }
-                });
-
-    }
-
+//    public void updateUserInfoBeforeShowingUserTimeline(final String screenName) {
+//
+//        String token = getResources().getString(R.string.access_token);
+//        String tokenSecret = getResources().getString(R.string.access_token_secret);
+//
+//
+//        userInfoSubscription = TwitterUserClient.getInstance(token,tokenSecret)
+//                .getUserInfo(screenName)
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(new Observer<UserInfo>() {
+//                    UserInfo userInfoInstance;
+//
+//                    @Override public void onCompleted() {
+//                        if(BuildConfig.DEBUG){
+//                            Log.d(TAG, "In onCompleted()");}
+//
+//                            /* If the user exists and a UserInfo object has been populated,
+//                            * save it to the database and update the UserInfoFragment adapter */
+//                        if(userInfoInstance != null) {
+//                            asdf
+//                            InternalDB.getUserInterfaceInstance(getContext()).updateUserInfo(userInfoInstance);
+//                            showUserTimelineFragment(userInfoInstance);
+//                        } else {
+//                            Toast.makeText(getContext(), "Unable to access timeline for " + screenName, Toast.LENGTH_SHORT).show();
+//                        }
+//                    }
+//
+//                    @Override public void onError(Throwable e) {
+//                        e.printStackTrace();
+//                        if(BuildConfig.DEBUG){Log.d(TAG, "In onError()");}
+//                        Toast.makeText(getContext(), "Unable to connect to Twitter API", Toast.LENGTH_SHORT).show();
+//                        Log.d(TAG,"ERROR CAUSE: " + e.getCause());
+//                    }
+//
+//                    @Override public void onNext(UserInfo userInfo) {
+//                        if(BuildConfig.DEBUG) {
+//                            Log.d(TAG, "In onNext()");
+//                            Log.d(TAG, "userInfo: " + userInfo.getUserId() + ", " + userInfo.getDescription());
+//                        }
+//                        if(userInfoInstance == null) {
+//                            userInfoInstance = userInfo;
+//                        }
+//
+//
+//                    }
+//                });
+//
+//    }
+//
 
     public void showUserTimelineFragment(UserInfo userInfo) {
         mCallback.showProgressBar(true);
         mCallback.showActionBarBackButton(true,userInfo.getDisplayScreenName(),0);
-//        mCallback.showSavedTweetsTabForIndividualUser(userInfo);
-//        mCallback.updateTabs(new String[]{"Timeline","Saved Tweets"});
         mCallback.updateTabs(new String[]{"Timeline","Tweet Lists","Word Lists","Search"});
         ((BaseContainerFragment)getParentFragment()).replaceFragment(UserTimeLineFragment.newInstance(userInfo), true,"timeline");
         mCallback.showFab(false);
@@ -606,24 +588,24 @@ public class UserListFragment extends Fragment {
         super.onDestroy();
     }
 
-    /**
-     * Maximum width of the color bars in the MenuExpandableListAdapter. Right that vlue is set
-     * to half of the screenwidth
-     * @return maximum width in pixels of colored bars
-     *
-     * @see TweetListExpandableAdapter
-     */
-    private int getdimenscore(float multiplier) {
-
-        DisplayMetrics metrics = new DisplayMetrics();
-        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
-//        return Math.round((float)metrics.widthPixels*(float).5);
-        if(metrics.heightPixels>metrics.widthPixels) {
-            return Math.round((float)metrics.widthPixels*multiplier);
-        } else {
-            return Math.round((float)metrics.heightPixels*multiplier);
-        }
-    }
+//    /**
+//     * Maximum width of the color bars in the MenuExpandableListAdapter. Right that vlue is set
+//     * to half of the screenwidth
+//     * @return maximum width in pixels of colored bars
+//     *
+//     * @see TweetListExpandableAdapter
+//     */
+//    private int getdimenscore(float multiplier) {
+//
+//        DisplayMetrics metrics = new DisplayMetrics();
+//        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+////        return Math.round((float)metrics.widthPixels*(float).5);
+//        if(metrics.heightPixels>metrics.widthPixels) {
+//            return Math.round((float)metrics.widthPixels*multiplier);
+//        } else {
+//            return Math.round((float)metrics.heightPixels*multiplier);
+//        }
+//    }
 
 
 //    public void expandTheListViewAtPosition(int position) {

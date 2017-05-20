@@ -106,7 +106,7 @@ public class TweetListExpandableAdapter extends BaseExpandableListAdapter {
 
             /* Add the count of saved tweets contained within the list */
             try {
-                tweetIconText.setText("x"+String.valueOf(mMenuHeader.get(groupPosition).getColorBlockMeasurables().getTweetCount()));
+                tweetIconText.setText(mContext.getString(R.string.tweetcount,mMenuHeader.get(groupPosition).getColorBlockMeasurables().getTweetCount()));
             } catch (Exception e) {
                 tweetIcon.setVisibility(View.GONE);
                 tweetIconText.setVisibility(View.GONE);
@@ -376,6 +376,12 @@ public class TweetListExpandableAdapter extends BaseExpandableListAdapter {
 
         }
 
+        /* If the list is entirely empty, and yet is open, show the
+        * colorblock with a white background and "empty" as text inside.
+        *
+        * However, if it is a tweet list with some tweets in it that haven't yet been parsed
+        * the white background will say "..." instead, enticing the user to browse the list and parse
+        * some tweets */
         if (colorBlockMeasurables.getTotalCount() == 0) {
             txtGrey.setVisibility(View.VISIBLE);
             if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
@@ -385,7 +391,11 @@ public class TweetListExpandableAdapter extends BaseExpandableListAdapter {
                 drawablecolorblock1.setColorFilter(ContextCompat.getColor(mContext, android.R.color.white), PorterDuff.Mode.MULTIPLY);
                 txtGrey.setBackgroundDrawable(drawablecolorblock1);
             }
-            txtGrey.setText(mContext.getString(R.string.empty));
+            if(colorBlockMeasurables.getTweetCount()>0) {
+                txtGrey.setText(mContext.getString(R.string.dotdotdot));
+            } else {
+                txtGrey.setText(mContext.getString(R.string.empty));
+            }
             txtRed.setVisibility(View.GONE);
             txtYellow.setVisibility(View.GONE);
             txtGreen.setVisibility(View.GONE);

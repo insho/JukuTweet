@@ -302,6 +302,7 @@ public class QuizMenuDialog extends DialogFragment {
                                     , txtView3.getText().toString()
                                     , mColorBlockMeasurables.getSelectedColorString());
                         } else {
+                            Log.i(TAG,"QUIZMEN tabnumber: " + mTabNumber);
                             mCallback.goToQuizActivityMultipleChoice(mTabNumber
                                     , mMyListEntry
                                     , mCurrentExpandedPosition

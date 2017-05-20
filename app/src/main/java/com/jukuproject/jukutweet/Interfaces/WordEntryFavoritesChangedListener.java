@@ -1,5 +1,6 @@
 package com.jukuproject.jukutweet.Interfaces;
 
+import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
 
 /**
@@ -11,4 +12,5 @@ public interface WordEntryFavoritesChangedListener {
     void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry);
 //    void wordDetailSaveTweet(Tweet tweet);
     void notifySavedTweetFragmentsChanged();
+    void downloadTweetUserIcons(UserInfo userInfo);
 }

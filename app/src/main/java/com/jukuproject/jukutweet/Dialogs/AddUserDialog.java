@@ -1,8 +1,8 @@
 package com.jukuproject.jukutweet.Dialogs;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
@@ -34,13 +34,14 @@ public class AddUserDialog extends DialogFragment {
     public DialogInteractionListener mAddUserDialogListener;
     String TAG = "TEST-AddUser";
 
+
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onAttach(Context context) {
+        super.onAttach(context);
         try {
-            mAddUserDialogListener = (DialogInteractionListener) activity;
+            mAddUserDialogListener = (DialogInteractionListener) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString() + " must implement mAddUserDialogListener");
+            throw new ClassCastException(context.toString() + " must implement mAddUserDialogListener");
         }
     }
 
@@ -67,15 +68,12 @@ public class AddUserDialog extends DialogFragment {
 
         final EditText editText = (EditText) dialogView.findViewById(R.id.input);
 
-        //TODO test user, remove!!
-//        editText.append(getString(R.string.testUser));
         //TODO -- Remove this after testing
         /** TESTING! Queue up the test feeds**/
         String[] feeds = getResources().getStringArray(R.array.testfeeds);
         /** TEST FEEDS */
         List<String> testFeeds = Arrays.asList(feeds);
         for(int i =0; i<testFeeds.size(); i++) {
-            Log.d("TEST","TESTFEEDS: " + testFeeds.get(i));
             if(!InternalDB.getUserInterfaceInstance(getActivity()).duplicateUser(testFeeds.get(i)) && editText.getText().toString().isEmpty()) {
                 editText.setText(testFeeds.get(i));
             }

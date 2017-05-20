@@ -31,10 +31,10 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
-        public TextView txtUserName;
-        public TextView txtUserScreenName;
-        public TextView txtUserDescription;
-        public ImageView image;
+        private TextView txtUserName;
+        private TextView txtUserScreenName;
+        private TextView txtUserDescription;
+        private ImageView image;
 
 
         public ViewHolder(View v) {

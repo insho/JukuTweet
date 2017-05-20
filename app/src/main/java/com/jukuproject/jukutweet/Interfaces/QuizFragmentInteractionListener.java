@@ -42,4 +42,5 @@ public interface QuizFragmentInteractionListener {
             , int total);
 
     void emergencyGoBackToMainActivity();
+    void downloadTweetUserIcons(UserInfo userInfo);
 }

@@ -2,7 +2,6 @@ package com.jukuproject.jukutweet.Database;
 
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
@@ -42,9 +41,8 @@ public class WordOpsHelper implements WordListOperationsInterface {
      */
     public boolean duplicateWordList(String listName) {
 
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
         String queryRecordExists = "Select Name From " + InternalDB.Tables.TABLE_FAVORITES_LISTS + " where " + InternalDB.Columns.TFAVORITES_COL0 + " = ?" ;
-        Cursor c = db.rawQuery(queryRecordExists, new String[]{listName});
+        Cursor c = sqlOpener.getReadableDatabase().rawQuery(queryRecordExists, new String[]{listName});
         try {
             if (c.moveToFirst()) {
                 return true;
@@ -55,7 +53,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
             Log.e(TAG,"Sqlite exception: " + e);
         } finally {
             c.close();
-            db.close();
         }
         return false;
     }
@@ -68,11 +65,9 @@ public class WordOpsHelper implements WordListOperationsInterface {
      */
     public boolean saveWordList(String listName) {
         try {
-            SQLiteDatabase db = sqlOpener.getWritableDatabase();
             ContentValues values = new ContentValues();
             values.put(InternalDB.Columns.TFAVORITES_COL0, listName.trim());
-            db.insert(InternalDB.Tables.TABLE_FAVORITES_LISTS, null, values);
-            db.close();
+            sqlOpener.getWritableDatabase().insert(InternalDB.Tables.TABLE_FAVORITES_LISTS, null, values);
             return true;
         } catch(SQLiteException exception) {
             Log.e(TAG,"savemylist db insert exception: " + exception);
@@ -94,13 +89,11 @@ public class WordOpsHelper implements WordListOperationsInterface {
      */
     public boolean clearWordList(String listName, boolean isStarFavorite) {
         try{
-            SQLiteDatabase db = sqlOpener.getWritableDatabase();
             if(isStarFavorite) {
-                db.delete(InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES, InternalDB.Columns.TFAVORITES_COL0 + "= ? and " + InternalDB.Columns.TFAVORITES_COL1 + "= 1", new String[]{listName});
+                sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES, InternalDB.Columns.TFAVORITES_COL0 + "= ? and " + InternalDB.Columns.TFAVORITES_COL1 + "= 1", new String[]{listName});
             } else {
-                db.delete(InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES, InternalDB.Columns.TFAVORITES_COL0 + "= ? and " + InternalDB.Columns.TFAVORITES_COL1 + "= 0", new String[]{listName});
+                sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES, InternalDB.Columns.TFAVORITES_COL0 + "= ? and " + InternalDB.Columns.TFAVORITES_COL1 + "= 0", new String[]{listName});
             }
-            db.close();
             return true;
         } catch(SQLiteException exception) {
             return false;
@@ -120,16 +113,13 @@ public class WordOpsHelper implements WordListOperationsInterface {
      */
     public boolean deleteWordList(String listName) {
         try{
-            SQLiteDatabase db = sqlOpener.getWritableDatabase();
-            db.delete(InternalDB.Tables.TABLE_FAVORITES_LISTS, InternalDB.Columns.TFAVORITES_COL0 + "= ?", new String[]{listName});
-            db.delete(InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES, InternalDB.Columns.TFAVORITES_COL0 + "= ? and " + InternalDB.Columns.TFAVORITES_COL1 + "= 0", new String[]{listName});
-            db.close();
+            sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LISTS, InternalDB.Columns.TFAVORITES_COL0 + "= ?", new String[]{listName});
+            sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES, InternalDB.Columns.TFAVORITES_COL0 + "= ? and " + InternalDB.Columns.TFAVORITES_COL1 + "= 0", new String[]{listName});
             return true;
         } catch(SQLiteException exception) {
             return false;
         }
     }
-
 
     /**
      * Changes the name of a user-created Word list
@@ -143,16 +133,15 @@ public class WordOpsHelper implements WordListOperationsInterface {
      */
     public boolean renameWordList(String oldListName, String newListName) {
         try{
-            SQLiteDatabase db = sqlOpener.getWritableDatabase();
 
             String sql = "Update " + InternalDB.Tables.TABLE_FAVORITES_LISTS + "  SET [Name]=? WHERE [Name]=? ";
-            SQLiteStatement statement = db.compileStatement(sql);
+            SQLiteStatement statement = sqlOpener.getWritableDatabase().compileStatement(sql);
             statement.bindString(1, newListName);
             statement.bindString(2, oldListName);
             statement.executeUpdateDelete();
 
             String sql2 = "Update " +  InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " SET [Name]=? WHERE [Name]=? and [Sys] = 0";
-            SQLiteStatement statement2 = db.compileStatement(sql2);
+            SQLiteStatement statement2 = sqlOpener.getWritableDatabase().compileStatement(sql2);
             statement2.bindString(1, newListName);
             statement2.bindString(2, oldListName);
             statement2.executeUpdateDelete();
@@ -172,7 +161,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
      * @return bool true if the cupdate was succesful, false if not
      */
     public boolean changeWordListStarColor(int kanjiID, String originalColor, String updatedColor) {
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
+
 
         try {
             if(originalColor.equals("Black") && updatedColor.equals("Black")) {
@@ -187,7 +176,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
 
             } else {
                 String sql = "Update "  + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " SET "+ InternalDB.Columns.TFAVORITES_COL0 +" = ? WHERE "+ InternalDB.Columns.TFAVORITES_COL0 +"= ? and " + InternalDB.Columns.TFAVORITES_COL1+" = 1 and " + InternalDB.Columns.COL_ID + " = ?";
-                SQLiteStatement statement = db.compileStatement(sql);
+                SQLiteStatement statement = sqlOpener.getWritableDatabase().compileStatement(sql);
                 statement.bindString(1, updatedColor);
                 statement.bindString(2, originalColor);
                 statement.bindString(3, String.valueOf(kanjiID));
@@ -200,8 +189,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
             Log.e(TAG,"changefavoritelistentry sqlite exception: " + e);
         }  catch (NullPointerException e) {
             Log.e(TAG,"changefavoritelistentry something was null: " + e);
-        } finally {
-            db.close();
         }
 
         return false;
@@ -216,20 +203,17 @@ public class WordOpsHelper implements WordListOperationsInterface {
      * @return bool true if successful insert, false if not
      */
     public boolean addWordToWordList(int wordId, String listName, int listSys) {
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
         try {
             ContentValues values = new ContentValues();
             values.put(InternalDB.Columns.COL_ID, wordId);
             values.put(InternalDB.Columns.TFAVORITES_COL0, listName);
             values.put(InternalDB.Columns.TFAVORITES_COL1, listSys);
-            db.insert(InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES, null, values);
+            sqlOpener.getWritableDatabase().insert(InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES, null, values);
             return true;
         } catch (SQLiteException e) {
             Log.e(TAG, "addWordToWordList sqlite exception: " + e);
         } catch (NullPointerException e) {
             Log.e(TAG, "addWordToWordList something was null: " + e);
-        } finally {
-            db.close();
         }
 
         return  false;
@@ -244,17 +228,14 @@ public class WordOpsHelper implements WordListOperationsInterface {
      * @return bool true if successful insert, false if not
      */
     public boolean removeWordFromWordList(int wordId, String listName, int listSys) {
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
         try {
-            db.delete(InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES,
+            sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES,
                     InternalDB.Columns.TFAVORITES_COL0 + " = ? and "  + InternalDB.Columns.TFAVORITES_COL1 + " = ? and " + InternalDB.Columns.COL_ID + " = ? ", new String[]{listName,String.valueOf(listSys),String.valueOf(wordId)});
             return true;
         } catch (SQLiteException e) {
             Log.e(TAG, "removeWordFromWordList sqlite exception: " + e);
         } catch (NullPointerException e) {
             Log.e(TAG, "removeWordFromWordList something was null: " + e);
-        } finally {
-            db.close();
         }
         return  false;
     }
@@ -269,16 +250,13 @@ public class WordOpsHelper implements WordListOperationsInterface {
      * @see WordListBrowseFragment
      */
     public boolean removeMultipleWordsFromWordList(String concatenatedWordIds, MyListEntry myListEntry) {
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
         try {
-            db.execSQL("DELETE FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " WHERE " + InternalDB.Columns.TFAVORITES_COL0 + " = ? and "  + InternalDB.Columns.TFAVORITES_COL1 + " = ? and " + InternalDB.Columns.COL_ID + " in (" + concatenatedWordIds + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+            sqlOpener.getWritableDatabase().execSQL("DELETE FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " WHERE " + InternalDB.Columns.TFAVORITES_COL0 + " = ? and "  + InternalDB.Columns.TFAVORITES_COL1 + " = ? and " + InternalDB.Columns.COL_ID + " in (" + concatenatedWordIds + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
             return true;
         } catch (SQLiteException e) {
             Log.e(TAG, "removeMultipleWordsFromWordList sqlite exception: " + e);
         } catch (NullPointerException e) {
             Log.e(TAG, "removeMultipleWordsFromWordList something was null: " + e);
-        } finally {
-            db.close();
         }
         return  false;
     }
@@ -300,16 +278,12 @@ public class WordOpsHelper implements WordListOperationsInterface {
             , int countOfWordIds
             , @Nullable MyListEntry entryToExclude) {
         ArrayList<MyListEntry> myListEntries = new ArrayList<>();
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
         try {
             //Get a list of distinct favorites lists and their selection levels for the given kanji
             //Except for if a certain favorite list exists that we do not want to include (as occurs in the mylist copy dialog)
-            Cursor c = db.rawQuery("Select [Lists].[Name] "    +
+            Cursor c = sqlOpener.getReadableDatabase().rawQuery("Select [Lists].[Name] "    +
                     ",[Lists].[Sys] "    +
                     ",(Case when UserEntries.Name is null then 0 else 1 END) as SelectionLevel "    +
-//                    ",(Case when UserEntries.Name is null then 0 " +
-//                                " WHEN UserEntries.UserCount > 0 AND UserEntries.UserCount < " + countOfWordIds + " THEN 2 " +
-//                                " else 1 END) as SelectionLevel "    +
                     " "    +
                     "from "    +
                     "( "    +
@@ -350,9 +324,8 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     //Only add system lists (sys==1), but only if the system lists are actived in user preferences
                     if((c.getInt(1) == 0 || activeFavoriteStars.contains(c.getString(0)))
                             && (entryToExclude == null || !(entryToExclude.getListName().equals(c.getString(0)) && entryToExclude.getListsSys() == c.getInt(1)))) {
-                        MyListEntry entry = new MyListEntry(c.getString(0),c.getInt(1),c.getInt(1));
+                        MyListEntry entry = new MyListEntry(c.getString(0),c.getInt(1),c.getInt(2));
                         myListEntries.add(entry);
-//                        Log.d(TAG,"RETURN LISTNAME: " + c.getString(0) + ", SYS: " + c.getInt(1));
                     }
                     c.moveToNext();
                 }
@@ -363,10 +336,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
             Log.e(TAG,"getlist sqlite exception: " + e);
         }  catch (NullPointerException e) {
             Log.e(TAG,"getlist something was null: " + e);
-        } finally {
-            db.close();
         }
-        Log.d(TAG,"GETFAVS returning mylist entries: " + myListEntries.size());
         return myListEntries;
     }
 
@@ -401,17 +371,13 @@ public class WordOpsHelper implements WordListOperationsInterface {
         }
 
         ArrayList<WordEntry> wordEntries = new ArrayList<>();
-        SQLiteDatabase db = sqlOpener.getReadableDatabase();
         try {
-            Cursor c;
-
-            c = db.rawQuery("Select [_id]" +
+            Cursor c = sqlOpener.getReadableDatabase().rawQuery("Select [_id]" +
                             ",Kanji " +
                             ",Furigana " +
                             ",Definition " +
                             ",Correct " +
                             ",Total " +
-//                            ",Percent " +
                             ",Color " +
 
                             " ,[Blue]" +
@@ -491,7 +457,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
                             ",(CASE WHEN ([Sys] = 1  AND Name = 'Orange') then 1 else 0 end) as [Orange]" +
                             ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
                             "FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
-//                            "WHERE [_id] = ?" +
                     ") Group by [_id]" +
 
                             ") as z " +
@@ -531,8 +496,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
                             ,c.getInt(12)
                             ,c.getInt(13)));
 
-
-
                     c.moveToNext();
                 }
                 c.close();
@@ -541,10 +504,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
             }
         } catch (SQLiteException e){
             Log.e(TAG,"getmylistwords Sqlite exception: " + e);
-        } catch (Exception e) {
-            Log.e(TAG,"getmylistwords generic exception: " + e);
-        } finally {
-            db.close();
         }
         return wordEntries;
     }
@@ -561,17 +520,13 @@ public class WordOpsHelper implements WordListOperationsInterface {
             , ColorThresholds colorThresholds) {
 
         ArrayList<WordEntry> wordEntries = new ArrayList<>();
-        SQLiteDatabase db = sqlOpener.getReadableDatabase();
         try {
-            Cursor c;
-
-            c = db.rawQuery("Select [_id]" +
+            Cursor c = sqlOpener.getReadableDatabase().rawQuery("Select [_id]" +
                             ",Kanji " +
                             ",Furigana " +
                             ",Definition " +
                             ",Correct " +
                             ",Total " +
-//                            ",Percent " +
                             ",Color " +
 
                             " ,[Blue]" +
@@ -645,7 +600,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
                             ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
                             "FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
                             " WHERE [_id] IN (" + wordIds + ") " +
-//                            "WHERE [_id] = ?" +
                             ") Group by [_id]" +
 
                             ") as z " +
@@ -668,7 +622,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     wordEntry.setTotal(c.getInt(5));
                     wordEntries.add(wordEntry);
 
-
                     wordEntry.setItemFavorites(new ItemFavorites(c.getInt(7)
                             ,c.getInt(8)
                             ,c.getInt(9)
@@ -676,8 +629,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
                             ,c.getInt(11)
                             ,c.getInt(12)
                             ,c.getInt(13)));
-
-
 
                     c.moveToNext();
                 }
@@ -687,8 +638,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
             }
         } catch (SQLiteException e){
             Log.e(TAG,"getWordsFromAStringofWordIds Sqlite exception: " + e);
-        } finally {
-            db.close();
         }
         return wordEntries;
     }
@@ -700,18 +649,12 @@ public class WordOpsHelper implements WordListOperationsInterface {
      * @return bool true if successful delete, false if error
      */
     public boolean addMultipleWordsToWordList(MyListEntry myListEntry, String concatenatedWordIds) {
-        SQLiteDatabase db = sqlOpener.getReadableDatabase();
         try {
-            db.execSQL("INSERT OR REPLACE INTO " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES +" SELECT DISTINCT [_id],? as [Name], ? as [Sys] FROM [Edict] WHERE [_id] > 0 and [_id] in (" + concatenatedWordIds + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+            sqlOpener.getWritableDatabase().execSQL("INSERT OR REPLACE INTO " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES +" SELECT DISTINCT [_id],? as [Name], ? as [Sys] FROM [Edict] WHERE [_id] > 0 and [_id] in (" + concatenatedWordIds + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
             return true;
         } catch (SQLiteException e){
             Log.e(TAG,"copyKanjiToList Sqlite exception: " + e);
             return false;
-        } catch (Exception e) {
-            Log.e(TAG,"copyKanjiToList generic exception: " + e);
-            return false;
-        } finally {
-            db.close();
         }
     }
 
@@ -899,48 +842,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
 
     }
 
-//    public void supertest() {
-//        SQLiteDatabase db = sqlOpener.getReadableDatabase();
-//
-//            Cursor c = db.rawQuery("SELECT a.[Name]" +
-//                ",a.[Sys]" +
-//                ",a.[_id]" +
-//                ",ifnull(b.[Total],0) as [Total] " +
-//                ",ifnull(b.[Correct],0)  as [Correct]" +
-//                ",CAST(ifnull(b.[Correct],0)  as float)/b.[Total] as [Percent] " +
-//                "FROM (" +
-//                "SELECT  DISTINCT [Name]" +
-//                ",[Sys]" +
-//                ",[_id] " +
-//                "FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
-////                "WHERE [Name] is not NULL and [_id] is not NULL and ([Name] = ? and [Sys] = "+sys+ ") OR " + ALL_LISTS_FLAG + " = 1 " +
-//                ") as a " +
-//                "LEFT JOIN  (" +
-//                "SELECT [_id]" +
-//                ",sum([Correct]) as [Correct]" +
-//                ",sum([Total]) as [Total] " +
-//                "FROM [JScoreboard] " +
-//                "where [_id] in (SELECT DISTINCT [_id] FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + ")" +
-//                " GROUP BY [_id]" +
-//                ") as b " +
-//                "ON a.[_id] = b.[_id] "
-//                ,null);
-//
-//        if(c.getCount()>0) {
-//            c.moveToFirst();
-//            while (!c.isAfterLast()) {
-//                    Log.d(TAG,"SuperTESt NAME:  "  + c.getString(0) + ", sys: " + c.getString(1)
-//                            + ", id: " + c.getString(2)
-//                            + ", correct/total: " + c.getString(4) + "/" + c.getString(3) );
-//
-//                    c.moveToNext();
-//
-//                }
-//            }
-//
-//    };
-
-
     /**
      * Pulls words for Top and Bottom in {@link com.jukuproject.jukutweet.Fragments.StatsFragmentProgress} for PostQuizStats
      * after a quiz (i.e. a quiz that began in {@link com.jukuproject.jukutweet.Fragments.WordListFragment}).
@@ -963,8 +864,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
             ,int totalCountLimit
             ,double topbottomThreshold) {
 
-        SQLiteDatabase db = sqlOpener.getReadableDatabase();
-
         String topBottomSort;
         if(topOrBottom.equals("Top")) {
             topBottomSort = "Where [ColorSort]>0 ORDER BY [ColorSort] desc, [Percent] desc,[Total] desc ";
@@ -975,7 +874,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
         ArrayList<WordEntry> wordEntries = new ArrayList<>();
         try {
 
-            Cursor c = db.rawQuery("SELECT [_id]" +
+            Cursor c = sqlOpener.getReadableDatabase().rawQuery("SELECT [_id]" +
                     ",[Kanji]" +
                     ",[Correct]" +
                     ",[Total] " +
@@ -999,12 +898,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     "[Definition]," +
                     "ifnull([Total],0) as [Total] " +
 
-//
-//                    ",(CASE WHEN ifnull([Total],0) < " + colorThresholds.getGreyThreshold() + " THEN 1 " +
-//                    "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 0  " +
-//                    "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and (CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getRedThreshold() + "  and CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + ") THEN 2  " +
-//                    "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and CAST(ifnull([Correct],0)  as float)/[Total] >= " + colorThresholds.getYellowThreshold() + " THEN 3 " +
-//                    "ELSE 0 END) as [ColorSort] " +
                     ",(CASE WHEN ifnull([Total],0) < " + colorThresholds.getGreyThreshold() + " and [Total] > 0 THEN 1 " +
                     "WHEN ifnull([Total],0) < " + colorThresholds.getGreyThreshold() + " THEN 2 " +
                     "WHEN ifnull([Total],0) >= " + colorThresholds.getGreyThreshold() + " and CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 0  " +
@@ -1077,9 +970,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
                 return wordEntries;
             }
 
-            Log.d(TAG,"greythresh: " + colorThresholds.getGreyThreshold());
-            Log.d(TAG,"redthresh: " + colorThresholds.getRedThreshold());
-
             c.moveToFirst();
             while (!c.isAfterLast()) {
 
@@ -1115,10 +1005,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
 
         } catch (SQLiteException e){
             Log.e(TAG,"getTopFiveWordEntries Sqlite exception: " + e);
-        } catch (Exception e) {
-            Log.e(TAG,"getTopFiveWordEntries generic exception: " + e);
-        } finally {
-            db.close();
         }
         return  wordEntries;
     }
@@ -1131,16 +1017,14 @@ public class WordOpsHelper implements WordListOperationsInterface {
      * @param colorThresholds
      * @return
      */
-    //TODO SOMETHING IS WRONGG WITH PLACEHOLDERS...
     public ArrayList<WordEntry> getSearchWordEntriesForKanji(String hiraganaKatakanaPlaceholders
             , String wordIds
             , ColorThresholds colorThresholds) {
 
         ArrayList<WordEntry> wordEntries = new ArrayList<>();
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
         try {
 
-            Cursor c = db.rawQuery("SELECT * " +
+            Cursor c = sqlOpener.getReadableDatabase().rawQuery("SELECT * " +
                     "FROM " +
                     "(" +
                     "SELECT [_id]" +
@@ -1215,7 +1099,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     ",(CASE WHEN ([Sys] = 1  AND Name = 'Orange') then 1 else 0 end) as [Orange]" +
                     ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
                     "FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
-//                    "WHERE [_id] = ?" +
                     "where [_id] in ( " + wordIds + ")" +
                     ") as x Group by [_id]" +
                     ") )" +
@@ -1252,14 +1135,10 @@ public class WordOpsHelper implements WordListOperationsInterface {
                 if(BuildConfig.DEBUG) {Log.d(TAG,"getmylistwords c.getcount was 0!!");}
             }
 
-
-
         }  catch (SQLiteException e) {
             Log.e(TAG,"getSearchWordEntriesForKanji sqlite exception: " + e);
         }  catch (NullPointerException e) {
             Log.e(TAG,"getSearchWordEntriesForKanji something was null: " + e);
-        } finally {
-            db.close();
         }
 
         return wordEntries;
@@ -1272,14 +1151,12 @@ public class WordOpsHelper implements WordListOperationsInterface {
      * @param colorThresholds
      * @return
      */
-    //TODO HOW IS THIS DIFFERENT FROM THE ONE ABOVE?
     public ArrayList<WordEntry> getSearchWordEntriesForDefinition(String wordIds, ColorThresholds colorThresholds) {
 
         ArrayList<WordEntry> wordEntries = new ArrayList<>();
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
         try {
 
-            Cursor c = db.rawQuery("SELECT * " +
+            Cursor c = sqlOpener.getWritableDatabase().rawQuery("SELECT * " +
                     "FROM " +
                     "(" +
                     "SELECT [_id]" +
@@ -1353,11 +1230,8 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     ",(CASE WHEN ([Sys] = 1  AND Name = 'Orange') then 1 else 0 end) as [Orange]" +
                     ", (CASE WHEN [Sys] <> 1 THEN 1 else 0 end) as [Other] " +
                     "FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
-//                    "WHERE [_id] = ?" +
                     " where [_id] in ( " + wordIds + ")" +
                     ") as x Group by [_id]" +
-
-
                     ") )" +
                     ") " +
                     " ORDER BY [Common]", null);
@@ -1398,8 +1272,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
             Log.e(TAG,"getSearchWordEntriesForDefinition sqlite exception: " + e);
         }  catch (NullPointerException e) {
             Log.e(TAG,"getSearchWordEntriesForDefinition something was null: " + e);
-        } finally {
-            db.close();
         }
 
         return wordEntries;
@@ -1408,15 +1280,13 @@ public class WordOpsHelper implements WordListOperationsInterface {
     public String getWordIdsForRomajiMatches(ArrayList<String> possibleHiraganaSearchQueries
     ,ArrayList<String> possibleKatakanaSearchQueries) {
         StringBuilder idStringBuilder = new StringBuilder();
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
         try {
 
-
-        /** First, search for katakana & hiragana ONLY words */
+        /* First, search for katakana & hiragana ONLY words */
         if(possibleKatakanaSearchQueries.size()>0) {
             for(String possibleKatakanaQuery : possibleKatakanaSearchQueries){
 
-                Cursor c = db.rawQuery("Select _id from Edict Where Furigana is null and [Kanji] like ? Order by Common Limit 15", new String[]{'%' + possibleKatakanaQuery + '%'});
+                Cursor c = sqlOpener.getReadableDatabase().rawQuery("Select _id from Edict Where Furigana is null and [Kanji] like ? Order by Common Limit 15", new String[]{'%' + possibleKatakanaQuery + '%'});
                 if(BuildConfig.DEBUG){Log.d(TAG,"Looking for ONLY hiragana/katakana query: " + possibleKatakanaQuery);}
                 if(c.getCount()>0) {
                     c.moveToFirst();
@@ -1431,17 +1301,14 @@ public class WordOpsHelper implements WordListOperationsInterface {
 
                 }
                 c.close();
-
-
             }
-
         }
 
-        /** Next, search for Kanji by matching their furigana */
+        /* Next, search for Kanji by matching their furigana */
         if(possibleHiraganaSearchQueries.size()>0) {
             for(String possibleHiraganaQuery : possibleHiraganaSearchQueries){
 
-                Cursor c = db.rawQuery("Select _id from Edict Where Furigana is not null and [Furigana] like ? Order by Common Limit 20", new String[]{'%' + possibleHiraganaQuery + '%'});
+                Cursor c = sqlOpener.getReadableDatabase().rawQuery("Select _id from Edict Where Furigana is not null and [Furigana] like ? Order by Common Limit 20", new String[]{'%' + possibleHiraganaQuery + '%'});
                 if(BuildConfig.DEBUG){Log.d(TAG,"Looking for Kanji matches on furigana: " + possibleHiraganaQuery);}
                 if(c.getCount()>0) {
                     c.moveToFirst();
@@ -1456,8 +1323,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
 
                 }
                 c.close();
-
-
             }
 
         }
@@ -1465,19 +1330,16 @@ public class WordOpsHelper implements WordListOperationsInterface {
             Log.e(TAG,"getWordIdsForRomajiMatches sqlite exception: " + e);
         }  catch (NullPointerException e) {
             Log.e(TAG,"getWordIdsForRomajiMatches something was null: " + e);
-        } finally {
-            db.close();
         }
         return idStringBuilder.toString();
     }
 
     public String getWordIdsForKanjiMatch(String kanji) {
         StringBuilder idStringBuilder = new StringBuilder();
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
         try {
 
 
-                    Cursor c = db.rawQuery("Select _id, RankNumber, Common FROM (" +
+                    Cursor c = sqlOpener.getReadableDatabase().rawQuery("Select _id, RankNumber, Common FROM (" +
                             "Select _id, 1 as [RankNumber],[Common] from Edict Where [Kanji] = ? " +
                             " UNION " +
                             " Select _id, 2 as [RankNumber],[Common] from Edict Where [Furigana] = ? " +
@@ -1498,7 +1360,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
                             ,'%' + kanji + '%'
                             ,'%' + kanji
                             ,kanji + '%'});
-//                    if(BuildConfig.DEBUG){Log.d(TAG,"Looking for Kanji matches on furigana: " + possibleHiraganaQuery);}
                     if(c.getCount()>0) {
                         c.moveToFirst();
                         while(!c.isAfterLast()){
@@ -1512,27 +1373,19 @@ public class WordOpsHelper implements WordListOperationsInterface {
 
                     }
                     c.close();
-
-
-
-
-
         }  catch (SQLiteException e) {
             Log.e(TAG,"getWordIdsForKanjiMatch sqlite exception: " + e);
         }  catch (NullPointerException e) {
             Log.e(TAG,"getWordIdsForKanjiMatch something was null: " + e);
-        } finally {
-            db.close();
         }
         return idStringBuilder.toString();
     }
 
     public String getWordIdsForDefinitionMatch(String query) {
         StringBuilder idStringBuilder = new StringBuilder();
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
         try {
-            /** Lastly, search for the definition*/
-            Cursor c = db.rawQuery("Select _id " +
+            /* Lastly, search for the definition*/
+            Cursor c = sqlOpener.getReadableDatabase().rawQuery("Select _id " +
                     "FROM " +
                     "(" +
                     "Select _id" +
@@ -1557,7 +1410,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
                 c.close();
             } else {
 
-                Cursor d = db.rawQuery("Select _id " +
+                Cursor d = sqlOpener.getReadableDatabase().rawQuery("Select _id " +
                         "FROM " +
                         "(" +
                         "Select _id" +
@@ -1586,69 +1439,16 @@ public class WordOpsHelper implements WordListOperationsInterface {
             Log.e(TAG,"getWordIdsForDefinitionMatch sqlite exception: " + e);
         }  catch (NullPointerException e) {
             Log.e(TAG,"getWordIdsForDefinitionMatch something was null: " + e);
-        } finally {
-            db.close();
         }
-//        /** First, search for katakana & hiragana ONLY words */
-//        if(possibleKatakanaSearchQueries.size()>0) {
-//            for(String possibleKatakanaQuery : possibleKatakanaSearchQueries){
-//
-//                Cursor c = db.rawQuery("Select _id from Edict Where Furigana is null and [Kanji] like ? Order by Common Limit 15", new String[]{'%' + possibleKatakanaQuery + '%'});
-//                if(BuildConfig.DEBUG){Log.d(TAG,"Looking for ONLY hiragana/katakana query: " + possibleKatakanaQuery);}
-//                if(c.getCount()>0) {
-//                    c.moveToFirst();
-//                    while(!c.isAfterLast()){
-//                        if(BuildConfig.DEBUG){Log.d(TAG,"RESULT FOUND for " + possibleKatakanaQuery + ": " + c.getString(0));}
-//                        if (idStringBuilder.length() > 0) {
-//                            idStringBuilder.append(", ");
-//                        }
-//                        idStringBuilder.append(c.getString(0));
-//                        c.moveToNext();
-//                    }
-//
-//                }
-//                c.close();
-//
-//
-//            }
-//
-//        }
-
-//        /** Next, search for Kanji by matching their furigana */
-//        if(possibleHiraganaSearchQueries.size()>0) {
-//            for(String possibleHiraganaQuery : possibleHiraganaSearchQueries){
-//
-//                Cursor c = db.rawQuery("Select _id from Edict Where Furigana is not null and [Furigana] like ? Order by Common Limit 20", new String[]{'%' + possibleHiraganaQuery + '%'});
-//                if(BuildConfig.DEBUG){Log.d(TAG,"Looking for Kanji matches on furigana: " + possibleHiraganaSearchQueries.get(a));}
-//                if(c.getCount()>0) {
-//                    c.moveToFirst();
-//                    while(!c.isAfterLast()){
-//                        if(BuildConfig.DEBUG){Log.d(TAG, "RESULT FOUND for " + possibleHiraganaQuery  + ": " + c.getString(0));}
-//                        if (idStringBuilder.length() > 0) {
-//                            idStringBuilder.append(", ");
-//                        }
-//                        idStringBuilder.append(c.getString(0));
-//                        c.moveToNext();
-//                    }
-//
-//                }
-//                c.close();
-//
-//
-//            }
-//
-//        }
-
         return idStringBuilder.toString();
     }
 
 
     public Boolean myListContainsWordEntry(MyListEntry myListEntry, WordEntry wordEntry) {
 
-            SQLiteDatabase db = sqlOpener.getWritableDatabase();
             String queryRecordExists = "Select _id From " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " where " + InternalDB.Columns.COL_ID + " = ? AND " + InternalDB.Columns.TFAVORITES_COL0 + " = ? AND " + InternalDB.Columns.TFAVORITES_COL1 + " = ?" ;
             try {
-                Cursor c = db.rawQuery(queryRecordExists, new String[]{String.valueOf(wordEntry.getId()),myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+                Cursor c = sqlOpener.getReadableDatabase().rawQuery(queryRecordExists, new String[]{String.valueOf(wordEntry.getId()),myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
                 if (c.getCount()>0) {
                     c.close();
                     return true;
@@ -1656,37 +1456,13 @@ public class WordOpsHelper implements WordListOperationsInterface {
                     c.close();
                     return false;
                 }
-
             } catch (NullPointerException e) {
                 Log.e(TAG,"myListContainsWordEntry nullpointer exception: " + e);
             } catch (SQLiteException e) {
                 Log.e(TAG,"myListContainsWordEntry Sqlite exception: " + e);
-            } finally {
-                db.close();
             }
         return true;
 
     }
 
-//    public int getUserCreatedWordListCount() {
-//        int userCreatedListCount = 0;
-//        /** Before inserting record, check to see if feed already exists */
-//        SQLiteDatabase db = sqlOpener.getWritableDatabase();
-//
-//        try {
-//
-//            Cursor c = db.rawQuery("Select Count(Name) as [Count] From " + InternalDB.Tables.TABLE_FAVORITES_LISTS, null);
-//            if (c.moveToFirst()) {
-//                userCreatedListCount = c.getInt(0);
-//            }
-//            c.close();
-//        } catch (SQLiteException e) {
-//            Log.e(TAG,"getUserCreatedWordListCount Sqlite exception: " + e.getCause());
-//        } finally {
-//            db.close();
-//        }
-//
-//
-//        return userCreatedListCount;
-//    };
 }

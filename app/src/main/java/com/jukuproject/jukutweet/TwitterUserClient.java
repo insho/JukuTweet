@@ -24,10 +24,12 @@ import rx.Observable;
 import se.akerfeldt.okhttp.signpost.OkHttpOAuthConsumer;
 import se.akerfeldt.okhttp.signpost.SigningInterceptor;
 
-/**
- * Created by JClassic on 2/21/2017.
- */
 
+/**
+ * twitter service client for retrofit call to twitter api
+ *
+ * @see TwitterService
+ */
 public class TwitterUserClient {
 
     private static final String TWITTER_BASE_URL = "https://api.twitter.com/1.1/";
@@ -68,10 +70,29 @@ public class TwitterUserClient {
         return instance;
     }
 
+
+    /**
+     * Accesses Twitter API and gets user info for a Twitter user, if it exists
+     * @param username screen_name of twitter user
+     *
+     * @see TwitterService
+     * @return {@link TwitterService} Observable object for {@link UserInfo} from twitter API
+     */
     public Observable<UserInfo> getUserInfo(@NonNull String username) {
         return twitterService.getUserInfo(username);
     }
 
+
+    /**
+     * Uses Twitter API to pull the "timeline" of recent Tweets for a twitter user
+     * @param username Screen_name of user
+     * @param count max number of results
+     * @return Observable list of Tweet objects
+     *
+     * @see TwitterService#getUserTimeline(String, int)
+     * @see TwitterService#getMoreUserTimeline(String, int, long)
+     * @see com.jukuproject.jukutweet.Fragments.UserTimeLineFragment
+     */
     public Observable<List<Tweet>> getUserTimeline(@NonNull String username, int count, @Nullable Long maxId) {
         if(maxId==null) {
             return twitterService.getUserTimeline(username, count);
@@ -80,18 +101,61 @@ public class TwitterUserClient {
         }
     }
 
+
+    /**
+     * Uses Twitter API to pull twitter banner URL info for a twitter user
+     * @param username user screen_name
+     * @return {@link UserProfileBanner} object for a given user
+     *
+     * @see com.jukuproject.jukutweet.Dialogs.AddUserCheckDialog
+     * @see TwitterService#getProfileBanner(String)
+     */
     public Observable<UserProfileBanner> getProfileBanner(@NonNull String username) {
         return twitterService.getProfileBanner(username);
     }
 
+
+    /**
+     * User Twitter API to pull a list of Followers for a given screen_name
+     * @param username User screen_name whose followers are being looked up
+     * @param cursor position within result set. Used to continue pulling from a given start position.
+     * @param limit max number of results
+     * @return Observable list of UserInfo objects for a User's Followers
+     *
+     * @see com.jukuproject.jukutweet.Dialogs.UserDetailPopupDialog
+     * @see TwitterService#getFollowerUserInfo(String, Long, int, Boolean, Boolean)
+     */
     public Observable<UserFollowersListContainer> getFollowersUserInfo(@NonNull String username,Long cursor, int limit) {
         return twitterService.getFollowerUserInfo(username,cursor,limit,false,false);
     }
 
+
+    /**
+     * User Twitter API to pull a list of Friends for a given screen_name
+     * @param username User screen_name whose friends are being looked up
+     * @param cursor position within result set. Used to continue pulling from a given start position.
+     * @param limit max number of results
+     * @return Observable list of UserInfo objects for a User's Friends
+     *
+     * @see com.jukuproject.jukutweet.Dialogs.UserDetailPopupDialog
+     * @see TwitterService#getFriendsUserInfo(String, Long, int, Boolean, Boolean)
+     */
     public Observable<UserFollowersListContainer> getFriendsUserInfo(@NonNull String username,Long cursor, int limit) {
         return twitterService.getFriendsUserInfo(username,cursor,limit,false,false);
     }
 
+    /**
+     * Search twitter API for tweets containing a query string
+     * @param query query string (i.e. a japanese kanji)
+     * @param languageCode 2 digit country code
+     * @param limit max number of results
+     * @return Observable list of matching Tweet objects
+     *
+     *  @see com.jukuproject.jukutweet.Fragments.SearchFragment
+     *  @see com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog
+     *  @see TwitterService#getSearchTweets(String, String, int)
+     *  @see TwitterService#getMoreSearchTweets(String, String, int, long)
+     */
     public Observable<SearchTweetsContainer> getSearchTweets(String query, String languageCode, int limit, @Nullable Long maxId) {
         String queryStringWithQuotes = "\"" + query + "\"";
 
@@ -103,6 +167,15 @@ public class TwitterUserClient {
 
     }
 
+    /**
+     * Search twitter API for users
+     * @param username search query (user name or screen_name)
+     * @param limit max number of results
+     * @return Observable list of matching UserInfo objects
+     *
+     * @see com.jukuproject.jukutweet.Fragments.SearchFragment
+     * @see TwitterService#getSearchUsers(String, int)
+     */
     public Observable<List<UserInfo>> getSearchUsers(@NonNull String username, int limit) {
         return twitterService.getSearchUsers(username,limit);
     }

@@ -3,6 +3,7 @@ package com.jukuproject.jukutweet.Adapters;
 import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import com.bignerdranch.expandablerecyclerview.ParentViewHolder;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.MenuChild;
 import com.jukuproject.jukutweet.Models.MenuHeader;
+import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.R;
 import com.squareup.picasso.Picasso;
 
@@ -99,11 +101,11 @@ public class UserListExpandableRecyclerAdapter extends ExpandableRecyclerAdapter
 
         public void bind(final MenuHeader menuHeader) {
 
+           final  UserInfo userInfo = menuHeader.getUserInfo();
             /* If the user only contains the username, and everything else is null, it is because the device
             * was offline while saving the user, and this row should be greyed out, and only display the username... */
-            if(menuHeader.getUserInfo() != null
-                    && menuHeader.getUserInfo().getUserId() == null) {
-                mTxtUserName.setText(menuHeader.getUserInfo().getDisplayScreenName());
+            if(userInfo.getUserId() == null) {
+                mTxtUserName.setText(userInfo.getDisplayScreenName());
                 mTxtUserName.setAlpha(.7f);
                 mTxtUserName.setPadding(0,10,0,10);
                 mTxtUserScreenName.setVisibility(View.GONE);
@@ -115,26 +117,37 @@ public class UserListExpandableRecyclerAdapter extends ExpandableRecyclerAdapter
                 mTxtUserName.setAlpha(1.0f);
                 mTxtUserName.setPadding(0,0,0,0);
                 mTxtUserScreenName.setVisibility(View.VISIBLE);
-                mTxtUserName.setText(menuHeader.getUserInfo().getName());
-                mTxtUserScreenName.setText(menuHeader.getUserInfo().getDisplayScreenName());
+                mTxtUserName.setText(userInfo.getName());
+                mTxtUserScreenName.setText(userInfo.getDisplayScreenName());
 
-                if(menuHeader.getUserInfo().getDescription()!=null && menuHeader.getUserInfo().getDescription().length()>0) {
-                    mTxtUserDescription.setText(menuHeader.getUserInfo().getDescription());
+                if(userInfo.getDescription()!=null && userInfo.getDescription().length()>0) {
+                    mTxtUserDescription.setText(userInfo.getDescription());
                     mTxtUserDescription.setVisibility(View.VISIBLE);
                 } else {
                     mTxtUserDescription.setVisibility(View.GONE);
                 }
                 mImageIcon.setVisibility(View.VISIBLE);
+
+                String path;
+                if(userInfo.getProfileImageFilePath()==null) {
+                    path = userInfo.getProfileImageFilePath();
+                } else {
+                    path = userInfo.getProfileImageUrlBig();
+                }
+
                 Picasso picasso = new Picasso.Builder(mContext)
                         .listener(new Picasso.Listener() {
                             @Override
                             public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception) {
                                 //Here your log
+                                Log.e(TAG,"SET Image FAILED: " + userInfo.getScreenName());
                                 mImageIcon.setVisibility(View.INVISIBLE);
                             }
+
+
                         })
                         .build();
-                picasso.load(menuHeader.getUserInfo().getProfileImageUrlBig())
+                picasso.load(path)
                         .into(mImageIcon);
                 mImageIcon.setAdjustViewBounds(true);
             }
@@ -145,7 +158,7 @@ public class UserListExpandableRecyclerAdapter extends ExpandableRecyclerAdapter
             public boolean onLongClick(View v) {
                 /*If it's a long click, send the UserInfo object back to UserInfoFragment,
                 * to trigger opening the RemoveUser dialog */
-                mRxBus.sendLongClick(menuHeader.getUserInfo());
+                mRxBus.sendLongClick(userInfo);
                 return false;
             }
         });
@@ -185,7 +198,7 @@ public class UserListExpandableRecyclerAdapter extends ExpandableRecyclerAdapter
 
             /* Add the count of saved tweets contained within the list */
                     try {
-                        mTweetIconText.setText("x"+String.valueOf(menuChild.getColorBlockMeasurables().getTweetCount()));
+                        mTweetIconText.setText(mContext.getString(R.string.tweetcount,menuChild.getColorBlockMeasurables().getTweetCount()));
                     } catch (Exception e) {
                         mTweetIcon.setVisibility(View.GONE);
                         mTweetIconText.setVisibility(View.GONE);
@@ -193,7 +206,7 @@ public class UserListExpandableRecyclerAdapter extends ExpandableRecyclerAdapter
                 } else {
                     mTweetIcon.setVisibility(View.GONE);
                     mTweetIconText.setVisibility(View.INVISIBLE);
-                    mTweetIconText.setText(" (empty)");
+                    mTweetIconText.setText(mContext.getString(R.string.empty_parenthesis_space));
                     mTxtListChild.setAlpha(.7f);
                     mTweetIconText.setAlpha(.7f);
 

@@ -1,5 +1,6 @@
 package com.jukuproject.jukutweet.Fragments;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.app.Fragment;
@@ -20,6 +21,7 @@ import com.jukuproject.jukutweet.Adapters.StatsTopAndBottomAdapter;
 import com.jukuproject.jukutweet.Adapters.WordListExpandableAdapter;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
+import com.jukuproject.jukutweet.Interfaces.PostQuizFragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
 import com.jukuproject.jukutweet.MainActivity;
@@ -36,12 +38,13 @@ import java.util.ArrayList;
 import rx.functions.Action1;
 
 /**
- *
+ * Overall stats for a WordList, TweetList, or Single User's Saved Tweets collection. Has the colorblock
+ * breakdown for the list, as well as a list of Top 10 and Bottom 10 words for the list.
  */
-
 public class StatsFragmentProgress extends Fragment implements WordEntryFavoritesChangedListener {
 
     String TAG = "Test-stats2";
+    private PostQuizFragmentInteractionListener mCallback;
     private long mLastClickTime = 0;
 //    private String mQuizType;
     private MyListEntry mMyListEntry;
@@ -112,16 +115,16 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
         return  fragment;
     }
 
-//    @Override
-//    public void onAttach(Context context) {
-//        super.onAttach(context);
-//        try {
-//            mCallback = (FragmentInteractionListener) context;
-//        } catch (ClassCastException e) {
-//            throw new ClassCastException(context.toString()
-//                    + " must implement FragmentInteractionListener");
-//        }
-//    }
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        try {
+            mCallback = (PostQuizFragmentInteractionListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()
+                    + " must implement OnHeadlineSelectedListener");
+        }
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater,
@@ -368,6 +371,18 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
 
     public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {}
     public void notifySavedTweetFragmentsChanged(){};
+
+    /**
+     * If a tweet has been saved in {@link WordDetailPopupDialog}, and the user for that tweet
+     * is not saved in the db (which therefore means the user's icon is not saved in the db), this passes
+     * on the message to save the icon from the {@link com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter} to the Activity,
+     * which uses {@link com.jukuproject.jukutweet.Database.UserOpsHelper#downloadTweetUserIcon(Context, String, String)} in a
+     * subscription to download the icon
+     * @param userInfo UserInfo of user whose icon will be downloaded
+     */
+    public void downloadTweetUserIcons(UserInfo userInfo) {
+        mCallback.downloadTweetUserIcons(userInfo);
+    }
 
     /**
      * Compiles an array of edict kanji Ids from the bottomDataSet, so that they can be passed on to the

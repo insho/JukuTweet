@@ -218,11 +218,15 @@ public class InternalDB extends SQLiteOpenHelper
                                 "%s TEXT, " +
                                 "%s TEXT, " +
                                 "%s TEXT, " +
+                                "%s TEXT, " +
+                                "%s TEXT, " +
                                 "%s TEXT)", Tables.TABLE_SAVED_TWEETS,
                         Columns.TSAVEDTWEET_COL2, //Tweet_id
                         Columns.TSAVEDTWEET_COL0, //UserId
+                        Columns.TMAIN_COL7, //UserName
                         Columns.TSAVEDTWEET_COL1, //UserScreenName
                         Columns.TSAVEDTWEET_COL3, //CreatedAt
+                        Columns.TMAIN_COL6, //ProfileImgUrl
                         Columns.TSAVEDTWEET_COL4); // Text
 
         sqlDB.execSQL(sqlQueryJSavedTweet);
@@ -372,6 +376,7 @@ public class InternalDB extends SQLiteOpenHelper
 
         return new WordLoader(hiragana,katakana,symbols,romajiMap,verbEndingMap,verbEndingsRoot,verbEndingsConjugation);
     }
+
 
 }
 

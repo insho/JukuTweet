@@ -1,6 +1,7 @@
 package com.jukuproject.jukutweet.Fragments;
 
 import android.content.Context;
+import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.app.Fragment;
@@ -533,12 +534,16 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
 
                         if(isUniqueClick(1000) && event instanceof Tweet) {
                             final Tweet tweet = (Tweet) event;
-                            if(InternalDB.getTweetInterfaceInstance(getContext()).tweetParsedKanjiExistsInDB(tweet) == 0) {
-                                mCallback.parseAndSaveTweet(tweet);
-                            } else {
-                                Log.e(TAG,"Tweet parsed kanji exists code is funky");
-                            }
-                            mCallback.notifySavedTweetFragmentsChanged();
+//                            if(tweet.getUser()!=null) {
+//                                mCallback.downloadTweetUserIcons(tweet.getUser());
+//                            }
+//                            if(InternalDB.getTweetInterfaceInstance(getContext()).tweetParsedKanjiExistsInDB(tweet) == 0) {
+//                                mCallback.parseAndSaveTweet(tweet);
+//                            } else {
+//                                Log.e(TAG,"Tweet parsed kanji exists code is funky");
+//                            }
+//                            mCallback.notifySavedTweetFragmentsChanged();
+                            saveOrDeleteTweet(tweet);
                         }
 
                     }
@@ -714,7 +719,57 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
         mCallback.notifySavedTweetFragmentsChanged();
     };
 
+    /**
+     * If a tweet has been saved in {@link WordDetailPopupDialog}, and the user for that tweet
+     * is not saved in the db (which therefore means the user's icon is not saved in the db), this passes
+     * on the message to save the icon from the {@link com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter} to the Activity,
+     * which uses {@link com.jukuproject.jukutweet.Database.UserOpsHelper#downloadTweetUserIcon(Context, String, String)} in a
+     * subscription to download the icon
+     * @param userInfo UserInfo of user whose icon will be downloaded
+     */
+    public void downloadTweetUserIcons(UserInfo userInfo) {
+        mCallback.downloadTweetUserIcons(userInfo);
+    }
 
+
+
+    /**
+     * Decides via {@link com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface#saveOrDeleteTweet(Tweet)} whether to
+     * save the tweet or remove it from the db (if it already exists and is unnecessary). If it saves the tweet, it also decides via
+     * whether or not to download the tweet icon with a callback to the "downloadTweetUserIcons" method in the activity. Lastly
+     * it notifies tweet related fragments that a change has been made
+     * @param tweet
+     */
+    public void saveOrDeleteTweet(Tweet tweet){
+        //Check for tweet in db
+        try {
+
+            //If tweet was not in the saved tweets database, and was then successfully saved, download tweet icon
+            int savedOrDeleteResultCode = InternalDB.getTweetInterfaceInstance(getContext()).saveOrDeleteTweet(tweet);
+            if(savedOrDeleteResultCode==1) {
+                if(tweet.getUser()!=null
+                        && !InternalDB.getUserInterfaceInstance(getContext()).duplicateUser(tweet.getUser().getUserId())) {
+                    mCallback.downloadTweetUserIcons(tweet.getUser());
+                }
+
+                //Try to parse and insert Tweet Kanji if they do not already exist
+                if(InternalDB.getTweetInterfaceInstance(getContext()).tweetParsedKanjiExistsInDB(tweet) == 0) {
+                    mCallback.parseAndSaveTweet(tweet);
+                }
+            }
+            if(savedOrDeleteResultCode>=1) {
+                mCallback.notifySavedTweetFragmentsChanged();
+            }
+
+        } catch (SQLiteException sqlexception){
+            Log.e(TAG,"saveOrDeleteTweet - sqlite exception when tweet saving, UNABLE to save!");
+
+        } catch (NullPointerException e){
+            Log.e(TAG,"saveOrDeleteTweet - nullpointer when tweet saving, UNABLE to save!");
+
+        }
+
+    }
 
     @Override
     public void onPause() {

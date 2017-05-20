@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.database.sqlite.SQLiteException;
 import android.graphics.Point;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -107,11 +108,11 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
     private DisplayMetrics metrics;
 
     /* Holds a list of tweets that have been favorited (in any/all lists). Used to check
-* whether or not a tweet needs to have favorites assigned to it. This exists
-* so that we dont' have to make a sql query for each Tweet that gets returned from
-* the api lookup.
-*
-* It will only be added to if one of the tweets in the search is made by a user that is saved in the database */
+    * whether or not a tweet needs to have favorites assigned to it. This exists
+    * so that we dont' have to make a sql query for each Tweet that gets returned from
+    * the api lookup.
+    *
+    * It will only be added to if one of the tweets in the search is made by a user that is saved in the database */
     private HashMap<String,ItemFavorites> tweetIdStringsInFavorites;
     private ArrayList<String> userIdsinDB;
 
@@ -259,9 +260,12 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
 
 
     /**
-     * TODO write this
-     * @param view
-     * @param event
+     * Handles touch events on the mainlayout, which allows user to
+     * close the dialog by pressing and swiping down on the upper part of the frame.
+     * It determines what motion is occurring and runs {@link #closeDownAndDismissDialog(int)}
+     * if swipe is far enough down the screen.
+     * @param view mainlayout view
+     * @param event motion event (up, down, round and round, etc)
      * @return
      */
     public boolean onTouch(View view, MotionEvent event) {
@@ -348,8 +352,11 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         return true;
     }
 
-
-
+    /**
+     * Sends dialog layout off the bottom of the screen in an animation and
+     * dismisses the dialog
+     * @param currentPosition position on the screen
+     */
     private void closeDownAndDismissDialog(int currentPosition) {
         isClosing = true;
 
@@ -404,10 +411,8 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
      */
     public void showProgressBar(Boolean show) {
         if(show) {
-//            divider.setVisibility(View.GONE);
             progressBar.setVisibility(View.VISIBLE);
         } else {
-//            divider.setVisibility(View.VISIBLE);
             progressBar.setVisibility(View.GONE);
         }
     }
@@ -489,7 +494,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         imgStarLayout.setLongClickable(true);
 
         final ArrayList<String> activeFavoriteWordStars = SharedPrefManager.getInstance(getContext()).getActiveFavoriteStars();
-        Integer starColorDrawableInt = FavoritesColors.assignStarResource(mWordEntry.getItemFavorites(), activeFavoriteWordStars);
+        Integer starColorDrawableInt = FavoritesColors.assignStarResource(false,mWordEntry.getItemFavorites(), activeFavoriteWordStars);
         imgStar.setImageResource(starColorDrawableInt);
 
         if(starColorDrawableInt!=R.drawable.ic_star_multicolor) {
@@ -561,6 +566,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
                 if(searchQuerySubscription!=null) {
                     searchQuerySubscription.unsubscribe();
                 }
+                showProgressBar(false);
 
                 if(!showSavedTweetsSelected) {
 
@@ -769,8 +775,14 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
                             /*Tweet has already been saved and favorite star updated, so
                              now pass on request to calling fragment/MainActivity to update
                              any tweet-related fragments to reflect the change */
+//                            if(((Tweet)event).getUser()!=null
+//                                    && !InternalDB.getUserInterfaceInstance(getContext()).duplicateUser(((Tweet)event).getUser().getUserId())) {
+//                                mCallback.downloadTweetUserIcons(((Tweet)event).getUser());
+//                            }
+//
+//                            mCallback.notifySavedTweetFragmentsChanged();
 
-                            mCallback.notifySavedTweetFragmentsChanged();
+                            saveOrDeleteTweet((Tweet)event);
                         }
                     }
 
@@ -914,6 +926,40 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         popupWindow.showAsDropDown(imgStar,-xadjust,-yadjust);
 
     };
+
+
+    /**
+     * Decides via {@link com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface#saveOrDeleteTweet(Tweet)} whether to
+     * save the tweet or remove it from the db (if it already exists and is unnecessary). If it saves the tweet, it also decides via
+     * whether or not to download the tweet icon with a callback to the "downloadTweetUserIcons" method in the activity. Lastly
+     * it notifies tweet related fragments that a change has been made
+     * @param tweet
+     */
+    public void saveOrDeleteTweet(Tweet tweet){
+        //Check for tweet in db
+        try {
+
+            //If tweet was not in the saved tweets database, and was then successfully saved, download tweet icon
+            int savedOrDeleteResultCode = InternalDB.getTweetInterfaceInstance(getContext()).saveOrDeleteTweet(tweet);
+            if(savedOrDeleteResultCode==1) {
+                if(tweet.getUser()!=null
+                        && !InternalDB.getUserInterfaceInstance(getContext()).duplicateUser(tweet.getUser().getUserId())) {
+                    mCallback.downloadTweetUserIcons(tweet.getUser());
+                }
+            }
+            if(savedOrDeleteResultCode>=1) {
+                mCallback.notifySavedTweetFragmentsChanged();
+            }
+
+        } catch (SQLiteException sqlexception){
+            Log.e(TAG,"saveOrDeleteTweet - sqlite exception when tweet saving, UNABLE to save!");
+
+        } catch (NullPointerException e){
+            Log.e(TAG,"saveOrDeleteTweet - nullpointer when tweet saving, UNABLE to save!");
+
+        }
+
+    }
 
     @Override
     public void onAttach(Context context) {

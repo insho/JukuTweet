@@ -74,4 +74,14 @@ public interface TweetListOperationsInterface {
             ,ColorThresholds colorThresholds
             ,int totalCountLimit
             ,double topbottomThreshold);
+
+    int saveOrDeleteTweet(Tweet tweet);
+
+//    ArrayList<MenuHeader> getTweetListMenuHeaders(ColorThresholds colorThresholds
+//            , @Nullable MyListEntry myListEntry
+//            , Context context
+//            , View colorBlockMinWidthEstimateView
+//            , ArrayList<String> childOptions
+//            , ArrayList<String> availableFavoritesStars
+//            , float metricsDensity);
 }

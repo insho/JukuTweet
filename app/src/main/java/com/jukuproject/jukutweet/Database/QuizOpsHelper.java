@@ -377,9 +377,8 @@ public class QuizOpsHelper implements QuizOperationsInterface {
             , Integer resultLimit) {
 
         ArrayList<Tweet> savedTweets = new ArrayList<>();
-        SQLiteDatabase db = sqlOpener.getReadableDatabase();
         try {
-            Cursor c = db.rawQuery("SELECT DISTINCT TweetIds.[Tweet_id]" +
+            Cursor c = sqlOpener.getReadableDatabase().rawQuery("SELECT DISTINCT TweetIds.[Tweet_id]" +
                             ",[MetaData].ScreenName " +
                             ",[MetaData].UserName " +
                             ",[MetaData].[UserId] " +
@@ -568,7 +567,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
 
                         //FLush old tweet
                         Tweet tweetToAdd = new Tweet(tweet);
-                        if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0 && (setRandomSpinnersForTweet(tweetToAdd,db,myListEntry,"Tweet")>0)) {
+                        if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0 && (setRandomSpinnersForTweet(tweetToAdd,sqlOpener.getReadableDatabase(),myListEntry,"Tweet")>0)) {
                             savedTweets.add(tweetToAdd);
                         }
 
@@ -599,7 +598,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
 
                     if(c.isLast()) {
                         Tweet lastTweet = new Tweet(tweet);
-                        if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0 && (setRandomSpinnersForTweet(lastTweet,db,myListEntry,"Tweet")>0)) {
+                        if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0 && (setRandomSpinnersForTweet(lastTweet,sqlOpener.getReadableDatabase(),myListEntry,"Tweet")>0)) {
                             savedTweets.add(lastTweet);
                         }
                     }
@@ -621,15 +620,13 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                     p.setDataPosition(0);
                     Tweet randomTweet = (Tweet)p.readValue(Tweet.class.getClassLoader());
                     p.recycle();
-                    setRandomSpinnersForTweet(randomTweet,db,myListEntry,"Tweet");
+                    setRandomSpinnersForTweet(randomTweet,sqlOpener.getReadableDatabase(),myListEntry,"Tweet");
                     savedTweets.add(randomTweet);
                 }
             }
 
         } catch (SQLiteException e){
             Log.e(TAG,"getFillintheBlanksTweetsForATweetList Sqlite exception: " + e);
-        } finally {
-            db.close();
         }
         return savedTweets;
     }
@@ -652,9 +649,8 @@ public class QuizOpsHelper implements QuizOperationsInterface {
             , Integer resultLimit) {
 
         ArrayList<Tweet> savedTweets = new ArrayList<>();
-        SQLiteDatabase db = sqlOpener.getReadableDatabase();
         try {
-            Cursor c = db.rawQuery("SELECT DISTINCT TweetIds.[Tweet_id]" +
+            Cursor c = sqlOpener.getReadableDatabase().rawQuery("SELECT DISTINCT TweetIds.[Tweet_id]" +
                             ",[MetaData].ScreenName " +
                             ",[MetaData].UserName " +
                             ",[MetaData].[UserId] " +
@@ -853,7 +849,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
 
                         //FLush old tweet
                         Tweet tweetToAdd = new Tweet(tweet);
-                        if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0 && (setRandomSpinnersForTweet(tweetToAdd,db,userInfo)>0)) {
+                        if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0 && (setRandomSpinnersForTweet(tweetToAdd,sqlOpener.getReadableDatabase(),userInfo)>0)) {
                             savedTweets.add(tweetToAdd);
                         }
 
@@ -884,7 +880,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
 
                     if(c.isLast()) {
                         Tweet lastTweet = new Tweet(tweet);
-                        if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0 && (setRandomSpinnersForTweet(lastTweet,db,userInfo)>0)) {
+                        if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0 && (setRandomSpinnersForTweet(lastTweet,sqlOpener.getReadableDatabase(),userInfo)>0)) {
                             savedTweets.add(lastTweet);
                         }
                     }
@@ -909,7 +905,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
 
                         ArrayList<WordEntry> randomWordEntries = new ArrayList<>(randomTweet.getWordEntries());
                         randomTweet.setWordEntries(randomWordEntries);
-                        setRandomSpinnersForTweet(randomTweet,db,userInfo);
+                        setRandomSpinnersForTweet(randomTweet,sqlOpener.getReadableDatabase(),userInfo);
                         savedTweets.add(randomTweet);
 
                     }
@@ -921,8 +917,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
 
         } catch (SQLiteException e){
             Log.e(TAG,"getFillintheBlanksTweetsForASingleUserSavedTweetList Sqlite exception: " + e);
-        } finally {
-            db.close();
         }
 
         return savedTweets;
@@ -964,10 +958,9 @@ public class QuizOpsHelper implements QuizOperationsInterface {
 
         String limit = "LIMIT " + String.valueOf(resultLimit);
 
-        SQLiteDatabase db = sqlOpener.getReadableDatabase();
         try {
 
-            Cursor c = db.rawQuery("SELECT TweetIds.[Tweet_id]" +
+            Cursor c = sqlOpener.getReadableDatabase().rawQuery("SELECT TweetIds.[Tweet_id]" +
                             ",[MetaData].ScreenName " +
                             ",[MetaData].UserName " +
                             ",[MetaData].[UserId] " +
@@ -1222,7 +1215,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                     } else if(!currentTweetId.equals(c.getString(0))){
 
                             //FLush old tweet
-                            if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0 && setSpinnersForTweetWithMyListWords(db,"Word",myListEntry,tweet,possibleSpinners)>0) {
+                            if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0 && setSpinnersForTweetWithMyListWords(sqlOpener.getReadableDatabase(),"Word",myListEntry,tweet,possibleSpinners)>0) {
                                 if(BuildConfig.DEBUG) {
                                     Log.d(TAG,"Flushing tweet: " + tweet.getText());
                                     Log.d(TAG,"number of kanji in tweet: " + tweet.getWordEntries().size());
@@ -1264,7 +1257,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             Log.d(TAG,"last  number of kanji in tweet: " + tweet.getWordEntries().size());
                         }
                         Tweet lastTweet = new Tweet(tweet);
-                        if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0 && setSpinnersForTweetWithMyListWords(db,"Word",myListEntry,lastTweet,possibleSpinners)>0) {
+                        if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0 && setSpinnersForTweetWithMyListWords(sqlOpener.getReadableDatabase(),"Word",myListEntry,lastTweet,possibleSpinners)>0) {
                             savedTweets.add(new Tweet(tweet));
                         }
                     }
@@ -1286,7 +1279,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                         Tweet randomTweet = (Tweet)p.readValue(Tweet.class.getClassLoader());
                         p.recycle();
 
-                        setSpinnersForTweetWithMyListWords(db,"Word",myListEntry,randomTweet,possibleSpinners);
+                        setSpinnersForTweetWithMyListWords(sqlOpener.getReadableDatabase(),"Word",myListEntry,randomTweet,possibleSpinners);
                         savedTweets.add(randomTweet);
                     }
                 }
@@ -1295,8 +1288,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
 
         } catch (SQLiteException e){
             Log.e(TAG,"getFillintheBlanksTweetsForWordList Sqlite exception: " + e);
-        }  finally {
-            db.close();
         }
         return savedTweets;
     }
@@ -1309,9 +1300,8 @@ public class QuizOpsHelper implements QuizOperationsInterface {
      */
     public ArrayList<Integer> getIdsForWordList(MyListEntry myListEntry) {
         ArrayList<Integer> ids = new ArrayList<>();
-        SQLiteDatabase db = sqlOpener.getReadableDatabase();
         try {
-            Cursor c = db.rawQuery(
+            Cursor c = sqlOpener.getReadableDatabase().rawQuery(
                     "SELECT DISTINCT [_id]" +
                             " FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
                             " WHERE [Name] = ? and [Sys] = ? ",new String[]{myListEntry.getListName()
@@ -1331,8 +1321,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
             Log.e(TAG,"getIdsForWordList Sqlite exception: " + e);
         } catch (Exception e) {
             Log.e(TAG,"getIdsForWordList generic exception: " + e);
-        } finally {
-            db.close();
         }
 
         return ids;
@@ -1455,7 +1443,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
      * @return bool true if insert was succesful, false if not
      */
     public boolean addWordScoreToScoreBoard(int wordId, int total, int correct) {
-        SQLiteDatabase db = sqlOpener.getReadableDatabase();
 
         try {
             ContentValues values = new ContentValues();
@@ -1463,7 +1450,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
             values.put(InternalDB.Columns.COL_ID, wordId);
             values.put(InternalDB.Columns.TSCOREBOARD_COL0, total);
             values.put(InternalDB.Columns.TSCOREBOARD_COL1, correct);
-            db.insertWithOnConflict(InternalDB.Tables.TABLE_SCOREBOARD, null, values,
+            sqlOpener.getReadableDatabase().insertWithOnConflict(InternalDB.Tables.TABLE_SCOREBOARD, null, values,
                     SQLiteDatabase.CONFLICT_REPLACE);
             return true;
 
@@ -1473,8 +1460,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
         } catch (NullPointerException e) {
             Log.e(TAG, "addWordScoreToScoreBoard something was null: " + e);
             return false;
-        } finally {
-            db.close();
         }
     }
 

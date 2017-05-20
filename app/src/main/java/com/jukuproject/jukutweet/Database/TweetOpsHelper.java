@@ -50,10 +50,9 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      */
     public boolean duplicateTweetList(String listName) {
 
-        /** Before inserting record, check to see if feed already exists */
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
+        /* Before inserting record, check to see if feed already exists */
         String queryRecordExists = "Select Name From " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS + " where " + InternalDB.Columns.TFAVORITES_COL0 + " = ?" ;
-        Cursor c = db.rawQuery(queryRecordExists, new String[]{listName});
+        Cursor c = sqlOpener.getWritableDatabase().rawQuery(queryRecordExists, new String[]{listName});
         try {
             if (c.moveToFirst()) {
                 return true;
@@ -64,7 +63,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
             Log.e(TAG,"duplicateTweetList Sqlite exception: " + e);
         } finally {
             c.close();
-            db.close();
         }
         return false;
     }
@@ -76,11 +74,9 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      */
     public boolean saveTweetList(String listName) {
         try {
-            SQLiteDatabase db = sqlOpener.getWritableDatabase();
             ContentValues values = new ContentValues();
             values.put(InternalDB.Columns.TFAVORITES_COL0, listName.trim());
-            db.insert(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS, null, values);
-            db.close();
+            sqlOpener.getWritableDatabase().insert(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS, null, values);
             return true;
         } catch(SQLiteException exception) {
             Log.e(TAG,"savemylist db insert exception: " + exception);
@@ -102,13 +98,11 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      */
     public boolean clearTweetList(String listName, boolean isStarFavorite) {
         try{
-            SQLiteDatabase db = sqlOpener.getWritableDatabase();
             if(isStarFavorite) {
-                db.delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES, InternalDB.Columns.TFAVORITES_COL0 + "= ? and " + InternalDB.Columns.TFAVORITES_COL1 + "= 1", new String[]{listName});
+                sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES, InternalDB.Columns.TFAVORITES_COL0 + "= ? and " + InternalDB.Columns.TFAVORITES_COL1 + "= 1", new String[]{listName});
             } else {
-                db.delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES, InternalDB.Columns.TFAVORITES_COL0 + "= ? and " + InternalDB.Columns.TFAVORITES_COL1 + "= 0", new String[]{listName});
+                sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES, InternalDB.Columns.TFAVORITES_COL0 + "= ? and " + InternalDB.Columns.TFAVORITES_COL1 + "= 0", new String[]{listName});
             }
-            db.close();
             return true;
         } catch(SQLiteException exception) {
             return false;
@@ -128,10 +122,8 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      */
     public boolean deleteTweetList(String listName) {
         try{
-            SQLiteDatabase db = sqlOpener.getWritableDatabase();
-            db.delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS, InternalDB.Columns.TFAVORITES_COL0 + "= ?", new String[]{listName});
-            db.delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES, InternalDB.Columns.TFAVORITES_COL0 + "= ? and " + InternalDB.Columns.TFAVORITES_COL1 + "= 0", new String[]{listName});
-            db.close();
+            sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS, InternalDB.Columns.TFAVORITES_COL0 + "= ?", new String[]{listName});
+            sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES, InternalDB.Columns.TFAVORITES_COL0 + "= ? and " + InternalDB.Columns.TFAVORITES_COL1 + "= 0", new String[]{listName});
             return true;
         } catch(SQLiteException exception) {
 
@@ -151,16 +143,15 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      */
     public boolean renameTweetList(String oldListName, String newListName) {
         try{
-            SQLiteDatabase db = sqlOpener.getWritableDatabase();
 
             String sql = "Update " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS + "  SET [Name]=? WHERE [Name]=? ";
-            SQLiteStatement statement = db.compileStatement(sql);
+            SQLiteStatement statement = sqlOpener.getWritableDatabase().compileStatement(sql);
             statement.bindString(1, newListName);
             statement.bindString(2, oldListName);
             statement.executeUpdateDelete();
 
             String sql2 = "Update " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " SET [Name]=? WHERE [Name]=? and [Sys] = 0";
-            SQLiteStatement statement2 = db.compileStatement(sql2);
+            SQLiteStatement statement2 = sqlOpener.getWritableDatabase().compileStatement(sql2);
             statement2.bindString(1, newListName);
             statement2.bindString(2, oldListName);
             statement2.executeUpdateDelete();
@@ -170,29 +161,27 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
         }
     }
 
-    public Boolean myListContainsTweet(MyListEntry myListEntry, String tweetid) {
-
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
-        String queryRecordExists = "Select _id From " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " where " + InternalDB.Columns.COL_ID + " = ? AND " + InternalDB.Columns.TFAVORITES_COL0 + " = ? AND " + InternalDB.Columns.TFAVORITES_COL1 + " = ?" ;
-        try {
-            Cursor c = db.rawQuery(queryRecordExists, new String[]{tweetid,myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
-            if (c.getCount()>0) {
-                c.close();
-                return true;
-            } else {
-                c.close();
-                return false;
-            }
-        } catch (NullPointerException e) {
-            Log.e(TAG,"myListContainsTweet nullpointer exception: " + e);
-        } catch (SQLiteException e) {
-            Log.e(TAG,"myListContainsTweet Sqlite exception: " + e);
-        } finally {
-            db.close();
-        }
-        return true;
-
-    }
+//    public Boolean myListContainsTweet(MyListEntry myListEntry, String tweetid) {
+//
+//        SQLiteDatabase db = sqlOpener.getWritableDatabase();
+//        String queryRecordExists = "Select _id From " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " where " + InternalDB.Columns.COL_ID + " = ? AND " + InternalDB.Columns.TFAVORITES_COL0 + " = ? AND " + InternalDB.Columns.TFAVORITES_COL1 + " = ?" ;
+//        try {
+//            Cursor c = db.rawQuery(queryRecordExists, new String[]{tweetid,myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+//            if (c.getCount()>0) {
+//                c.close();
+//                return true;
+//            } else {
+//                c.close();
+//                return false;
+//            }
+//        } catch (NullPointerException e) {
+//            Log.e(TAG,"myListContainsTweet nullpointer exception: " + e);
+//        } catch (SQLiteException e) {
+//            Log.e(TAG,"myListContainsTweet Sqlite exception: " + e);
+//        }
+//        return true;
+//
+//    }
 
 
     /**
@@ -205,24 +194,19 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      * @return bool true if the cupdate was succesful, false if not
      */
     public boolean changeTweetListStarColor(String tweetId, String userId, String originalColor, String updatedColor) {
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
-
         try {
             if(originalColor.equals("Black") && updatedColor.equals("Black")) {
                 Log.e(TAG,"ERROR! changefavoritelistentry Both entries are BLACK. So do nothing.");
                 return false;
             } else if(originalColor.equals("Black")) {
                 //Insert statement only
-                Log.i(TAG,"ADDING TWEET TO TWEETLIST...");
                 return addTweetToTweetList(tweetId,userId,updatedColor,1);
             } else if(updatedColor.equals("Black")) {
                 //Delete statement only
-                Log.i(TAG,"REMOVING TWEET FROM  TWEETLIST...");
                 return removeTweetFromTweetList(tweetId,originalColor,1);
             } else {
-                Log.i(TAG,"UPDATING EXISITNG TWEET IN TWEETLIST...");
                 String sql = "Update " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " SET "+ InternalDB.Columns.TFAVORITES_COL0 +" = ? WHERE "+ InternalDB.Columns.TFAVORITES_COL0 +"= ? and " + InternalDB.Columns.TFAVORITES_COL1+" = 1 and " + InternalDB.Columns.COL_ID + " = ?";
-                SQLiteStatement statement = db.compileStatement(sql);
+                SQLiteStatement statement = sqlOpener.getWritableDatabase().compileStatement(sql);
                 statement.bindString(1, updatedColor);
                 statement.bindString(2, originalColor);
                 statement.bindString(3, tweetId);
@@ -234,8 +218,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
             Log.e(TAG,"changefavoritelistentry sqlite exception: " + e);
         }  catch (NullPointerException e) {
             Log.e(TAG,"changefavoritelistentry something was null: " + e);
-        } finally {
-            db.close();
         }
 
         return false;
@@ -251,16 +233,14 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      * @return bool true if successful insert, false if not
      */
     public boolean addTweetToTweetList(String tweetId, String userId, String listName, int listSys) {
-        SQLiteDatabase db = sqlOpener.getReadableDatabase();
 
         try {
-            Log.i(TAG,"ADDING TO WORDLIST: " + tweetId + ", listname: " + listName + ", sys: " + listSys);
             ContentValues values = new ContentValues();
             values.put(InternalDB.Columns.COL_ID, tweetId);
             values.put(InternalDB.Columns.TSAVEDTWEET_COL0, userId);
             values.put(InternalDB.Columns.TFAVORITES_COL0, listName);
             values.put(InternalDB.Columns.TFAVORITES_COL1, listSys);
-            db.insertWithOnConflict(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES, null, values,SQLiteDatabase.CONFLICT_REPLACE);
+            sqlOpener.getWritableDatabase().insertWithOnConflict(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES, null, values,SQLiteDatabase.CONFLICT_REPLACE);
             return true;
 
         } catch (SQLiteException e) {
@@ -270,8 +250,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
         } catch (NullPointerException e) {
             Log.e(TAG, "addWordToWordList something was null: " + e);
             return false;
-        } finally {
-            db.close();
         }
 
     }
@@ -285,18 +263,15 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      * @return bool true if successful delete, false if not
      */
     public boolean removeTweetFromTweetList(String tweetId, String listName, int listSys) {
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
-        try {
-            db.delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES,
+         try {
+             sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES,
                     InternalDB.Columns.TFAVORITES_COL0 + " = ? and "  + InternalDB.Columns.TFAVORITES_COL1 + " = ? and " + InternalDB.Columns.COL_ID + " = ? ", new String[]{listName,String.valueOf(listSys),tweetId});
-            deleteTweetIfNecessary(db,tweetId);
+            deleteTweetIfNecessary(sqlOpener.getWritableDatabase(),tweetId);
             return true;
         } catch (SQLiteException e) {
             Log.e(TAG, "removeTweetFromTweetList sqlite exception: " + e);
         } catch (NullPointerException e) {
             Log.e(TAG, "removeTweetFromTweetList something was null: " + e);
-        } finally {
-            db.close();
         }
         return  false;
     }
@@ -311,25 +286,23 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      * @return bool true if successful delete, false if error
      */
     public boolean removeMultipleTweetsFromTweetList(String concatenatedTweetIds, MyListEntry myListEntry) {
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
-
         try {
-            db.delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES ,InternalDB.Columns.TFAVORITES_COL0 + " = ? and "  + InternalDB.Columns.TFAVORITES_COL1 + " = ? and " + InternalDB.Columns.COL_ID + " in (" + concatenatedTweetIds + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
-            deleteTweetIfNecessary(db,concatenatedTweetIds);
+            sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES ,InternalDB.Columns.TFAVORITES_COL0 + " = ? and "  + InternalDB.Columns.TFAVORITES_COL1 + " = ? and " + InternalDB.Columns.COL_ID + " in (" + concatenatedTweetIds + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+            deleteTweetIfNecessary(sqlOpener.getWritableDatabase(),concatenatedTweetIds);
             return true;
         } catch (SQLiteException e) {
             Log.e(TAG, "removeMultipleWordsFromWordList sqlite exception: " + e);
         } catch (NullPointerException e) {
             Log.e(TAG, "removeMultipleWordsFromWordList something was null: " + e);
-        } finally {
-            db.close();
         }
         return  true;
     }
 
     /**
      * Removes Tweets, not just from a single TweetList, but from all associated lists. Deletes the Tweet. This
-     * is called when a Tweet is deleted in the {@link TweetListBrowseFragment} for a Single User
+     * is called when a Tweet is deleted in the {@link TweetListBrowseFragment} for a Single User. However,
+     * because the app user is given a choice to "undo" the action for about 3 seconds afterward, an array of "undo pairs"
+     * is prepared first, so that the tweet info can be re-inserted into the database if necessary
      *
      * @param concatenatedTweetIds a string of tweetIds concatenated together with commas (ex: 123,451,6532,23)
      * @return bool true if succesful delete, false if not
@@ -338,11 +311,10 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      * @see com.jukuproject.jukutweet.Fragments.TweetListSingleUserFragment
      */
     public ArrayList<Pair<MyListEntry,Tweet>> removeTweetsFromAllTweetLists(String concatenatedTweetIds) {
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
         ArrayList<Pair<MyListEntry,Tweet>> undoArray = new ArrayList<>();
         try {
 
-            Cursor c = db.rawQuery("SELECT DISTINCT _id as  Tweet_id " +
+            Cursor c = sqlOpener.getReadableDatabase().rawQuery("SELECT DISTINCT _id as  Tweet_id " +
                     ",[Name]" +
                     ",[Sys]" +
                     ",[UserId]" +
@@ -359,14 +331,12 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
             c.close();
 
 
-            db.delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES ,InternalDB.Columns.COL_ID + " in (" + concatenatedTweetIds + ")",null);
+            sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES ,InternalDB.Columns.COL_ID + " in (" + concatenatedTweetIds + ")",null);
 
         } catch (SQLiteException e) {
             Log.e(TAG, "removeTweetsFromAllTweetLists sqlite exception: " + e);
         } catch (NullPointerException e) {
             Log.e(TAG, "removeTweetsFromAllTweetLists something was null: " + e);
-        } finally {
-            db.close();
         }
             return undoArray;
     }
@@ -412,6 +382,8 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                 " ON x.Tweet_id = y.Tweet_id " +
                 " WHERE y.Tweet_id is NULL " +
                 " ) ",null);
+
+
     };
 
     /**
@@ -419,10 +391,9 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      * @param concatenatedTweetIds a string of tweetIds concatenated together with commas (ex: 123,451,6532,23)
      */
     public void deleteTweetIfNecessary(String concatenatedTweetIds) {
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
 
         try {
-        db.delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES," _id in ( " +
+            sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES," _id in ( " +
                 "SELECT x.Tweet_id " +
                 "FROM " +
                 "(" +
@@ -440,7 +411,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                 " WHERE y.Tweet_id is NULL " +
                 " ) ",null);
 
-        db.delete(InternalDB.Tables.TABLE_SAVED_TWEET_KANJI," Tweet_id in ( " +
+            sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_SAVED_TWEET_KANJI," Tweet_id in ( " +
                 "SELECT x.Tweet_id " +
                 "FROM " +
                 "(" +
@@ -462,8 +433,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
         Log.e(TAG, "deleteTweetIfNecessary sqlite exception: " + e);
     } catch (NullPointerException e) {
         Log.e(TAG, "deleteTweetIfNecessary something was null: " + e);
-    } finally {
-        db.close();
     }
     };
 
@@ -486,11 +455,11 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
             , @Nullable MyListEntry entryToExclude) {
 
         ArrayList<MyListEntry> myListEntries = new ArrayList<>();
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
+
         try {
             //Get a list of distinct favorites lists and their selection levels for the given tweet
             //Except for if a certain favorite list exists that we do not want to include (as occurs in the mylist copy dialog)
-            Cursor c = db.rawQuery("Select [Lists].[Name] "    +
+            Cursor c = sqlOpener.getWritableDatabase().rawQuery("Select [Lists].[Name] "    +
                     ",[Lists].[Sys] "    +
                     ",(Case when UserEntries.Name is null then 0 else 1 END) as SelectionLevel "    +
                     " "    +
@@ -546,8 +515,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
             Log.e(TAG,"gettweetfavoritelists sqlite exception: " + e);
         }  catch (NullPointerException e) {
             Log.e(TAG,"gettweetfavoritelists something was null: " + e);
-        } finally {
-            db.close();
         }
         return myListEntries;
     }
@@ -580,11 +547,8 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
         }
 
         ArrayList<WordEntry> wordEntries = new ArrayList<>();
-        SQLiteDatabase db = sqlOpener.getReadableDatabase();
         try {
-            Cursor c;
-
-            c = db.rawQuery("Select [_id]" +
+            Cursor c = sqlOpener.getReadableDatabase().rawQuery("Select [_id]" +
                             ",Kanji " +
                             ",Furigana " +
                             ",Definition " +
@@ -684,8 +648,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
             }
         } catch (SQLiteException e){
             Log.e(TAG,"getmylistwords Sqlite exception: " + e);
-        } finally {
-            db.close();
         }
         return wordEntries;
     }
@@ -710,7 +672,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
             , @Nullable Integer excludeIdInteger
             , @Nullable Integer resultLimit) {
 
-
         if(excludeIdInteger ==null) {
             excludeIdInteger = -1;
         }
@@ -723,9 +684,8 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
         }
 
         ArrayList<WordEntry> wordEntries = new ArrayList<>();
-        SQLiteDatabase db = sqlOpener.getReadableDatabase();
         try {
-            Cursor c = db.rawQuery("Select [_id]" +
+            Cursor c = sqlOpener.getWritableDatabase().rawQuery("Select [_id]" +
                             ",Kanji " +
                             ",Furigana " +
                             ",Definition " +
@@ -831,8 +791,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
             }
         } catch (SQLiteException e){
             Log.e(TAG,"getmylistwords Sqlite exception: " + e);
-        } finally {
-            db.close();
         }
         return wordEntries;
     }
@@ -844,18 +802,12 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      * @return bool true if successful insert, false if error
      */
     public boolean addMultipleTweetsToTweetList(MyListEntry myListEntry, String concatenatedTweetIds) {
-        SQLiteDatabase db = sqlOpener.getReadableDatabase();
         try {
-            db.execSQL("INSERT OR REPLACE INTO " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES +" SELECT DISTINCT Tweet_id as [_id], [UserId], ? as [Name], ? as [Sys] FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS  + " WHERE Tweet_id in (" + concatenatedTweetIds + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
+            sqlOpener.getWritableDatabase().execSQL("INSERT OR REPLACE INTO " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES +" SELECT DISTINCT Tweet_id as [_id], [UserId], ? as [Name], ? as [Sys] FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS  + " WHERE Tweet_id in (" + concatenatedTweetIds + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
             return true;
         } catch (SQLiteException e){
             Log.e(TAG,"copyBulkTweetsToList Sqlite exception: " + e);
             return false;
-        } catch (Exception e) {
-            Log.e(TAG,"copyBulkTweetsToList generic exception: " + e);
-            return false;
-        } finally {
-            db.close();
         }
     }
 
@@ -877,8 +829,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
             cursor.close();
         } catch (SQLiteException e){
             Log.e(TAG,"tweetParsedKanjiExistsInDB Sqlite exception: " + e);
-        } catch (Exception e) {
-            Log.e(TAG,"tweetParsedKanjiExistsInDB generic exception: " + e);
         }
 
         return resultCode;
@@ -900,9 +850,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
         } catch (SQLiteException e){
             Log.e(TAG,"tweetExistsInDB Sqlite exception: " + e);
             return resultCode;
-        } catch (Exception e) {
-            Log.e(TAG,"tweetExistsInDB generic exception: " + e);
-            return resultCode;
         }
         return resultCode;
     }
@@ -922,7 +869,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      */
     public int saveTweetToDB(UserInfo userInfo, Tweet tweet){
         int resultCode = -1;
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
         try {
 
             //At least one of these values have to exist
@@ -937,14 +883,15 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                 if(userInfo.getScreenName() != null) {
                     values.put(InternalDB.Columns.TSAVEDTWEET_COL1, userInfo.getScreenName().trim());
                 }
+                if(userInfo.getName() != null) {
+                    values.put(InternalDB.Columns.TMAIN_COL7, userInfo.getName().trim());
+                }
 
                 if(tweet.getDatabaseInsertDate() != null) {
                     values.put(InternalDB.Columns.TSAVEDTWEET_COL3, tweet.getDatabaseInsertDate().trim());
-                } else {
-                    Log.e(TAG,"DB INSERT DATE IS NUL:? " + tweet.getDatabaseInsertDate());
                 }
                 values.put(InternalDB.Columns.TSAVEDTWEET_COL4, tweet.getText().trim());
-                resultCode = (int)db.insertWithOnConflict(InternalDB.Tables.TABLE_SAVED_TWEETS, null, values,SQLiteDatabase.CONFLICT_REPLACE);
+                resultCode = (int)sqlOpener.getWritableDatabase().insertWithOnConflict(InternalDB.Tables.TABLE_SAVED_TWEETS, null, values,SQLiteDatabase.CONFLICT_REPLACE);
                 if(resultCode>=0) {
                     try {
 
@@ -955,7 +902,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                                 Urlvalues.put(InternalDB.Columns.TSAVEDTWEETURLS_COL1, tweetUrl.getExpanded_url());
                                 Urlvalues.put(InternalDB.Columns.TSAVEDTWEETURLS_COL2, tweetUrl.getIndices()[0]);
                                 Urlvalues.put(InternalDB.Columns.TSAVEDTWEETURLS_COL3, tweetUrl.getIndices()[1]);
-                                db.insert(InternalDB.Tables.TABLE_SAVED_TWEET_URLS, null, Urlvalues);
+                                sqlOpener.getWritableDatabase().insert(InternalDB.Tables.TABLE_SAVED_TWEET_URLS, null, Urlvalues);
                             }
 
                         }
@@ -978,7 +925,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                                 userMentionValues.put(InternalDB.Columns.TMAIN_COL1, userMentions.getId_str());
                                 userMentionValues.put(InternalDB.Columns.TSAVEDTWEETURLS_COL2, userMentions.getIndices()[0]);
                                 userMentionValues.put(InternalDB.Columns.TSAVEDTWEETURLS_COL3, userMentions.getIndices()[1]);
-                                db.insert(InternalDB.Tables.TABLE_SAVED_TWEET_USERMENTIONS, null, userMentionValues);
+                                sqlOpener.getWritableDatabase().insert(InternalDB.Tables.TABLE_SAVED_TWEET_USERMENTIONS, null, userMentionValues);
                             }
                         }
 
@@ -996,8 +943,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 
         } catch(SQLiteException exception) {
             Log.e(TAG,"saveTweetToDB sqlite exception " + exception.getCause());
-        } finally {
-            db.close();
         }
 
         return resultCode;
@@ -1011,15 +956,13 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      */
     public TweetEntities getTweetEntitiesForSavedTweet(String tweetId) {
 
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
-
         TweetEntities tweetEntities = new TweetEntities();
         ArrayList<TweetUrl> tweetUrls = new ArrayList<>();
         ArrayList<TweetUserMentions> userMentions = new ArrayList<>();
 
         //Get url data and add it to package
         try {
-            Cursor cursorUrls = db.rawQuery(
+            Cursor cursorUrls = sqlOpener.getWritableDatabase().rawQuery(
                     " SELECT DISTINCT [Url]" +
                             ",StartIndex " +
                             ",EndIndex " +
@@ -1045,7 +988,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 
         //Get user_mention data and add it to package
         try {
-            Cursor cursorUserMentions = db.rawQuery(
+            Cursor cursorUserMentions = sqlOpener.getWritableDatabase().rawQuery(
 
                     " SELECT DISTINCT [ScreenName]" +
                             ",UserName " +
@@ -1073,8 +1016,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
         } catch (SQLiteException e){
             Log.e(TAG,"getTweetEntities cursorUserMentions Sqlite exception: " + e.getCause());
         }
-
-        db.close();
         tweetEntities.setUrls(tweetUrls);
         tweetEntities.setUser_mentions(userMentions);
 
@@ -1089,17 +1030,15 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      * star in the {@link com.jukuproject.jukutweet.Fragments.TweetBreakDownFragment} and the parseSentenceItems are already
      * created and passed here to be saved.
      *
-     //     * @param parseSentenceItems List of kanji found in a tweet
      * @param tweet_id String id of tweet
      * @return returnvalue int, -1 for error, otherwise the index value of final inserted row
      */
     public int saveParsedTweetKanji(ArrayList<WordEntry> wordEntries, String tweet_id) {
-        SQLiteDatabase db = sqlOpener.getReadableDatabase();
         int resultCode = -1;
         try {
 
             //Remove saved kanji for the tweet, if some already exists
-            db.delete(InternalDB.Tables.TABLE_SAVED_TWEET_KANJI ,InternalDB.Columns.TSAVEDTWEET_COL2 + " = ?" ,new String[]{tweet_id});
+            sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_SAVED_TWEET_KANJI ,InternalDB.Columns.TSAVEDTWEET_COL2 + " = ?" ,new String[]{tweet_id});
 
             //Add word entries for the tweet to the saved kanji table
             if(wordEntries.size()>0) {
@@ -1113,7 +1052,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                     values.put(InternalDB.Columns.TSAVEDTWEETITEMS_COL5, wordEntries.get(i).getCoreKanjiBlock());
                     values.put(InternalDB.Columns.TSAVEDTWEETITEMS_COL3, wordEntries.get(i).getStartIndex());
                     values.put(InternalDB.Columns.TSAVEDTWEETITEMS_COL4, wordEntries.get(i).getEndIndex());
-                    resultCode = (int)db.insert(InternalDB.Tables.TABLE_SAVED_TWEET_KANJI, null, values);
+                    resultCode = (int)sqlOpener.getWritableDatabase().insert(InternalDB.Tables.TABLE_SAVED_TWEET_KANJI, null, values);
                 }
             } else {
                 Log.d(TAG,"Word entries 0....");
@@ -1122,8 +1061,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
         } catch(SQLiteException exception) {
             Log.e(TAG,"Error saving tweets");
             return resultCode;
-        } finally {
-            db.close();
         }
 
     }
@@ -1136,10 +1073,9 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      * flowing in from the Twitter API (based on TweetId) and passed together to the {@link com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter}
      */
     public HashMap<String,ItemFavorites> getStarFavoriteDataForAUsersTweets(String userId){
-        SQLiteDatabase db = sqlOpener.getReadableDatabase();
         HashMap<String,ItemFavorites> map = new HashMap<>();
         try {
-            Cursor c = db.rawQuery(
+            Cursor c = sqlOpener.getReadableDatabase().rawQuery(
 
                     " SELECT [_id]" +
                             ",SUM([Blue]) as [Blue]" +
@@ -1184,8 +1120,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 
         } catch (SQLiteException e){
             Log.e(TAG,"getStarFavoriteDataForAUsersTweets Sqlite exception: " + e);
-        } finally {
-            db.close();
         }
         return  map;
     }
@@ -1207,11 +1141,10 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      */
     public ArrayList<Tweet> getTweetsForSavedTweetsList(MyListEntry myListEntry, ColorThresholds colorThresholds) {
         ArrayList<Tweet> savedTweets = new ArrayList<>();
-        SQLiteDatabase db = sqlOpener.getReadableDatabase();
         try {
-            Cursor c = db.rawQuery("SELECT TweetLists.[UserId] " +
+            Cursor c = sqlOpener.getReadableDatabase().rawQuery("SELECT TweetLists.[UserId] " +
                             ",(CASE WHEN UserName.ScreenName is null THEN ALLTweets.UserScreenName ELSE UserName.ScreenName end) as [ScreenName] " +
-                            ",UserName.UserName " +
+                            ",(CASE WHEN UserName.UserName  is null THEN ALLTweets.UserName  ELSE UserName.UserName end) as [UserName] " +
                             ",TweetLists.[Tweet_id]" +
                             ",[ALLTweets].[Text] " +
                             ",TweetKanji.Edict_id " +
@@ -1224,6 +1157,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             ",TweetKanji.StartIndex " +
                             ",TweetKanji.EndIndex " +
                             ",[ALLTweets].[Date] " +
+                            ",(CASE WHEN [UserName].[ProfileImgFilePath] is null  then [ALLTweets].[ProfileImgFilePath] else [UserName].[ProfileImgFilePath] end) as [ProfileImgFilePath] " +
 
                             "FROM  " +
                             " ( " +
@@ -1236,8 +1170,10 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             " ( " +
                             "SELECT  DISTINCT [Tweet_id]" +
                             ",[UserScreenName] " +
+                            ",[UserName] " +
                             ",[Text]" +
                             ",[CreatedAt]  as [Date] " +
+                            ",[ProfileImgFilePath] " +
                             " FROM "+ InternalDB.Tables.TABLE_SAVED_TWEETS + " " +
                             ") as ALLTweets " +
                             "ON TweetLists.[Tweet_id] = ALLTweets.[Tweet_id] " +
@@ -1299,6 +1235,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             "SELECT DISTINCT [UserId] " +
                             ", [ScreenName] " +
                             ", [UserName] " +
+                            ", ProfileImgFilePath " +
                             " FROM " + InternalDB.Tables.TABLE_USERS +" " +
                             ") as [UserName] " +
                             "On TweetLists.UserId = UserName.UserId " +
@@ -1318,7 +1255,8 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                 {
                     if(BuildConfig.DEBUG) {
                         Log.i(TAG,"tweetId: " + c.getString(3) + ", created: " + c.getString(14)
-                                + ", userId: "  + c.getString(0) +", name: " + c.getString(1) +", KANJI: " + c.getString(6));
+                                + ", userId: "  + c.getString(0) +", name: " + c.getString(1) +", KANJI: "
+                                + c.getString(6) + ", profilepath: " + c.getString(15));
                     }
                     if(c.isFirst()) {
                         tweet.setIdString(c.getString(3));
@@ -1327,7 +1265,9 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                         tweet.setText(c.getString(4));
                         tweet.getUser().setScreen_name(c.getString(1));
                         tweet.getUser().setName(c.getString(2));
-
+                        if(c.getString(15)!=null) {
+                            tweet.getUser().setProfileImageFilePath(c.getString(15));
+                        }
                     }
 
                     //FLush old tweet
@@ -1343,6 +1283,11 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                         tweet.setText(c.getString(4));
                         tweet.getUser().setScreen_name(c.getString(1));
                         tweet.getUser().setName(c.getString(2));
+
+                        if(c.getString(15)!=null) {
+                            tweet.getUser().setProfileImageFilePath(c.getString(15));
+                        }
+
                     }
 
                     if(c.getString(5) != null && c.getString(6) != null) {
@@ -1373,8 +1318,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 
         } catch (SQLiteException e){
             Log.e(TAG,"getTweetsForSavedTweetsList Sqlite exception: " + e);
-        } finally {
-            db.close();
         }
         return savedTweets;
     }
@@ -1396,11 +1339,10 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      */
     public ArrayList<Tweet> getTweetsForSavedTweetsList(UserInfo userInfo, ColorThresholds colorThresholds) {
         ArrayList<Tweet> savedTweets = new ArrayList<>();
-        SQLiteDatabase db = sqlOpener.getReadableDatabase();
         try {
-            Cursor c = db.rawQuery("SELECT TweetLists.[UserId] " +
+            Cursor c = sqlOpener.getReadableDatabase().rawQuery("SELECT TweetLists.[UserId] " +
                             ",(CASE WHEN UserName.ScreenName is null THEN ALLTweets.UserScreenName ELSE UserName.ScreenName end) as [ScreenName] " +
-                            ",UserName.UserName " +
+                            ",(CASE WHEN UserName.UserName  is null THEN ALLTweets.UserName  ELSE UserName.UserName end) as [UserName] " +
                             ",TweetLists.[Tweet_id]" +
                             ",[ALLTweets].[Text] " +
                             ",TweetKanji.Edict_id " +
@@ -1414,7 +1356,9 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             ",TweetKanji.EndIndex " +
                             ",[ALLTweets].[Date]" +
 
-                            "FROM  " +
+                            ",(CASE WHEN [UserName].[ProfileImgFilePath] is null  then [ALLTweets].[ProfileImgFilePath] else [UserName].[ProfileImgFilePath] end) as [ProfileImgFilePath] " +
+
+                    "FROM  " +
                             " ( " +
                             "SELECT  DISTINCT [UserId]" +
                             ", _id as [Tweet_id]" +
@@ -1425,8 +1369,10 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             " ( " +
                             "SELECT  DISTINCT [Tweet_id]" +
                             ",[UserScreenName] " +
+                            ",[UserName] " +
                             ",[Text]" +
                             ",[CreatedAt]  as [Date] " +
+                            ",[ProfileImgFilePath] " +
                             " FROM "+ InternalDB.Tables.TABLE_SAVED_TWEETS + " " +
                             ") as ALLTweets " +
                             "ON TweetLists.[Tweet_id] = ALLTweets.[Tweet_id] " +
@@ -1488,6 +1434,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             "SELECT DISTINCT [UserId] " +
                             ", [ScreenName] " +
                             ", [UserName] " +
+                            ",[ProfileImgFilePath] " +
                             " FROM " + InternalDB.Tables.TABLE_USERS +" " +
                             ") as [UserName] " +
                             "On TweetLists.UserId = UserName.UserId " +
@@ -1515,6 +1462,10 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                         tweet.getUser().setScreen_name(c.getString(1));
                         tweet.getUser().setName(c.getString(2));
 
+                        if(c.getString(15)!=null) {
+                            tweet.getUser().setProfileImageFilePath(c.getString(15));
+                        }
+
                     } else
                         //FLush old tweet
                         if(!currentTweetId.equals(c.getString(3))){
@@ -1529,6 +1480,9 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                             tweet.setText(c.getString(4));
                             tweet.getUser().setScreen_name(c.getString(1));
                             tweet.getUser().setName(c.getString(2));
+                            if(c.getString(15)!=null) {
+                                tweet.getUser().setProfileImageFilePath(c.getString(15));
+                            }
                         }
 
 
@@ -1562,8 +1516,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
             Log.e(TAG,"getTweetsForSavedTweetsList (singleuser) Sqlite exception: " + e);
         } catch (Exception e) {
             Log.e(TAG,"getTweetsForSavedTweetsList(singleuser) generic exception: " + e);
-        } finally {
-            db.close();
         }
         return savedTweets;
     }
@@ -1580,11 +1532,11 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
     public ArrayList<Tweet> getTweetsThatIncludeAWord(String wordIds,ColorThresholds colorThresholds) {
 
     ArrayList<Tweet> savedTweets = new ArrayList<>();
-    SQLiteDatabase db = sqlOpener.getReadableDatabase();
     try {
-        Cursor c = db.rawQuery("SELECT TweetLists.[UserId] " +
-                        ",TweetLists.ScreenName " +
-                        ",UserName.UserName " +
+        Cursor c = sqlOpener.getReadableDatabase().rawQuery("SELECT TweetLists.[UserId] " +
+                        ",(CASE WHEN UserName.ScreenName  is null THEN TweetLists.ScreenName  ELSE UserName.ScreenName end) as [ScreenName] " +
+                        ",(CASE WHEN UserName.UserName  is null THEN TweetLists.UserName  ELSE UserName.UserName end) as [UserName] " +
+
                         ",TweetLists.[Tweet_id] " +
                         ",[TweetLists].[Text] " +
                         ",TweetKanji.Edict_id " +
@@ -1597,6 +1549,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                         ",TweetKanji.StartIndex " +
                         ",TweetKanji.EndIndex " +
                         ",[TweetLists].[Date]" +
+                        ",(CASE WHEN [UserName].[ProfileImgFilePath] is null  then [TweetLists].[ProfileImgFilePath] else [UserName].[ProfileImgFilePath] end) as [ProfileImgFilePath] " +
 
                         "FROM  " +
 
@@ -1607,6 +1560,9 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                         ",[UserScreenName] as [ScreenName] " +
                         ",[Text]" +
                         ",[CreatedAt]  as [Date] " +
+                        ",[ProfileImgFilePath] " +
+                        ",[UserName] " +
+
                         " FROM "+ InternalDB.Tables.TABLE_SAVED_TWEETS + " " +
                                 " WHERE [Tweet_id] in (" +
                                 " SELECT DISTINCT Tweet_id " +
@@ -1638,7 +1594,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                         "( " +
                         " SELECT DISTINCT Tweet_id" +
                         ",Edict_id " +
-                        ",[StartIndex]" +
+                         ",[StartIndex]" +
                         ",[EndIndex]" +
                         "From " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + " " +
                         " WHERE [Edict_id] is not NULL and StartIndex is not NULL and EndIndex is not NULL and EndIndex > StartIndex " +
@@ -1671,6 +1627,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                         "SELECT DISTINCT [UserId] " +
                         ", [ScreenName] " +
                         ", [UserName] " +
+                        ", ProfileImgFilePath " +
                         " FROM " + InternalDB.Tables.TABLE_USERS +" " +
                         ") as [UserName] " +
                         "On TweetLists.UserId = UserName.UserId " +
@@ -1697,7 +1654,15 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                     tweet.setText(c.getString(4));
                     tweet.getUser().setScreen_name(c.getString(1));
                     tweet.getUser().setName(c.getString(2));
+                    if(c.getString(15)!=null) {
+                        tweet.getUser().setProfileImageFilePath(c.getString(15));
+                    }
 
+                    if(BuildConfig.DEBUG) {
+                        Log.i(TAG,"tweetId: " + c.getString(3) + ", created: " + c.getString(14)
+                                + ", userId: "  + c.getString(0) +", name: " + c.getString(1) +", KANJI: "
+                                + c.getString(6) + ", profilepath: " + c.getString(15));
+                    }
                 }
 
                 //FLush old tweet
@@ -1714,6 +1679,9 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                     tweet.getUser().setScreen_name(c.getString(1));
 
                     tweet.getUser().setName(c.getString(2));
+                    if(c.getString(15)!=null) {
+                        tweet.getUser().setProfileImageFilePath(c.getString(15));
+                    }
                 }
 
                 if(c.getString(5) != null && c.getString(6) != null) {
@@ -1743,10 +1711,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
 
     } catch (SQLiteException e){
         Log.e(TAG,"getTweetsThatIncludeAWord  Sqlite exception: " + e);
-    } catch (Exception e) {
-        Log.e(TAG,"getTweetsThatIncludeAWord generic exception: " + e);
-    } finally {
-        db.close();
     }
     return savedTweets;
 
@@ -2051,8 +2015,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
             ,int totalCountLimit
             ,double topbottomThreshold) {
 
-        SQLiteDatabase db = sqlOpener.getReadableDatabase();
-
         String topBottomSort;
         if(topOrBottom.equals("Top")) {
             topBottomSort = "WHERE [ColorSort]>0 ORDER BY [ColorSort] desc, [Percent] desc,[Total] desc ";
@@ -2063,7 +2025,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
         ArrayList<WordEntry> wordEntries = new ArrayList<>();
         try {
 
-            Cursor c = db.rawQuery("SELECT [_id]" +
+            Cursor c = sqlOpener.getReadableDatabase().rawQuery("SELECT [_id]" +
                     ",[Kanji]" +
                     ",[Correct]" +
                     ",[Total] " +
@@ -2237,8 +2199,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
             Log.e(TAG,"getTopFiveTweetWordEntries Sqlite exception: " + e);
         } catch (NullPointerException e) {
             Log.e(TAG,"getTopFiveTweetWordEntries NullPointerException exception: " + e);
-        } finally {
-            db.close();
         }
 
         return  wordEntries;
@@ -2267,8 +2227,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
             ,int totalCountLimit
             ,double topbottomThreshold) {
 
-        SQLiteDatabase db = sqlOpener.getReadableDatabase();
-
         String topBottomSort;
         if(topOrBottom.equals("Top")) {
             topBottomSort = "WHERE [ColorSort]>0 ORDER BY [ColorSort] desc, [Percent] desc,[Total] desc ";
@@ -2279,7 +2237,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
         ArrayList<WordEntry> wordEntries = new ArrayList<>();
         try {
 
-            Cursor c = db.rawQuery("SELECT [_id]" +
+            Cursor c = sqlOpener.getReadableDatabase().rawQuery("SELECT [_id]" +
                     ",[Kanji]" +
                     ",[Correct]" +
                     ",[Total] " +
@@ -2447,11 +2405,51 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
             Log.e(TAG,"getTopFiveTweetSingleUserEntries Sqlite exception: " + e);
         } catch (NullPointerException e) {
             Log.e(TAG,"getTopFiveTweetSingleUserEntries NullPointerException exception: " + e);
-        } finally {
-            db.close();
         }
-
         return  wordEntries;
+    }
+
+
+    public int saveOrDeleteTweet(Tweet tweet) {
+        int resultCode = -1;
+        try {
+            boolean tweetIsInFavorites = (tweetExistsinFavoritesList(tweet)>0);
+            boolean tweetIsInDB  = (tweetExistsInDB(tweet)>0);
+
+            /*If the tweet is in a favorite list but is not yet saved (because a user has just added
+          it by clicking on the favorite tweet star), add the tweet to the saved tweets table */
+            if(tweetIsInFavorites && !tweetIsInDB) {
+                saveTweetToDB(tweet.getUser(),tweet);
+                resultCode = 1;
+            } else if(!tweetIsInFavorites && tweetIsInDB) {
+                sqlOpener.getReadableDatabase().delete(InternalDB.Tables.TABLE_SAVED_TWEETS, InternalDB.Columns.TSAVEDTWEET_COL2 + "= ? ", new String[]{tweet.getIdString()});
+                sqlOpener.getReadableDatabase().delete(InternalDB.Tables.TABLE_SAVED_TWEET_KANJI,InternalDB.Columns.TSAVEDTWEET_COL2 + "= ? ", new String[]{tweet.getIdString()});
+
+                resultCode = 2;
+            } else {
+                resultCode = 0;
+            }
+
+        } catch (SQLiteException e){
+            Log.e(TAG,"saveOrDeleteTweet Sqlite exception: " + e.getCause() + ", resultcode: " + resultCode);
+            return resultCode;
+        }
+        return resultCode;
+    }
+
+    private int tweetExistsinFavoritesList(Tweet tweet) {
+            int resultCode = -1;
+            try {
+                String Query = "Select * from " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " where " + InternalDB.Columns.COL_ID + " = " + tweet.getIdString();
+                Cursor cursor = sqlOpener.getReadableDatabase().rawQuery(Query, null);
+                resultCode = cursor.getCount();
+                cursor.close();
+            } catch (SQLiteException e){
+                Log.e(TAG,"tweetExistsInFavoriteList Sqlite exception: " + e);
+                return resultCode;
+            }
+            return resultCode;
+
     }
 
 }

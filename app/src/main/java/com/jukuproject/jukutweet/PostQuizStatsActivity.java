@@ -24,8 +24,10 @@ import com.jukuproject.jukutweet.Adapters.WordListExpandableAdapter;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.QuizMenuDialog;
 import com.jukuproject.jukutweet.Fragments.MultipleChoiceFragment;
+import com.jukuproject.jukutweet.Fragments.SearchFragment;
 import com.jukuproject.jukutweet.Fragments.StatsFragmentFillintheBlanks;
 import com.jukuproject.jukutweet.Fragments.StatsFragmentMultipleChoice;
+import com.jukuproject.jukutweet.Interfaces.PostQuizFragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.QuizMenuDialogInteractionListener;
 import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
 import com.jukuproject.jukutweet.Models.MultChoiceResult;
@@ -42,14 +44,12 @@ import static com.jukuproject.jukutweet.Fragments.WordListFragment.prepareColorB
 import static com.jukuproject.jukutweet.MainActivity.assignTweetWeightsAndGetTotalWeight;
 import static com.jukuproject.jukutweet.MainActivity.assignWordWeightsAndGetTotalWeight;
 
-//import com.jukuproject.jukutweet.Interfaces.StatsFragmentInteractionListener;
-
 /**
  * Quiz/PostQuiz Stats activity fragment manager
  */
 public class PostQuizStatsActivity extends AppCompatActivity
-//        implements StatsFragmentInteractionListener
-        implements QuizMenuDialogInteractionListener {
+        implements QuizMenuDialogInteractionListener
+        , PostQuizFragmentInteractionListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -459,7 +459,7 @@ public class PostQuizStatsActivity extends AppCompatActivity
 
             intent.putExtra("typeOfQuizThatWasCompleted","Multiple Choice"); //The type of quiz that was chosen inthe menu
             intent.putExtra("quizType",quizType);
-            intent.putExtra("tabNumber", 2);
+            intent.putExtra("tabNumber", tabNumber);
             intent.putExtra("myListEntry",listEntry);
             intent.putExtra("quizSize",quizSize);
             intent.putExtra("colorString",selectedColorString);
@@ -680,6 +680,7 @@ public class PostQuizStatsActivity extends AppCompatActivity
 
                     @Override
                     public void onClick(View view) {
+                        Log.i(TAG,"TABNUMBER: " + mTabNumber);
                         QuizMenuDialog.newInstance("multiplechoice"
                                 ,mTabNumber
                                 ,mLastExpandedPosition
@@ -723,6 +724,19 @@ public class PostQuizStatsActivity extends AppCompatActivity
         }
     }
 
+    /**
+     * Downloads and saves icons for tweets which are not attached to one of the saved users in the {@link com.jukuproject.jukutweet.Fragments.UserListFragment}.
+     * @param userInfo UserInfo object for user whose icon will be downloaded
+     *
+     * @see com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter
+     * @see SearchFragment
+     * @see com.jukuproject.jukutweet.Fragments.UserTimeLineFragment
+     * @see com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog#runTwitterSearch(String)
+     */
+    public void downloadTweetUserIcons(UserInfo userInfo) {
+        InternalDB.getUserInterfaceInstance(getBaseContext()).downloadTweetUserIcon(getBaseContext(),userInfo.getProfileImageUrl(),userInfo.getUserId());
+    }
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -749,5 +763,12 @@ public class PostQuizStatsActivity extends AppCompatActivity
         outState.putInt("mLastExpandedPosition",mLastExpandedPosition);
 
     }
+
+    @Override
+    protected void onDestroy() {
+        InternalDB.getInstance(getBaseContext()).close();
+        super.onDestroy();
+    }
+
 
 }

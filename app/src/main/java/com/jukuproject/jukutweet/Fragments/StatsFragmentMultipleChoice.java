@@ -1,5 +1,6 @@
 package com.jukuproject.jukutweet.Fragments;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.app.Fragment;
@@ -14,10 +15,12 @@ import android.widget.TextView;
 
 import com.jukuproject.jukutweet.Adapters.PostQuizStatsMultipleChoiceAdapter;
 import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
+import com.jukuproject.jukutweet.Interfaces.PostQuizFragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MultChoiceResult;
+import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
 import com.jukuproject.jukutweet.SharedPrefManager;
@@ -27,13 +30,14 @@ import java.util.ArrayList;
 import rx.functions.Action1;
 
 /**
- * Created by JClassic on 3/31/2017.
+ * Shows page of stats for a multiple choice quiz, with overall scores in the top pane,
+ * and a list of results for each question below it.
  */
-
 public class StatsFragmentMultipleChoice extends Fragment implements WordEntryFavoritesChangedListener {
 
     String TAG = "Test-stats1";
 
+    private PostQuizFragmentInteractionListener mCallback;
     private ListView resultslistView;
     private ArrayList<MultChoiceResult> mDataset;
     private String mQuizType;
@@ -85,6 +89,16 @@ public class StatsFragmentMultipleChoice extends Fragment implements WordEntryFa
         return v;
     }
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        try {
+            mCallback = (PostQuizFragmentInteractionListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()
+                    + " must implement OnHeadlineSelectedListener");
+        }
+    }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -198,6 +212,19 @@ public class StatsFragmentMultipleChoice extends Fragment implements WordEntryFa
 
     public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {}
     public void notifySavedTweetFragmentsChanged(){};
+
+    /**
+     * If a tweet has been saved in {@link WordDetailPopupDialog}, and the user for that tweet
+     * is not saved in the db (which therefore means the user's icon is not saved in the db), this passes
+     * on the message to save the icon from the {@link com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter} to the Activity,
+     * which uses {@link com.jukuproject.jukutweet.Database.UserOpsHelper#downloadTweetUserIcon(Context, String, String)} in a
+     * subscription to download the icon
+     * @param userInfo UserInfo of user whose icon will be downloaded
+     */
+    public void downloadTweetUserIcons(UserInfo userInfo) {
+        mCallback.downloadTweetUserIcons(userInfo);
+    }
+
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);

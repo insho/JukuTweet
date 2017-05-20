@@ -91,9 +91,7 @@ public class MultipleChoiceFragment extends Fragment {
     Integer totalheightofanswergrid; // This designates the individual size of the "answer" rows when the phone is in horizontal mode. It gets passed to the adapter and used there. Ignored if =0;
 
     private ArrayList<MultChoiceResult> questionResults;
-//    Double sliderUpperBound = .50;
-//    Double sliderLowerBound = .025;
-//    int sliderCountMax = 30;
+
     int widthofquestionpane = 0;
     private TextView txtTimer;
     public MultipleChoiceFragment() {
@@ -107,7 +105,6 @@ public class MultipleChoiceFragment extends Fragment {
             , String myListType
             , String colorString
             , MyListEntry myListEntry
-//            , Integer tabStripHeightAdjustment
     ) {
         MultipleChoiceFragment fragment = new MultipleChoiceFragment();
         Bundle args = new Bundle();
@@ -131,7 +128,6 @@ public class MultipleChoiceFragment extends Fragment {
             , String myListType
             , String colorString
             , UserInfo userInfo
-//            , Integer tabStripHeightAdjustment
     ) {
         MultipleChoiceFragment fragment = new MultipleChoiceFragment();
         Bundle args = new Bundle();
@@ -163,7 +159,6 @@ public class MultipleChoiceFragment extends Fragment {
             mMyListType = getArguments().getString("myListType");
             mColorString = getArguments().getString("colorString");
             mMyListEntry = getArguments().getParcelable("myListEntry");
-//            tabStripHeightAdjustment = getArguments().getInt("tabStripHeightAdjustment",0);
             mUserInfo = getArguments().getParcelable("mUserInfo");
             mSingleUser = getArguments().getBoolean("mSingleUser",false);
             questionResults = new ArrayList<>();
@@ -189,14 +184,7 @@ public class MultipleChoiceFragment extends Fragment {
             currentCorrectAnswer = savedInstanceState.getParcelable("currentCorrectAnswer");
             mUserInfo = savedInstanceState.getParcelable("mUserInfo");
             mSingleUser = savedInstanceState.getBoolean("mSingleUser",false);
-//            tabStripHeightAdjustment = savedInstanceState.getInt("tabStripHeightAdjustment",0);
         }
-
-//        Log.d(TAG,"tabStripHeightAdjustmentnull: " + tabStripHeightAdjustment );
-
-//        answerGrid.setPadding(0,tabStripHeightAdjustment,0,0);
-
-
         setUpQuestion((savedInstanceState == null));
 
     }
@@ -204,9 +192,6 @@ public class MultipleChoiceFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-
-
-
 
         //Set layout depending on screen orientation
         TypedValue tv = new TypedValue();
@@ -228,12 +213,6 @@ public class MultipleChoiceFragment extends Fragment {
 
             totalheightofanswergrid = (int) ((float) (displayheight - actionBarHeight) * 0.5);
 
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "diplayheight: " + displayheight);
-                Log.d(TAG, "mactionbarsize: " + actionBarHeight);
-                Log.d(TAG, "totalheightofanswergrid: " + totalheightofanswergrid);
-
-            }
             LinearLayout layouttop = (LinearLayout) mainView.findViewById(R.id.layouttop);
             layouttop.getLayoutParams().height = (int) ((float) (displayheight - actionBarHeight) * 0.3);
             layouttop.requestLayout();
@@ -242,12 +221,6 @@ public class MultipleChoiceFragment extends Fragment {
             mainView = LayoutInflater.from(getActivity()).inflate(R.layout.quizmultchoice_l, null);
             totalheightofanswergrid = (int) ((float) (displayheight - actionBarHeight) - (float) (displayheight - actionBarHeight) * .115);
             widthofquestionpane = (int) ((float) metrics.widthPixels / 2.0f);
-            if (BuildConfig.DEBUG) {
-                //                Log.d(TAG,"VVScreenTotalHeight: " + displayheight);
-                Log.d(TAG, "VVActionBarHeight: " + actionBarHeight);
-                Log.d(TAG, "VVtotalheightofanswergrid: " + totalheightofanswergrid);
-
-            }
         }
         answerGrid = (GridView) mainView.findViewById(R.id.gridView);
         txtQuestion = (TextView) mainView.findViewById(R.id.question);
@@ -382,7 +355,7 @@ public class MultipleChoiceFragment extends Fragment {
                 //Pull answer that user gave from the array of values (at [type of answer][gridview position of user click])
 
                 //THE ANSWER WAS CORRECT
-                if (questionSet.get(position).getId() == currentCorrectAnswer.getId()) {
+                if (questionSet.get(position).getId().equals(currentCorrectAnswer.getId())) {
 
                     gradeQuestionResult();
 
@@ -426,7 +399,7 @@ public class MultipleChoiceFragment extends Fragment {
 
         //Find the clicked textview and change the background color (Green), while making the others invisible
         for(WordEntry wordEntry : questionSet) {
-            if(wordEntry.getId() != currentCorrectAnswer.getId()) {
+            if(!wordEntry.getId().equals( currentCorrectAnswer.getId())) {
                 wrongAnswerIds.add(wordEntry.getId());
             }
         }

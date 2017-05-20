@@ -1,6 +1,7 @@
 package com.jukuproject.jukutweet.Adapters;
 
 import android.content.Context;
+import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
@@ -18,15 +19,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
-import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.ChooseFavoriteListsPopupWindow;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.FavoritesColors;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
-import com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface;
 import com.jukuproject.jukutweet.LongClickLinkMovementMethod;
 import com.jukuproject.jukutweet.LongClickableSpan;
 import com.jukuproject.jukutweet.Models.MyListEntry;
@@ -35,6 +35,7 @@ import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.Models.TweetUserMentions;
 import com.jukuproject.jukutweet.Models.WordEntry;
 import com.jukuproject.jukutweet.R;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -72,6 +73,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
         private FrameLayout imgStarLayout;
         private ImageButton imgReTweeted;
         private ImageButton imgFavorited;
+        private ImageView image;
 
         public ViewHolder(View v) {
             super(v);
@@ -84,6 +86,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
             txtUserName = (TextView) v.findViewById(R.id.timelineName);
             txtUserScreenName = (TextView) v.findViewById(R.id.timelineDisplayScreenName);
             imgStar = (ImageButton) v.findViewById(R.id.favorite);
+            image = (ImageView) v.findViewById(R.id.image);
             imgStarLayout = (FrameLayout) v.findViewById(R.id.timelineStarLayout);
 
 
@@ -92,7 +95,6 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
     public UserTimeLineAdapter(Context context
             , RxBus rxBus
-//            , UserInfo userInfo
             , List<Tweet> myDataset
             , ArrayList<String> activeTweetFavoriteStars
                       ,DisplayMetrics metrics
@@ -118,22 +120,17 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
+        final Tweet tweet = mDataset.get(holder.getAdapterPosition());
 
-        holder.txtUserName.setText(mDataset.get(holder.getAdapterPosition()).getUser().getName());
-        holder.txtUserScreenName.setText(mDataset.get(holder.getAdapterPosition()).getUser().getDisplayScreenName());
-
-
-
-
-
-
-
+        holder.txtUserName.setText(tweet.getUser().getName());
+        holder.txtUserScreenName.setText(tweet.getUser().getDisplayScreenName());
+        String userIconImagePath;
         if(mShowStar) {
             /* Insert tweet metadata if it exists*/
-            holder.txtCreated.setText(getTweet(holder.getAdapterPosition()).getDatabaseInsertDate());
-            holder.txtReTweeted.setText(getTweet(holder.getAdapterPosition()).getRetweetCountString());
+            holder.txtCreated.setText(tweet.getDatabaseInsertDate());
+            holder.txtReTweeted.setText(tweet.getRetweetCountString());
             if(getTweet(position).getFavorited() != null){
-                holder.txtFavorited.setText(getTweet(holder.getAdapterPosition()).getFavoritesCountString());
+                holder.txtFavorited.setText(tweet.getFavoritesCountString());
             }
 
             holder.imgFavorited.setVisibility(View.VISIBLE);
@@ -143,119 +140,81 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
             holder.imgStarLayout.setClickable(true);
             holder.imgStarLayout.setLongClickable(true);
-            holder.imgStar.setImageResource(FavoritesColors.assignStarResource(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars));
-            try {
-                holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, FavoritesColors.assignStarColor(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars)));
-            } catch (NullPointerException e) {
-                Log.e(TAG,"userTimeLineAdapter Nullpointer error setting star color filter in word detail popup dialog... Need to assign item favorites to WordEntry(?)" + e.getCause());
-            }
 
-            if(mDataset.get(holder.getAdapterPosition()).getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)
-                    && mDataset.get(holder.getAdapterPosition()).getItemFavorites().systemListCount(mActiveTweetFavoriteStars) >1) {
-                holder.imgStar.setColorFilter(null);
-                holder.imgStar.setImageResource(R.drawable.ic_star_multicolor);
+            Integer starColorDrawableInt = FavoritesColors.assignStarResource(true,tweet.getItemFavorites(),mActiveTweetFavoriteStars);
+            holder.imgStar.setImageResource(starColorDrawableInt);
 
-            } else {
+            if(starColorDrawableInt!=R.drawable.ic_twitter_multicolor_24dp) {
                 try {
-                    holder.imgStar.setImageResource(R.drawable.ic_star_black);
-                    holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mDataset.get(holder.getAdapterPosition()).getItemFavorites(),mActiveTweetFavoriteStars)));
+                    holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(tweet.getItemFavorites(),mActiveTweetFavoriteStars)));
                 } catch (NullPointerException e) {
-                    Log.e(TAG,"UserTimeLineAdapter setting colorfilter nullpointer 1: " + e.getMessage());
+                    Log.e(TAG,"tweetBreakDownAdapter multistar Nullpointer error setting star color filter in word detail popup dialog... Need to assign item favorites to WordEntry(?)" + e.getCause());
                 }
-
+            } else {
+                holder.imgStar.setColorFilter(null);
             }
-
 
             holder.imgStarLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
 
-
-
-
                 /* Check for, and save */
-                    Tweet currentTweet = mDataset.get(holder.getAdapterPosition());
-                    TweetListOperationsInterface helperTweetOps = InternalDB.getTweetInterfaceInstance(mContext);
+//                    Tweet currentTweet = mDataset.get(holder.getAdapterPosition());
+//                    TweetListOperationsInterface helperTweetOps = InternalDB.getTweetInterfaceInstance(mContext);
 
-                    Log.d(TAG,"ON THE CLICK getting favorite star color - "
-                            + "item favs green: " + currentTweet.getItemFavorites().getSystemGreenCount()
-                            + "item favs yellow: " + currentTweet.getItemFavorites().getSystemYellowCount()
-                    );
+                    if(tweet.getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)) {
 
-                    //Check for tweet in db
-                    try {
-                        //If tweet doesn't already exist in db, insert it
-                        if(helperTweetOps.tweetExistsInDB(currentTweet) == 0){
-                            //Otherwise enter the tweet into the database and then toggle
-                            if(BuildConfig.DEBUG) {
-                                Log.d(TAG,"createdAt: " + currentTweet.getCreatedAt() + ", db insert: " + currentTweet.getDatabaseInsertDate());
-                            }
-                            Log.d(TAG,"NOW getting favorite star color - "
-                                    + "item favs green: " + currentTweet.getItemFavorites().getSystemGreenCount()
-                                    + "item favs yellow: " + currentTweet.getItemFavorites().getSystemYellowCount()
-                            );
-
-
-                            int addTweetResultCode = helperTweetOps.saveTweetToDB(mDataset.get(holder.getAdapterPosition()).getUser(),currentTweet);
-                            if(addTweetResultCode >= 0) {
-                                if(BuildConfig.DEBUG) {
-                                    Log.d(TAG, "saving TWEET:" + mDataset.get(holder.getAdapterPosition()).getText() + " SUCCESSFUL");
-                                }
-                            } else {
-                                Log.e(TAG,"UserTimeline Adapter CAN'T SAVE TWEET!");
-                            }
-
-                            Log.d(TAG,"NEXT 2 getting favorite star color - "
-                                    + "item favs green: " + currentTweet.getItemFavorites().getSystemGreenCount()
-                                    + "item favs yellow: " + currentTweet.getItemFavorites().getSystemYellowCount()
-                            );
-
-                        }
-
-
-                    } catch (Exception e){
-                        Log.e(TAG,"UserTimeLIneAdapter - star clicked, tweet doesn't exist, but UNABLE to save!");
-
-                    }
-
-
-                    Log.i(TAG,"WOOOO1");
-
-                    if(currentTweet.getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)) {
-                        Log.i(TAG,"WOOOOXX");
-                        Log.d(TAG,"WOOOX getting favorite star color - "
-                                + "item favs green: " + currentTweet.getItemFavorites().getSystemGreenCount()
-                                + "item favs yellow: " + currentTweet.getItemFavorites().getSystemYellowCount()
-                        );
-
-                        showTweetFavoriteListPopupWindow(currentTweet,holder);
+                        showTweetFavoriteListPopupWindow(tweet,holder);
                     } else {
-                        Log.i(TAG,"WOOOO2 - " +mDataset.get(holder.getAdapterPosition()).getUser().getUserId() );
-                        Log.d(TAG,"WOOOO2 ON THE CLICK getting favorite star color - "
-                                + "item favs green: " + currentTweet.getItemFavorites().getSystemGreenCount()
-                                + "item favs yellow: " + currentTweet.getItemFavorites().getSystemYellowCount()
-                        );
 
-                        if (FavoritesColors.onFavoriteStarToggleTweet(mContext, mActiveTweetFavoriteStars, currentTweet.getUser().getUserId(), currentTweet)) {
-                            Log.i(TAG,"WOOOO3");
-                            Log.d(TAG,"WOOO3 ON THE CLICK getting favorite star color - "
-                                    + "item favs green: " + currentTweet.getItemFavorites().getSystemGreenCount()
-                                    + "item favs yellow: " + currentTweet.getItemFavorites().getSystemYellowCount()
-                            );
-
-                            holder.imgStar.setImageResource(R.drawable.ic_star_black);
-                            holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, FavoritesColors.assignStarColor(currentTweet.getItemFavorites(), mActiveTweetFavoriteStars)));
+                        if (FavoritesColors.onFavoriteStarToggleTweet(mContext, mActiveTweetFavoriteStars, tweet.getUser().getUserId(), tweet)) {
+                            holder.imgStar.setImageResource(R.drawable.ic_twitter_black_24dp);
+                            holder.imgStar.setColorFilter(ContextCompat.getColor(mContext, FavoritesColors.assignStarColor(tweet.getItemFavorites(), mActiveTweetFavoriteStars)));
                         } else {
                             Log.e(TAG, "OnFavoriteStarToggle did not work...");
                         }
-                        Log.i(TAG,"WOOOOzZ");
 
                     }
 
+//                    //Check for tweet in db
+//                    try {
+//
+//                        UserInfo userInfo = mDataset.get(holder.getAdapterPosition()).getUser();
+//                        //If tweet doesn't already exist in db, insert it
+//                        if(helperTweetOps.tweetExistsInDB(currentTweet) == 0){
+//                            //Otherwise enter the tweet into the database and then toggle
+//
+//                            int addTweetResultCode = helperTweetOps.saveTweetToDB(userInfo,currentTweet);
+//                            if(addTweetResultCode >= 0) {
+//                                if(BuildConfig.DEBUG) {
+//                                    Log.d(TAG, "saving TWEET:" + mDataset.get(holder.getAdapterPosition()).getText() + " SUCCESSFUL");
+//                                }
+//
+//
+//                            } else {
+//                                Log.e(TAG,"UserTimeline Adapter CAN'T SAVE TWEET!");
+//                            }
+//
+//                        }
+//
+//
+//                    } catch (Exception e){
+//                        Log.e(TAG,"UserTimeLIneAdapter - star clicked, tweet doesn't exist, but UNABLE to save!");
+//
+//                    }
+//
+//
+//                    /*DB insert successfull, now send callback to fragment and run observable to add
+//                    urls/user_mentions and possibly user icon for the tweet to database,
+//                    as well as parse the kanji (in observable) and add those to database */
+                    _rxbus.sendSaveTweet(tweet);
 
-                    /*DB insert successfull, now send callback to fragment and run observable to add
-                    urls/user_mentions for the tweet to database, as well as parse the kanji (in observable) and add those to database */
-                    _rxbus.sendSaveTweet(currentTweet);
+
+                    /*Check to see if tweet must be deleted from db. Delete if necessary.
+                            * Likewise adds a tweet to the db if it has just been added to a favorites list.
+                            * This bit MUST come after the favorite star toggle, because it determines whether to
+                            * add or delete a tweet based on whether that tweet is in a favorites list. */
+//                    saveOrDeleteTweet(mTweet);
 
 
                 }
@@ -272,17 +231,31 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                     return true;
                 }
             });
+            userIconImagePath = tweet.getUser().getProfileImageUrl();
         } else {
             holder.txtCreated.setText(getTweet(position).getDisplayDate());
 
             holder.imgStar.setVisibility(View.INVISIBLE);
             holder.imgStarLayout.setVisibility(View.INVISIBLE);
-            holder.imgFavorited.setVisibility(View.INVISIBLE);
-            holder.imgReTweeted.setVisibility(View.INVISIBLE);
-            holder.txtReTweeted.setVisibility(View.INVISIBLE);
-            holder.txtFavorited.setVisibility(View.INVISIBLE);
+            holder.imgFavorited.setVisibility(View.GONE);
+            holder.imgReTweeted.setVisibility(View.GONE);
+            holder.txtReTweeted.setVisibility(View.GONE);
+            holder.txtFavorited.setVisibility(View.GONE);
+            userIconImagePath = tweet.getUser().getProfileImageFilePath();
         }
 
+        /* Load User Icon */
+        Picasso picasso = new Picasso.Builder(mContext)
+                .listener(new Picasso.Listener() {
+                    @Override
+                    public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception) {
+                        holder.image.setVisibility(View.GONE);
+                    }
+                })
+                .build();
+        picasso.load(userIconImagePath)
+                .into(holder.image);
+        holder.image.setAdjustViewBounds(true);
 
         try {
             SpannableString text = new SpannableString(getTweet(position).getText());
@@ -436,20 +409,19 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
         ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getTweetInterfaceInstance(mContext).getTweetListsForTweet(mActiveTweetFavoriteStars,mTweet.getIdString(),null);
 
         PopupWindow popupWindow = ChooseFavoriteListsPopupWindow.createTweetFavoritesPopup(mContext,mMetrics,rxBus,availableFavoriteLists,mTweet.getIdString(), mTweet.getUser().getUserId());
-//        PopupWindow popupWindow =  new ChooseFavoriteListsPopupWindow(getContext(),metrics,rxBus,availableFavoriteLists,mWords.get(holder.getAdapterPosition()).getId()).onCreateView();
 
         popupWindow.getContentView().measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
 
-        int xadjust = popupWindow.getContentView().getMeasuredWidth() + (int) (25 * mMetrics.density + 0.5f);
+        int xadjust = popupWindow.getContentView().getMeasuredWidth() + (int) (10 * mMetrics.density + 0.5f);
 //        int yadjust = (int)((holder.imgStar.getMeasuredHeight())/2.0f);
 
         int yadjust;
-        if(availableFavoriteLists.size()<4) {
+//        if(availableFavoriteLists.size()<4) {
             yadjust = (int)((popupWindow.getContentView().getMeasuredHeight()  + holder.imgStar.getMeasuredHeight())/2.0f);
-        } else {
-            yadjust = getYAdjustmentForPopupWindowBigTweetList(availableFavoriteLists.size(),holder.getAdapterPosition(),mMetrics.scaledDensity,holder.itemView.getMeasuredHeight());
-        }
+//        } else {
+//            yadjust = getYAdjustmentForPopupWindowBigTweetList(availableFavoriteLists.size(),holder.getAdapterPosition(),mMetrics.scaledDensity,holder.itemView.getMeasuredHeight());
+//        }
 
 
         Log.d("TEST","pop width: " + popupWindow.getContentView().getMeasuredWidth() + " height: " + popupWindow.getContentView().getMeasuredHeight());
@@ -460,6 +432,13 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
             @Override
             public void onDismiss() {
 
+
+
+                /*Check to see if tweet must be deleted from db. Delete if necessary.
+                            * Likewise adds a tweet to the db if it has just been added to a favorites list.
+                            * This bit MUST come after the favorite star toggle, because it determines whether to
+                            * add or delete a tweet based on whether that tweet is in a favorites list. */
+//                saveOrDeleteTweet(mTweet);
                 _rxbus.sendSaveTweet(mTweet);
 
             }
@@ -509,14 +488,16 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                         }
                     }
 
+
+
                     if(mTweet.getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)
                             && mTweet.getItemFavorites().systemListCount(mActiveTweetFavoriteStars) >1) {
                         holder.imgStar.setColorFilter(null);
-                        holder.imgStar.setImageResource(R.drawable.ic_star_multicolor);
+                        holder.imgStar.setImageResource(R.drawable.ic_twitter_multicolor_24dp);
 
                     } else {
                         try {
-                            holder.imgStar.setImageResource(R.drawable.ic_star_black);
+                            holder.imgStar.setImageResource(R.drawable.ic_twitter_black_24dp);
                             holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mTweet.getItemFavorites(),mActiveTweetFavoriteStars)));
                         } catch (NullPointerException e) {
                             Log.e(TAG,"UserTimeLineAdapter setting colorfilter nullpointer: " + e.getMessage());
@@ -561,22 +542,9 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
             yadjustment = estimatedheightofpopup + (int) (multiplier* ((int) ((35) * scale + 0.5f)));
 
-//            if(BuildConfig.DEBUG){
-//                Log.d(TAG,"rowsize: " + totalActiveLists);
-//                Log.d(TAG,"estimatedheightofpopup: " + estimatedheightofpopup);
-//                Log.d(TAG,"multiplier: " + multiplier);
-//            }
-
         } else {
 
             float defmult = heightOfView;
-//            if(definition.contains("(9)")){
-//                defmult= 80.0f;
-//            } else if(definition.contains("(6)")){
-//                defmult= 50.0f;
-//            } else if(definition.contains("(3)")){
-//                defmult= 30.0f;
-//            }
 
             float listizemultiplier = 0;
             switch (totalActiveLists) {
@@ -602,12 +570,13 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
             }
 
             yadjustment =(int) ((float)listizemultiplier * scale + 0.5f);
-//            if(BuildConfig.DEBUG){
-//                Log.d(TAG,"listsizemultiplier: " +  listizemultiplier);
-//            }
+
         }
 
         return yadjustment;
     }
+
+
+
 
 }

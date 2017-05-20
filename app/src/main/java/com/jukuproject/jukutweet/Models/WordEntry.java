@@ -328,7 +328,10 @@ public class WordEntry implements Parcelable {
             case "Kanji to Kana":
                 return kanji;
             case "Kana to Kanji":
-                return furigana;
+                if(furigana==null || furigana.length()==0) {
+                    return kanji;
+                }
+                    return furigana;
             case "Definition to Kanji":
                 return getDefinitionMultiLineString(10);
             default:

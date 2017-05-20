@@ -5,11 +5,9 @@ import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
@@ -51,6 +49,7 @@ import com.jukuproject.jukutweet.Fragments.WordListFragment;
 import com.jukuproject.jukutweet.Interfaces.DialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.DialogRemoveUserInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
+import com.jukuproject.jukutweet.Interfaces.PostQuizFragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.QuizMenuDialogInteractionListener;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.ItemFavorites;
@@ -65,12 +64,8 @@ import com.jukuproject.jukutweet.TabContainers.Tab1Container;
 import com.jukuproject.jukutweet.TabContainers.Tab2Container;
 import com.jukuproject.jukutweet.TabContainers.Tab3Container;
 import com.jukuproject.jukutweet.TabContainers.Tab4Container;
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Target;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -104,6 +99,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         , DialogInteractionListener
         , QuizMenuDialogInteractionListener
         , DialogRemoveUserInteractionListener
+        , PostQuizFragmentInteractionListener
 {
 
     /**
@@ -145,13 +141,16 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
     /* Queues up any parse tweet tasks so they complete one by one */
     Scheduler parseTweetScheduler = Schedulers.from(Executors.newSingleThreadExecutor());
+    ArrayList<String> currentParsingTweetBackLog; /*Tracks which tweets are getting parsed in the scheduler. This is to avoid
+                                                    letting the user keep cycling through tweet favorite star clicks and inadvertently adding
+                                                    more identical TweetParser requests to the parseTweetScheduler.*/
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         new ExternalDB(this);
-
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -206,6 +205,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 if(mViewPager != null) {
                    if(mViewPager.getCurrentItem() == 0 && isTopShowing(0)) {
                         showAddUserDialog();
+                        showRoomSetUp();
                     }
                    else if(mViewPager.getCurrentItem() == 1 && isTopShowing(1)) {
                        showAddMyListDialog("TweetList");
@@ -244,6 +244,103 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
     }
 
+    private void showRoomSetUp() {
+        ContextWrapper cw = new ContextWrapper(getBaseContext());
+        File directory = cw.getDir("icons", Context.MODE_PRIVATE);
+        File lister = directory.getAbsoluteFile();
+        for (String list : lister.list())
+        {
+            Log.i(TAG,"FILE: " + list);
+        }
+
+
+
+        SQLiteDatabase db = InternalDB.getInstance(getBaseContext()).getWritableDatabase();
+    db.execSQL("DELETE FROM JScoreboard");
+
+    db.execSQL("INSERT INTO JScoreboard " +
+            "SELECT _id " +
+            ",ABS(RANDOM()) % (31- 17) + 17 as [Total] " +
+            ",ABS(RANDOM()) % (16- 4) + 4 as [Correct] " +
+            "FROM XRef  " +
+            "WHERE _id not in (SELECT DISTINCT _id FROM JScoreboard) " +
+            "ORDER BY RANDOM() LIMIT  1000");
+
+    db.execSQL("INSERT INTO JScoreboard " +
+            "SELECT _id " +
+            ",ABS(RANDOM()) % (16 - 14) + 14 as [Total] " +
+            ",ABS(RANDOM()) % (13- 11) + 11 as [Correct] " +
+            "FROM XRef  " +
+            "WHERE _id not in (SELECT DISTINCT _id FROM JScoreboard) " +
+            "ORDER BY RANDOM() LIMIT  1000");
+
+    db.execSQL("INSERT INTO JScoreboard " +
+            "SELECT _id " +
+            ",ABS(RANDOM()) % (9 - 8) + 8 as [Total] " +
+            ",ABS(RANDOM()) % (7- 2) + 2 as [Correct] " +
+            "FROM XRef  " +
+            "WHERE _id not in (SELECT DISTINCT _id FROM JScoreboard) " +
+            "ORDER BY RANDOM() LIMIT  1000");
+
+    db.execSQL("DELETE FROM JScoreboard where Total < Correct ");
+
+    //ADD FAVS LISTS....
+    db.execSQL("DELETE FROM JFavoritesLists ");
+    db.execSQL("INSERT INTO JFavoritesLists " +
+            "SELECT 'Quiz Words' as Name UNION " +
+            "SELECT 'Dumb Words' as Name UNION " +
+
+            "SELECT 'x1' as Name UNION " +
+            "SELECT 'x2' as Name UNION " +
+            "SELECT 'x3' as Name UNION " +
+            "SELECT 'x4' as Name UNION " +
+            "SELECT 'x5' as Name UNION " +
+            "SELECT 'x6' as Name UNION " +
+            "SELECT 'x7' as Name UNION " +
+            "SELECT 'x8' as Name UNION " +
+            "SELECT 'x9' as Name UNION " +
+            "SELECT 'x11' as Name UNION " +
+            "SELECT 'x12' as Name UNION " +
+            "SELECT 'x13' as Name UNION " +
+            "SELECT 'x14' as Name UNION " +
+            "SELECT 'x15' as Name UNION " +
+            "SELECT 'x16' as Name UNION " +
+            "SELECT 'x17' as Name UNION " +
+            "SELECT 'x18' as Name UNION " +
+            "SELECT 'x19' as Name UNION " +
+
+            "SELECT 'Words I Forget' as Name ");
+
+    db.execSQL("DELETE FROM JFavoritesTweetLists ");
+    db.execSQL("INSERT INTO JFavoritesTweetLists " +
+            "SELECT 'Super Cool Tweets' as Name UNION " +
+            "SELECT 'Tuesday Stuff' as Name UNION " +
+
+            "SELECT 'x1' as Name UNION " +
+            "SELECT 'x2' as Name UNION " +
+            "SELECT 'x3' as Name UNION " +
+            "SELECT 'x4' as Name UNION " +
+            "SELECT 'x5' as Name UNION " +
+            "SELECT 'x6' as Name UNION " +
+            "SELECT 'x7' as Name UNION " +
+            "SELECT 'x8' as Name UNION " +
+            "SELECT 'x9' as Name UNION " +
+            "SELECT 'x11' as Name UNION " +
+            "SELECT 'x12' as Name UNION " +
+            "SELECT 'x13' as Name UNION " +
+            "SELECT 'x14' as Name UNION " +
+            "SELECT 'x15' as Name UNION " +
+            "SELECT 'x16' as Name UNION " +
+            "SELECT 'x17' as Name UNION " +
+            "SELECT 'x18' as Name UNION " +
+            "SELECT 'x19' as Name UNION " +
+
+
+            "SELECT 'Others' as Name ");
+
+
+
+}
     /**
      * Each tab "bucket" has its own fab action and actionbar text/back button display depending
      * on where the user is navigating within the tab bucket. This method initializes the fab/action bar
@@ -507,7 +604,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 try {
                     ((Tab1Container) findFragmentByPosition(0)).updateUserListFragment();
                 } catch (NullPointerException e) {
-                    Log.e(TAG,"nullpointer error onRemoveUserDialogPOsitiveclick " + e.toString());
+                    Log.e(TAG,"nullpointer error onAddUserDialogPOsitiveclick " + e.toString());
                 }
             }
 
@@ -543,6 +640,10 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
         if (InternalDB.getUserInterfaceInstance(getBaseContext()).deleteUser(userId) ) {
 
+            /*If the tweet's user is not saved in the db and there are no tweets for the user anymore
+        , delete the user's icon from the app icons folder */
+            InternalDB.getUserInterfaceInstance(getBaseContext()).clearOutUnusedUserIcons(getBaseContext());
+
             // Locate Tab1Continer and update the UserListInfo adapter to reflect removed item
                 try {
                     ((Tab1Container) findFragmentByPosition(0)).updateUserListFragment();
@@ -572,7 +673,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * @param screenName name of user whose feed will be pulled from api
      */
     public void getInitialUserInfoForAddUserCheck(final String screenName) {
-
+        showProgressBar(true);
         if(userInfoSubscription==null) {
             String token = getResources().getString(R.string.access_token);
             String tokenSecret = getResources().getString(R.string.access_token_secret);
@@ -595,10 +696,13 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                                 Toast.makeText(MainActivity.this, "Unable to add user " + screenName, Toast.LENGTH_SHORT).show();
                             }
                             userInfoSubscription = null;
+                            showProgressBar(false);
                         }
 
                         @Override public void onError(Throwable e) {
                             e.printStackTrace();
+                            showProgressBar(false);
+
                             if(BuildConfig.DEBUG){Log.d(TAG, "getInitialUserInfoForAddUserCheck In onError()");}
                             Toast.makeText(getBaseContext(), "Unable to connect to Twitter API, or user screen name is incorrect", Toast.LENGTH_LONG).show();
 
@@ -640,11 +744,11 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             Toast.makeText(this, "User is already saved", Toast.LENGTH_SHORT).show();
         } else if(InternalDB.getUserInterfaceInstance(getBaseContext()).saveUser(userInfoInstance)) {
             try{
-                downloadUserIcon(userInfoInstance.getProfileImageUrlBig(),userInfoInstance.getScreenName());
+
+                InternalDB.getUserInterfaceInstance(getBaseContext()).downloadUserIcon(getBaseContext(),userInfoInstance.getProfileImageUrlBig(),userInfoInstance.getUserId());
             } catch (Exception e) {
                 Log.e(TAG,"Image download failed: " + e.toString());
             }
-
             // Locate Tab1Continer and update the UserListInfo adapter to reflect removed item
             if(findFragmentByPosition(0) != null && findFragmentByPosition(0) instanceof Tab1Container) {
                 ((Tab1Container) findFragmentByPosition(0)).updateUserListFragment();
@@ -654,67 +758,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
     }
 
-    /**
-     * Checks whether directory for saving twitter user icons already exist. If not, it creates the directory
-     * @param title title of image icon
-     * @return file for image icon (to then be saved)
-     */
-    public File checkForImagePath(String title) {
-        ContextWrapper cw = new ContextWrapper(getApplicationContext());
-        File directory = cw.getDir("icons", Context.MODE_PRIVATE);
 
-        if (!directory.exists()) {
-            directory.mkdir();
-        }
-        if(BuildConfig.DEBUG){Log.i(TAG,"URI directory: " + directory.getAbsolutePath() + ", FILE: " + title +".png" );}
-        return new File(directory, title + ".png");
-    }
 
-    /**
-     * Takes the url of an icon image from a UserInfo object, downloads the image with picasso
-     * and saves it to a file
-     * @param imageUrl Url of icon image
-     * @param screenName user screenname which will become the file name of the icon
-     */
-    public void downloadUserIcon(String imageUrl, final String screenName) {
-
-        Picasso.with(getBaseContext()).load(imageUrl).into(new Target() {
-            @Override
-            public void onBitmapLoaded(final Bitmap bitmap, Picasso.LoadedFrom from) {
-                new Thread(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        try {
-                            File file = checkForImagePath(screenName);
-                            if(!file.exists()) {
-                                FileOutputStream ostream = new FileOutputStream(file);
-                                bitmap.compress(Bitmap.CompressFormat.PNG, 100, ostream);
-                                ostream.flush();
-                                ostream.close();
-
-                                Uri uri = Uri.fromFile(file);
-                                InternalDB.getUserInterfaceInstance(getBaseContext()).addMediaURItoDB(uri.toString(),screenName);
-                            }
-
-                        } catch (IOException e) {
-                            Log.e("IOException", e.getLocalizedMessage());
-                        }
-                    }
-                }).start();
-
-            }
-            @Override
-            public void onBitmapFailed(Drawable errorDrawable) {
-
-            }
-
-            @Override
-            public void onPrepareLoad(Drawable placeHolderDrawable) {
-
-            }
-        });
-    }
 
 
     /**
@@ -1089,10 +1134,14 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             if(show && type.equals("addUser")) {
                 fab.setVisibility(View.VISIBLE);
                 fab.setImageResource(R.drawable.ic_add_white_24dp);
-            } else if(show && (type.equals("addMyList") || type.equals("addTweetList"))) {
+            } else if(show && type.equals("addMyList")) {
                 fab.setVisibility(View.VISIBLE);
                 fab.setImageResource(R.drawable.ic_star_black);
                 fab.setColorFilter(ContextCompat.getColor(getBaseContext(), android.R.color.white));
+            } else if(show && type.equals("addTweetList")) {
+            fab.setVisibility(View.VISIBLE);
+            fab.setImageResource(R.drawable.ic_twitter_black_24dp);
+            fab.setColorFilter(ContextCompat.getColor(getBaseContext(), android.R.color.white));
             } else {
                 fab.setVisibility(View.GONE);
             }
@@ -1787,9 +1836,6 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                             ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment")).receiveTwitterSearchResults(mDataSet,kanjiQuery);
                         } catch (NullPointerException e) {
                             Log.e(TAG,"runTwitterSearch onsuccess error updating SearchFragment, null: " + e.toString());
-                        } catch (Exception e) {
-                            Log.e(TAG,"runTwitterSearch onsuccess error updating SearchFragment, generic exception: " + e.toString());
-
                         }
 
                 }
@@ -1797,12 +1843,11 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 @Override public void onError(Throwable e) {
                     if(findFragmentByPosition(3) != null) {
                         try {
-                            ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment")).showRecyclerView(false);
+                            SearchFragment searchFragment = ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment"));
+                            searchFragment.showRecyclerView(false);
+                            searchFragment.showProgressBar(false);
                         } catch (NullPointerException ee) {
                             Log.e(TAG,"runTwitterSearch onError error updating SearchFragment, null: " + ee.toString());
-                        } catch (Exception ee) {
-                            Log.e(TAG,"runTwitterSearch onError error updating SearchFragment, generic exception: " + ee.toString());
-
                         }
                     }
 
@@ -1852,8 +1897,16 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
                          @Override public void onError(Throwable e) {
                              e.printStackTrace();
+
                              if(BuildConfig.DEBUG){Log.d(TAG, "runTwitterSearch Users In onError()");}
                              searchSubscriptionCriteria = null;
+                             try {
+                                 SearchFragment searchFragment = ((SearchFragment) ((Tab4Container) findFragmentByPosition(3)).getChildFragmentManager().findFragmentByTag("searchFragment"));
+                                 searchFragment.showRecyclerView(false);
+                                 searchFragment.showProgressBar(false);
+                             } catch (NullPointerException ee) {
+                                 Log.e(TAG,"runTwitterSearch onError error updating SearchFragment, null: " + ee.toString());
+                             }
                          }
 
                          @Override public void onNext(List<UserInfo> followers) {
@@ -2210,43 +2263,59 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      */
     public void parseAndSaveTweet(final Tweet tweet) {
 
-        Single.fromCallable(new Callable<ArrayList<WordEntry>>() {
-            @Override
-            public ArrayList<WordEntry> call() throws Exception {
+        if(currentParsingTweetBackLog == null) {
+            currentParsingTweetBackLog = new ArrayList<>();
+        }
 
-                final ArrayList<String> spansToExclude = new ArrayList<>();
+        //IF the tweet is not already being parsed
+        if(!currentParsingTweetBackLog.contains(tweet.getIdString())) {
+            currentParsingTweetBackLog.add(tweet.getIdString());
 
-                if(tweet.getEntities().getUrls() != null) {
-                    for(TweetUrl url : tweet.getEntities().getUrls()) {
-                        if(url != null) {
-                            spansToExclude.add(url.getUrl());
+            Single.fromCallable(new Callable<ArrayList<WordEntry>>() {
+                @Override
+                public ArrayList<WordEntry> call() throws Exception {
+
+                    final ArrayList<String> spansToExclude = new ArrayList<>();
+
+                    if(tweet.getEntities().getUrls() != null) {
+                        for(TweetUrl url : tweet.getEntities().getUrls()) {
+                            if(url != null) {
+                                spansToExclude.add(url.getUrl());
+                            }
                         }
+
                     }
 
+                    ColorThresholds colorThresholds = SharedPrefManager.getInstance(getBaseContext()).getColorThresholds();
+                    return TweetParser.getInstance().parseSentence(getBaseContext()
+                            ,tweet.getText()
+                            ,spansToExclude
+                            ,colorThresholds);
                 }
+            }).subscribeOn(parseTweetScheduler)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new SingleSubscriber<ArrayList<WordEntry>>() {
 
-                ColorThresholds colorThresholds = SharedPrefManager.getInstance(getBaseContext()).getColorThresholds();
-                return TweetParser.getInstance().parseSentence(getBaseContext()
-                        ,tweet.getText()
-                        ,spansToExclude
-                        ,colorThresholds);
-            }
-        }).subscribeOn(parseTweetScheduler)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new SingleSubscriber<ArrayList<WordEntry>>() {
+                        @Override
+                        public void onSuccess(ArrayList<WordEntry> disectedTweet) {
+                            //load the parsed kanji ids into the database
+                            if(currentParsingTweetBackLog!=null && currentParsingTweetBackLog.contains(tweet.getIdString())) {
+                                currentParsingTweetBackLog.remove(tweet.getIdString());
+                            }
+                            InternalDB.getTweetInterfaceInstance(getBaseContext()).saveParsedTweetKanji(disectedTweet,tweet.getIdString());
+                            notifySavedTweetFragmentsChanged();
+                        }
 
-                    @Override
-                    public void onSuccess(ArrayList<WordEntry> disectedTweet) {
-                        //load the parsed kanji ids into the database
-                        InternalDB.getTweetInterfaceInstance(getBaseContext()).saveParsedTweetKanji(disectedTweet,tweet.getIdString());
-                        notifySavedTweetFragmentsChanged();
-                    }
+                        @Override
+                        public void onError(Throwable error) {
+                            if(currentParsingTweetBackLog!=null && currentParsingTweetBackLog.contains(tweet.getIdString())) {
+                                currentParsingTweetBackLog.remove(tweet.getIdString());
+                            }
+                            Log.e(TAG,"ERROR IN PARSE KANJI (for saved tweet) OBSERVABLE: " + error);
+                        }
+                    });
+        }
 
-                    @Override
-                    public void onError(Throwable error) {
-                        Log.e(TAG,"ERROR IN PARSE KANJI (for saved tweet) OBSERVABLE: " + error);
-                    }
-                });
     }
 
 
@@ -2259,6 +2328,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         if(userInfoSubscription!=null) {
             userInfoSubscription.unsubscribe();
         }
+        InternalDB.getInstance(getBaseContext()).close();
         super.onDestroy();
     }
 
@@ -2271,6 +2341,19 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             userInfoSubscription.unsubscribe();
         }
         super.onPause();
+    }
+
+    /**
+     * Downloads and saves icons for tweets which are not attached to one of the saved users in the {@link com.jukuproject.jukutweet.Fragments.UserListFragment}.
+     * @param userInfo UserInfo object for user whose icon will be downloaded
+     *
+     * @see com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter
+     * @see SearchFragment
+     * @see com.jukuproject.jukutweet.Fragments.UserTimeLineFragment
+     * @see com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog#runTwitterSearch(String)
+     */
+    public void downloadTweetUserIcons(UserInfo userInfo) {
+        InternalDB.getUserInterfaceInstance(getBaseContext()).downloadTweetUserIcon(getBaseContext(),userInfo.getProfileImageUrl(),userInfo.getUserId());
     }
 
     @Override

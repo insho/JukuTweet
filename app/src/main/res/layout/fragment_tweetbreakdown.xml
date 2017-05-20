@@ -95,7 +95,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:contentDescription="star"
-                    android:src="@drawable/ic_star_black"
+                    android:src="@drawable/ic_twitter_black_24dp"
                     android:visibility="visible"
                     android:background="@android:color/transparent"
                     android:gravity="center"

@@ -535,30 +535,7 @@ public class TweetListBrowseFragment extends Fragment {
 
                     }
 
-
-//                    if(mSelectedEntries.size()==1) {
-//                        for(Tweet tweet : mDataset) {
-//                            if(tweet.getIdString().equals(mSelectedEntries.get(0))) {
-//                                mCallback.notifySavedTweetFragmentsChanged(tweet.getIdString());
-//                            }
-//                        }
-//
-//                    } else {
                         mCallback.notifySavedTweetFragmentsChanged();
-//                    }
-
-//                    if(mSelectedEntries.size()==1) {
-//                        for(WordEntry wordEntry : mWords) {
-//                            if(wordEntry.getId().equals(mSelectedEntries.get(0))) {
-//                                updateWordEntryFavoritesForOtherTabs(wordEntry);
-//                            }
-//                        }
-//
-//                    } else {
-//                        mCallback.notifySavedWordFragmentsChanged(getSelectedIntsAsString(mSelectedEntries));
-//                    }
-
-
 
                     mSelectedEntries.clear();
                     mAdapter.swapDataSet(mDataset);
@@ -586,6 +563,10 @@ public class TweetListBrowseFragment extends Fragment {
                 if(mUserInfo!=null) {
                     Log.d(TAG,"Dismiss listener is firing!");
                     InternalDB.getTweetInterfaceInstance(getContext()).deleteTweetIfNecessary(bulkTweetIds);
+
+                    /*If the tweet's user is not saved in the db and there are no tweets for the user anymore
+                     * , delete the user's icon from the app icons folder */
+                    InternalDB.getUserInterfaceInstance(getContext()).clearOutUnusedUserIcons(getContext());
                 }
             }
         });

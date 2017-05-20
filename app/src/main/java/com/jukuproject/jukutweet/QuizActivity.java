@@ -18,8 +18,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jukuproject.jukutweet.Database.ExternalDB;
+import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Fragments.FillInTheBlankFragment;
 import com.jukuproject.jukutweet.Fragments.MultipleChoiceFragment;
+import com.jukuproject.jukutweet.Fragments.SearchFragment;
 import com.jukuproject.jukutweet.Interfaces.QuizFragmentInteractionListener;
 import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
 import com.jukuproject.jukutweet.Models.MultChoiceResult;
@@ -457,6 +459,26 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
 
         startActivity(intent);
         finish();
+    }
+
+
+    /**
+     * Downloads and saves icons for tweets which are not attached to one of the saved users in the {@link com.jukuproject.jukutweet.Fragments.UserListFragment}.
+     * @param userInfo UserInfo object for user whose icon will be downloaded
+     *
+     * @see com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter
+     * @see SearchFragment
+     * @see com.jukuproject.jukutweet.Fragments.UserTimeLineFragment
+     * @see com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog#runTwitterSearch(String)
+     */
+    public void downloadTweetUserIcons(UserInfo userInfo) {
+        InternalDB.getUserInterfaceInstance(getBaseContext()).downloadTweetUserIcon(getBaseContext(),userInfo.getProfileImageUrl(),userInfo.getUserId());
+    }
+
+    @Override
+    protected void onDestroy() {
+        InternalDB.getInstance(getBaseContext()).close();
+        super.onDestroy();
     }
 
     @Override

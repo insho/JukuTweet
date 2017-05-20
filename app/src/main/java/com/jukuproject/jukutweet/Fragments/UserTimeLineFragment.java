@@ -1,6 +1,7 @@
 package com.jukuproject.jukutweet.Fragments;
 
 import android.content.Context;
+import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.app.Fragment;
@@ -134,6 +135,8 @@ public class UserTimeLineFragment extends Fragment {
         mRecyclerView.setLayoutManager(mLayoutManager);
 
 
+
+
         /* Listen for the user scrolling to the final position in the scrollview. IF it happens, load more
         * userinfo items into the adapter */
         if (android.os.Build.VERSION.SDK_INT >= 23) {
@@ -224,7 +227,6 @@ public class UserTimeLineFragment extends Fragment {
 
             Observable<Long> observable = Observable.timer(5, TimeUnit.SECONDS, Schedulers.io());
 
-//            Log.d(TAG,"HERE: swipeisrefresh: " + mSwipeToRefreshLayout.isRefreshing());
             if(!mSwipeToRefreshLayout.isRefreshing() && mDataSet.size()==0) {
                 timerSubscription =  observable
                         .subscribeOn(Schedulers.io())
@@ -265,6 +267,11 @@ public class UserTimeLineFragment extends Fragment {
                             if(mDataSet != null && mDataSet.size() > 0) {
                                 try {
                                     UserInfo recentUserInfo = mDataSet.get(0).getUser();
+                                    Log.i(TAG,"UPDATING PROFILE IMAGE? - " + recentUserInfo.getProfileImageUrl());
+                                    if(mUserInfo.getProfileImageFilePath()==null && recentUserInfo.getProfileImageUrl()!=null){
+                                        Log.i(TAG,"UPDATING PROFILE IMAGE");
+                                        InternalDB.getUserInterfaceInstance(getContext()).downloadUserIcon(getContext(),recentUserInfo.getProfileImageUrlBig(),recentUserInfo.getUserId());
+                                    }
                                     InternalDB.getUserInterfaceInstance(getContext()).compareUserInfoAndUpdate(userInfo,recentUserInfo);
 
                                 } catch (NullPointerException e) {
@@ -428,11 +435,17 @@ public class UserTimeLineFragment extends Fragment {
 
                 if(isUniqueClick(1000) && event instanceof Tweet) {
                     final Tweet tweet = (Tweet) event;
-                    //Try to parse and insert Tweet Kanji if they do not already exist
-                    if(InternalDB.getTweetInterfaceInstance(getContext()).tweetParsedKanjiExistsInDB(tweet) == 0) {
-                        mCallback.parseAndSaveTweet(tweet);
-                    }
-                        mCallback.notifySavedTweetFragmentsChanged();
+//                    //Try to parse and insert Tweet Kanji if they do not already exist
+//                    if(InternalDB.getTweetInterfaceInstance(getContext()).tweetParsedKanjiExistsInDB(tweet) == 0) {
+//                        mCallback.parseAndSaveTweet(tweet);
+//                    }
+//                    if(((Tweet)event).getUser()!=null
+//                            && !InternalDB.getUserInterfaceInstance(getContext()).duplicateUser(((Tweet)event).getUser().getUserId())) {
+//                        mCallback.downloadTweetUserIcons(((Tweet)event).getUser());
+//                    }
+//                        mCallback.notifySavedTweetFragmentsChanged();
+
+                    saveOrDeleteTweet(tweet);
                 }
 
             }
@@ -464,6 +477,49 @@ public class UserTimeLineFragment extends Fragment {
 //        super.onResume();
 //        if()
 //    }
+
+    /**
+     * Decides via {@link com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface#saveOrDeleteTweet(Tweet)} whether to
+     * save the tweet or remove it from the db (if it already exists and is unnecessary). If it saves the tweet, it also decides via
+     * whether or not to download the tweet icon with a callback to the "downloadTweetUserIcons" method in the activity. Lastly
+     * it notifies tweet related fragments that a change has been made
+     * @param tweet
+     */
+    public void saveOrDeleteTweet(Tweet tweet){
+        //Check for tweet in db
+        try {
+
+            Log.i(TAG,"ENTERING saveOrDeleteTweet");
+            //If tweet was not in the saved tweets database, and was then successfully saved, download tweet icon
+            int savedOrDeleteResultCode = InternalDB.getTweetInterfaceInstance(getContext()).saveOrDeleteTweet(tweet);
+            Log.i(TAG,"saveOrDeleteTweet returned result code: " + savedOrDeleteResultCode);
+            if(savedOrDeleteResultCode==1) {
+
+
+                if(tweet.getUser()!=null
+                        && !InternalDB.getUserInterfaceInstance(getContext()).duplicateUser(tweet.getUser().getUserId())) {
+                    mCallback.downloadTweetUserIcons(tweet.getUser());
+                    Log.i(TAG,"saveOrDeleteTweet download tweet icon");
+                }
+                //Try to parse and insert Tweet Kanji if they do not already exist
+                if(InternalDB.getTweetInterfaceInstance(getContext()).tweetParsedKanjiExistsInDB(tweet) == 0) {
+                    mCallback.parseAndSaveTweet(tweet);
+                }
+            }
+            if(savedOrDeleteResultCode>=1) {
+                Log.i(TAG,"saveOrDeleteTweet notify changed...");
+                mCallback.notifySavedTweetFragmentsChanged();
+            }
+
+        } catch (SQLiteException sqlexception){
+            Log.e(TAG,"saveOrDeleteTweet - sqlite exception when tweet saving, UNABLE to save!");
+
+        } catch (NullPointerException e){
+            Log.e(TAG,"saveOrDeleteTweet - nullpointer when tweet saving, UNABLE to save!");
+
+        }
+
+    }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {

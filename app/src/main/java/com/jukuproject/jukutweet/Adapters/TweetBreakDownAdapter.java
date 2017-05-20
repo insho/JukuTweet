@@ -103,7 +103,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
             Log.d(TAG,"favs: " + (mWords.get(holder.getAdapterPosition()).getItemFavorites() == null));
         }
 
-        Integer starColorDrawableInt = FavoritesColors.assignStarResource(mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars);
+        Integer starColorDrawableInt = FavoritesColors.assignStarResource(false,mWords.get(holder.getAdapterPosition()).getItemFavorites(),mActiveFavoriteStars);
         holder.imgStar.setImageResource(starColorDrawableInt);
         if(starColorDrawableInt!=R.drawable.ic_star_multicolor) {
             try {
@@ -187,11 +187,11 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
 
         int xadjust = popupWindow.getContentView().getMeasuredWidth() + (int) (25 * mMetrics.density + 0.5f);
         int yadjust;
-        if(availableFavoriteLists.size()<4) {
+//        if(availableFavoriteLists.size()<4) {
             yadjust = (int)((popupWindow.getContentView().getMeasuredHeight()  + holder.imgStar.getMeasuredHeight())/2.0f);
-        } else {
-            yadjust = getYAdjustmentForPopupWindowBigList(availableFavoriteLists.size(),holder.getAdapterPosition(),mMetrics.scaledDensity,holder.itemView.getMeasuredHeight());
-        }
+//        } else {
+//            yadjust = getYAdjustmentForPopupWindowBigList(availableFavoriteLists.size(),holder.getAdapterPosition(),mMetrics.scaledDensity,holder.itemView.getMeasuredHeight());
+//        }
 
         if(BuildConfig.DEBUG) {
             Log.d("TEST", "pop width: " + popupWindow.getContentView().getMeasuredWidth() + " height: " + popupWindow.getContentView().getMeasuredHeight());

@@ -1,16 +1,27 @@
 package com.jukuproject.jukutweet.Database;
 
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.util.Log;
 
 import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Interfaces.UserOperationsInterface;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.UserInfo;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
 
 
 /**
@@ -35,9 +46,8 @@ public class UserOpsHelper implements UserOperationsInterface {
      * @return boolean True if user already exists, false if user does not exist
      */
     public boolean duplicateUser(String user) {
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
-        String queryRecordExists = "Select _id From " + InternalDB.Tables.TABLE_USERS + " where " + InternalDB.Columns.TMAIN_COL0 + " = ?" ;
-        Cursor c = db.rawQuery(queryRecordExists, new String[]{user});
+        String queryRecordExists = "Select _id From " + InternalDB.Tables.TABLE_USERS + " where " + InternalDB.Columns.TMAIN_COL0 + " = ? OR " + InternalDB.Columns.TMAIN_COL1 + " = ?" ;
+        Cursor c = sqlOpener.getReadableDatabase().rawQuery(queryRecordExists, new String[]{user});
         try {
             if (c.moveToFirst()) {
                 return true;
@@ -48,7 +58,6 @@ public class UserOpsHelper implements UserOperationsInterface {
             Log.e(TAG,"Sqlite exception: " + e);
         } finally {
             c.close();
-            db.close();
         }
         return false;
     }
@@ -61,7 +70,6 @@ public class UserOpsHelper implements UserOperationsInterface {
      * @return bool True if save worked, false if it failed
      */
     public boolean saveUser(UserInfo userInfo) {
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
         try {
             if(userInfo.getScreenName() != null) {
 
@@ -91,7 +99,7 @@ public class UserOpsHelper implements UserOperationsInterface {
                     values.put(InternalDB.Columns.TMAIN_COL7, userInfo.getName().trim());
                 }
 
-                db.insert(InternalDB.Tables.TABLE_USERS, null, values);
+                sqlOpener.getWritableDatabase().insert(InternalDB.Tables.TABLE_USERS, null, values);
 
                 return true;
             } else {
@@ -99,8 +107,6 @@ public class UserOpsHelper implements UserOperationsInterface {
             }
         } catch(SQLiteException exception) {
             return false;
-        } finally {
-            db.close();
         }
     }
 
@@ -111,35 +117,56 @@ public class UserOpsHelper implements UserOperationsInterface {
      * @return bool True if operation is succesful, false if an error occurs
      */
     public boolean deleteUser(String userId) {
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
         try{
-            db.delete(InternalDB.Tables.TABLE_USERS, InternalDB.Columns.TMAIN_COL0 + "= ? OR " + InternalDB.Columns.TMAIN_COL1 + "= ? ", new String[]{userId,userId});
+            sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_USERS, InternalDB.Columns.TMAIN_COL0 + "= ? OR " + InternalDB.Columns.TMAIN_COL1 + "= ? ", new String[]{userId,userId});
+
+            //Delete saved tweets for the user that aren't in any favorite lists
+            sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_SAVED_TWEETS," UserId = ? AND " +
+                    "( SELECT Count(_id) FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " WHERE UserId = ?) = 0 ",new String[]{userId,userId});
+
+            //Delete saved tweet kanji that don't have any associated tweets
+            sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_SAVED_TWEET_KANJI," Tweet_id not in ( " +
+                    "SELECT DISTINCT _id FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS + " ) ",null);
+
             return true;
         } catch(SQLiteException exception) {
             return false;
-        } finally {
-            db.close();
         }
     }
 
     /**
      * Inserts the URI link to the location in the phone of a twitter user's saved profile image
      * @param URI URI of saved image
-     * @param screenName screen name of user
+     * @param userId userId of user
      */
-    public void addMediaURItoDB(String URI, String screenName) {
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
+    public void addUserIconURItoDB(String URI, String userId) {
         try {
         ContentValues values = new ContentValues();
         values.put(InternalDB.Columns.TMAIN_COL6, URI);
-        db.update(InternalDB.Tables.TABLE_USERS, values, InternalDB.Columns.TMAIN_COL0 + "= ?", new String[] {screenName});
-        if(BuildConfig.DEBUG){Log.d(TAG,"SUCESSFUL INSERT URI for name: " + screenName);}
+            sqlOpener.getWritableDatabase().update(InternalDB.Tables.TABLE_USERS, values, InternalDB.Columns.TMAIN_COL1 + "= ?", new String[] {userId});
+        if(BuildConfig.DEBUG){Log.d(TAG,"SUCESSFUL INSERT URI for id: " + userId);}
         } catch (SQLiteException e) {
-            Log.e(TAG,"addMediaURItoDB sqlite problem: " + e);
-        } finally {
-            db.close();
+            Log.e(TAG,"addUserIconURItoDB sqlite problem: " + e);
         }
     }
+
+    /**
+     * Inserts the URI link to the location in the phone of a twitter user's saved profile image
+     * @param URI URI of saved image
+     * @param userId userId of user
+     */
+    public void addTweetIconURItoDB(String URI, String userId) {
+        try {
+            ContentValues values = new ContentValues();
+            values.put(InternalDB.Columns.TMAIN_COL6, URI);
+            sqlOpener.getWritableDatabase().update(InternalDB.Tables.TABLE_SAVED_TWEETS, values, InternalDB.Columns.TMAIN_COL6 + " is null and " + InternalDB.Columns.TMAIN_COL1 + "= ?", new String[] {userId});
+            if(BuildConfig.DEBUG){Log.d(TAG,"SUCESSFUL INSERT URI for id: " + userId);}
+        } catch (SQLiteException e) {
+            Log.e(TAG,"addUserIconURItoDB sqlite problem: " + e);
+        }
+    }
+
+
 
     /**
      * Updates Twitter User information in the database when a newer version of that user's info is
@@ -148,11 +175,8 @@ public class UserOpsHelper implements UserOperationsInterface {
      * @param userInfo fresh UserInfo
      */
     public void updateUserInfo(UserInfo userInfo) {
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
         try {
-
             ContentValues values = new ContentValues();
-
             if(userInfo.getUserId()!=null) {
                 values.put(InternalDB.Columns.TMAIN_COL1, userInfo.getUserId());
             }
@@ -172,12 +196,10 @@ public class UserOpsHelper implements UserOperationsInterface {
                 values.put(InternalDB.Columns.TMAIN_COL5, userInfo.getProfileImageUrl().trim());
             }
 
-            db.update(InternalDB.Tables.TABLE_USERS, values, InternalDB.Columns.TMAIN_COL0 + "= ?", new String[] {userInfo.getScreenName()});
+            sqlOpener.getWritableDatabase().update(InternalDB.Tables.TABLE_USERS, values, InternalDB.Columns.TMAIN_COL0 + "= ?", new String[] {userInfo.getScreenName()});
             if(BuildConfig.DEBUG){Log.d(TAG,"SUCESSFUL UPDATE OF USER INFO FOR: " + userInfo.getScreenName());}
         } catch (SQLiteException e) {
             Log.e(TAG,"updateUserInfo sqlite problem: " + e);
-        } finally {
-            db.close();
         }
     }
 
@@ -248,17 +270,13 @@ public class UserOpsHelper implements UserOperationsInterface {
                         /* Now we have a big collection of list metadata (tweetlists), and all the kanji scores and colors for
                             each kanji (kanjilists) */
                         " Select DISTINCT TweetLists.[UserId] " +
-//                        " ,TweetLists.[TweetCount]  " +
                         " ,TweetKanji.Edict_id "   +
                         ",(CASE WHEN [Total] is not NULL AND [Total] < " + colorThresholds.getGreyThreshold() + " THEN 1 ELSE 0 END) as [Grey] " +
                         ",(CASE WHEN [Total] is not NULL and [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] < " + colorThresholds.getRedThreshold() + "  THEN 1  ELSE 0 END) as [Red] " +
                         ",(CASE WHEN [Total] is not NULL and [Total] >= " + colorThresholds.getGreyThreshold() + " and ([Percent] >= " + colorThresholds.getRedThreshold() + "  and [Percent] <  " + colorThresholds.getYellowThreshold() + ") THEN 1  ELSE 0 END) as [Yellow] " +
                         ",(CASE WHEN [Total] is not NULL and [Total] >= " + colorThresholds.getGreyThreshold() + " and [Percent] >= " + colorThresholds.getYellowThreshold() + " THEN 1 ELSE 0 END) as [Green] " +
-
                         "FROM " +
-
                         "(" +
-
                         /* Get A list of each saved tweet and the number of kanji in those tweets */
                         "SELECT  DISTINCT [UserId]" +
                         ", _id as [Tweet_id]" +
@@ -345,10 +363,10 @@ public class UserOpsHelper implements UserOperationsInterface {
             if(recentUserInfo.getDescription() != null && !oldUserInfo.getDescription().equals(recentUserInfo.getDescription())) {
                 values.put(InternalDB.Columns.TMAIN_COL2, recentUserInfo.getDescription().trim());
             }
-            if(recentUserInfo.getFollowerCount() != null && oldUserInfo.getFollowerCount() != recentUserInfo.getFollowerCount()) {
+            if(recentUserInfo.getFollowerCount() != null && !oldUserInfo.getFollowerCount().equals(recentUserInfo.getFollowerCount()) ) {
                 values.put(InternalDB.Columns.TMAIN_COL3, recentUserInfo.getFollowerCount());
             }
-            if(recentUserInfo.getFriendCount() != null && oldUserInfo.getFriendCount() != recentUserInfo.getFriendCount()) {
+            if(recentUserInfo.getFriendCount() != null && !oldUserInfo.getFriendCount().equals(recentUserInfo.getFriendCount())) {
                 values.put(InternalDB.Columns.TMAIN_COL4, recentUserInfo.getFriendCount());
             }
             if(recentUserInfo.getProfileImageUrl() != null && !oldUserInfo.getProfileImageUrl().equals(recentUserInfo.getProfileImageUrl())) {
@@ -357,11 +375,9 @@ public class UserOpsHelper implements UserOperationsInterface {
 
             if(values.size()>0) {
                 if(oldUserInfo.getUserId() != null) {
-                    SQLiteDatabase db = sqlOpener.getReadableDatabase();
-                    db.update(InternalDB.Tables.TABLE_USERS, values, InternalDB.Columns.TMAIN_COL1 + "= ?", new String[]{String.valueOf(oldUserInfo.getUserId())});
+                    sqlOpener.getWritableDatabase().update(InternalDB.Tables.TABLE_USERS, values, InternalDB.Columns.TMAIN_COL1 + "= ?", new String[]{String.valueOf(oldUserInfo.getUserId())});
                 } else {
-                    SQLiteDatabase db = sqlOpener.getReadableDatabase();
-                    db.update(InternalDB.Tables.TABLE_USERS, values, InternalDB.Columns.TMAIN_COL0 + "= ?", new String[]{oldUserInfo.getScreenName()});
+                    sqlOpener.getWritableDatabase().update(InternalDB.Tables.TABLE_USERS, values, InternalDB.Columns.TMAIN_COL0 + "= ?", new String[]{oldUserInfo.getScreenName()});
                 }
             }
 
@@ -381,21 +397,178 @@ public class UserOpsHelper implements UserOperationsInterface {
      * @return
      */
     public boolean saveUserWithoutData(String screenName) {
-        SQLiteDatabase db = sqlOpener.getWritableDatabase();
         try {
                 ContentValues values = new ContentValues();
                 if(BuildConfig.DEBUG) {
                     Log.d(TAG,"saving OFFLINE screenname placeholder: " + screenName );
                 }
                 values.put(InternalDB.Columns.TMAIN_COL0, screenName.trim());
-                db.insert(InternalDB.Tables.TABLE_USERS, null, values);
+                sqlOpener.getWritableDatabase().insert(InternalDB.Tables.TABLE_USERS, null, values);
                 return true;
 
         } catch(SQLiteException exception) {
             return false;
-        } finally {
-            db.close();
         }
     };
+
+
+    /**
+     * Takes the url of an icon image from a UserInfo object, downloads the image with picasso
+     * and saves it to a file
+     * @param imageUrl Url of icon image
+     * @param userId userid string which will become the file name of the icon
+     */
+    public void downloadUserIcon(final Context context, String imageUrl, final String userId) {
+
+        Picasso.with(context).load(imageUrl).into(new Target() {
+            @Override
+            public void onBitmapLoaded(final Bitmap bitmap, Picasso.LoadedFrom from) {
+                new Thread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        try {
+                            File file = checkForImagePath(context, userId);
+                            if(!file.exists()) {
+                                FileOutputStream ostream = new FileOutputStream(file);
+                                bitmap.compress(Bitmap.CompressFormat.PNG, 100, ostream);
+                                ostream.flush();
+                                ostream.close();
+                            }
+
+                            Uri uri = Uri.fromFile(file);
+                            addUserIconURItoDB(uri.toString(),userId);
+                        } catch (IOException e) {
+                            Log.e("IOException", e.getLocalizedMessage());
+                        }
+                    }
+                }).start();
+
+            }
+            @Override
+            public void onBitmapFailed(Drawable errorDrawable) {
+
+            }
+
+            @Override
+            public void onPrepareLoad(Drawable placeHolderDrawable) {
+
+            }
+        });
+    }
+
+
+
+    /**
+     * Takes the url of an icon image from a UserInfo object, downloads the image with picasso
+     * and saves it to a file
+     * @param imageUrl Url of icon image
+     * @param userId userid string for user whose tweet icon is being saved. user id which will become the file name of the icon
+     *
+     * @see com.jukuproject.jukutweet.MainActivity#downloadTweetUserIcons(UserInfo)
+     * @see com.jukuproject.jukutweet.QuizActivity#downloadTweetUserIcons(UserInfo)
+     * @see com.jukuproject.jukutweet.PostQuizStatsActivity#downloadTweetUserIcons(UserInfo)
+     */
+    public void downloadTweetUserIcon(final Context context, String imageUrl, final String userId) {
+        Picasso.with(context).load(imageUrl).into(new Target() {
+            @Override
+            public void onBitmapLoaded(final Bitmap bitmap, Picasso.LoadedFrom from) {
+                new Thread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        try {
+                            File file = checkForImagePath(context, userId);
+                            if(!file.exists()) {
+                                FileOutputStream ostream = new FileOutputStream(file);
+                                bitmap.compress(Bitmap.CompressFormat.PNG, 100, ostream);
+                                ostream.flush();
+                                ostream.close();
+                            }
+                            //If no saved users exist for this tweet, go ahead and update all tweets for this user
+                            if(!duplicateUser(userId)) {
+                                Uri uri = Uri.fromFile(file);
+                                addTweetIconURItoDB(uri.toString(),userId);
+                            }
+                        } catch (IOException e) {
+                            Log.e("IOException", e.getLocalizedMessage());
+                        }
+                    }
+                }).start();
+
+            }
+            @Override
+            public void onBitmapFailed(Drawable errorDrawable) {
+
+            }
+
+            @Override
+            public void onPrepareLoad(Drawable placeHolderDrawable) {
+
+            }
+        });
+    }
+
+    /**
+     * Checks whether directory for saving twitter user icons already exist. If not, it creates the directory
+     * @param userId title of image icon
+     * @return file for image icon (to then be saved)
+     */
+    private File checkForImagePath(Context context, String userId) {
+        ContextWrapper cw = new ContextWrapper(context);
+        File directory = cw.getDir("icons", Context.MODE_PRIVATE);
+
+        if (!directory.exists()) {
+            directory.mkdir();
+        }
+        if(BuildConfig.DEBUG){Log.i(TAG,"URI directory: " + directory.getAbsolutePath() + ", FILE: " + userId +".png" );}
+        return new File(directory, userId + ".png");
+    }
+
+
+    /**
+     * Searches for User Icons in db that aren't associated with any current tweet/saved user, and remove them
+     */
+    public void clearOutUnusedUserIcons(Context context) {
+
+        try {
+        ArrayList<String> userURLS = new ArrayList<>();
+        Cursor c =  sqlOpener.getWritableDatabase().rawQuery(
+                "Select DISTINCT ProfileImgUrl "    +
+                        " FROM " +
+                        "( " +
+                "Select DISTINCT ProfileImgUrl "    +
+                " FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS +
+                        " UNION " +
+                "Select DISTINCT ProfileImgUrl "    +
+                " FROM " + InternalDB.Tables.TABLE_USERS +
+                        ") as imageurls ",null);
+
+        if(c.getCount()>0) {
+            c.moveToFirst();
+            while (!c.isAfterLast()) {
+                userURLS.add(c.getString(0));
+                c.moveToNext();
+            }
+        }
+        c.close();
+
+        if(userURLS.size()>0) {
+            ContextWrapper cw = new ContextWrapper(context);
+            File directory = cw.getDir("icons", Context.MODE_PRIVATE);
+            File lister = directory.getAbsoluteFile();
+
+            for (File file : directory.listFiles()) {
+                Uri uri = Uri.fromFile(file);
+                if(!userURLS.contains(uri.toString())) {
+                        file.delete();
+                }
+            }
+        }
+
+        } catch (SQLiteException sqlexception){
+            Log.e(TAG,"clearOutUnusedUserIcons sqlite exception " + sqlexception.getCause());
+        }
+    }
 
 }

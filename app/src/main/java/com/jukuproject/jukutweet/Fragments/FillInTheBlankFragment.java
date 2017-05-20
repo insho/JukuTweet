@@ -301,12 +301,15 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
                         addToLayout(sb);
                     }
 
-                    //It's the last line, so insert it regardless
-                    if(currentLineWidth>0) {
-                        insertLineIntoParagraph();
-                    }
-                }
 
+                }
+                //It's the last line, so insert it regardless
+                if(currentLineWidth>0) {
+                    if(BuildConfig.DEBUG) {
+                        Log.d(TAG,"INSERTING LAST LINE INTO PARAGRAPH");
+                    }
+                    insertLineIntoParagraph();
+                }
 
             } catch (NullPointerException e) {
                 if(redundentQuestionCounter<4) {
@@ -767,6 +770,17 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
     public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {}
     public void notifySavedTweetFragmentsChanged(){};
 
+    /**
+     * If a tweet has been saved in {@link WordDetailPopupDialog}, and the user for that tweet
+     * is not saved in the db (which therefore means the user's icon is not saved in the db), this passes
+     * on the message to save the icon from the {@link com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter} to the Activity,
+     * which uses {@link com.jukuproject.jukutweet.Database.UserOpsHelper#downloadTweetUserIcon(Context, String, String)} in a
+     * subscription to download the icon
+     * @param userInfo UserInfo of user whose icon will be downloaded
+     */
+    public void downloadTweetUserIcons(UserInfo userInfo) {
+        mCallback.downloadTweetUserIcons(userInfo);
+    }
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
