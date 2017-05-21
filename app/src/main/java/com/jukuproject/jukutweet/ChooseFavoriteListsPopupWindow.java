@@ -43,18 +43,24 @@ public class ChooseFavoriteListsPopupWindow {
         mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.setItemViewCacheSize(favoritesLists.size());
 
-        PopupWindow popupWindow = new PopupWindow(context);
+        PopupWindow popupWindow = genericPopupWindow(context,favoritesLists,metrics);
         popupWindow.setContentView(view);
+
+        return popupWindow;
+    }
+
+    private static PopupWindow genericPopupWindow(Context context, ArrayList<MyListEntry>  favoritesLists, DisplayMetrics displayMetrics) {
+        PopupWindow popupWindow = new PopupWindow(context);
 
         popupWindow.setFocusable(true);
         popupWindow.setClippingEnabled(false);
         if(context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
-            popupWindow.setWidth(Math.round((float) metrics.widthPixels * (float) .45));
+            popupWindow.setWidth(Math.round((float) displayMetrics.widthPixels * (float) .45));
         } else {
-            popupWindow.setWidth(Math.round((float) metrics.widthPixels * (float) 0.26));
+            popupWindow.setWidth(Math.round((float) displayMetrics.widthPixels * (float) 0.26));
         }
-        if(favoritesLists.size()>12) {
-            popupWindow.setHeight((int)((float)metrics.heightPixels/2.0f));
+        if(favoritesLists.size()>10) {
+            popupWindow.setHeight((int)((float)displayMetrics.heightPixels/2.0f));
         } else {
             popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         }
@@ -81,22 +87,9 @@ public class ChooseFavoriteListsPopupWindow {
         mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.setItemViewCacheSize(favoritesLists.size());
 
-        PopupWindow popupWindow = new PopupWindow(context);
+        PopupWindow popupWindow = genericPopupWindow(context,favoritesLists,metrics);
         popupWindow.setContentView(view);
 
-        popupWindow.setFocusable(true);
-        popupWindow.setClippingEnabled(false);
-        if(context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
-            popupWindow.setWidth(Math.round((float) metrics.widthPixels * (float) .45));
-        } else {
-            popupWindow.setWidth(Math.round((float) metrics.widthPixels * (float) 0.26));
-        }
-        if(favoritesLists.size()>12) {
-            popupWindow.setHeight((int)((float)metrics.heightPixels/2.0f));
-        } else {
-            popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-        }
-        popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(context, R.drawable.popup_drawable));
         return popupWindow;
     }
 

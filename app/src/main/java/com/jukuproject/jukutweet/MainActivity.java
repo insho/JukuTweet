@@ -288,26 +288,26 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     db.execSQL("DELETE FROM JFavoritesLists ");
     db.execSQL("INSERT INTO JFavoritesLists " +
             "SELECT 'Quiz Words' as Name UNION " +
-            "SELECT 'Dumb Words' as Name UNION " +
-
-            "SELECT 'x1' as Name UNION " +
-            "SELECT 'x2' as Name UNION " +
-            "SELECT 'x3' as Name UNION " +
-            "SELECT 'x4' as Name UNION " +
-            "SELECT 'x5' as Name UNION " +
-            "SELECT 'x6' as Name UNION " +
-            "SELECT 'x7' as Name UNION " +
-            "SELECT 'x8' as Name UNION " +
-            "SELECT 'x9' as Name UNION " +
-            "SELECT 'x11' as Name UNION " +
-            "SELECT 'x12' as Name UNION " +
-            "SELECT 'x13' as Name UNION " +
-            "SELECT 'x14' as Name UNION " +
-            "SELECT 'x15' as Name UNION " +
-            "SELECT 'x16' as Name UNION " +
-            "SELECT 'x17' as Name UNION " +
-            "SELECT 'x18' as Name UNION " +
-            "SELECT 'x19' as Name UNION " +
+//            "SELECT 'Dumb Words' as Name UNION " +
+//
+//            "SELECT 'x1' as Name UNION " +
+//            "SELECT 'x2' as Name UNION " +
+//            "SELECT 'x3' as Name UNION " +
+//            "SELECT 'x4' as Name UNION " +
+//            "SELECT 'x5' as Name UNION " +
+//            "SELECT 'x6' as Name UNION " +
+//            "SELECT 'x7' as Name UNION " +
+//            "SELECT 'x8' as Name UNION " +
+//            "SELECT 'x9' as Name UNION " +
+//            "SELECT 'x11' as Name UNION " +
+//            "SELECT 'x12' as Name UNION " +
+//            "SELECT 'x13' as Name UNION " +
+//            "SELECT 'x14' as Name UNION " +
+//            "SELECT 'x15' as Name UNION " +
+//            "SELECT 'x16' as Name UNION " +
+//            "SELECT 'x17' as Name UNION " +
+//            "SELECT 'x18' as Name UNION " +
+//            "SELECT 'x19' as Name UNION " +
 
             "SELECT 'Words I Forget' as Name ");
 

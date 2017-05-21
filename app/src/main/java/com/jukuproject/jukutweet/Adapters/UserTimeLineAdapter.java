@@ -10,9 +10,8 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextPaint;
 import android.text.style.BackgroundColorSpan;
-import android.text.style.ClickableSpan;
+import android.text.style.ForegroundColorSpan;
 import android.text.style.URLSpan;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,16 +19,12 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.PopupWindow;
 import android.widget.TextView;
 
-import com.jukuproject.jukutweet.ChooseFavoriteListsPopupWindow;
-import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.FavoritesColors;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.LongClickLinkMovementMethod;
 import com.jukuproject.jukutweet.LongClickableSpan;
-import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.TweetUrl;
 import com.jukuproject.jukutweet.Models.TweetUserMentions;
@@ -39,8 +34,6 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import rx.functions.Action1;
 
 /**
  *Adapter for UserTimeLineFragment, displays a list of users tweets drawn from the Twitter API {@link com.jukuproject.jukutweet.TwitterUserClient}.
@@ -53,10 +46,8 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
     private static final String TAG = "TEST-timeadapter";
     private RxBus _rxbus;
-//    private UserInfo mUserInfo;
     private List<Tweet> mDataset;
     private Context mContext;
-    private DisplayMetrics mMetrics;
     private ArrayList<String> mActiveTweetFavoriteStars;
     private String mFocusedWord; //used only for search adapter, to highight the word that is being searched , otherwise null
     private Boolean mShowStar;
@@ -69,8 +60,8 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
         private TextView txtReTweeted;
         private TextView txtUserName;
         private TextView txtUserScreenName;
-        private ImageButton imgStar;
-        private FrameLayout imgStarLayout;
+        public ImageButton imgStar;
+        public FrameLayout imgStarLayout;
         private ImageButton imgReTweeted;
         private ImageButton imgFavorited;
         private ImageView image;
@@ -97,7 +88,6 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
             , RxBus rxBus
             , List<Tweet> myDataset
             , ArrayList<String> activeTweetFavoriteStars
-                      ,DisplayMetrics metrics
             , @Nullable String focusedWord
             , Boolean showStar) {
         mContext = context;
@@ -105,7 +95,6 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
         mDataset = myDataset;
         mFocusedWord = focusedWord;
         mActiveTweetFavoriteStars = activeTweetFavoriteStars;
-        mMetrics = metrics;
         mShowStar = showStar;
     }
 
@@ -161,7 +150,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                 /* Check for, and save */
                     if(tweet.getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)) {
 
-                        showTweetFavoriteListPopupWindow(tweet,holder);
+                        _rxbus.sendSaveTweet(holder.getAdapterPosition());
                     } else {
 
                         if (FavoritesColors.onFavoriteStarToggleTweet(mContext, mActiveTweetFavoriteStars, tweet.getUser().getUserId(), tweet)) {
@@ -170,48 +159,15 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                         } else {
                             Log.e(TAG, "OnFavoriteStarToggle did not work...");
                         }
-
-                    }
-
-//                    //Check for tweet in db
-//                    try {
-//
-//                        UserInfo userInfo = mDataset.get(holder.getAdapterPosition()).getUser();
-//                        //If tweet doesn't already exist in db, insert it
-//                        if(helperTweetOps.tweetExistsInDB(currentTweet) == 0){
-//                            //Otherwise enter the tweet into the database and then toggle
-//
-//                            int addTweetResultCode = helperTweetOps.saveTweetToDB(userInfo,currentTweet);
-//                            if(addTweetResultCode >= 0) {
-//                                if(BuildConfig.DEBUG) {
-//                                    Log.d(TAG, "saving TWEET:" + mDataset.get(holder.getAdapterPosition()).getText() + " SUCCESSFUL");
-//                                }
-//
-//
-//                            } else {
-//                                Log.e(TAG,"UserTimeline Adapter CAN'T SAVE TWEET!");
-//                            }
-//
-//                        }
-//
-//
-//                    } catch (Exception e){
-//                        Log.e(TAG,"UserTimeLIneAdapter - star clicked, tweet doesn't exist, but UNABLE to save!");
-//
-//                    }
-//
-//
-//                    /*DB insert successfull, now send callback to fragment and run observable to add
-//                    urls/user_mentions and possibly user icon for the tweet to database,
-//                    as well as parse the kanji (in observable) and add those to database */
-                    _rxbus.sendSaveTweet(tweet);
-
-
                     /*Check to see if tweet must be deleted from db. Delete if necessary.
                             * Likewise adds a tweet to the db if it has just been added to a favorites list.
                             * This bit MUST come after the favorite star toggle, because it determines whether to
                             * add or delete a tweet based on whether that tweet is in a favorites list. */
-//                    saveOrDeleteTweet(mTweet);
+                        _rxbus.sendSaveTweet(tweet);
+                    }
+
+
+
 
 
                 }
@@ -222,9 +178,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
             holder.imgStarLayout.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-
-                    showTweetFavoriteListPopupWindow(mDataset.get(holder.getAdapterPosition()),holder);
-
+                    _rxbus.sendSaveTweet(holder.getAdapterPosition());
                     return true;
                 }
             });
@@ -279,8 +233,9 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                 }
             };
 
+//            ForegroundColorSpan regularColorSpan = new ForegroundColorSpan(ContextCompat.getColor(mContext,android.R.color.black));
 
-            text.setSpan(longClick, 0, text.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+                text.setSpan(longClick, 0, text.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
 
             if(getTweet(position).getEntities()!= null && getTweet(position).getEntities().getUrls() != null ) {
                 List<TweetUrl> tweetUrls =  getTweet(position).getEntities().getUrls();
@@ -296,7 +251,18 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                     }
                     int startingLinkPos = getTweet(position).getText().indexOf(urlToLinkify,indices[0]);
 
-                    text.setSpan(new URLSpan(url.getUrl()), startingLinkPos, startingLinkPos + urlToLinkify.length(), 0);
+
+                   URLSpan urlSpan = new URLSpan(url.getUrl()) {
+                        @Override
+                        public void updateDrawState(TextPaint ds) {
+                            super.updateDrawState(ds);
+
+                            ds.setColor(ContextCompat.getColor(mContext,R.color.colorAccent));
+                            ds.setAlpha(90);
+                        }
+                    };
+
+                    text.setSpan(urlSpan, startingLinkPos, startingLinkPos + urlToLinkify.length(), 0);
                 }
 
             }
@@ -315,23 +281,33 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                     }
 
                     int startingLinkPos = getTweet(position).getText().indexOf(userMentionToLinkify,indices[0]);
-                    ClickableSpan userMentionClickableSpan = new ClickableSpan() {
-                        @Override
-                        public void onClick(View textView) {
-                            Log.d(TAG,"BALLS");
-                            _rxbus.send(userMentionses);
-                        }
 
+                    ForegroundColorSpan userMentionForegroundSpan = new ForegroundColorSpan(ContextCompat.getColor(mContext,R.color.colorAccent)) {
                         @Override
                         public void updateDrawState(TextPaint ds) {
-                            super.updateDrawState(ds);
-                            ds.setColor(ContextCompat.getColor(mContext,R.color.colorAccent));
-                            ds.setAlpha(90);
-                            ds.setUnderlineText(false);
 
+                            super.updateDrawState(ds);
+                            ds.setAlpha(90);
                         }
                     };
-                    text.setSpan(userMentionClickableSpan, startingLinkPos, startingLinkPos + userMentionToLinkify.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+
+//                    ClickableSpan userMentionClickableSpan = new ClickableSpan() {
+//                        @Override
+//                        public void onClick(View textView) {
+//                            Log.d(TAG,"BALLS");
+//                            _rxbus.send(userMentionses);
+//                        }
+//
+//                        @Override
+//                        public void updateDrawState(TextPaint ds) {
+//                            super.updateDrawState(ds);
+//                            ds.setColor(ContextCompat.getColor(mContext,R.color.colorAccent));
+//
+//                            ds.setUnderlineText(false);
+//
+//                        }
+//                    };
+                    text.setSpan(userMentionForegroundSpan, startingLinkPos, startingLinkPos + userMentionToLinkify.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 
                 }
 
@@ -399,176 +375,5 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
     public Tweet getTweet(int position) {
         return mDataset.get(position);
     }
-
-    public void showTweetFavoriteListPopupWindow(final Tweet mTweet, final ViewHolder holder) {
-
-        RxBus rxBus = new RxBus();
-        ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getTweetInterfaceInstance(mContext).getTweetListsForTweet(mActiveTweetFavoriteStars,mTweet.getIdString(),null);
-
-        PopupWindow popupWindow = ChooseFavoriteListsPopupWindow.createTweetFavoritesPopup(mContext,mMetrics,rxBus,availableFavoriteLists,mTweet.getIdString(), mTweet.getUser().getUserId());
-
-        popupWindow.getContentView().measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-
-        int xadjust = popupWindow.getContentView().getMeasuredWidth() + (int) (10 * mMetrics.density + 0.5f);
-//        int yadjust = (int)((holder.imgStar.getMeasuredHeight())/2.0f);
-
-        int yadjust;
-//        if(availableFavoriteLists.size()<4) {
-            yadjust = (int)((popupWindow.getContentView().getMeasuredHeight()  + holder.imgStar.getMeasuredHeight())/2.0f);
-//        } else {
-//            yadjust = getYAdjustmentForPopupWindowBigTweetList(availableFavoriteLists.size(),holder.getAdapterPosition(),mMetrics.scaledDensity,holder.itemView.getMeasuredHeight());
-//        }
-
-
-        Log.d("TEST","pop width: " + popupWindow.getContentView().getMeasuredWidth() + " height: " + popupWindow.getContentView().getMeasuredHeight());
-        Log.d("TEST","xadjust: " + xadjust + ", yadjust: " + yadjust);
-
-
-        popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
-            @Override
-            public void onDismiss() {
-
-
-
-                /*Check to see if tweet must be deleted from db. Delete if necessary.
-                            * Likewise adds a tweet to the db if it has just been added to a favorites list.
-                            * This bit MUST come after the favorite star toggle, because it determines whether to
-                            * add or delete a tweet based on whether that tweet is in a favorites list. */
-//                saveOrDeleteTweet(mTweet);
-                _rxbus.sendSaveTweet(mTweet);
-
-            }
-        });
-
-
-
-        rxBus.toClickObserverable().subscribe(new Action1<Object>() {
-            @Override
-            public void call(Object event) {
-
-                                    /* Recieve a MyListEntry (containing an updated list entry for this row kanji) from
-                                    * the ChooseFavoritesAdapter in the ChooseFavorites popup window */
-                if(event instanceof MyListEntry) {
-                    MyListEntry myListEntry = (MyListEntry) event;
-
-                                        /* Ascertain the type of list that the kanji was added to (or subtracted from),
-                                        and update that list's count */
-                    if(myListEntry.getListsSys() == 1) {
-                        switch (myListEntry.getListName()) {
-                            case "Blue":
-                                mTweet.getItemFavorites().setSystemBlueCount(myListEntry.getSelectionLevel());
-                                break;
-                            case "Green":
-                                mTweet.getItemFavorites().setSystemGreenCount(myListEntry.getSelectionLevel());
-                                break;
-                            case "Red":
-                                mTweet.getItemFavorites().setSystemRedCount(myListEntry.getSelectionLevel());
-                                break;
-                            case "Yellow":
-                                mTweet.getItemFavorites().setSystemYellowCount(myListEntry.getSelectionLevel());
-                                break;
-                            case "Purple":
-                                mTweet.getItemFavorites().setSystemPurpleCount(myListEntry.getSelectionLevel());
-                                break;
-                            case "Orange":
-                                mTweet.getItemFavorites().setSystemOrangeCount(myListEntry.getSelectionLevel());
-                                break;
-                            default:
-                                break;
-                        }
-                    } else {
-                        if(myListEntry.getSelectionLevel() == 1) {
-                            mTweet.getItemFavorites().addToUserListCount(1);
-                        } else {
-                            mTweet.getItemFavorites().subtractFromUserListCount(1);
-                        }
-                    }
-
-
-
-                    if(mTweet.getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)
-                            && mTweet.getItemFavorites().systemListCount(mActiveTweetFavoriteStars) >1) {
-                        holder.imgStar.setColorFilter(null);
-                        holder.imgStar.setImageResource(R.drawable.ic_twitter_multicolor_24dp);
-
-                    } else {
-                        holder.imgStar.setImageResource(R.drawable.ic_twitter_black_24dp);
-                        try {
-                            holder.imgStar.setColorFilter(ContextCompat.getColor(mContext,FavoritesColors.assignStarColor(mTweet.getItemFavorites(),mActiveTweetFavoriteStars)));
-                        } catch (NullPointerException e) {
-                            Log.e(TAG,"UserTimeLineAdapter setting colorfilter nullpointer: " + e.getMessage());
-                        }
-
-                    }
-                }
-            }
-
-        });
-
-        popupWindow.showAsDropDown(holder.imgStar,-xadjust,-yadjust);
-    }
-
-
-    public int getYAdjustmentForPopupWindowBigTweetList(int totalActiveLists
-            , int adapterPosition
-            ,float scale
-            ,float heightOfView) {
-
-        final int yadjustment;
-
-
-
-        if(totalActiveLists>10) {
-            totalActiveLists = 10;
-        }
-
-        int estimatedheightofpopup =  (int) ((totalActiveLists*35) * scale + 0.5f);
-        int multiplier = -(mDataset.size()-adapterPosition-1);
-
-        if((adapterPosition>(mDataset.size()-5) && adapterPosition>((float)mDataset.size()/2.0f))){
-
-            if(totalActiveLists < 5){
-                multiplier = 1;
-            }
-
-            yadjustment = estimatedheightofpopup + (int) (multiplier* ((int) ((35) * scale + 0.5f)));
-
-        } else {
-
-            float defmult = heightOfView;
-
-            float listizemultiplier;
-            switch (totalActiveLists) {
-                case 0:
-                    listizemultiplier = 35.0f+defmult;
-                    break;
-                case 1:
-                    listizemultiplier = 35.0f+defmult;
-                    break;
-                case 2:
-                    listizemultiplier = 35.0f+defmult;
-                    break;
-                case 3:
-                    listizemultiplier = 40.0f+defmult;
-                    break;
-                case 4:
-                    listizemultiplier = 45.0f+defmult;
-                    break;
-
-                default:
-                    listizemultiplier = 95.0f+defmult;
-                    break;
-            }
-
-            yadjustment =(int) ((float)listizemultiplier * scale + 0.5f);
-
-        }
-
-        return yadjustment;
-    }
-
-
-
 
 }

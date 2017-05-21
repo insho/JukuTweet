@@ -62,13 +62,9 @@ public class MenuChild implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(this.childTitle);
-        if(this.colorBlockMeasurables==null) {
-            this.colorBlockMeasurables = new ColorBlockMeasurables();
-        }
+        if(this.colorBlockMeasurables==null) {setColorBlockMeasurables(new ColorBlockMeasurables());}
         dest.writeParcelable(this.colorBlockMeasurables,flags);
-        if(this.userInfo==null) {
-            this.userInfo = new UserInfo();
-        }
+        if(this.userInfo==null) {setUserInfo(new UserInfo());}
         dest.writeParcelable(this.userInfo,flags);
     }
 

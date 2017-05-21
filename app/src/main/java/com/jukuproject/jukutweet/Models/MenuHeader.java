@@ -197,7 +197,7 @@ public class MenuHeader implements  Parcelable,Parent<MenuChild> {
         menuChildren = new ArrayList<>();
 //        in.readTypedList(mStringList,MyString.CREATOR);
 //         in.readArrayList(MenuChild.class.getClassLoader());
-        in.readTypedList(menuChildren, MenuChild.CREATOR);
+        in.readList(menuChildren, MenuChild.class.getClassLoader());
 //        this.menuChildren = in.readArrayList(MenuChild.class.getClassLoader());
 
         this.userInfo = in.readParcelable(UserInfo.class.getClassLoader());
@@ -221,7 +221,7 @@ public class MenuHeader implements  Parcelable,Parent<MenuChild> {
         dest.writeByte((byte) (this.systemList ? 1 : 0));
         dest.writeParcelable(this.myListEntry,flags);
         dest.writeByte((byte) (this.isExpanded ? 1 : 0));
-        dest.writeTypedList(this.menuChildren);
+        dest.writeList(this.menuChildren);
 
         dest.writeParcelable(this.userInfo,flags);
 //        dest.(this.menuChildren);

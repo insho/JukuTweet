@@ -14,14 +14,18 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter;
 import com.jukuproject.jukutweet.BuildConfig;
+import com.jukuproject.jukutweet.ChooseFavoriteListsPopupWindow;
 import com.jukuproject.jukutweet.Database.InternalDB;
+import com.jukuproject.jukutweet.FavoritesColors;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.ItemFavorites;
+import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.TweetUserMentions;
 import com.jukuproject.jukutweet.Models.UserInfo;
@@ -399,7 +403,8 @@ public class UserTimeLineFragment extends Fragment {
 
     public void setUpAdapter() {
 
-        UserTimeLineAdapter mAdapter = new UserTimeLineAdapter(getContext(),_rxBus, mDataSet,mActiveTweetFavoriteStars,mMetrics,null,true);
+        UserTimeLineAdapter mAdapter = new UserTimeLineAdapter(getContext(),_rxBus, mDataSet,mActiveTweetFavoriteStars,null,true);
+
         /* If user info is missing from db, update the user information in db*/
         if(mUserInfo.getUserId()==null && mDataSet.size()>0 && mDataSet.get(0).getUser() != null) {
             InternalDB.getUserInterfaceInstance(getContext()).updateUserInfo(mDataSet.get(0).getUser());
@@ -434,10 +439,25 @@ public class UserTimeLineFragment extends Fragment {
 
             @Override
             public void call(Object event) {
-                if(isUniqueClick(1000) && event instanceof Tweet) {
+
+                if (isUniqueClick(1000) && event instanceof Integer) {
+
+                    Integer tweetWordEntryIndex = (Integer) event;
+                    //Activity windows height
+                    int[] location = new int[2];
+
+                    UserTimeLineAdapter.ViewHolder viewHolder = (UserTimeLineAdapter.ViewHolder)mRecyclerView.getChildViewHolder(mRecyclerView.getChildAt(tweetWordEntryIndex));
+                    mRecyclerView.getChildAt(tweetWordEntryIndex).getLocationInWindow(location);
+//                    Log.i(TAG,"location x: " + location[0] + ", y: " + location[1]);
+
+                    showTweetFavoriteListPopupWindow(viewHolder,mDataSet.get(tweetWordEntryIndex),mMetrics,location[1]);
+
+                } else if(isUniqueClick(150) && event instanceof Tweet) {
                     final Tweet tweet = (Tweet) event;
                     saveOrDeleteTweet(tweet);
                 }
+
+
             }
 
         });
@@ -495,6 +515,141 @@ public class UserTimeLineFragment extends Fragment {
             Log.e(TAG,"saveOrDeleteTweet - nullpointer when tweet saving, UNABLE to save!");
 
         }
+    }
+
+
+    public void showTweetFavoriteListPopupWindow(final UserTimeLineAdapter.ViewHolder holder
+            ,final Tweet mTweet
+            , DisplayMetrics mMetrics
+            , int ylocation) {
+
+        RxBus rxBus = new RxBus();
+        ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListsForTweet(mActiveTweetFavoriteStars,mTweet.getIdString(),null);
+
+        PopupWindow popupWindow = ChooseFavoriteListsPopupWindow.createTweetFavoritesPopup(getContext(),mMetrics,rxBus,availableFavoriteLists,mTweet.getIdString(), mTweet.getUser().getUserId());
+
+        popupWindow.getContentView().measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+
+        int xadjust = popupWindow.getContentView().getMeasuredWidth() + (int) (10 * mMetrics.density + 0.5f);
+
+        int popupMeasuredHeight;
+        if(availableFavoriteLists.size()>10) {
+            popupMeasuredHeight = (int)((float)mMetrics.heightPixels/2.0f);
+        } else {
+            popupMeasuredHeight =  popupWindow.getContentView().getMeasuredHeight();
+        }
+
+        //Firstly, center the list at the favorite star
+        int yadjust = (int)(popupMeasuredHeight/2.0f  + holder.imgStar.getMeasuredHeight()/2.0f);
+        final int displayheight = mMetrics.heightPixels;
+
+        if(BuildConfig.DEBUG) {
+            Log.i(TAG,"INITIAL yloc: " + ylocation);
+            Log.i(TAG,"INITIAL imgstar height/2: " + holder.imgStar.getMeasuredHeight()/2.0f);
+            Log.i(TAG,"INITIAL popupheight/2: " + popupMeasuredHeight/2.0f);
+            Log.i(TAG,"INITIAL yadjust: " + yadjust);
+            Log.i(TAG,"INITIAL Displayheight: " + displayheight);
+        }
+
+        //Overrun at bottom of screen
+        while(ylocation + holder.imgStar.getMeasuredHeight() - yadjust + popupMeasuredHeight >displayheight) {
+//            Log.i(TAG,"SCREEN OVERRUN BOTTOM - " + (ylocation + holder.imgStar.getMeasuredHeight() - yadjust + popupMeasuredHeight)
+//                    + " to display: " + displayheight + ",, reduce yadjust " + yadjust + " - " + (yadjust+10));
+            yadjust += 10;
+        }
+
+//        //Overrun at bottom of screen
+        while(ylocation + holder.imgStar.getMeasuredHeight() - yadjust < 0) {
+//            Log.i(TAG,"SCREEN OVERRUN TOP - increase yadjust " + yadjust + " - " + (yadjust-10));
+            yadjust -= 10;
+        }
+
+
+        Log.d("TEST","pop width: " + popupWindow.getContentView().getMeasuredWidth() + " height: " + popupWindow.getContentView().getMeasuredHeight());
+        Log.d("TEST","xadjust: " + xadjust + ", yadjust: " + yadjust);
+
+
+        popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
+            @Override
+            public void onDismiss() {
+
+
+
+                /*Check to see if tweet must be deleted from db. Delete if necessary.
+                            * Likewise adds a tweet to the db if it has just been added to a favorites list.
+                            * This bit MUST come after the favorite star toggle, because it determines whether to
+                            * add or delete a tweet based on whether that tweet is in a favorites list. */
+                saveOrDeleteTweet(mTweet);
+            }
+        });
+
+
+
+        rxBus.toClickObserverable().subscribe(new Action1<Object>() {
+            @Override
+            public void call(Object event) {
+
+                                    /* Recieve a MyListEntry (containing an updated list entry for this row kanji) from
+                                    * the ChooseFavoritesAdapter in the ChooseFavorites popup window */
+                if(event instanceof MyListEntry) {
+                    MyListEntry myListEntry = (MyListEntry) event;
+
+                                        /* Ascertain the type of list that the kanji was added to (or subtracted from),
+                                        and update that list's count */
+                    if(myListEntry.getListsSys() == 1) {
+                        switch (myListEntry.getListName()) {
+                            case "Blue":
+                                mTweet.getItemFavorites().setSystemBlueCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Green":
+                                mTweet.getItemFavorites().setSystemGreenCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Red":
+                                mTweet.getItemFavorites().setSystemRedCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Yellow":
+                                mTweet.getItemFavorites().setSystemYellowCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Purple":
+                                mTweet.getItemFavorites().setSystemPurpleCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Orange":
+                                mTweet.getItemFavorites().setSystemOrangeCount(myListEntry.getSelectionLevel());
+                                break;
+                            default:
+                                break;
+                        }
+                    } else {
+                        if(myListEntry.getSelectionLevel() == 1) {
+                            mTweet.getItemFavorites().addToUserListCount(1);
+                        } else {
+                            mTweet.getItemFavorites().subtractFromUserListCount(1);
+                        }
+                    }
+
+
+
+                    if(mTweet.getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)
+                            && mTweet.getItemFavorites().systemListCount(mActiveTweetFavoriteStars) >1) {
+                        holder.imgStar.setColorFilter(null);
+                        holder.imgStar.setImageResource(R.drawable.ic_twitter_multicolor_24dp);
+
+                    } else {
+                        holder.imgStar.setImageResource(R.drawable.ic_twitter_black_24dp);
+                        try {
+                            holder.imgStar.setColorFilter(ContextCompat.getColor(getContext(), FavoritesColors.assignStarColor(mTweet.getItemFavorites(),mActiveTweetFavoriteStars)));
+                        } catch (NullPointerException e) {
+                            Log.e(TAG,"UserTimeLineAdapter setting colorfilter nullpointer: " + e.getMessage());
+                        }
+
+                    }
+                }
+            }
+
+        });
+
+        popupWindow.showAsDropDown(holder.imgStar,-xadjust,-yadjust);
     }
 
     @Override

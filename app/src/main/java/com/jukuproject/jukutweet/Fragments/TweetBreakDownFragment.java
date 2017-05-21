@@ -90,6 +90,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
     private TextView txtNoLists;
     private TextView txtUserName;
     private TextView txtUserScreenName;
+    private TextView txtGoToTweet;
     private ImageButton imgStar;
     private FrameLayout imgStarLayout;
     private long mLastClickTime = 0;
@@ -144,10 +145,9 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
 
         mRecyclerView = (RecyclerView) v.findViewById(R.id.parseSentenceRecyclerView);
         txtSentence =  (TextView) v.findViewById(R.id.sentence);
-
         progressBar = (SmoothProgressBar) v.findViewById(R.id.progressbar);
         divider = (View) v.findViewById(R.id.dividerview);
-
+        txtGoToTweet = (TextView) v.findViewById(R.id.gototweet);
         txtUserName = (TextView) v.findViewById(R.id.timelineName);
         txtUserScreenName = (TextView) v.findViewById(R.id.timelineDisplayScreenName);
         imgStar = (ImageButton) v.findViewById(R.id.favorite);
@@ -177,8 +177,20 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
         txtSentence.setVisibility(View.VISIBLE);
         txtSentence.setText(mTweet.getText());
 
-        final String sentence = mTweet.getText();
 
+        try {
+            SpannableString textTweetURL = new SpannableString("Go To Tweet");
+            String tweetURL = "http://twitter.com/" + mTweet.getUser().getUserId() + "/statuses/" + mTweet.getIdString();
+            textTweetURL.setSpan(new URLSpan(tweetURL), 0, textTweetURL.length(), 0);
+//            txtGoToTweet.setText(textTweetURL);
+            txtGoToTweet.setMovementMethod(LinkMovementMethod.getInstance());
+            txtGoToTweet.setText(textTweetURL, TextView.BufferType.SPANNABLE);
+
+        } catch (NullPointerException e) {
+            Log.e(TAG,"TweetBreakDownFRagment go to tweet url failure, nullpointer : " + e.getCause());
+        }
+
+        final String sentence = mTweet.getText();
         setUpFavoritesStar();
 
 
@@ -390,9 +402,9 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
 
 
 
-    public void showDisectedTweet(ArrayList<WordEntry> disectedSavedTweet, TextView txtSentence ) {
+    public void showDisectedTweet(final ArrayList<WordEntry> disectedSavedTweet, TextView txtSentence ) {
 
-        DisplayMetrics metrics = new DisplayMetrics();
+        final DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
         /* Set tweet color spans. If the saved Tweet object includes a "colorIndex" object (
@@ -492,21 +504,29 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                 Log.e(TAG,"nullpointer error in setting up url/user_mention/word color spans: " + e.getCause());
             }
 
-
-        /* The TweetKanjiColor objects contain Edict_ids for the kanji in the tweet, but they
-        * do not contain the kanji, definition or word score values for those kanji. This
-        * converts the TweetKanjiColor Edic_ids into a single string, passes it
-        * */
         mAdapter = new TweetBreakDownAdapter(getContext(),metrics,disectedSavedTweet,activeFavoriteStars,mRxBus);
         mRxBus.toClickObserverable().subscribe(new Action1<Object>() {
                                                       @Override
                                                       public void call(Object event) {
-                                                          if (isUniqueClick(150) && event instanceof WordEntry) {
-                                                              WordEntry wordEntry = (WordEntry) event;
-                                                              updateWordEntryFavoritesForOtherTabs(wordEntry);
-                                                          }
-                                                      }
-                                                  });
+                if (isUniqueClick(150) && event instanceof Integer) {
+
+               Integer tweetWordEntryIndex = (Integer) event;
+               //Activity windows height
+               int[] location = new int[2];
+
+               TweetBreakDownAdapter.ViewHolder viewHolder = (TweetBreakDownAdapter.ViewHolder)mRecyclerView.getChildViewHolder(mRecyclerView.getChildAt(tweetWordEntryIndex));
+               mRecyclerView.getChildAt(tweetWordEntryIndex).getLocationInWindow(location);
+               Log.i(TAG,"location x: " + location[0] + ", y: " + location[1]);
+
+                showFavoriteListPopupWindow(viewHolder,disectedSavedTweet.get(tweetWordEntryIndex),metrics,location[1]);
+
+                    } else if (isUniqueClick(150) && event instanceof WordEntry) {
+               WordEntry wordEntry = (WordEntry) event;
+               updateWordEntryFavoritesForOtherTabs(wordEntry);
+
+                    }
+               }
+                            });
             mRxBus.toLongClickObserverable().subscribe(new Action1<Object>() {
                 @Override
                 public void call(Object event) {
@@ -518,12 +538,17 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                     }
                 }
             });
-                        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
+
+
+
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.setVerticalScrollBarEnabled(true);
 
     }
+
+
 
 
     /**
@@ -558,7 +583,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
 
         /* Popup window is displayed as a dropdown below the favorite star. The window must be adjusted up and left
         * so it is displayed properly on the screen.*/
-        int xadjust = popupWindow.getContentView().getMeasuredWidth() + (int) (25 * metrics.density + 0.5f);
+        int xadjust = popupWindow.getContentView().getMeasuredWidth();
         int yadjust = (int)((imgStar.getMeasuredHeight())/2.0f);
 
         popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
@@ -641,6 +666,133 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
 
     }
 
+
+    /**
+     * Displays the {@link ChooseFavoriteListsPopupWindow} when the "favorites star" is clicked for a
+     * word in one of the TweetBreakDown recycler rows. To make sure that the popup window appears in the
+     * correct location and doesn't get cut off by the edge of the screen, some measurements and adjustments are made (xadjust, yadjust)
+     * @param holder ViewHolder for the row
+     */
+    public void showFavoriteListPopupWindow(final TweetBreakDownAdapter.ViewHolder holder
+            ,final WordEntry wordEntry
+            , DisplayMetrics mMetrics
+            , int ylocation) {
+        RxBus rxBus = new RxBus();
+
+        ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getWordInterfaceInstance(getContext()).getWordListsForAWord(activeFavoriteStars,String.valueOf(wordEntry.getId()),1,null);
+        PopupWindow popupWindow =  ChooseFavoriteListsPopupWindow.createWordFavoritesPopup(getContext(),mMetrics,rxBus,availableFavoriteLists,wordEntry.getId());
+        popupWindow.getContentView().measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+
+        int xadjust = popupWindow.getContentView().getMeasuredWidth() + (int) (20 * mMetrics.density + 0.5f);
+
+        int popupMeasuredHeight;
+        if(availableFavoriteLists.size()>10) {
+            popupMeasuredHeight = (int)((float)mMetrics.heightPixels/2.0f);
+        } else {
+            popupMeasuredHeight =  popupWindow.getContentView().getMeasuredHeight();
+        }
+
+        //Firstly, center the list at the favorite star
+        int yadjust = (int)(popupMeasuredHeight/2.0f  + holder.imgStar.getMeasuredHeight()/2.0f);
+        final int displayheight = mMetrics.heightPixels;
+
+        if(BuildConfig.DEBUG) {
+            Log.i(TAG,"INITIAL yloc: " + ylocation);
+            Log.i(TAG,"INITIAL imgstar height/2: " + holder.imgStar.getMeasuredHeight()/2.0f);
+            Log.i(TAG,"INITIAL popupheight/2: " + popupMeasuredHeight/2.0f);
+            Log.i(TAG,"INITIAL yadjust: " + yadjust);
+            Log.i(TAG,"INITIAL Displayheight: " + displayheight);
+        }
+
+        //Overrun at bottom of screen
+        while(ylocation + holder.imgStar.getMeasuredHeight() - yadjust + popupMeasuredHeight >displayheight) {
+//            Log.i(TAG,"SCREEN OVERRUN BOTTOM - " + (ylocation + holder.imgStar.getMeasuredHeight() - yadjust + popupMeasuredHeight)
+//                    + " to display: " + displayheight + ",, reduce yadjust " + yadjust + " - " + (yadjust+10));
+            yadjust += 10;
+        }
+
+//        //Overrun at bottom of screen
+        while(ylocation + holder.imgStar.getMeasuredHeight() - yadjust < 0) {
+//            Log.i(TAG,"SCREEN OVERRUN TOP - increase yadjust " + yadjust + " - " + (yadjust-10));
+            yadjust -= 10;
+        }
+
+        if(BuildConfig.DEBUG) {
+            Log.d("TEST", "pop width: " + popupWindow.getContentView().getMeasuredWidth() + " height: " + popupWindow.getContentView().getMeasuredHeight());
+            Log.d("TEST", "xadjust: " + xadjust + ", yadjust: " + yadjust);
+        }
+
+        popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
+            @Override
+            public void onDismiss() {
+                updateWordEntryFavoritesForOtherTabs(wordEntry);
+            }
+        });
+
+        rxBus.toClickObserverable().subscribe(new Action1<Object>() {
+            @Override
+            public void call(Object event) {
+
+                /* Recieve a MyListEntry (containing an updated list entry for this row kanji) from
+                 * the ChooseFavoritesAdapter in the ChooseFavorites popup window */
+                if(event instanceof MyListEntry) {
+                    MyListEntry myListEntry = (MyListEntry) event;
+
+                                        /* Ascertain the type of list that the kanji was added to (or subtracted from),
+                                        and update that list's count */
+                    if(myListEntry.getListsSys() == 1) {
+                        switch (myListEntry.getListName()) {
+                            case "Blue":
+                                wordEntry.getItemFavorites().setSystemBlueCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Green":
+                                wordEntry.getItemFavorites().setSystemGreenCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Red":
+                                wordEntry.getItemFavorites().setSystemRedCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Yellow":
+                                wordEntry.getItemFavorites().setSystemYellowCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Purple":
+                                wordEntry.getItemFavorites().setSystemPurpleCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Orange":
+                                wordEntry.getItemFavorites().setSystemOrangeCount(myListEntry.getSelectionLevel());
+                                break;
+                            default:
+                                break;
+                        }
+                    } else {
+                        if(myListEntry.getSelectionLevel() == 1) {
+                            wordEntry.getItemFavorites().addToUserListCount(1);
+                        } else {
+                            wordEntry.getItemFavorites().subtractFromUserListCount(1);
+                        }
+                    }
+
+                    if(wordEntry.getItemFavorites().shouldOpenFavoritePopup(activeFavoriteStars)
+                            && wordEntry.getItemFavorites().systemListCount(activeFavoriteStars) >1) {
+                        holder.imgStar.setColorFilter(null);
+                        holder.imgStar.setImageResource(R.drawable.ic_star_multicolor);
+
+                    } else {
+                        holder.imgStar.setImageResource(R.drawable.ic_star_black);
+                        try {
+                            holder.imgStar.setColorFilter(ContextCompat.getColor(getContext(),FavoritesColors.assignStarColor(wordEntry.getItemFavorites(),activeFavoriteStars)));
+                        } catch (NullPointerException e) {
+                            Log.e(TAG,"tweetBreakDownAdapter Nullpointer error setting star color filter in word detail popup dialog... Need to assign item favorites to WordEntry(?)" + e.getCause());
+                        }
+                    }
+                }
+            }
+
+        });
+
+        popupWindow.showAsDropDown(holder.imgStar,-xadjust,-yadjust);
+
+    }
 
     /**
      * If a word entry has been saved to a new word list in the {@link WordDetailPopupDialog}, the message is relayed back to

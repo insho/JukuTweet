@@ -35,8 +35,6 @@
 
             >
 
-
-
             <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -64,7 +62,7 @@
                 <TextView
                     android:id="@+id/timelineDisplayScreenName"
                     android:layout_gravity="start"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:clickable="false"
                     android:ellipsize="marquee"
@@ -80,6 +78,7 @@
             <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="wrap_content"
                 android:id="@+id/timelineStarLayout"
+                android:layout_weight=".1"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:minHeight="30dp">
@@ -114,10 +113,10 @@
             android:layout_height="wrap_content"
             android:layout_gravity="start"
             android:layout_marginTop="6dp"
-            android:text="Sentence"
+
             android:id="@+id/sentence"
             android:textColor="@android:color/black"
-            android:layout_marginBottom="8dp"
+            android:layout_marginBottom="0dp"
             android:visibility="gone"
             android:textSize="9pt" />
         <!--<LinearLayout-->
@@ -145,7 +144,18 @@
         <!--</ScrollView>-->
         <!--</LinearLayout>-->
 
-
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="4dp"
+            android:clickable="true"
+            android:text="Go To Tweet"
+            android:id="@+id/gototweet"
+            android:layout_marginBottom="8dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginEnd="4dp"
+            android:textSize="16sp" />
 
         <View style="@style/Divider_Black"
             android:layout_marginTop="4dp"
@@ -195,7 +205,7 @@
         app:spb_mirror_mode="false"
         app:spb_progressiveStart_activated="true"
         app:spb_progressiveStart_speed="3.0"
-        app:layout_anchor="@id/sentence"
+        app:layout_anchor="@id/gototweet"
         app:layout_anchorGravity="bottom"
         app:spb_progressiveStop_speed="3.4"
         />

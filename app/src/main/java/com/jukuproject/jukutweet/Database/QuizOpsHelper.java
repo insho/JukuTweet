@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Parcel;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.jukuproject.jukutweet.BuildConfig;
@@ -167,40 +168,40 @@ public class QuizOpsHelper implements QuizOperationsInterface {
      * @param tweet Tweet containg the words (to be passed on to getDummySpinnerOptions method)
      * @param wordListEdictIds a concatenated string of edict ids for the words contained in the Tweet. Used to randomly assign the spinner
      */
-    public int setSpinnersForTweetWithMyListWords(SQLiteDatabase db
-            , String myListType
-            , MyListEntry myListEntry
-            , Tweet tweet
-            , ArrayList<Integer> wordListEdictIds) {
-
-        ArrayList<WordEntry> wordEntries = tweet.getWordEntries();
-        int spinnerAddedCount = 0;
-
-        /* Determine maxiumum number of spinners that can be added to the tweet, from 1 - 3,
-        with a 50% chance of 1, 40% chance of 2 and a 10 % chance of 3*/
-        int[] possibleSpinnerLimits = new int[]{1,1,1,1,1,2,2,2,2,3};
-        int spinnerLimit = possibleSpinnerLimits[(new Random()).nextInt(possibleSpinnerLimits.length)];
-
-        /* Pick random kanji from the wordEntries list to be spinners (with maximum of the spinner limit)*/
-        ArrayList<WordEntry> shuffledEntries =  new ArrayList<>(wordEntries);
-        Collections.shuffle(shuffledEntries);
-        if(BuildConfig.DEBUG){Log.d(TAG,"spinnerlimit: " + spinnerLimit);}
-        for(int i=0;i<shuffledEntries.size() && spinnerAddedCount<spinnerLimit;i++) {
-            if(BuildConfig.DEBUG){Log.d(TAG,"adding word: " + wordEntries.get(i).getKanji());}
-            if(wordListEdictIds.contains(shuffledEntries.get(i).getId())) {
-                wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))).setSpinner(true);
-                if(BuildConfig.DEBUG){Log.d(TAG,"setting word spinner TRUE " + wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))).getKanji());}
-                ArrayList<String> arrayOptions = getDummySpinnerOptions(db
-                        ,myListEntry
-                        ,wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i)))
-                        ,myListType);
-                wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))).getFillinSentencesSpinner().setOptions(arrayOptions);
-                spinnerAddedCount += 1;
-            }
-        }
-
-        return spinnerAddedCount;
-    }
+//    public int setSpinnersForTweetWithMyListWords(SQLiteDatabase db
+//            , String myListType
+//            , MyListEntry myListEntry
+//            , Tweet tweet
+//            , ArrayList<Integer> wordListEdictIds) {
+//
+//        ArrayList<WordEntry> wordEntries = tweet.getWordEntries();
+//        int spinnerAddedCount = 0;
+//
+//        /* Determine maxiumum number of spinners that can be added to the tweet, from 1 - 3,
+//        with a 50% chance of 1, 40% chance of 2 and a 10 % chance of 3*/
+//        int[] possibleSpinnerLimits = new int[]{1,1,1,1,1,2,2,2,2,3};
+//        int spinnerLimit = possibleSpinnerLimits[(new Random()).nextInt(possibleSpinnerLimits.length)];
+//
+//        /* Pick random kanji from the wordEntries list to be spinners (with maximum of the spinner limit)*/
+//        ArrayList<WordEntry> shuffledEntries =  new ArrayList<>(wordEntries);
+//        Collections.shuffle(shuffledEntries);
+//        if(BuildConfig.DEBUG){Log.d(TAG,"spinnerlimit: " + spinnerLimit);}
+//        for(int i=0;i<shuffledEntries.size() && spinnerAddedCount<spinnerLimit;i++) {
+//            if(BuildConfig.DEBUG){Log.d(TAG,"adding word: " + wordEntries.get(i).getKanji());}
+//            if(wordListEdictIds.contains(shuffledEntries.get(i).getId())) {
+//                wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))).setSpinner(true);
+//                if(BuildConfig.DEBUG){Log.d(TAG,"setting word spinner TRUE " + wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))).getKanji());}
+//                ArrayList<String> arrayOptions = getDummySpinnerOptions(db
+//                        ,myListEntry
+//                        ,wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i)))
+//                        ,myListType);
+//                wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))).getFillinSentencesSpinner().setOptions(arrayOptions);
+//                spinnerAddedCount += 1;
+//            }
+//        }
+//
+//        return spinnerAddedCount;
+//    }
 
     /**
      * Pulls false options for a spinner dropdown object (in FillintheBlanks quiz)
@@ -512,65 +513,65 @@ public class QuizOpsHelper implements QuizOperationsInterface {
 //    }
 
 
-    /**
-     * Pulls false options for a spinner dropdown object (in FillintheBlanks quiz), for Single User's saved tweets.
-     * The words being pulled are based off of the user's UserInfo object, instead of a Tweet or Word list.
-     * @param db sqlite database connection
-     * @param userInfo UserInfo object for user whose saved tweets are being quizzed on
-     * @param wordEntry WordEntry object for "spinner" word
-     * @return An array of dummy options for the spinner words in the FillintheBlanks Quiz
-     *
-     * @see com.jukuproject.jukutweet.Fragments.FillInTheBlankFragment
-     */
-    public ArrayList<String> getDummySpinnerOptions(SQLiteDatabase db
-            , UserInfo userInfo
-            , WordEntry wordEntry) {
-        ArrayList<String> dummyOptions = new ArrayList<>();
-
-        try {
-            Cursor c = db.rawQuery("SELECT [Kanji] " +
-                        "FROM " +
-                        "(" +
-                        "SELECT [Kanji] " +
-                        "FROM " +
-                        "(" +
-                        "Select DISTINCT [Kanji] " +
-                        "FROM [Edict] where [_id] in (" +
-                            "SELECT DISTINCT Edict_id as _id" +
-                            " FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI + " " +
-                            "WHERE [Edict_id] <> ? and Tweet_id in (" +
-                                    "SELECT  DISTINCT _id as [Tweet_id]" +
-                                    "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
-                                    "WHERE [UserId] = ? " +
-                                ")" +
-                        " ORDER BY RANDOM()  LIMIT 8 " +
-                        ") OR [_id] in (" +
-                        "SELECT DISTINCT [_id] " +
-                        "FROM [XRef] " +
-                        "WHERE [_id] <> ? " +
-                        "ORDER BY RANDOM()  LIMIT 4" +
-                        ") ORDER BY RANDOM() LIMIT 3)  " +
-                        "UNION " +
-                        "SELECT '" + wordEntry.getCoreKanjiBlock() + "' as [Kanji]) " +
-                        "ORDER BY RANDOM() ",new String[]{userInfo.getUserId()
-                        ,String.valueOf(wordEntry.getId())
-                    ,String.valueOf(wordEntry.getId())});
-
-            if(c.getCount()>0) {
-                c.moveToFirst();
-                while (!c.isAfterLast()) {
-                    dummyOptions.add(c.getString(0));
-                    c.moveToNext();
-                }
-                c.close();
-            }
-        } catch (SQLiteException e){
-            Log.e(TAG,"getDummySpinnerOptions (singleuser) Sqlite exception: " + e);
-        }
-
-        return dummyOptions;
-
-    }
+//    /**
+//     * Pulls false options for a spinner dropdown object (in FillintheBlanks quiz), for Single User's saved tweets.
+//     * The words being pulled are based off of the user's UserInfo object, instead of a Tweet or Word list.
+//     * @param db sqlite database connection
+//     * @param userInfo UserInfo object for user whose saved tweets are being quizzed on
+//     * @param wordEntry WordEntry object for "spinner" word
+//     * @return An array of dummy options for the spinner words in the FillintheBlanks Quiz
+//     *
+//     * @see com.jukuproject.jukutweet.Fragments.FillInTheBlankFragment
+//     */
+//    public ArrayList<String> getDummySpinnerOptions(SQLiteDatabase db
+//            , UserInfo userInfo
+//            , WordEntry wordEntry) {
+//        ArrayList<String> dummyOptions = new ArrayList<>();
+//
+//        try {
+//            Cursor c = db.rawQuery("SELECT [Kanji] " +
+//                        "FROM " +
+//                        "(" +
+//                        "SELECT [Kanji] " +
+//                        "FROM " +
+//                        "(" +
+//                        "Select DISTINCT [Kanji] " +
+//                        "FROM [Edict] where [_id] in (" +
+//                            "SELECT DISTINCT Edict_id as _id" +
+//                            " FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI + " " +
+//                            "WHERE [Edict_id] <> ? and Tweet_id in (" +
+//                                    "SELECT  DISTINCT _id as [Tweet_id]" +
+//                                    "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+//                                    "WHERE [UserId] = ? " +
+//                                ")" +
+//                        " ORDER BY RANDOM()  LIMIT 8 " +
+//                        ") OR [_id] in (" +
+//                        "SELECT DISTINCT [_id] " +
+//                        "FROM [XRef] " +
+//                        "WHERE [_id] <> ? " +
+//                        "ORDER BY RANDOM()  LIMIT 4" +
+//                        ") ORDER BY RANDOM() LIMIT 3)  " +
+//                        "UNION " +
+//                        "SELECT '" + wordEntry.getCoreKanjiBlock() + "' as [Kanji]) " +
+//                        "ORDER BY RANDOM() ",new String[]{userInfo.getUserId()
+//                        ,String.valueOf(wordEntry.getId())
+//                    ,String.valueOf(wordEntry.getId())});
+//
+//            if(c.getCount()>0) {
+//                c.moveToFirst();
+//                while (!c.isAfterLast()) {
+//                    dummyOptions.add(c.getString(0));
+//                    c.moveToNext();
+//                }
+//                c.close();
+//            }
+//        } catch (SQLiteException e){
+//            Log.e(TAG,"getDummySpinnerOptions (singleuser) Sqlite exception: " + e);
+//        }
+//
+//        return dummyOptions;
+//
+//    }
 
     /**
      * Pulls array of Tweets for a given TweetList, for use in the {@link com.jukuproject.jukutweet.Fragments.FillInTheBlankFragment}
@@ -850,10 +851,10 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                     }
                 }
 
-            /* Now assign spinners to each tweet in the list */
+                /* Now assign spinners to each tweet in the list */
                 ArrayList<String> dummySpinnerRandomWords  = getDummySpinnerOptionsForList(myListEntry,"Tweet");
                 for(Tweet savedTweet : savedTweets) {
-                    setRandomSpinnersForTweetFAST(savedTweet,dummySpinnerRandomWords);
+                    setRandomSpinnersForTweetFAST(savedTweet,dummySpinnerRandomWords,colorString,null);
                 }
 
             } else {if(BuildConfig.DEBUG) {Log.d(TAG,"c.getcount was 0!!");}}
@@ -1152,7 +1153,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
             /* Now assign spinners to each tweet in the list */
                 ArrayList<String> dummySpinnerRandomWords  = getDummySpinnerOptionsForList(userInfo,"Tweet");
                 for(Tweet savedTweet : savedTweets) {
-                    setRandomSpinnersForTweetFAST(savedTweet,dummySpinnerRandomWords);
+                    setRandomSpinnersForTweetFAST(savedTweet,dummySpinnerRandomWords,colorString,null);
                 }
 
 
@@ -1228,6 +1229,42 @@ public class QuizOpsHelper implements QuizOperationsInterface {
         String limit = "LIMIT " + String.valueOf(resultLimit);
 
         try {
+//
+//            Cursor b = sqlOpener.getReadableDatabase().rawQuery("SELECT DISTINCT [_id] " +
+//                            " FROM " +
+//                            " (" +
+//                            "SELECT  x.[_id]" +
+//                            " ,(CASE WHEN [Total] is NULL THEN 'Grey' " +
+//                            "WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 'Grey' " +
+//                            "WHEN CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 'Red' " +
+//                            "WHEN CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + " THEN 'Yellow' " +
+//                            "ELSE 'Green' END) as [Color] " +
+//                            "FROM " +
+//                            "(" +
+//                            " SELECT DISTINCT [_id] " +
+//                            " FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES +  "  " +
+//                            " WHERE [Name] = ?  and [Sys] = " + myListEntry.getListsSys() +" " +
+//                            ") as x " +
+//                            "LEFT JOIN " +
+//                            "(" +
+//                            "SELECT [_id]" +
+//                            ",sum([Correct]) as [Correct]" +
+//                            ",sum([Total]) as [Total]  " +
+//                            " FROM [JScoreboard] " +
+//                            " WHERE [_id] IN (" +
+//                            " SELECT [_id] " +
+//                            " FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES +  "  " +
+//                            " WHERE [Name] = ?  and [Sys] = " + myListEntry.getListsSys() +" " +
+//
+//                            ") " +
+//                            "GROUP BY [_id]" +
+//                            ") as y " +
+//                            "ON x.[_id] = y.[_id] " +
+//
+//                            ") as [IdsForWordsWithColorString] " +
+//                            " Where Color in (" + colorString + ") ",new String[]{myListEntry.getListName()
+//                                                                                    ,myListEntry.getListName()});
+//
 
             Cursor c = sqlOpener.getReadableDatabase().rawQuery("SELECT TweetIds.[Tweet_id]" +
                             ",[MetaData].ScreenName " +
@@ -1273,41 +1310,41 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                                             " FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + " " +
                                             "WHERE [Edict_id] in (" +
 
-                                        /* We want Tweet_ids for tweets that contain the words in the word list that is being quizzed. AND, we only
-                                         * want tweet_ids for tweets that contain words for the given color string */
-                                        "SELECT DISTINCT [_id] " +
-                                        " FROM " +
-                                        " (" +
-                                            "SELECT  x.[_id]" +
-                                            " ,(CASE WHEN [Total] is NULL THEN 'Grey' " +
-                                            "WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 'Grey' " +
-                                            "WHEN CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 'Red' " +
-                                            "WHEN CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + " THEN 'Yellow' " +
-                                            "ELSE 'Green' END) as [Color] " +
-                                            "FROM " +
-                                            "(" +
-                                                " SELECT DISTINCT [_id] " +
-                                                " FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES +  "  " +
-                                                " WHERE [Name] = ?  and [Sys] = " + myListEntry.getListsSys() +" " +
-                                            ") as x " +
-                                            "LEFT JOIN " +
-                                            "(" +
-                                                "SELECT [_id]" +
-                                                ",sum([Correct]) as [Correct]" +
-                                                ",sum([Total]) as [Total]  " +
-                                                " FROM [JScoreboard] " +
-                                                " WHERE [_id] IN (" +
-                                                    " SELECT [_id] " +
-                                                    " FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES +  "  " +
-                                                    " WHERE [Name] = ?  and [Sys] = " + myListEntry.getListsSys() +" " +
+                                                    /* We want Tweet_ids for tweets that contain the words in the word list that is being quizzed. AND, we only
+                                                     * want tweet_ids for tweets that contain words for the given color string */
+                                                    "SELECT DISTINCT [_id] " +
+                                                    " FROM " +
+                                                    " (" +
+                                                        "SELECT  x.[_id]" +
+                                                        " ,(CASE WHEN [Total] is NULL THEN 'Grey' " +
+                                                        "WHEN [Total] < " + colorThresholds.getGreyThreshold() + " THEN 'Grey' " +
+                                                        "WHEN CAST(ifnull([Correct],0)  as float)/[Total] < " + colorThresholds.getRedThreshold() + "  THEN 'Red' " +
+                                                        "WHEN CAST(ifnull([Correct],0)  as float)/[Total] <  " + colorThresholds.getYellowThreshold() + " THEN 'Yellow' " +
+                                                        "ELSE 'Green' END) as [Color] " +
+                                                        "FROM " +
+                                                        "(" +
+                                                            " SELECT DISTINCT [_id] " +
+                                                            " FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES +  "  " +
+                                                            " WHERE [Name] = ?  and [Sys] = " + myListEntry.getListsSys() +" " +
+                                                        ") as x " +
+                                                        "LEFT JOIN " +
+                                                        "(" +
+                                                            "SELECT [_id]" +
+                                                            ",sum([Correct]) as [Correct]" +
+                                                            ",sum([Total]) as [Total]  " +
+                                                            " FROM [JScoreboard] " +
+                                                            " WHERE [_id] IN (" +
+                                                                " SELECT [_id] " +
+                                                                " FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES +  "  " +
+                                                                " WHERE [Name] = ?  and [Sys] = " + myListEntry.getListsSys() +" " +
 
-                                                ") " +
-                                             "GROUP BY [_id]" +
-                                            ") as y " +
-                                            "ON x.[_id] = y.[_id] " +
+                                                            ") " +
+                                                         "GROUP BY [_id]" +
+                                                        ") as y " +
+                                                        "ON x.[_id] = y.[_id] " +
 
-                                         ") as [IdsForWordsWithColorString] " +
-                                        " Where Color in (" + colorString + ") " +
+                                                     ") as [IdsForWordsWithColorString] " +
+                                                    " Where Color in (" + colorString + ") " +
                                         ") " +
 
                                 ") as TweetLists " +
@@ -1516,7 +1553,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                                 ,c.getInt(13)
                                 ,c.getInt(14));
                         wordEntry.setCoreKanjiBlock(c.getString(15));
-                        //Designate spinner kanji if they exist
                         tweet.addWordEntry(wordEntry);
                     }
 
@@ -1525,16 +1561,12 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             Log.d(TAG,"Flushing last tweet: " + tweet.getText());
                             Log.d(TAG,"last  number of kanji in tweet: " + tweet.getWordEntries().size());
                         }
-                        Tweet lastTweet = new Tweet(tweet);
                         if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0) {
                             savedTweets.add(new Tweet(tweet));
                         }
                     }
                     c.moveToNext();
                 }
-
-
-
 
 
                    /* Randomize dataset*/
@@ -1565,11 +1597,8 @@ public class QuizOpsHelper implements QuizOperationsInterface {
             /* Now assign spinners to each tweet in the list */
                 ArrayList<String> dummySpinnerRandomWords  = getDummySpinnerOptionsForList(myListEntry,"Word");
                 for(Tweet savedTweet : savedTweets) {
-                    setRandomSpinnersForTweetFAST(savedTweet,dummySpinnerRandomWords);
+                    setRandomSpinnersForTweetFAST(savedTweet,dummySpinnerRandomWords,colorString,possibleSpinners);
                 }
-
-
-
 
 //            /* If there are not enough unique results to fill out the quiz size, start doubling the
 //            * savedTweets until there are enough entries, and then shuffle them. */
@@ -1753,13 +1782,22 @@ public class QuizOpsHelper implements QuizOperationsInterface {
 
 
 
-
-    /**
-     * Chooses which WordEntries within a Tweet will be the designated "spinner" questions.
-     * @param tweet The tweet in question
-     */
-    private int setRandomSpinnersForTweetFAST(Tweet tweet
-            , ArrayList<String> poolOfFalseAnswers) {
+/**
+ * Decides which WordEntries within a Tweet will be designated as "spinners", meaning that they will be
+ * pickable dropdowns in the FillintheBlanks quiz. More than one possible "spinner" word may appear in a tweet, so the number
+ * of spinners is assigned via a weighted average type deal, with a max of 3 spinners per question. The spinner is designated
+ * as such by turning the "isSpinner" boolean in the WordEntry object for the word to "true"
+ * @param tweet Tweet containg the WordEntries
+ * @param poolOfFalseAnswers list of wrong answers, of which 3 will be randomly chosen as dummy answers for the spinner dropdown
+ * @param colorString concatenated string of word colors that are available for this quiz (ex: blue,red,yellow)
+ * @param wordEntryIdsInWordList For {@link #getFillintheBlanksTweetsForAWordList(MyListEntry, ColorThresholds, String, Integer)}, the
+ *                               spinner words within the tweet must be from the wordlist. So this is a list of those word ids that are OK to
+ *                               become spinners. WordEntries are checked against both the colorString param and this list before they are accepted as spinners
+ */
+    private void setRandomSpinnersForTweetFAST(Tweet tweet
+            , ArrayList<String> poolOfFalseAnswers
+            , String colorString
+            , @Nullable ArrayList<Integer> wordEntryIdsInWordList) {
         ArrayList<WordEntry> wordEntries = tweet.getWordEntries();
         ArrayList<Integer> spinnerAddedIndex = new ArrayList<>();
 
@@ -1768,13 +1806,34 @@ public class QuizOpsHelper implements QuizOperationsInterface {
         int[] possibleSpinnerLimits = new int[]{1,1,1,1,1,1,2,2,2,3};
         int spinnerLimit = possibleSpinnerLimits[(new Random()).nextInt(possibleSpinnerLimits.length)];
 
-        if(wordEntries.size()>0 &&(poolOfFalseAnswers.size()>4)) {
+        /*Not all word entries can become spinners. If the user has chosen a set of word score colors
+        * to focus on, only word entries that are of those colors can be spinners. So filter out a list
+        * of indexes of word entries that have the correct colors and use these while assigning spinners */
+
+        ArrayList<Integer> wordEntryIndexesThatCanBeSpinners = new ArrayList<>();
+        if(wordEntryIdsInWordList!=null) {
+            for(int i=0;i<wordEntries.size();i++) {
+                if(colorString.contains(wordEntries.get(i).getColor()) && wordEntryIdsInWordList.contains(wordEntries.get(i).getId())) {
+                    wordEntryIndexesThatCanBeSpinners.add(i);
+                }
+            }
+        } else {
+            for(int i=0;i<wordEntries.size();i++) {
+                if(colorString.contains(wordEntries.get(i).getColor())) {
+                    wordEntryIndexesThatCanBeSpinners.add(i);
+                }
+            }
+        }
+
+
+        //Only attach spinners if there are enough dummy answers to make at least one set
+        if(wordEntryIndexesThatCanBeSpinners.size()>0 &&(poolOfFalseAnswers.size()>4)) {
 
             while(spinnerAddedIndex.size()<spinnerLimit
-                    && (wordEntries.size()>spinnerLimit || spinnerAddedIndex.size()<wordEntries.size())) {
-                int randomWordEntryIndex = new Random().nextInt(wordEntries.size());
-                if(!spinnerAddedIndex.contains(randomWordEntryIndex)) {
-                    WordEntry randomWordEntry = wordEntries.get(randomWordEntryIndex);
+                    && (wordEntryIndexesThatCanBeSpinners.size()>spinnerLimit || spinnerAddedIndex.size()<wordEntryIndexesThatCanBeSpinners.size())) {
+                int randomWordEntryIndex = new Random().nextInt(wordEntryIndexesThatCanBeSpinners.size());
+                if(!spinnerAddedIndex.contains(wordEntryIndexesThatCanBeSpinners.get(randomWordEntryIndex))) {
+                    WordEntry randomWordEntry = wordEntries.get(wordEntryIndexesThatCanBeSpinners.get(randomWordEntryIndex));
                     randomWordEntry.setSpinner(true);
 
                     /* Create dummy answer options from random/related kanji pools */
@@ -1790,13 +1849,11 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                     }
                     Collections.shuffle(answerSet);
                     randomWordEntry.getFillinSentencesSpinner().setOptions(answerSet);
-                    spinnerAddedIndex.add(randomWordEntryIndex);
+                    spinnerAddedIndex.add(wordEntryIndexesThatCanBeSpinners.get(randomWordEntryIndex));
                 }
             }
         }
 
-        if(BuildConfig.DEBUG){Log.i(TAG,"spinner limit fast: " + spinnerLimit + ", Spinner count! - " + spinnerAddedIndex.size());}
-        return spinnerAddedIndex.size();
     }
 
 

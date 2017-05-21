@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -15,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.TextView;
@@ -24,13 +26,16 @@ import com.jukuproject.jukutweet.Adapters.TweetBreakDownAdapter;
 import com.jukuproject.jukutweet.Adapters.UserListAdapter;
 import com.jukuproject.jukutweet.Adapters.UserTimeLineAdapter;
 import com.jukuproject.jukutweet.BuildConfig;
+import com.jukuproject.jukutweet.ChooseFavoriteListsPopupWindow;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.AddUserCheckDialog;
 import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
+import com.jukuproject.jukutweet.FavoritesColors;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
 import com.jukuproject.jukutweet.MainActivity;
+import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.Models.WordEntry;
@@ -147,18 +152,22 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
             if(!savedInstanceState.getBoolean("mDataSetMaxIdisNull",true)) {
                 mDataSetMaxId = savedInstanceState.getLong("mDataSetMaxId");
             } else  {
-
                 mDataSetMaxId = null;
             }
 
             currentActiveTwitterSearchQuery = savedInstanceState.getString("currentActiveTwitterSearchQuery",currentActiveTwitterSearchQuery);
             mCheckedOption = savedInstanceState.getString("mCheckedOption","Romaji");
+
+            Log.i(TAG,"checkoption: " + mCheckedOption + ", currentactive: " + currentActiveTwitterSearchQuery);
             try {
 
-                if(mCheckedOption.equals("Twitter")) {
+                if(mCheckedOption.equals("Tweet")) {
                     mTwitterResults = savedInstanceState.getParcelableArrayList("mTwitterResults");
                     receiveTwitterSearchResults(mTwitterResults,currentActiveTwitterSearchQuery);
-                } else if(mCheckedOption.equals("Definition")) {
+                } else if(mCheckedOption.equals("User")) {
+                    mTwitterUserResults = savedInstanceState.getParcelableArrayList("mTwitterUserResults");
+                    receiveTwitterUserSearchResults(mTwitterUserResults);
+                } else if(mCheckedOption.equals("Definition") || mCheckedOption.equals("Romaji")) {
                     mDictionaryResults = savedInstanceState.getParcelableArrayList("mDictionaryResults");
                     recieveDictionarySearchResults(mDictionaryResults);
                 }
@@ -300,6 +309,11 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
+                    if(checkBoxDefinition.isChecked()) {
+                        mCheckedOption = "Definition";
+                    } else {
+                        mCheckedOption = "Romaji";
+                    }
                     mDictionarySearchLayout.setVisibility(View.VISIBLE);
                     checkBoxTwitter.setChecked(false);
                     checkBoxRomaji.setText(getResources().getString(R.string.search_romaji));
@@ -310,11 +324,36 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
             }
         });
 
+        checkBoxTwitter.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    if(checkBoxDefinition.isChecked()) {
+                        mCheckedOption = "Tweet";
+                    } else {
+                        mCheckedOption = "User";
+                    }
+
+                    checkBoxRomaji.setText(getString(R.string.search_user_text));
+                    checkBoxDefinition.setText(getString(R.string.search_tweet_text));
+                    checkBoxDictionary.setChecked(false);
+                    mDictionarySearchLayout.setVisibility(View.VISIBLE);
+                } else if(!checkBoxDictionary.isChecked()){
+                    checkBoxTwitter.setChecked(true);
+                }
+            }
+        });
+
+
         checkBoxRomaji.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-//                    mCheckedOption = "Romaji";
+                    if(checkBoxTwitter.isChecked()) {
+                        mCheckedOption = "User";
+                    } else {
+                        mCheckedOption = "Romaji";
+                    }
                     checkBoxDefinition.setChecked(false);
                 } else if(!checkBoxDefinition.isChecked()){
                     checkBoxRomaji.setChecked(true);
@@ -326,7 +365,11 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    mCheckedOption = "Definition";
+                    if(checkBoxTwitter.isChecked()) {
+                        mCheckedOption = "Tweet";
+                    } else {
+                        mCheckedOption = "Definition";
+                    }
                     checkBoxRomaji.setChecked(false);
                 } else if(!checkBoxRomaji.isChecked()){
                     checkBoxDefinition.setChecked(true);
@@ -346,20 +389,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                 mDictionarySearchLayout.setVisibility(View.VISIBLE);
             }
         });
-        checkBoxTwitter.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    mCheckedOption = "Twitter";
-                    checkBoxRomaji.setText(getString(R.string.search_user_text));
-                    checkBoxDefinition.setText(getString(R.string.search_tweet_text));
-                    checkBoxDictionary.setChecked(false);
-                    mDictionarySearchLayout.setVisibility(View.VISIBLE);
-                } else if(!checkBoxDictionary.isChecked()){
-                    checkBoxTwitter.setChecked(true);
-                }
-            }
-        });
+
     }
 
 
@@ -435,9 +465,21 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
             rxBus.toClickObserverable().subscribe(new Action1<Object>() {
                 @Override
                 public void call(Object event) {
-                    if (event instanceof WordEntry) {
+
+                    if (isUniqueClick(150) && event instanceof Integer) {
+
+                        Integer tweetWordEntryIndex = (Integer) event;
+                        //Activity windows height
+                        int[] location = new int[2];
+
+                        TweetBreakDownAdapter.ViewHolder viewHolder = (TweetBreakDownAdapter.ViewHolder)mRecyclerView.getChildViewHolder(mRecyclerView.getChildAt(tweetWordEntryIndex));
+                        mRecyclerView.getChildAt(tweetWordEntryIndex).getLocationInWindow(location);
+                        Log.i(TAG,"location x: " + location[0] + ", y: " + location[1]);
+
+                        showFavoriteListPopupWindow(viewHolder,mDictionaryResults.get(tweetWordEntryIndex),mMetrics,location[1]);
+
+                    } else if (isUniqueClick(150) && event instanceof WordEntry) {
                         WordEntry wordEntry = (WordEntry) event;
-                        updateWordEntryItemFavorites(wordEntry);
                         updateWordEntryFavoritesForOtherTabs(wordEntry);
 
                     }
@@ -458,6 +500,9 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
 
             mRecyclerView.setAdapter(mDictionaryAdapter);
         } else {
+            if(mDictionaryResults!=null) {
+                mDictionaryResults.clear();
+            }
             showRecyclerView(false);
         }
     }
@@ -492,7 +537,6 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                         ,_rxBus
                         ,mTwitterResults
                         ,mActiveTweetFavoriteStars
-                        ,mMetrics
                         ,queryText
                         ,true);
 
@@ -532,19 +576,36 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                     @Override
                     public void call(Object event) {
 
-                        if(isUniqueClick(1000) && event instanceof Tweet) {
+                        if (isUniqueClick(100) && event instanceof Integer) {
+
+                            Integer tweetWordEntryIndex = (Integer) event;
+                            //Activity windows height
+                            int[] location = new int[2];
+
+                            UserTimeLineAdapter.ViewHolder viewHolder = (UserTimeLineAdapter.ViewHolder)mRecyclerView.getChildViewHolder(mRecyclerView.getChildAt(tweetWordEntryIndex));
+                            mRecyclerView.getChildAt(tweetWordEntryIndex).getLocationInWindow(location);
+//                    Log.i(TAG,"location x: " + location[0] + ", y: " + location[1]);
+
+                            showTweetFavoriteListPopupWindow(viewHolder,mTwitterResults.get(tweetWordEntryIndex),mMetrics,location[1]);
+
+                        } else if(isUniqueClick(150) && event instanceof Tweet) {
                             final Tweet tweet = (Tweet) event;
-//                            if(tweet.getUser()!=null) {
-//                                mCallback.downloadTweetUserIcons(tweet.getUser());
-//                            }
-//                            if(InternalDB.getTweetInterfaceInstance(getContext()).tweetParsedKanjiExistsInDB(tweet) == 0) {
-//                                mCallback.parseAndSaveTweet(tweet);
-//                            } else {
-//                                Log.e(TAG,"Tweet parsed kanji exists code is funky");
-//                            }
-//                            mCallback.notifySavedTweetFragmentsChanged();
                             saveOrDeleteTweet(tweet);
                         }
+//
+//                        if(isUniqueClick(1000) && event instanceof Tweet) {
+//                            final Tweet tweet = (Tweet) event;
+////                            if(tweet.getUser()!=null) {
+////                                mCallback.downloadTweetUserIcons(tweet.getUser());
+////                            }
+////                            if(InternalDB.getTweetInterfaceInstance(getContext()).tweetParsedKanjiExistsInDB(tweet) == 0) {
+////                                mCallback.parseAndSaveTweet(tweet);
+////                            } else {
+////                                Log.e(TAG,"Tweet parsed kanji exists code is funky");
+////                            }
+////                            mCallback.notifySavedTweetFragmentsChanged();
+//                            saveOrDeleteTweet(tweet);
+//                        }
 
                     }
 
@@ -556,6 +617,10 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
 
 
         } else {
+            if(mTwitterResults!=null) {
+                mTwitterResults.clear();
+            }
+
             showRecyclerView(false);
         }
     }
@@ -600,6 +665,9 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                     });
             mRecyclerView.setAdapter(listAdapter);
         } else {
+            if(mTwitterUserResults!=null) {
+                mTwitterUserResults.clear();
+            }
             showRecyclerView(false);
         }
     }
@@ -770,6 +838,269 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
         }
 
     }
+
+    /**
+     * Displays the {@link ChooseFavoriteListsPopupWindow} when the "favorites star" is clicked for a
+     * word in one of the TweetBreakDown recycler rows
+     * @param holder ViewHolder for the row
+     */
+    public void showFavoriteListPopupWindow(final TweetBreakDownAdapter.ViewHolder holder
+            ,final WordEntry wordEntry
+            , DisplayMetrics mMetrics
+            , int ylocation) {
+        RxBus rxBus = new RxBus();
+
+        ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getWordInterfaceInstance(getContext()).getWordListsForAWord(mActiveFavoriteStars,String.valueOf(wordEntry.getId()),1,null);
+        PopupWindow popupWindow =  ChooseFavoriteListsPopupWindow.createWordFavoritesPopup(getContext(),mMetrics,rxBus,availableFavoriteLists,wordEntry.getId());
+        popupWindow.getContentView().measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+
+        int xadjust = popupWindow.getContentView().getMeasuredWidth() + (int) (15 * mMetrics.density + 0.5f);
+
+        int popupMeasuredHeight;
+        if(availableFavoriteLists.size()>10) {
+            popupMeasuredHeight = (int)((float)mMetrics.heightPixels/2.0f);
+        } else {
+            popupMeasuredHeight =  popupWindow.getContentView().getMeasuredHeight();
+        }
+
+        //Firstly, center the list at the favorite star
+        int yadjust = (int)(popupMeasuredHeight/2.0f  + holder.imgStar.getMeasuredHeight()/2.0f);
+        final int displayheight = mMetrics.heightPixels;
+
+        if(BuildConfig.DEBUG) {
+            Log.i(TAG,"INITIAL yloc: " + ylocation);
+            Log.i(TAG,"INITIAL imgstar height/2: " + holder.imgStar.getMeasuredHeight()/2.0f);
+            Log.i(TAG,"INITIAL popupheight/2: " + popupMeasuredHeight/2.0f);
+            Log.i(TAG,"INITIAL yadjust: " + yadjust);
+            Log.i(TAG,"INITIAL Displayheight: " + displayheight);
+        }
+
+        //Overrun at bottom of screen
+        while(ylocation + holder.imgStar.getMeasuredHeight() - yadjust + popupMeasuredHeight >displayheight) {
+//            Log.i(TAG,"SCREEN OVERRUN BOTTOM - " + (ylocation + holder.imgStar.getMeasuredHeight() - yadjust + popupMeasuredHeight)
+//                    + " to display: " + displayheight + ",, reduce yadjust " + yadjust + " - " + (yadjust+10));
+            yadjust += 10;
+        }
+
+//        //Overrun at bottom of screen
+        while(ylocation + holder.imgStar.getMeasuredHeight() - yadjust < 0) {
+//            Log.i(TAG,"SCREEN OVERRUN TOP - increase yadjust " + yadjust + " - " + (yadjust-10));
+            yadjust -= 10;
+        }
+
+        if(BuildConfig.DEBUG) {
+            Log.d("TEST", "pop width: " + popupWindow.getContentView().getMeasuredWidth() + " height: " + popupWindow.getContentView().getMeasuredHeight());
+            Log.d("TEST", "xadjust: " + xadjust + ", yadjust: " + yadjust);
+        }
+
+        popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
+            @Override
+            public void onDismiss() {
+                updateWordEntryFavoritesForOtherTabs(wordEntry);
+            }
+        });
+
+        rxBus.toClickObserverable().subscribe(new Action1<Object>() {
+            @Override
+            public void call(Object event) {
+
+                /* Recieve a MyListEntry (containing an updated list entry for this row kanji) from
+                 * the ChooseFavoritesAdapter in the ChooseFavorites popup window */
+                if(event instanceof MyListEntry) {
+                    MyListEntry myListEntry = (MyListEntry) event;
+
+                                        /* Ascertain the type of list that the kanji was added to (or subtracted from),
+                                        and update that list's count */
+                    if(myListEntry.getListsSys() == 1) {
+                        switch (myListEntry.getListName()) {
+                            case "Blue":
+                                wordEntry.getItemFavorites().setSystemBlueCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Green":
+                                wordEntry.getItemFavorites().setSystemGreenCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Red":
+                                wordEntry.getItemFavorites().setSystemRedCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Yellow":
+                                wordEntry.getItemFavorites().setSystemYellowCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Purple":
+                                wordEntry.getItemFavorites().setSystemPurpleCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Orange":
+                                wordEntry.getItemFavorites().setSystemOrangeCount(myListEntry.getSelectionLevel());
+                                break;
+                            default:
+                                break;
+                        }
+                    } else {
+                        if(myListEntry.getSelectionLevel() == 1) {
+                            wordEntry.getItemFavorites().addToUserListCount(1);
+                        } else {
+                            wordEntry.getItemFavorites().subtractFromUserListCount(1);
+                        }
+                    }
+
+                    if(wordEntry.getItemFavorites().shouldOpenFavoritePopup(mActiveFavoriteStars)
+                            && wordEntry.getItemFavorites().systemListCount(mActiveFavoriteStars) >1) {
+                        holder.imgStar.setColorFilter(null);
+                        holder.imgStar.setImageResource(R.drawable.ic_star_multicolor);
+
+                    } else {
+                        holder.imgStar.setImageResource(R.drawable.ic_star_black);
+                        try {
+                            holder.imgStar.setColorFilter(ContextCompat.getColor(getContext(), FavoritesColors.assignStarColor(wordEntry.getItemFavorites(),mActiveFavoriteStars)));
+                        } catch (NullPointerException e) {
+                            Log.e(TAG,"tweetBreakDownAdapter Nullpointer error setting star color filter in word detail popup dialog... Need to assign item favorites to WordEntry(?)" + e.getCause());
+                        }
+                    }
+                }
+            }
+
+        });
+
+        popupWindow.showAsDropDown(holder.imgStar,-xadjust,-yadjust);
+
+    }
+
+
+    public void showTweetFavoriteListPopupWindow(final UserTimeLineAdapter.ViewHolder holder
+            ,final Tweet mTweet
+            , DisplayMetrics mMetrics
+            , int ylocation) {
+
+        RxBus rxBus = new RxBus();
+        ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListsForTweet(mActiveTweetFavoriteStars,mTweet.getIdString(),null);
+
+        PopupWindow popupWindow = ChooseFavoriteListsPopupWindow.createTweetFavoritesPopup(getContext(),mMetrics,rxBus,availableFavoriteLists,mTweet.getIdString(), mTweet.getUser().getUserId());
+
+        popupWindow.getContentView().measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+
+        int xadjust = popupWindow.getContentView().getMeasuredWidth() + (int) (10 * mMetrics.density + 0.5f);
+
+        int popupMeasuredHeight;
+        if(availableFavoriteLists.size()>10) {
+            popupMeasuredHeight = (int)((float)mMetrics.heightPixels/2.0f);
+        } else {
+            popupMeasuredHeight =  popupWindow.getContentView().getMeasuredHeight();
+        }
+
+        //Firstly, center the list at the favorite star
+        int yadjust = (int)(popupMeasuredHeight/2.0f  + holder.imgStar.getMeasuredHeight()/2.0f);
+        final int displayheight = mMetrics.heightPixels;
+
+        if(BuildConfig.DEBUG) {
+            Log.i(TAG,"INITIAL yloc: " + ylocation);
+            Log.i(TAG,"INITIAL imgstar height/2: " + holder.imgStar.getMeasuredHeight()/2.0f);
+            Log.i(TAG,"INITIAL popupheight/2: " + popupMeasuredHeight/2.0f);
+            Log.i(TAG,"INITIAL yadjust: " + yadjust);
+            Log.i(TAG,"INITIAL Displayheight: " + displayheight);
+        }
+
+        //Overrun at bottom of screen
+        while(ylocation + holder.imgStar.getMeasuredHeight() - yadjust + popupMeasuredHeight >displayheight) {
+//            Log.i(TAG,"SCREEN OVERRUN BOTTOM - " + (ylocation + holder.imgStar.getMeasuredHeight() - yadjust + popupMeasuredHeight)
+//                    + " to display: " + displayheight + ",, reduce yadjust " + yadjust + " - " + (yadjust+10));
+            yadjust += 10;
+        }
+
+//        //Overrun at bottom of screen
+        while(ylocation + holder.imgStar.getMeasuredHeight() - yadjust < 0) {
+//            Log.i(TAG,"SCREEN OVERRUN TOP - increase yadjust " + yadjust + " - " + (yadjust-10));
+            yadjust -= 10;
+        }
+
+
+
+        Log.d("TEST","pop width: " + popupWindow.getContentView().getMeasuredWidth() + " height: " + popupWindow.getContentView().getMeasuredHeight());
+        Log.d("TEST","xadjust: " + xadjust + ", yadjust: " + yadjust);
+
+
+        popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
+            @Override
+            public void onDismiss() {
+
+
+
+                /*Check to see if tweet must be deleted from db. Delete if necessary.
+                            * Likewise adds a tweet to the db if it has just been added to a favorites list.
+                            * This bit MUST come after the favorite star toggle, because it determines whether to
+                            * add or delete a tweet based on whether that tweet is in a favorites list. */
+                saveOrDeleteTweet(mTweet);
+            }
+        });
+
+
+
+        rxBus.toClickObserverable().subscribe(new Action1<Object>() {
+            @Override
+            public void call(Object event) {
+
+                                    /* Recieve a MyListEntry (containing an updated list entry for this row kanji) from
+                                    * the ChooseFavoritesAdapter in the ChooseFavorites popup window */
+                if(event instanceof MyListEntry) {
+                    MyListEntry myListEntry = (MyListEntry) event;
+
+                                        /* Ascertain the type of list that the kanji was added to (or subtracted from),
+                                        and update that list's count */
+                    if(myListEntry.getListsSys() == 1) {
+                        switch (myListEntry.getListName()) {
+                            case "Blue":
+                                mTweet.getItemFavorites().setSystemBlueCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Green":
+                                mTweet.getItemFavorites().setSystemGreenCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Red":
+                                mTweet.getItemFavorites().setSystemRedCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Yellow":
+                                mTweet.getItemFavorites().setSystemYellowCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Purple":
+                                mTweet.getItemFavorites().setSystemPurpleCount(myListEntry.getSelectionLevel());
+                                break;
+                            case "Orange":
+                                mTweet.getItemFavorites().setSystemOrangeCount(myListEntry.getSelectionLevel());
+                                break;
+                            default:
+                                break;
+                        }
+                    } else {
+                        if(myListEntry.getSelectionLevel() == 1) {
+                            mTweet.getItemFavorites().addToUserListCount(1);
+                        } else {
+                            mTweet.getItemFavorites().subtractFromUserListCount(1);
+                        }
+                    }
+
+
+
+                    if(mTweet.getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)
+                            && mTweet.getItemFavorites().systemListCount(mActiveTweetFavoriteStars) >1) {
+                        holder.imgStar.setColorFilter(null);
+                        holder.imgStar.setImageResource(R.drawable.ic_twitter_multicolor_24dp);
+
+                    } else {
+                        holder.imgStar.setImageResource(R.drawable.ic_twitter_black_24dp);
+                        try {
+                            holder.imgStar.setColorFilter(ContextCompat.getColor(getContext(), FavoritesColors.assignStarColor(mTweet.getItemFavorites(),mActiveTweetFavoriteStars)));
+                        } catch (NullPointerException e) {
+                            Log.e(TAG,"UserTimeLineAdapter setting colorfilter nullpointer: " + e.getMessage());
+                        }
+
+                    }
+                }
+            }
+
+        });
+
+        popupWindow.showAsDropDown(holder.imgStar,-xadjust,-yadjust);
+    }
+
 
     @Override
     public void onPause() {

@@ -130,10 +130,10 @@ asdf
 
     <string name="favorites_text">Favorites</string>
 
-    <string name="menuoption_text_type">Type: </string>
-    <string name="menuoption_text_size">Size: </string>
-    <string name="menuoption_text_timer">Timer: </string>
-    <string name="menuoption_text_colors">Colors: </string>
+    <string name="menuoption_text_type">"Type: "</string>
+    <string name="menuoption_text_size">"Size: "</string>
+    <string name="menuoption_text_timer">"Timer: "</string>
+    <string name="menuoption_text_colors">"Colors: "</string>
 
 
 

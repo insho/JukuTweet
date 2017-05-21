@@ -260,8 +260,8 @@ public class Tweet  implements Parcelable {
         itemFavorites = (ItemFavorites) in.readParcelable(getClass().getClassLoader());
         entities = (TweetEntities) in.readParcelable(getClass().getClassLoader());
         wordEntries = new ArrayList<>();
-            in.readTypedList(wordEntries,WordEntry.CREATOR);
-
+//            in.readTypedList(wordEntries,WordEntry.CREATOR);
+            in.readList(wordEntries,WordEntry.class.getClassLoader());
         this.user = in.readParcelable(UserInfo.class.getClassLoader());
     }
 
@@ -282,7 +282,7 @@ public class Tweet  implements Parcelable {
         dest.writeDouble(this.quizWeight);
         dest.writeParcelable(this.itemFavorites,flags);
         dest.writeParcelable(this.entities,flags);
-        dest.writeTypedList(this.wordEntries);
+        dest.writeList(this.wordEntries);
         dest.writeParcelable(this.user,flags);
     }
 
