@@ -577,6 +577,7 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
                 //If correct
                 if(BuildConfig.DEBUG) {
                     Log.d(TAG, "word kanji: " + wordEntry.getKanji());
+                    Log.d(TAG, "word corekanjiblock: " + wordEntry.getCoreKanjiBlock());
                     Log.d(TAG, "selected: " + wordEntry.getFillinSentencesSpinner().getSelectedOption());
                 }
 

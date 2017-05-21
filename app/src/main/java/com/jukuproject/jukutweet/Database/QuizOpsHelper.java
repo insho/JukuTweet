@@ -301,6 +301,217 @@ public class QuizOpsHelper implements QuizOperationsInterface {
 
     }
 
+
+
+    private ArrayList<String> getDummySpinnerOptionsForList(Object listEntryObject
+            , String mylistType) {
+        ArrayList<String> dummyOptions = new ArrayList<>();
+
+        try {
+            Cursor c;
+
+            if(listEntryObject instanceof MyListEntry) {
+                    MyListEntry myListEntry = (MyListEntry) listEntryObject ;
+                if(mylistType.equals("Tweet")) {
+
+                    c = sqlOpener.getReadableDatabase().rawQuery(
+                            "Select DISTINCT [Kanji] " +
+                                    "FROM [Edict] where [_id] in (" +
+                                    "SELECT DISTINCT Edict_id as [_id] " +
+                                    "FROM "+
+                                    "( " +
+                                    "SELECT DISTINCT _id as Tweet_id " +
+                                    "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+                                    " WHERE [Name] = ? and [Sys] = ? " +
+                                    ") as x " +
+                                    "LEFT JOIN "  +
+                                    "( " +
+                                    "SELECT DISTINCT Tweet_id,Edict_id " +
+                                    "FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI + " " +
+                                    ")  as y " +
+                                    " ON x.Tweet_id = y.Tweet_id " +
+                                    " ORDER BY RANDOM()  LIMIT 50 " +
+                                    ") OR [_id] in (" +
+                                    "SELECT DISTINCT [_id] " +
+                                    "FROM [XRef] " +
+                                    "ORDER BY RANDOM()  LIMIT 25" +
+                                    ") " +
+                                    "ORDER BY RANDOM()  ",new String[]{myListEntry.getListName()
+                                    ,String.valueOf(myListEntry.getListsSys())});
+                } else {
+
+                    c = sqlOpener.getReadableDatabase().rawQuery(
+                            "Select DISTINCT [Kanji] " +
+                                    "FROM [Edict] where [_id] in (" +
+                                    "SELECT DISTINCT [_id] " +
+                                    "FROM " +  InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
+                                    " WHERE [Name] = ? and [Sys] = ? " +
+                                    "ORDER BY RANDOM()  LIMIT 50 " +
+                                    ") OR [_id] in (" +
+                                    "SELECT DISTINCT [_id] " +
+                                    "FROM [XRef] " +
+                                    "ORDER BY RANDOM()  LIMIT 25" +
+                                    ") ORDER BY RANDOM()  ",new String[]{myListEntry.getListName()
+                                    ,String.valueOf(myListEntry.getListsSys())
+//                        ,String.valueOf(wordEntry.getId())
+//                        ,String.valueOf(wordEntry.getId())
+                            });
+                }
+            } else if(listEntryObject instanceof UserInfo) {
+                UserInfo userInfo = (UserInfo) listEntryObject;
+                c = sqlOpener.getReadableDatabase().rawQuery(
+                        "Select DISTINCT [Kanji] " +
+                                "FROM [Edict] where [_id] in (" +
+                                    "SELECT DISTINCT Edict_id as _id" +
+                                    " FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI + " " +
+                                    "WHERE Tweet_id in (" +
+                                                "SELECT  DISTINCT _id as [Tweet_id]" +
+                                                "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+                                                "WHERE [UserId] = ? " +
+                                                ")" +
+                                    " ORDER BY RANDOM()  LIMIT 50 " +
+                                ") OR [_id] in (" +
+                                "SELECT DISTINCT [_id] " +
+                                "FROM [XRef] " +
+                                "ORDER BY RANDOM()  LIMIT 25" +
+                                ") " +
+                                "ORDER BY RANDOM()  ",new String[]{userInfo.getUserId()});
+
+            } else {
+                c = sqlOpener.getReadableDatabase().rawQuery(
+                        "Select DISTINCT [Kanji] " +
+                                "FROM [Edict] where [_id] in (" +
+                                "SELECT DISTINCT [_id] " +
+                                "FROM [XRef] " +
+                                "ORDER BY RANDOM()  LIMIT 60" +
+                                ") ORDER BY RANDOM()  ",null);
+//                        ,String.valueOf(wordEntry.getId())
+//                        ,String.valueOf(wordEntry.getId())
+
+            }
+
+
+            if(c.getCount()>0) {
+                c.moveToFirst();
+                while (!c.isAfterLast()) {
+                    dummyOptions.add(c.getString(0));
+                    c.moveToNext();
+                }
+                c.close();
+            }
+        } catch (SQLiteException e){
+            Log.e(TAG,"getDummySpinnerOptionsForListFAST Sqlite exception: " + e);
+        }
+
+        return dummyOptions;
+
+    }
+
+
+//    /**
+//     * Pulls false options for a spinner dropdown object (in FillintheBlanks quiz)
+//     * @param db sqlite database connection
+//     * @param myListEntry MyList object
+//     * @param wordEntry WordEntry object for "spinner" word
+//     * @param mylistType tag designating the type of List, either Word or Tweet
+//     * @return An array of dummy options for the spinner words in the FillintheBlanks Quiz
+//     *
+//     * @see com.jukuproject.jukutweet.Fragments.FillInTheBlankFragment
+//     */
+//    public ArrayList<String> getDummySpinnerOptionsForListFAST(MyListEntry myListEntry
+//            , String mylistType) {
+//        ArrayList<String> dummyOptions = new ArrayList<>();
+//
+//        try {
+//            Cursor c;
+//            if(mylistType.equals("Tweet")) {
+//
+//                c = sqlOpener.getReadableDatabase().rawQuery("Select DISTINCT [Kanji] " +
+//                        "FROM [Edict] where [_id] in (" +
+//                                "SELECT DISTINCT Edict_id as [_id] " +
+//                                "FROM "+
+//                                "( " +
+//                                "SELECT DISTINCT _id as Tweet_id " +
+//                                "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+//                                " WHERE [Name] = ? and [Sys] = ? " +
+//                                ") as x " +
+//                                "LEFT JOIN "  +
+//                                "( " +
+//                                "SELECT DISTINCT Tweet_id,Edict_id " +
+//                                "FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI + " " +
+//                                ")  as y " +
+//                                " ON x.Tweet_id = y.Tweet_id " +
+//                                " ORDER BY RANDOM()  LIMIT 50 " +
+//                        ")   ",new String[]{myListEntry.getListName()
+//                        ,String.valueOf(myListEntry.getListsSys())});
+//            } else {
+//
+//                c = sqlOpener.getReadableDatabase().rawQuery("SELECT [Kanji] " +
+//                        "FROM " +
+//                        "(" +
+//                        "SELECT [Kanji] " +
+//                        "FROM " +
+//                        "(" +
+//                        "Select DISTINCT [Kanji] " +
+//                        "FROM [Edict] where [_id] in (" +
+//                        "SELECT DISTINCT [_id] " +
+//                        "FROM " +  InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
+//                        " WHERE [Name] = ? and [Sys] = ? " +
+//                        "ORDER BY RANDOM()  LIMIT 50 " +
+//                        ") ",new String[]{myListEntry.getListName()
+//                        ,String.valueOf(myListEntry.getListsSys())});
+//            }
+//            if(c.getCount()>0) {
+//                c.moveToFirst();
+//                while (!c.isAfterLast()) {
+//                    dummyOptions.add(c.getString(0));
+//                    c.moveToNext();
+//                }
+//                c.close();
+//            }
+//        } catch (SQLiteException e){
+//            Log.e(TAG,"getDummySpinnerOptions Sqlite exception: " + e);
+//        }
+//
+//        return dummyOptions;
+//    }
+
+//    public ArrayList<String> getDummySpinnerOptionsAtRandom() {
+//        ArrayList<String> dummyOptions = new ArrayList<>();
+//
+//        try {
+//            Cursor c = sqlOpener.getReadableDatabase().rawQuery(
+//                    "SELECT [Kanji] " +
+//                            "FROM " +
+//                            "(" +
+//                            "SELECT [Kanji] " +
+//                            "FROM " +
+//                            "(" +
+//                            "Select DISTINCT [Kanji] " +
+//                            "FROM [Edict] where [_id] in (" +
+//                            "SELECT DISTINCT [_id] " +
+//                            "FROM [XRef] " +
+//                            "ORDER BY RANDOM()  LIMIT 50" +
+//                            ") ORDER BY RANDOM())  " +
+//
+//                            "ORDER BY RANDOM() ",null);
+//
+//            if(c.getCount()>0) {
+//                c.moveToFirst();
+//                while (!c.isAfterLast()) {
+//                    dummyOptions.add(c.getString(0));
+//                    c.moveToNext();
+//                }
+//                c.close();
+//            }
+//        } catch (SQLiteException e){
+//            Log.e(TAG,"getDummySpinnerOptions Sqlite exception: " + e);
+//        }
+//
+//        return dummyOptions;
+//    }
+
+
     /**
      * Pulls false options for a spinner dropdown object (in FillintheBlanks quiz), for Single User's saved tweets.
      * The words being pulled are based off of the user's UserInfo object, instead of a Tweet or Word list.
@@ -530,7 +741,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             " ) as TweetKanji " +
                             "On TweetIds.Tweet_id = TweetKanji.Tweet_id " +
 
-                            "Order by date(MetaData.Date) Desc,TweetIds.[Tweet_id] asc,TweetKanji.StartIndex asc"
+                            "Order by TweetIds.[Tweet_id] asc,TweetKanji.StartIndex asc"
                     ,  new String[]{myListEntry.getListName()
                             ,String.valueOf(myListEntry.getListsSys())
                             ,myListEntry.getListName()
@@ -567,7 +778,10 @@ public class QuizOpsHelper implements QuizOperationsInterface {
 
                         //FLush old tweet
                         Tweet tweetToAdd = new Tweet(tweet);
-                        if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0 && (setRandomSpinnersForTweet(tweetToAdd,sqlOpener.getReadableDatabase(),myListEntry,"Tweet")>0)) {
+                        if(tweet.getWordEntries()!=null
+                                && tweet.getWordEntries().size()>0
+//                                && (setRandomSpinnersForTweet(tweetToAdd,sqlOpener.getReadableDatabase(),myListEntry,"Tweet")>0)
+                                ) {
                             savedTweets.add(tweetToAdd);
                         }
 
@@ -581,6 +795,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                         tweet.getUser().setName(c.getString(2));
                     }
 
+                    /* Add word entries for tweet (to create links, spinners etc) */
                     if(c.getString(6) != null && c.getString(7) != null) {
                         WordEntry wordEntry = new WordEntry(c.getInt(6)
                                 , c.getString(7)
@@ -598,32 +813,53 @@ public class QuizOpsHelper implements QuizOperationsInterface {
 
                     if(c.isLast()) {
                         Tweet lastTweet = new Tweet(tweet);
-                        if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0 && (setRandomSpinnersForTweet(lastTweet,sqlOpener.getReadableDatabase(),myListEntry,"Tweet")>0)) {
+                        if(tweet.getWordEntries()!=null
+                                && tweet.getWordEntries().size()>0
+//                                && (setRandomSpinnersForTweet(lastTweet,sqlOpener.getReadableDatabase(),myListEntry,"Tweet")>0)
+                                ) {
                             savedTweets.add(lastTweet);
                         }
                     }
                     c.moveToNext();
                 }
+
+
+
+                /* Randomize dataset*/
+                Collections.shuffle(savedTweets);
+
+
+            /* If there are not enough unique results to fill out the quiz size, start adding random
+            entries from the dataset to itself until there are enough tweets . */
+                if(savedTweets.size()>0) {
+
+                    while (savedTweets.size()<resultLimit) {
+                        ArrayList<Tweet> tmpSavedTweets = new ArrayList<>(savedTweets);
+                        Collections.shuffle(tmpSavedTweets);
+
+                        for(int i= 0;i<tmpSavedTweets.size() && savedTweets.size()<resultLimit;i++) {
+                            //Create deep copy of Tweet via parcel
+                            Parcel p = Parcel.obtain();
+                            p.writeValue(tmpSavedTweets.get(0));
+                            p.setDataPosition(0);
+                            Tweet randomTweet = (Tweet)p.readValue(Tweet.class.getClassLoader());
+                            p.recycle();
+                            savedTweets.add(randomTweet);
+                        }
+
+                    }
+                }
+
+            /* Now assign spinners to each tweet in the list */
+                ArrayList<String> dummySpinnerRandomWords  = getDummySpinnerOptionsForList(myListEntry,"Tweet");
+                for(Tweet savedTweet : savedTweets) {
+                    setRandomSpinnersForTweetFAST(savedTweet,dummySpinnerRandomWords);
+                }
+
             } else {if(BuildConfig.DEBUG) {Log.d(TAG,"c.getcount was 0!!");}}
             c.close();
 
-            /* If there are not enough unique results to fill out the quiz size, start doubling the
-            * savedTweets until there are enough entries, and then shuffle them. */
-            if(savedTweets.size()>0) {
 
-                while (savedTweets.size()<resultLimit) {
-                    ArrayList<Tweet> tmpSavedTweets = new ArrayList<>(savedTweets);
-                    Collections.shuffle(tmpSavedTweets);
-                    //Create deep copy of Tweet via parcel
-                    Parcel p = Parcel.obtain();
-                    p.writeValue(tmpSavedTweets.get(0));
-                    p.setDataPosition(0);
-                    Tweet randomTweet = (Tweet)p.readValue(Tweet.class.getClassLoader());
-                    p.recycle();
-                    setRandomSpinnersForTweet(randomTweet,sqlOpener.getReadableDatabase(),myListEntry,"Tweet");
-                    savedTweets.add(randomTweet);
-                }
-            }
 
         } catch (SQLiteException e){
             Log.e(TAG,"getFillintheBlanksTweetsForATweetList Sqlite exception: " + e);
@@ -713,7 +949,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                                 ") as [TweetsandColors] " +
                                 " WHERE Color in (" + colorString + ") " +
                                 ") "  +
-
                             ") as [TweetIds] " +
 
                             " LEFT JOIN " +
@@ -849,7 +1084,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
 
                         //FLush old tweet
                         Tweet tweetToAdd = new Tweet(tweet);
-                        if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0 && (setRandomSpinnersForTweet(tweetToAdd,sqlOpener.getReadableDatabase(),userInfo)>0)) {
+                        if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0) {
                             savedTweets.add(tweetToAdd);
                         }
 
@@ -880,36 +1115,70 @@ public class QuizOpsHelper implements QuizOperationsInterface {
 
                     if(c.isLast()) {
                         Tweet lastTweet = new Tweet(tweet);
-                        if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0 && (setRandomSpinnersForTweet(lastTweet,sqlOpener.getReadableDatabase(),userInfo)>0)) {
+                        if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0) {
                             savedTweets.add(lastTweet);
                         }
                     }
                     c.moveToNext();
                 }
 
-            /* If there are not enough unique results to fill out the quiz size, start doubling the
-            * savedTweets until there are enough entries, and then shuffle them. */
+
+
+                 /* Randomize dataset*/
+                Collections.shuffle(savedTweets);
+
+
+            /* If there are not enough unique results to fill out the quiz size, start adding random
+            entries from the dataset to itself until there are enough tweets . */
                 if(savedTweets.size()>0) {
 
                     while (savedTweets.size()<resultLimit) {
-
                         ArrayList<Tweet> tmpSavedTweets = new ArrayList<>(savedTweets);
                         Collections.shuffle(tmpSavedTweets);
 
-                        //Create deep copy of Tweet via parcel
-                        Parcel p = Parcel.obtain();
-                        p.writeValue(tmpSavedTweets.get(0));
-                        p.setDataPosition(0);
-                        Tweet randomTweet = (Tweet)p.readValue(Tweet.class.getClassLoader());
-                        p.recycle();
-
-                        ArrayList<WordEntry> randomWordEntries = new ArrayList<>(randomTweet.getWordEntries());
-                        randomTweet.setWordEntries(randomWordEntries);
-                        setRandomSpinnersForTweet(randomTweet,sqlOpener.getReadableDatabase(),userInfo);
-                        savedTweets.add(randomTweet);
+                        for(int i= 0;i<tmpSavedTweets.size() && savedTweets.size()<resultLimit;i++) {
+                            //Create deep copy of Tweet via parcel
+                            Parcel p = Parcel.obtain();
+                            p.writeValue(tmpSavedTweets.get(0));
+                            p.setDataPosition(0);
+                            Tweet randomTweet = (Tweet)p.readValue(Tweet.class.getClassLoader());
+                            p.recycle();
+                            savedTweets.add(randomTweet);
+                        }
 
                     }
                 }
+
+            /* Now assign spinners to each tweet in the list */
+                ArrayList<String> dummySpinnerRandomWords  = getDummySpinnerOptionsForList(userInfo,"Tweet");
+                for(Tweet savedTweet : savedTweets) {
+                    setRandomSpinnersForTweetFAST(savedTweet,dummySpinnerRandomWords);
+                }
+
+
+//            /* If there are not enough unique results to fill out the quiz size, start doubling the
+//            * savedTweets until there are enough entries, and then shuffle them. */
+//                if(savedTweets.size()>0) {
+//
+//                    while (savedTweets.size()<resultLimit) {
+//
+//                        ArrayList<Tweet> tmpSavedTweets = new ArrayList<>(savedTweets);
+//                        Collections.shuffle(tmpSavedTweets);
+//
+//                        //Create deep copy of Tweet via parcel
+//                        Parcel p = Parcel.obtain();
+//                        p.writeValue(tmpSavedTweets.get(0));
+//                        p.setDataPosition(0);
+//                        Tweet randomTweet = (Tweet)p.readValue(Tweet.class.getClassLoader());
+//                        p.recycle();
+//
+//                        ArrayList<WordEntry> randomWordEntries = new ArrayList<>(randomTweet.getWordEntries());
+//                        randomTweet.setWordEntries(randomWordEntries);
+//                        setRandomSpinnersForTweet(randomTweet,sqlOpener.getReadableDatabase(),userInfo);
+//                        savedTweets.add(randomTweet);
+//
+//                    }
+//                }
             } else {
                 if(BuildConfig.DEBUG) {Log.e(TAG,"getFillintheBlanksTweetsForASingleUserSavedTweetList c.getcount was 0!!");}
             }
@@ -1215,7 +1484,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                     } else if(!currentTweetId.equals(c.getString(0))){
 
                             //FLush old tweet
-                            if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0 && setSpinnersForTweetWithMyListWords(sqlOpener.getReadableDatabase(),"Word",myListEntry,tweet,possibleSpinners)>0) {
+                            if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0) {
                                 if(BuildConfig.DEBUG) {
                                     Log.d(TAG,"Flushing tweet: " + tweet.getText());
                                     Log.d(TAG,"number of kanji in tweet: " + tweet.getWordEntries().size());
@@ -1257,33 +1526,71 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             Log.d(TAG,"last  number of kanji in tweet: " + tweet.getWordEntries().size());
                         }
                         Tweet lastTweet = new Tweet(tweet);
-                        if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0 && setSpinnersForTweetWithMyListWords(sqlOpener.getReadableDatabase(),"Word",myListEntry,lastTweet,possibleSpinners)>0) {
+                        if(tweet.getWordEntries()!=null  && tweet.getWordEntries().size()>0) {
                             savedTweets.add(new Tweet(tweet));
                         }
                     }
                     c.moveToNext();
                 }
 
-            /* If there are not enough unique results to fill out the quiz size, start doubling the
-            * savedTweets until there are enough entries, and then shuffle them. */
+
+
+
+
+                   /* Randomize dataset*/
+                Collections.shuffle(savedTweets);
+
+
+            /* If there are not enough unique results to fill out the quiz size, start adding random
+            entries from the dataset to itself until there are enough tweets . */
                 if(savedTweets.size()>0) {
 
-                    Parcel p = Parcel.obtain();
                     while (savedTweets.size()<resultLimit) {
-//                        ArrayList<Tweet> tmpSavedTweets = new ArrayList<>(savedTweets);
-//                        Collections.shuffle(tmpSavedTweets);
-                        int randomSavedTweetIndex = new Random().nextInt(savedTweets.size());
-                        //Create deep copy of Tweet via parcel
+                        ArrayList<Tweet> tmpSavedTweets = new ArrayList<>(savedTweets);
+                        Collections.shuffle(tmpSavedTweets);
 
-                        p.writeValue(savedTweets.get(randomSavedTweetIndex));
-                        p.setDataPosition(0);
-                        Tweet randomTweet = (Tweet)p.readValue(Tweet.class.getClassLoader());
-                        p.recycle();
+                        for(int i= 0;i<tmpSavedTweets.size() && savedTweets.size()<resultLimit;i++) {
+                            //Create deep copy of Tweet via parcel
+                            Parcel p = Parcel.obtain();
+                            p.writeValue(tmpSavedTweets.get(0));
+                            p.setDataPosition(0);
+                            Tweet randomTweet = (Tweet)p.readValue(Tweet.class.getClassLoader());
+                            p.recycle();
+                            savedTweets.add(randomTweet);
+                        }
 
-                        setSpinnersForTweetWithMyListWords(sqlOpener.getReadableDatabase(),"Word",myListEntry,randomTweet,possibleSpinners);
-                        savedTweets.add(randomTweet);
                     }
                 }
+
+            /* Now assign spinners to each tweet in the list */
+                ArrayList<String> dummySpinnerRandomWords  = getDummySpinnerOptionsForList(myListEntry,"Word");
+                for(Tweet savedTweet : savedTweets) {
+                    setRandomSpinnersForTweetFAST(savedTweet,dummySpinnerRandomWords);
+                }
+
+
+
+
+//            /* If there are not enough unique results to fill out the quiz size, start doubling the
+//            * savedTweets until there are enough entries, and then shuffle them. */
+//                if(savedTweets.size()>0) {
+//
+//                    Parcel p = Parcel.obtain();
+//                    while (savedTweets.size()<resultLimit) {
+////                        ArrayList<Tweet> tmpSavedTweets = new ArrayList<>(savedTweets);
+////                        Collections.shuffle(tmpSavedTweets);
+//                        int randomSavedTweetIndex = new Random().nextInt(savedTweets.size());
+//                        //Create deep copy of Tweet via parcel
+//
+//                        p.writeValue(savedTweets.get(randomSavedTweetIndex));
+//                        p.setDataPosition(0);
+//                        Tweet randomTweet = (Tweet)p.readValue(Tweet.class.getClassLoader());
+//                        p.recycle();
+//
+//                        setSpinnersForTweetWithMyListWords(sqlOpener.getReadableDatabase(),"Word",myListEntry,randomTweet,possibleSpinners);
+//                        savedTweets.add(randomTweet);
+//                    }
+//                }
             } else {if(BuildConfig.DEBUG) {Log.d(TAG,"c.getcount was 0!!");}}
             c.close();
 
@@ -1327,114 +1634,174 @@ public class QuizOpsHelper implements QuizOperationsInterface {
         return ids;
     }
 
+//
+//    /**
+//     * Chooses which WordEntries within a Tweet will be the designated "spinner" questions. Used for assembling
+//     * fill in the blanks quizzes for a single user's saved tweets
+//     * @param tweet The tweet in question
+//     *
+//     * @see #getFillintheBlanksTweetsForAUser(UserInfo, ColorThresholds, String, Integer)
+//     * @see com.jukuproject.jukutweet.Fragments.FillInTheBlankFragment
+//     */
+//    public int setRandomSpinnersForTweet(Tweet tweet, SQLiteDatabase db,UserInfo userInfo) {
+//
+//        /* Reset spinner info in case the same tweet is put through this twice (if there were not
+//        * enough tweets to round out the quiz number, they are recycled and passed through this again) */
+//        for(WordEntry wordEntry : tweet.getWordEntries()) {
+//            if(wordEntry.getFillinSentencesSpinner()!=null) {
+//                wordEntry.setSpinner(false);
+//                wordEntry.getFillinSentencesSpinner().resetSpinnerInformation();
+//            }
+//        }
+//
+//        ArrayList<WordEntry> wordEntries = tweet.getWordEntries();
+//        int spinnerAddedCount = 0;
+//
+//        /* Determine maxiumum number of spinners that can be added to the tweet, from 1 - 3,
+//        with a 60% chance of 1, 30% chance of 2 and a 10 % chance of 3*/
+//        int[] possibleSpinnerLimits = new int[]{1,1,1,1,1,1,2,2,2,3};
+//        int spinnerLimit = possibleSpinnerLimits[(new Random()).nextInt(possibleSpinnerLimits.length)];
+//
+//        /* Pick random kanji from the wordEntries list to be spinners (with maximum of the spinner limit)*/
+//        ArrayList<WordEntry> shuffledEntries =  new ArrayList<>(wordEntries);
+//        Collections.shuffle(shuffledEntries);
+//
+//        for(int i=0;i<shuffledEntries.size() && spinnerAddedCount<spinnerLimit;i++) {
+//
+//            ArrayList<String> arrayOptions = getDummySpinnerOptions(db
+//                    ,userInfo
+//                    ,wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))));
+//
+//            if(arrayOptions.size()>0) {
+//                wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))).setSpinner(true);
+//                wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))).getFillinSentencesSpinner().setOptions(arrayOptions);
+//                spinnerAddedCount += 1;
+//            }
+//        }
+//
+//
+//
+//        if(BuildConfig.DEBUG) {
+//            for(WordEntry wordEntry :wordEntries) {
+//                Log.d(TAG,"randomspinner wordentries: " + wordEntry.getKanji() + ", spinner: " + wordEntry.isSpinner());
+//                Log.i(TAG,"spinner limit: " + spinnerLimit + ", Spinner count! - " + spinnerAddedCount);
+//            }
+//        }
+//        return spinnerAddedCount;
+//    }
+
+
+//    /**
+//     * Chooses which WordEntries within a Tweet will be the designated "spinner" questions.
+//     * @param tweet The tweet in question
+//     *
+//     * @see #getFillintheBlanksTweetsForATweetList(MyListEntry, ColorThresholds, String, Integer)
+//     * @see #getFillintheBlanksTweetsForAWordList(MyListEntry, ColorThresholds, String, Integer)
+//     * @see com.jukuproject.jukutweet.Fragments.FillInTheBlankFragment
+//     */
+//    public int setRandomSpinnersForTweet(Tweet tweet, SQLiteDatabase db,MyListEntry myListEntry, String myListType) {
+//        ArrayList<WordEntry> wordEntries = tweet.getWordEntries();
+//        int spinnerAddedCount = 0;
+//
+//        /* Reset spinner info in case the same tweet is put through this twice (if there were not
+//        * enough tweets to round out the quiz number, they are recyclerd and passed through this again) */
+//        for(WordEntry wordEntry : wordEntries) {
+//            if(wordEntry.getFillinSentencesSpinner()!=null) {
+//                wordEntry.setSpinner(false);
+//                wordEntry.getFillinSentencesSpinner().resetSpinnerInformation();
+//            }
+//        }
+//
+//        /* Determine maxiumum number of spinners that can be added to the tweet, from 1 - 3,
+//        with a 60% chance of 1, 30% chance of 2 and a 10 % chance of 3*/
+//        int[] possibleSpinnerLimits = new int[]{1,1,1,1,1,1,2,2,2,3};
+//        int spinnerLimit = possibleSpinnerLimits[(new Random()).nextInt(possibleSpinnerLimits.length)];
+//
+//        /* Pick random kanji from the wordEntries list to be spinners (with maximum of the spinner limit)*/
+//        ArrayList<WordEntry> shuffledEntries =  new ArrayList<>(wordEntries);
+//        Collections.shuffle(shuffledEntries);
+//        for(int i=0;i<wordEntries.size() && spinnerAddedCount<spinnerLimit;i++) {
+//
+//            ArrayList<String> arrayOptions = getDummySpinnerOptions(db
+//                    ,myListEntry
+//                    ,wordEntries.get(i)
+//                    ,myListType);
+//            if(arrayOptions.size()>0) {
+//                wordEntries.get(i).setSpinner(true);
+//                wordEntries.get(i).getFillinSentencesSpinner().setOptions(arrayOptions);
+//                spinnerAddedCount += 1;
+//            }
+//        }
+//
+//        for(int i=0;i<shuffledEntries.size() && spinnerAddedCount<spinnerLimit;i++) {
+//
+//            ArrayList<String> arrayOptions = getDummySpinnerOptions(db
+//                    ,myListEntry
+//                    ,wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i)))
+//                    ,myListType);
+//
+//            if(arrayOptions.size()>0) {
+//                wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))).setSpinner(true);
+//                wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))).getFillinSentencesSpinner().setOptions(arrayOptions);
+//                spinnerAddedCount += 1;
+//            }
+//        }
+//
+//        if(BuildConfig.DEBUG){Log.i(TAG,"spinner limit: " + spinnerLimit + ", Spinner count! - " + spinnerAddedCount);}
+//        return spinnerAddedCount;
+//    }
+
+
+
 
     /**
      * Chooses which WordEntries within a Tweet will be the designated "spinner" questions.
      * @param tweet The tweet in question
      */
-    public int setRandomSpinnersForTweet(Tweet tweet, SQLiteDatabase db,UserInfo userInfo) {
-
-        /* Reset spinner info in case the same tweet is put through this twice (if there were not
-        * enough tweets to round out the quiz number, they are recyclerd and passed through this again) */
-        for(WordEntry wordEntry : tweet.getWordEntries()) {
-            if(wordEntry.getFillinSentencesSpinner()!=null) {
-                wordEntry.setSpinner(false);
-                wordEntry.getFillinSentencesSpinner().resetSpinnerInformation();
-            }
-        }
-
+    private int setRandomSpinnersForTweetFAST(Tweet tweet
+            , ArrayList<String> poolOfFalseAnswers) {
         ArrayList<WordEntry> wordEntries = tweet.getWordEntries();
-        int spinnerAddedCount = 0;
+        ArrayList<Integer> spinnerAddedIndex = new ArrayList<>();
 
         /* Determine maxiumum number of spinners that can be added to the tweet, from 1 - 3,
         with a 60% chance of 1, 30% chance of 2 and a 10 % chance of 3*/
         int[] possibleSpinnerLimits = new int[]{1,1,1,1,1,1,2,2,2,3};
         int spinnerLimit = possibleSpinnerLimits[(new Random()).nextInt(possibleSpinnerLimits.length)];
 
-        /* Pick random kanji from the wordEntries list to be spinners (with maximum of the spinner limit)*/
-        ArrayList<WordEntry> shuffledEntries =  new ArrayList<>(wordEntries);
-        Collections.shuffle(shuffledEntries);
+        if(wordEntries.size()>0 &&(poolOfFalseAnswers.size()>4)) {
 
-        for(int i=0;i<shuffledEntries.size() && spinnerAddedCount<spinnerLimit;i++) {
+            while(spinnerAddedIndex.size()<spinnerLimit
+                    && (wordEntries.size()>spinnerLimit || spinnerAddedIndex.size()<wordEntries.size())) {
+                int randomWordEntryIndex = new Random().nextInt(wordEntries.size());
+                if(!spinnerAddedIndex.contains(randomWordEntryIndex)) {
+                    WordEntry randomWordEntry = wordEntries.get(randomWordEntryIndex);
+                    randomWordEntry.setSpinner(true);
 
-            ArrayList<String> arrayOptions = getDummySpinnerOptions(db
-                    ,userInfo
-                    ,wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))));
+                    /* Create dummy answer options from random/related kanji pools */
+                    ArrayList<String> answerSet = new ArrayList<>();
+                    answerSet.add(randomWordEntry.getCoreKanjiBlock());
 
-            if(arrayOptions.size()>0) {
-                wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))).setSpinner(true);
-                wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))).getFillinSentencesSpinner().setOptions(arrayOptions);
-                spinnerAddedCount += 1;
+                    while(answerSet.size()<4) {
+                        int indexOfRandomFalseAnswer = new Random().nextInt(poolOfFalseAnswers.size());
+                        String randomFalseAnswer = poolOfFalseAnswers.get(indexOfRandomFalseAnswer);
+                        if(!answerSet.contains(randomFalseAnswer)) {
+                            answerSet.add(randomFalseAnswer);
+                        }
+                    }
+                    Collections.shuffle(answerSet);
+                    randomWordEntry.getFillinSentencesSpinner().setOptions(answerSet);
+                    spinnerAddedIndex.add(randomWordEntryIndex);
+                }
             }
         }
 
-
-
-        if(BuildConfig.DEBUG) {
-            for(WordEntry wordEntry :wordEntries) {
-                Log.d(TAG,"randomspinner wordentries: " + wordEntry.getKanji() + ", spinner: " + wordEntry.isSpinner());
-            }
-            Log.i(TAG,"spinner limit: " + spinnerLimit + ", Spinner count! - " + spinnerAddedCount);
-        }
-        return spinnerAddedCount;
+        if(BuildConfig.DEBUG){Log.i(TAG,"spinner limit fast: " + spinnerLimit + ", Spinner count! - " + spinnerAddedIndex.size());}
+        return spinnerAddedIndex.size();
     }
 
 
-    /**
-     * Chooses which WordEntries within a Tweet will be the designated "spinner" questions.
-     * @param tweet The tweet in question
-     */
-    public int setRandomSpinnersForTweet(Tweet tweet, SQLiteDatabase db,MyListEntry myListEntry, String myListType) {
-        ArrayList<WordEntry> wordEntries = tweet.getWordEntries();
-        int spinnerAddedCount = 0;
 
-        /* Reset spinner info in case the same tweet is put through this twice (if there were not
-        * enough tweets to round out the quiz number, they are recyclerd and passed through this again) */
-        for(WordEntry wordEntry : wordEntries) {
-            if(wordEntry.getFillinSentencesSpinner()!=null) {
-                wordEntry.setSpinner(false);
-                wordEntry.getFillinSentencesSpinner().resetSpinnerInformation();
-            }
-        }
 
-        /* Determine maxiumum number of spinners that can be added to the tweet, from 1 - 3,
-        with a 60% chance of 1, 30% chance of 2 and a 10 % chance of 3*/
-        int[] possibleSpinnerLimits = new int[]{1,1,1,1,1,1,2,2,2,3};
-        int spinnerLimit = possibleSpinnerLimits[(new Random()).nextInt(possibleSpinnerLimits.length)];
-
-        /* Pick random kanji from the wordEntries list to be spinners (with maximum of the spinner limit)*/
-        ArrayList<WordEntry> shuffledEntries =  new ArrayList<>(wordEntries);
-        Collections.shuffle(shuffledEntries);
-        for(int i=0;i<wordEntries.size() && spinnerAddedCount<spinnerLimit;i++) {
-
-            ArrayList<String> arrayOptions = getDummySpinnerOptions(db
-                    ,myListEntry
-                    ,wordEntries.get(i)
-                    ,myListType);
-            if(arrayOptions.size()>0) {
-                wordEntries.get(i).setSpinner(true);
-                wordEntries.get(i).getFillinSentencesSpinner().setOptions(arrayOptions);
-                spinnerAddedCount += 1;
-            }
-        }
-
-        for(int i=0;i<shuffledEntries.size() && spinnerAddedCount<spinnerLimit;i++) {
-
-            ArrayList<String> arrayOptions = getDummySpinnerOptions(db
-                    ,myListEntry
-                    ,wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i)))
-                    ,myListType);
-
-            if(arrayOptions.size()>0) {
-                wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))).setSpinner(true);
-                wordEntries.get(wordEntries.indexOf(shuffledEntries.get(i))).getFillinSentencesSpinner().setOptions(arrayOptions);
-                spinnerAddedCount += 1;
-            }
-        }
-
-        if(BuildConfig.DEBUG){Log.i(TAG,"spinner limit: " + spinnerLimit + ", Spinner count! - " + spinnerAddedCount);}
-        return spinnerAddedCount;
-    }
 
     /**
      * Adds the score for a word to the scoreboard table

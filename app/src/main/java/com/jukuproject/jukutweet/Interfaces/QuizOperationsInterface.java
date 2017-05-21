@@ -23,11 +23,11 @@ public interface QuizOperationsInterface {
             , String kanjiToBreak
             , String possibleKanjiPart);
     Cursor getRandomKanji(int keysToExclude, int limit);
-    int setSpinnersForTweetWithMyListWords(SQLiteDatabase db
-            , String myListType
-            , MyListEntry myListEntry
-            , Tweet tweet
-            , ArrayList<Integer> wordListEdictIds);
+//    int setSpinnersForTweetWithMyListWords(SQLiteDatabase db
+//            , String myListType
+//            , MyListEntry myListEntry
+//            , Tweet tweet
+//            , ArrayList<Integer> wordListEdictIds);
 
     ArrayList<String> getDummySpinnerOptions(SQLiteDatabase db
             , MyListEntry myListEntry
@@ -42,10 +42,10 @@ public interface QuizOperationsInterface {
             , ColorThresholds colorThresholds
             , String colorString
             , @Nullable Integer resultLimit);
-    int setRandomSpinnersForTweet(Tweet tweet
-    ,SQLiteDatabase db
-            , MyListEntry myListEntry
-            , String myListType);
+//    int setRandomSpinnersForTweet(Tweet tweet
+//    ,SQLiteDatabase db
+//            , MyListEntry myListEntry
+//            , String myListType);
     ArrayList<Integer> getIdsForWordList(MyListEntry myListEntry);
     boolean addWordScoreToScoreBoard(int wordId, int total, int correct);
 
