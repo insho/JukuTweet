@@ -72,8 +72,8 @@ public class EditMyListDialog extends DialogFragment {
             textClear.setText(getString(R.string.listclearlist));
             textDelete.setVisibility(TextView.GONE);
             textRename.setVisibility(TextView.GONE);
-            ((View) view.findViewById(R.id.divider1)).setVisibility(View.GONE);
-            ((View) view.findViewById(R.id.divider2)).setVisibility(View.GONE);
+            view.findViewById(R.id.divider1).setVisibility(View.GONE);
+            view.findViewById(R.id.divider2).setVisibility(View.GONE);
             mSelectedItem =1;
         } else {
             textClear.setText(getString(R.string.listoptionclearlist));

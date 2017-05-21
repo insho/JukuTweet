@@ -45,13 +45,11 @@ public class Tab1Container extends BaseContainerFragment {
 
     }
 
-    public boolean updateUserListFragment() {
+    public void updateUserListFragment() {
         try {
             ((UserListFragment) getChildFragmentManager().findFragmentByTag("userlistfragment")).updateAdapter(null);
-            return true;
         } catch (Exception e) {
             Log.e("Tab1Container","Could not find userListFragment");
-            return false;
         }
     }
 

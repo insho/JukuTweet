@@ -141,8 +141,8 @@ public class QuizMenuDialog extends DialogFragment {
                 txtViewRow2.setText(getString(R.string.flashcards_back_text));
                 txtView2.setText(getActivity().getString(R.string.menuoptionsdefinition));
 
-                ((TextView)view.findViewById(R.id.txtRow3)).setVisibility(View.GONE);
-                ((TextView) view.findViewById(R.id.btnRow3)).setVisibility(View.GONE);
+                view.findViewById(R.id.txtRow3).setVisibility(View.GONE);
+                view.findViewById(R.id.btnRow3).setVisibility(View.GONE);
 
                 final String[] optionsFlashCards = getResources().getStringArray(R.array.menuoptions_flashcards);
 
@@ -168,8 +168,8 @@ public class QuizMenuDialog extends DialogFragment {
                 txtViewRow2.setText(getString(R.string.menuoption_text_size));
                 txtView2.setText(getString(R.string.menuoptionsten));
 
-                ((TextView)view.findViewById(R.id.txtRow3)).setVisibility(View.VISIBLE);
-                ((TextView) view.findViewById(R.id.btnRow3)).setVisibility(View.VISIBLE);
+                view.findViewById(R.id.txtRow3).setVisibility(View.VISIBLE);
+                view.findViewById(R.id.btnRow3).setVisibility(View.VISIBLE);
 
                 txtViewRow3.setText(getString(R.string.menuoption_text_timer));
                 txtView3.setText(getActivity().getString(R.string.menuoptionsnone));
@@ -203,14 +203,14 @@ public class QuizMenuDialog extends DialogFragment {
 
             case "fillintheblanks":
 
-                ((TextView)view.findViewById(R.id.txtRow1)).setVisibility(View.GONE);
-                ((TextView) view.findViewById(R.id.btnRow1)).setVisibility(View.GONE);
+                view.findViewById(R.id.txtRow1).setVisibility(View.GONE);
+                view.findViewById(R.id.btnRow1).setVisibility(View.GONE);
 
                 txtViewRow2.setText(getString(R.string.menuoption_text_size));
                 txtView2.setText(getActivity().getString(R.string.menuoptionsten));
 
-                ((TextView)view.findViewById(R.id.txtRow3)).setVisibility(View.GONE);
-                ((TextView) view.findViewById(R.id.btnRow3)).setVisibility(View.GONE);
+                view.findViewById(R.id.txtRow3).setVisibility(View.GONE);
+                view.findViewById(R.id.btnRow3).setVisibility(View.GONE);
 
                 final String[] optionsFillintheBlanksSize = getResources().getStringArray(R.array.menuoptions_quizSize);
 

@@ -24,7 +24,6 @@ import java.util.ArrayList;
 public class PostQuizStatsMultipleChoiceAdapter extends ArrayAdapter<ArrayList<MultChoiceResult>> {
 
     private ArrayList<MultChoiceResult> mQuestionResults;
-    Context mContext;
     private boolean mIsWordBuilder;
     private RxBus mRxBus;
 
@@ -36,7 +35,6 @@ public class PostQuizStatsMultipleChoiceAdapter extends ArrayAdapter<ArrayList<M
         super(context,0);
         mQuestionResults = questionResults;
         mIsWordBuilder = iswordbuilder;
-        this.mContext =context;
         this.mRxBus = rxBus;
 
     }

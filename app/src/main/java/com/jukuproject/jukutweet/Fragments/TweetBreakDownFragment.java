@@ -146,7 +146,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
         mRecyclerView = (RecyclerView) v.findViewById(R.id.parseSentenceRecyclerView);
         txtSentence =  (TextView) v.findViewById(R.id.sentence);
         progressBar = (SmoothProgressBar) v.findViewById(R.id.progressbar);
-        divider = (View) v.findViewById(R.id.dividerview);
+        divider = v.findViewById(R.id.dividerview);
         txtGoToTweet = (TextView) v.findViewById(R.id.gototweet);
         txtUserName = (TextView) v.findViewById(R.id.timelineName);
         txtUserScreenName = (TextView) v.findViewById(R.id.timelineDisplayScreenName);
@@ -185,8 +185,8 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
 //            txtGoToTweet.setText(textTweetURL);
             txtGoToTweet.setMovementMethod(LinkMovementMethod.getInstance());
             txtGoToTweet.setText(textTweetURL, TextView.BufferType.SPANNABLE);
-
         } catch (NullPointerException e) {
+            txtGoToTweet.setVisibility(View.INVISIBLE);
             Log.e(TAG,"TweetBreakDownFRagment go to tweet url failure, nullpointer : " + e.getCause());
         }
 
@@ -504,7 +504,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                 Log.e(TAG,"nullpointer error in setting up url/user_mention/word color spans: " + e.getCause());
             }
 
-        mAdapter = new TweetBreakDownAdapter(getContext(),metrics,disectedSavedTweet,activeFavoriteStars,mRxBus);
+        mAdapter = new TweetBreakDownAdapter(getContext(),disectedSavedTweet,activeFavoriteStars,mRxBus);
         mRxBus.toClickObserverable().subscribe(new Action1<Object>() {
                                                       @Override
                                                       public void call(Object event) {
@@ -679,7 +679,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
             , int ylocation) {
         RxBus rxBus = new RxBus();
 
-        ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getWordInterfaceInstance(getContext()).getWordListsForAWord(activeFavoriteStars,String.valueOf(wordEntry.getId()),1,null);
+        ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getWordInterfaceInstance(getContext()).getWordListsForAWord(activeFavoriteStars,String.valueOf(wordEntry.getId()),null);
         PopupWindow popupWindow =  ChooseFavoriteListsPopupWindow.createWordFavoritesPopup(getContext(),mMetrics,rxBus,availableFavoriteLists,wordEntry.getId());
         popupWindow.getContentView().measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));

@@ -33,7 +33,6 @@ import com.jukuproject.jukutweet.TabContainers.BaseContainerFragment;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import rx.Subscription;
 import rx.functions.Action1;
 
 public class UserListFragment extends Fragment {
@@ -46,16 +45,11 @@ public class UserListFragment extends Fragment {
     private RecyclerView mRecyclerView;
     private UserListExpandableRecyclerAdapter mAdapter;
     private TextView mNoLists;
-    private Subscription userInfoSubscription;
     private String TAG = "TEST-userlistfrag";
     ArrayList<MenuHeader> mMenuHeader;
     private int lastExpandedPosition = -1;
 
     public UserListFragment() {}
-
-    public static UserListFragment newInstance() {
-        return new UserListFragment();
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater,
@@ -285,25 +279,6 @@ public class UserListFragment extends Fragment {
         } else {
             return false;
         }
-    }
-
-    @Override
-    public void onPause() {
-
-        if(userInfoSubscription!=null) {
-            userInfoSubscription.unsubscribe();
-        }
-        super.onPause();
-
-    }
-
-    @Override
-    public void onDestroy() {
-        if(userInfoSubscription!=null) {
-            userInfoSubscription.unsubscribe();
-        }
-
-        super.onDestroy();
     }
 
 

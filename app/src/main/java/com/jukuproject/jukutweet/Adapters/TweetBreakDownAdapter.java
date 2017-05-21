@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Typeface;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,10 +28,8 @@ import java.util.ArrayList;
  * star to bring up the {@link ChooseFavoriteListsPopupWindow}, where the word can be added/subtracted from word lists
  */
 public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAdapter.ViewHolder>  {
-    String TAG = "TEST-tweetBreakAdapter";
-
+    private String TAG = "TEST-tweetBreakAdapter";
     private Context mContext;
-    private DisplayMetrics mMetrics;
     private ArrayList<WordEntry> mWords;
     private ArrayList<String> mActiveFavoriteStars;
     private RxBus mRxBus;
@@ -59,12 +56,11 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         }
     }
 
-    public TweetBreakDownAdapter(Context context, DisplayMetrics metrics
+    public TweetBreakDownAdapter(Context context
             , ArrayList<WordEntry> words
             , ArrayList<String> activeFavoriteStars
             , RxBus rxbus) {
         this.mContext = context;
-        this.mMetrics = metrics;
         this.mWords = words;
         this.mRxBus = rxbus;
         this.mActiveFavoriteStars = activeFavoriteStars;

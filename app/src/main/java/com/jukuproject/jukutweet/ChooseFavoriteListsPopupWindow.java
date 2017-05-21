@@ -28,8 +28,6 @@ import java.util.ArrayList;
  */
 public class ChooseFavoriteListsPopupWindow {
 
-    public ChooseFavoriteListsPopupWindow() {}
-
     public static PopupWindow createWordFavoritesPopup(Context context, DisplayMetrics metrics, RxBus rxBus , ArrayList<MyListEntry> favoritesLists,int kanjiId) {
 
         View view = LayoutInflater.from(context).inflate(R.layout.popup_choosefavorites, null);

@@ -273,9 +273,10 @@ public class UserTimeLineFragment extends Fragment {
                             if(mDataSet != null && mDataSet.size() > 0) {
                                 try {
                                     UserInfo recentUserInfo = mDataSet.get(0).getUser();
-                                    Log.i(TAG,"UPDATING PROFILE IMAGE? - " + recentUserInfo.getProfileImageUrl());
-                                    if(mUserInfo.getProfileImageFilePath()==null && recentUserInfo.getProfileImageUrl()!=null){
-                                        Log.i(TAG,"UPDATING PROFILE IMAGE");
+                                    if(BuildConfig.DEBUG){Log.d(TAG,"UPDATING PROFILE IMAGE? - " + recentUserInfo.getProfileImageUrl());}
+                                    if(userInfo.getProfileImageFilePath()==null
+                                            && recentUserInfo.getProfileImageUrl()!=null){
+                                        if(BuildConfig.DEBUG){Log.i(TAG,"... YES. UPDATING PROFILE IMAGE");}
                                         InternalDB.getUserInterfaceInstance(getContext()).downloadUserIcon(getContext(),recentUserInfo.getProfileImageUrlBig(),recentUserInfo.getUserId());
                                     }
                                     InternalDB.getUserInterfaceInstance(getContext()).compareUserInfoAndUpdate(userInfo,recentUserInfo);
@@ -301,7 +302,6 @@ public class UserTimeLineFragment extends Fragment {
                                 timerSubscription.unsubscribe();
                             }
                             mNoLists.setText(getResources().getString(R.string.notimeline_for_user,userInfo.getDisplayScreenName()));
-//                            mNoLists.setText("Unable to get timeline for " + userInfo.getDisplayScreenName());
                             mNoLists.setTextColor(ContextCompat.getColor(getContext(),android.R.color.holo_red_dark));
                         }
 
@@ -330,7 +330,7 @@ public class UserTimeLineFragment extends Fragment {
                                     mDataSet.add(tweet);
                                 }
 
-                                mDataSetMaxId = (Long) Long.valueOf(mDataSet.get(mDataSet.size()-1).getIdString());
+                                mDataSetMaxId = Long.valueOf(mDataSet.get(mDataSet.size()-1).getIdString());
                         }
                     });
     }

@@ -101,9 +101,6 @@ public class Tweet  implements Parcelable {
         return user;
     }
 
-    public void setUser(UserInfo user) {
-        this.user = user;
-    }
     public void setQuizWeight(double quizWeight) {
         this.quizWeight = quizWeight;
     }
@@ -207,35 +204,10 @@ public class Tweet  implements Parcelable {
     //TODO -- this whole tweet javadoc
     public void assignTweetColorToTweet(ColorThresholds colorThresholds) {
         if(wordEntries!=null) {
-            int greyCount = 0;
-            int redCount = 0;
-            int yellowCount = 0;
-            int greenCount = 0;
-            int total = 0;
 
             for(WordEntry wordEntry : wordEntries) {
-
                 if(wordEntry.getColor()==null) {
                     wordEntry.createColorForWord(colorThresholds);
-                }
-
-                switch (wordEntry.getColor()) {
-                    case "Grey":
-                        greyCount += 1;
-                        total += 1;
-                        break;
-                    case "Red":
-                        redCount += 1;
-                        total += 1;
-                        break;
-                    case "Yellow":
-                        yellowCount += 1;
-                        total += 1;
-                        break;
-                    case "Green":
-                        greenCount += 1;
-                        total += 1;
-                        break;
                 }
             }
         }
@@ -257,8 +229,8 @@ public class Tweet  implements Parcelable {
         this.text = in.readString();
         this.quizWeight = in.readDouble();
 
-        itemFavorites = (ItemFavorites) in.readParcelable(getClass().getClassLoader());
-        entities = (TweetEntities) in.readParcelable(getClass().getClassLoader());
+        itemFavorites = in.readParcelable(getClass().getClassLoader());
+        entities = in.readParcelable(getClass().getClassLoader());
         wordEntries = new ArrayList<>();
 //            in.readTypedList(wordEntries,WordEntry.CREATOR);
             in.readList(wordEntries,WordEntry.class.getClassLoader());

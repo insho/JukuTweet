@@ -22,13 +22,13 @@ import java.util.HashMap;
 public interface TweetListOperationsInterface {
     boolean duplicateTweetList(String listName);
     boolean saveTweetList(String listName);
-    boolean clearTweetList(String listName, boolean isStarFavorite);
-    boolean deleteTweetList(String listName);
+    void clearTweetList(String listName, boolean isStarFavorite);
+    void deleteTweetList(String listName);
     boolean renameTweetList(String oldListName, String newListName);
     boolean changeTweetListStarColor(String tweetId, String userId, String originalColor, String updatedColor);
     boolean addTweetToTweetList(String tweetId, String userId, String listName, int listSys);
     boolean removeTweetFromTweetList(String tweetId, String listName, int listSys);
-    boolean removeMultipleTweetsFromTweetList(String concatenatedTweetIds, MyListEntry myListEntry);
+    void removeMultipleTweetsFromTweetList(String concatenatedTweetIds, MyListEntry myListEntry);
 
     ArrayList<Pair<MyListEntry,Tweet>> removeTweetsFromAllTweetLists(String concatenatedTweetIds);
     ArrayList<MyListEntry> getTweetListsForTweet(ArrayList<String> activeFavoriteStars
@@ -39,12 +39,10 @@ public interface TweetListOperationsInterface {
             , String colorString
             , @Nullable Integer excludeIdInteger
             , @Nullable Integer resultLimit);
-    boolean addMultipleTweetsToTweetList(MyListEntry myListEntry, String concatenatedTweetIds);
-    int tweetExistsInDB(Tweet tweet);
+    void addMultipleTweetsToTweetList(MyListEntry myListEntry, String concatenatedTweetIds);
     int tweetParsedKanjiExistsInDB(Tweet tweet);
-    int saveTweetToDB(UserInfo userInfo, Tweet tweet);
     TweetEntities getTweetEntitiesForSavedTweet(String tweetId);
-    int saveParsedTweetKanji(ArrayList<WordEntry> wordEntries, String tweet_id);
+    void saveParsedTweetKanji(ArrayList<WordEntry> wordEntries, String tweet_id);
     HashMap<String,ItemFavorites> getStarFavoriteDataForAUsersTweets(String userId);
     ArrayList<Tweet> getTweetsForSavedTweetsList(MyListEntry myListEntry , ColorThresholds colorThresholds);
     ArrayList<Tweet> getTweetsForSavedTweetsList(UserInfo userInfo, ColorThresholds colorThresholds);

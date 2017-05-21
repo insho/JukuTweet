@@ -8,34 +8,16 @@ import java.util.ArrayList;
 public class ParseSentencePossibleKanji {
 
     private Integer positionInSentence;
-
-    public Integer getListIndex() {
-        return listIndex;
-    }
-
-    public void setListIndex(Integer listIndex) {
-        this.listIndex = listIndex;
-    }
-
     private Integer listIndex;
     private String kanji;
-//    private String coreKanjiBlock; //keeps reference to original core kanji block,
     private ArrayList<String> prefixes;
     private ArrayList<String> suffixes;
     private ArrayList<String> verbCombos;
     private boolean foundInDictionary;
-    private boolean isKatakana;
-    public boolean isKatakana() {
-        return isKatakana;
+
+    public Integer getListIndex() {
+        return listIndex;
     }
-
-    public void setKatakana(boolean katakana) {
-        isKatakana = katakana;
-    }
-
-
-
-
     public boolean isFoundInDictionary() {
         return foundInDictionary;
     }
@@ -107,7 +89,6 @@ public class ParseSentencePossibleKanji {
         this.verbCombos = new ArrayList<>();
         this.betterKanjiMatches = new ArrayList<>();
         this.foundInDictionary = false;
-        this.isKatakana = false;
     }
     /** This initializer is used in the TweetParser */
     public ParseSentencePossibleKanji(@NonNull Integer positionInSentence, @NonNull Integer listIndex, @NonNull String possibleKanji, Boolean isKatakana) {
@@ -119,7 +100,6 @@ public class ParseSentencePossibleKanji {
         this.verbCombos = new ArrayList<>();
         this.betterKanjiMatches = new ArrayList<>();
         this.foundInDictionary = false;
-        this.isKatakana = isKatakana;
     }
 
     public Integer getPositionInSentence() {

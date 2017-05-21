@@ -52,10 +52,6 @@ public class TweetListFragment extends Fragment {
     private TextView txtNoListsFound;
     private LinearLayout layoutMain;
 
-    public static TweetListFragment newInstance() {
-        return new TweetListFragment();
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
@@ -316,7 +312,6 @@ public class TweetListFragment extends Fragment {
 
                     /* Set the first available non-empty list to be automatically expanded when
                       fragment is created. This is achieved by making it the "lastexpandedposition" from the get-go */
-                    Log.i(TAG,"lastexpanded on setup: " +  lastExpandedPosition + "c.getInt: " + c.getInt(2) + ", size: " + mMenuHeader.size());
                     if(lastExpandedPosition<0 && c.getInt(2)>0) {
                         lastExpandedPosition = mMenuHeader.size();
                     }

@@ -86,44 +86,38 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      * @param listName list to clear
      * @param isStarFavorite boolean, true if the list is a "system list", meaning it is a colored star favorites list.
      *                       System have a 1 in the "system" column of JFavorites, and this must be accounted for in the delete statement.
-     * @return boolean true if successful, false if not
      *
      * @see com.jukuproject.jukutweet.Dialogs.EditMyListDialog
      * @see com.jukuproject.jukutweet.MainActivity#onEditMyListDialogPositiveClick(String listType, int, String, boolean)
      * @see com.jukuproject.jukutweet.MainActivity#deleteOrClearDialogFinal(String listType, Boolean, String, boolean)
      */
-    public boolean clearTweetList(String listName, boolean isStarFavorite) {
+    public void clearTweetList(String listName, boolean isStarFavorite) {
         try{
             if(isStarFavorite) {
                 sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES, InternalDB.Columns.TFAVORITES_COL0 + "= ? and " + InternalDB.Columns.TFAVORITES_COL1 + "= 1", new String[]{listName});
             } else {
                 sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES, InternalDB.Columns.TFAVORITES_COL0 + "= ? and " + InternalDB.Columns.TFAVORITES_COL1 + "= 0", new String[]{listName});
             }
-            return true;
         } catch(SQLiteException exception) {
-            return false;
+            Log.e(TAG,"Tweet Ops Helper clearTweetList: " + exception.getCause());
         }
 
     }
 
     /**
      * Removes a list from the JFavoritesTweetLists table and all associated rows from JFavoritesTweet Table
-     *
      * @param listName name of list to remove
-     * @return boolean true if successful, false if not
      *
      * @see com.jukuproject.jukutweet.Dialogs.EditMyListDialog
      * @see com.jukuproject.jukutweet.MainActivity#onEditMyListDialogPositiveClick(String listType, int, String, boolean)
      * @see com.jukuproject.jukutweet.MainActivity#deleteOrClearDialogFinal(String listType, Boolean, String, boolean)
      */
-    public boolean deleteTweetList(String listName) {
+    public void deleteTweetList(String listName) {
         try{
             sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS, InternalDB.Columns.TFAVORITES_COL0 + "= ?", new String[]{listName});
             sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES, InternalDB.Columns.TFAVORITES_COL0 + "= ? and " + InternalDB.Columns.TFAVORITES_COL1 + "= 0", new String[]{listName});
-            return true;
         } catch(SQLiteException exception) {
-
-            return false;
+            Log.e(TAG,"Tweet Ops Helper deleteTweetList: " + exception.getCause());
         }
     }
 
@@ -279,19 +273,16 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      * @param myListEntry MyList Object containing the name and sys variables for a WordList
      *
      * @see TweetListBrowseFragment
-     * @return bool true if successful delete, false if error
      */
-    public boolean removeMultipleTweetsFromTweetList(String concatenatedTweetIds, MyListEntry myListEntry) {
+    public void removeMultipleTweetsFromTweetList(String concatenatedTweetIds, MyListEntry myListEntry) {
         try {
             sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES ,InternalDB.Columns.TFAVORITES_COL0 + " = ? and "  + InternalDB.Columns.TFAVORITES_COL1 + " = ? and " + InternalDB.Columns.COL_ID + " in (" + concatenatedTweetIds + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
             deleteTweetIfNecessary(sqlOpener.getWritableDatabase(),concatenatedTweetIds);
-            return true;
         } catch (SQLiteException e) {
             Log.e(TAG, "removeMultipleWordsFromWordList sqlite exception: " + e);
         } catch (NullPointerException e) {
             Log.e(TAG, "removeMultipleWordsFromWordList something was null: " + e);
         }
-        return  true;
     }
 
     /**
@@ -342,7 +333,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      * @param db Sqlite db connection
      * @param concatenatedTweetIds a string of tweetIds concatenated together with commas (ex: 123,451,6532,23)
      */
-    public void deleteTweetIfNecessary(SQLiteDatabase db, String concatenatedTweetIds) {
+    private void deleteTweetIfNecessary(SQLiteDatabase db, String concatenatedTweetIds) {
         db.delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES," _id in ( " +
                 "SELECT x.Tweet_id " +
                 "FROM " +
@@ -791,15 +782,12 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      * Inserts multiple tweets into a given tweet list
      * @param myListEntry MyList Object containing the name and sys variables for a tweetList
      * @param concatenatedTweetIds a string of tweetIds concatenated together with commas (ex: 123,451,6532,23)
-     * @return bool true if successful insert, false if error
      */
-    public boolean addMultipleTweetsToTweetList(MyListEntry myListEntry, String concatenatedTweetIds) {
+    public void addMultipleTweetsToTweetList(MyListEntry myListEntry, String concatenatedTweetIds) {
         try {
             sqlOpener.getWritableDatabase().execSQL("INSERT OR REPLACE INTO " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES +" SELECT DISTINCT Tweet_id as [_id], [UserId], ? as [Name], ? as [Sys] FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS  + " WHERE Tweet_id in (" + concatenatedTweetIds + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
-            return true;
         } catch (SQLiteException e){
             Log.e(TAG,"copyBulkTweetsToList Sqlite exception: " + e);
-            return false;
         }
     }
 
@@ -1023,10 +1011,8 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      * created and passed here to be saved.
      *
      * @param tweet_id String id of tweet
-     * @return returnvalue int, -1 for error, otherwise the index value of final inserted row
      */
-    public int saveParsedTweetKanji(ArrayList<WordEntry> wordEntries, String tweet_id) {
-        int resultCode = -1;
+    public void saveParsedTweetKanji(ArrayList<WordEntry> wordEntries, String tweet_id) {
         try {
 
             //Remove saved kanji for the tweet, if some already exists
@@ -1035,24 +1021,25 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
             //Add word entries for the tweet to the saved kanji table
             if(wordEntries.size()>0) {
                 for(int i=0;i<wordEntries.size();i++) {
-                    Log.d(TAG,"SAVING TWEET: " + wordEntries.get(i).getKanji() + ", core: "
-                            + wordEntries.get(i).getCoreKanjiBlock()
-                            + ", " + wordEntries.get(i).getStartIndex() + " - " + wordEntries.get(i).getEndIndex());
+                    if(BuildConfig.DEBUG) {
+                        Log.d(TAG,"SAVING TWEET: " + wordEntries.get(i).getKanji() + ", core: "
+                                + wordEntries.get(i).getCoreKanjiBlock()
+                                + ", " + wordEntries.get(i).getStartIndex() + " - " + wordEntries.get(i).getEndIndex());
+                    }
+
                     ContentValues values = new ContentValues();
                     values.put(InternalDB.Columns.TSAVEDTWEET_COL2, tweet_id);
                     values.put(InternalDB.Columns.TSAVEDTWEETITEMS_COL2, wordEntries.get(i).getId());
                     values.put(InternalDB.Columns.TSAVEDTWEETITEMS_COL5, wordEntries.get(i).getCoreKanjiBlock());
                     values.put(InternalDB.Columns.TSAVEDTWEETITEMS_COL3, wordEntries.get(i).getStartIndex());
                     values.put(InternalDB.Columns.TSAVEDTWEETITEMS_COL4, wordEntries.get(i).getEndIndex());
-                    resultCode = (int)sqlOpener.getWritableDatabase().insert(InternalDB.Tables.TABLE_SAVED_TWEET_KANJI, null, values);
+                    sqlOpener.getWritableDatabase().insert(InternalDB.Tables.TABLE_SAVED_TWEET_KANJI, null, values);
                 }
             } else {
-                Log.d(TAG,"Word entries 0....");
+                Log.d(TAG,"saveParsedTweetKanji Word entries 0....");
             }
-            return resultCode;
         } catch(SQLiteException exception) {
-            Log.e(TAG,"Error saving tweets");
-            return resultCode;
+            Log.e(TAG,"saveParsedTweetKanji Error saving tweets");
         }
 
     }

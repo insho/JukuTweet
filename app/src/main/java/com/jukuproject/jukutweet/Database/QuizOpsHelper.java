@@ -1867,7 +1867,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
      * @param correct update total correct answers for the word
      * @return bool true if insert was succesful, false if not
      */
-    public boolean addWordScoreToScoreBoard(int wordId, int total, int correct) {
+    public void addWordScoreToScoreBoard(int wordId, int total, int correct) {
 
         try {
             ContentValues values = new ContentValues();
@@ -1877,14 +1877,10 @@ public class QuizOpsHelper implements QuizOperationsInterface {
             values.put(InternalDB.Columns.TSCOREBOARD_COL1, correct);
             sqlOpener.getReadableDatabase().insertWithOnConflict(InternalDB.Tables.TABLE_SCOREBOARD, null, values,
                     SQLiteDatabase.CONFLICT_REPLACE);
-            return true;
-
         } catch (SQLiteException e) {
             Log.e(TAG, "addWordScoreToScoreBoard sqlite exception: " + e);
-            return false;
         } catch (NullPointerException e) {
             Log.e(TAG, "addWordScoreToScoreBoard something was null: " + e);
-            return false;
         }
     }
 

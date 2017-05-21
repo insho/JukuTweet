@@ -11,7 +11,6 @@ import com.jukuproject.jukutweet.Models.UserInfo;
 public interface FragmentInteractionListener {
     void getInitialUserInfoForAddUserCheck(final String user);
     void showRemoveUserDialog(UserInfo userInfo);
-    void showAddUserDialog();
     void showEditMyListDialog(String listType, String currentListName, Boolean isStarFavorite);
     void showProgressBar(Boolean show);
     void showActionBarBackButton(Boolean showBack, CharSequence title, int tabNumber);

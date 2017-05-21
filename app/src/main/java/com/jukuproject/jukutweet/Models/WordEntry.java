@@ -275,7 +275,7 @@ public class WordEntry implements Parcelable {
      */
     public void createColorForWord(ColorThresholds colorThresholds) {
         if (total != null && correct != null) {
-            if (total < colorThresholds.getTweetGreyThreshold()) {
+            if (total < colorThresholds.getGreyThreshold()) {
                 color = "Grey";
             } else if (getPercentage() < colorThresholds.getRedThreshold()) {
                 color = "Red";
@@ -372,8 +372,8 @@ public class WordEntry implements Parcelable {
 
     private WordEntry(Parcel in) {
 //        in.readList(myclassList, getClass().getClassLoader());
-        itemFavorites = (ItemFavorites) in.readParcelable(getClass().getClassLoader());
-        fillinSentencesSpinner = (FillinSentencesSpinner) in.readParcelable(getClass().getClassLoader());
+        itemFavorites = in.readParcelable(getClass().getClassLoader());
+        fillinSentencesSpinner = in.readParcelable(getClass().getClassLoader());
 
 
         id = in.readInt();

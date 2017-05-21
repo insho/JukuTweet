@@ -88,8 +88,8 @@ public class PostQuizStatsActivity extends AppCompatActivity
         if (savedInstanceState != null) {
             //Restore the fragment's instance
             Fragment[] fragments = new Fragment[2];
-            fragments[0] = (PostQuizTab1Container)getSupportFragmentManager().getFragment(savedInstanceState, "postQuizTab1Container");
-            fragments[1] = (PostQuizTab2Container)getSupportFragmentManager().getFragment(savedInstanceState, "postQuizTab2Container");
+            fragments[0] = getSupportFragmentManager().getFragment(savedInstanceState, "postQuizTab1Container");
+            fragments[1] = getSupportFragmentManager().getFragment(savedInstanceState, "postQuizTab2Container");
 
             mAdapterTitles = savedInstanceState.getStringArray("adapterTitles");
             typeOfQuizThatWasCompleted = savedInstanceState.getString("typeOfQuizThatWasCompleted");
@@ -658,12 +658,12 @@ public class PostQuizStatsActivity extends AppCompatActivity
 
         if(findFragmentByPosition(0) != null
                 && findFragmentByPosition(0) instanceof PostQuizTab1Container) {
-            getSupportFragmentManager().putFragment(outState, "postQuizTab1Container", (PostQuizTab1Container)findFragmentByPosition(0));
+            getSupportFragmentManager().putFragment(outState, "postQuizTab1Container", findFragmentByPosition(0));
         }
 
         if(findFragmentByPosition(1) != null
                 && findFragmentByPosition(1) instanceof PostQuizTab2Container) {
-            getSupportFragmentManager().putFragment(outState, "postQuizTab2Container", (PostQuizTab2Container)findFragmentByPosition(1));
+            getSupportFragmentManager().putFragment(outState, "postQuizTab2Container", findFragmentByPosition(1));
         }
 
         outState.putStringArray("adapterTitles", mAdapterTitles);

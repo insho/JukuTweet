@@ -107,15 +107,6 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
 
     private DisplayMetrics metrics;
 
-    /* Holds a list of tweets that have been favorited (in any/all lists). Used to check
-    * whether or not a tweet needs to have favorites assigned to it. This exists
-    * so that we dont' have to make a sql query for each Tweet that gets returned from
-    * the api lookup.
-    *
-    * It will only be added to if one of the tweets in the search is made by a user that is saved in the database */
-    private HashMap<String,ItemFavorites> tweetIdStringsInFavorites;
-    private ArrayList<String> userIdsinDB;
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -745,7 +736,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
                         } else {
                             Log.e(TAG,"worddetailpopup twitter search results.gettweets was null!");
                         }
-                        mDataSetMaxId = (Long) Long.valueOf(mDataSet.get(mDataSet.size()-1).getIdString());
+                        mDataSetMaxId = Long.valueOf(mDataSet.get(mDataSet.size()-1).getIdString());
                     }
                 });
     }
@@ -841,7 +832,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
             ) {
 
         RxBus rxBus = new RxBus();
-        ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getWordInterfaceInstance(getContext()).getWordListsForAWord(activeFavoriteStars,String.valueOf(wordEntry.getId()),1,null);
+        ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getWordInterfaceInstance(getContext()).getWordListsForAWord(activeFavoriteStars,String.valueOf(wordEntry.getId()),null);
         PopupWindow popupWindow =  ChooseFavoriteListsPopupWindow.createWordFavoritesPopup(getContext(),metrics,rxBus,availableFavoriteLists,wordEntry.getId());
         popupWindow.getContentView().measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));

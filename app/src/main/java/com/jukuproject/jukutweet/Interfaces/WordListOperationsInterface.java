@@ -21,23 +21,22 @@ public interface WordListOperationsInterface {
 
     boolean duplicateWordList(String listName);
     boolean saveWordList(String listName);
-    boolean clearWordList(String listName, boolean isStarFavorite);
-    boolean deleteWordList(String listName);
+    void clearWordList(String listName, boolean isStarFavorite);
+    void deleteWordList(String listName);
     boolean renameWordList(String oldListName, String newListName);
     boolean changeWordListStarColor(int wordId, String originalColor, String updatedColor);
     boolean addWordToWordList(int wordId, String listName, int listSys);
     boolean removeWordFromWordList(int wordId, String listName, int listSys);
-    boolean removeMultipleWordsFromWordList(String concatenatedWordIds, MyListEntry myListEntry);
+    void removeMultipleWordsFromWordList(String concatenatedWordIds, MyListEntry myListEntry);
     ArrayList<MyListEntry> getWordListsForAWord(ArrayList<String> activeFavoriteStars
             , String concatenatedWordIds
-            , int countOfWordIds
             , @Nullable MyListEntry entryToExclude);
     ArrayList<WordEntry> getWordsFromAWordList(MyListEntry myListEntry
             , ColorThresholds colorThresholds
             , String colorString
             , @Nullable Integer excludeIdInteger
             , @Nullable Integer resultLimit);
-    boolean addMultipleWordsToWordList(MyListEntry myListEntry, String concatenatedWordIds);
+    void addMultipleWordsToWordList(MyListEntry myListEntry, String concatenatedWordIds);
     Cursor getWordListColorBlockCursor(ColorThresholds colorThresholds, MyListEntry myListEntry);
     Cursor getWordEntryForWordId(int kanjiId, ColorThresholds colorThresholds);
     ArrayList<WordEntry> getTopFiveWordEntries(String topOrBottom

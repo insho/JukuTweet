@@ -24,7 +24,7 @@ import java.util.ArrayList;
  * @see com.jukuproject.jukutweet.Fragments.WordListBrowseFragment
  */
 public class BrowseWordsAdapter extends RecyclerView.Adapter<BrowseWordsAdapter.ViewHolder>  {
-    private String TAG = "Test-BrowseMyAd";
+
     private Context mContext;
     private ArrayList<WordEntry> mWords;
     private  ColorThresholds mColorThresholds;

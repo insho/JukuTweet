@@ -21,8 +21,6 @@ import java.util.regex.Pattern;
  */
 public class MultipleChoiceAdapter extends ArrayAdapter<WordEntry> {
 
-    private final String TAG = "QuizMultChoice_Adapter";
-
     public MultipleChoiceAdapter(Context context
             , ArrayList<WordEntry> dataset
             , int textViewResourceId

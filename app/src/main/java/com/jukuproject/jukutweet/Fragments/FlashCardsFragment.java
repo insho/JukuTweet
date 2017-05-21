@@ -62,9 +62,6 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
     int cardNumber = 1; //visible card number
 
     Animator animator_rightin;
-    Animator animator_rightout;
-    Animator animator_leftin;
-    Animator animator_leftout;
     Animator animator_upin;
 
     public FlashCardsFragment() {}
@@ -139,12 +136,6 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
 
                     animator_rightin = AnimatorInflater.loadAnimator(getContext(),
                             R.animator.card_flip_right_in);
-                    animator_rightout = AnimatorInflater.loadAnimator(getContext(),
-                            R.animator.card_flip_right_out);
-                    animator_leftin = AnimatorInflater.loadAnimator(getContext(),
-                            R.animator.card_flip_left_in);
-                    animator_leftout = AnimatorInflater.loadAnimator(getContext(),
-                            R.animator.card_flip_left_out);
 
                     Animation slide_in_left_again = AnimationUtils.loadAnimation(getContext(), R.anim.slide_in_right);
                     vp.startAnimation(slide_in_left_again);

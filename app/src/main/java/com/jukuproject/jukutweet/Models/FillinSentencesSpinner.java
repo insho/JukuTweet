@@ -4,7 +4,6 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
 /**
  * Container with information regarding a spinner item in the {@link com.jukuproject.jukutweet.Fragments.FillInTheBlankFragment}.
@@ -64,15 +63,6 @@ public class FillinSentencesSpinner implements Parcelable {
 
     public void setHasBeenAnswered(boolean hasBeenAnswered) {
         this.hasBeenAnswered = hasBeenAnswered;
-    }
-
-    public void resetSpinnerInformation() {
-        this.isCorrect = false;
-        this.hasBeenAnswered = false;
-        this.correctFirstTry = true;
-        if(this.options != null) {
-            Collections.shuffle(options);
-        }
     }
 
     //Parcel stuff

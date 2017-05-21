@@ -25,7 +25,6 @@ import com.jukuproject.jukutweet.R;
 public class AddOrRenameMyListDialog extends DialogFragment {
 
     public DialogInteractionListener mAddRSSDialogListener;
-    String TAG = "TEST-AddMyList";
 
     @Override
     public void onAttach(Context context) {

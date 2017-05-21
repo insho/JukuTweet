@@ -96,11 +96,6 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
 
     public SearchFragment() {}
 
-    public static SearchFragment newInstance() {
-        return new SearchFragment();
-    }
-
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -126,7 +121,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
         checkBoxDefinition = (AppCompatCheckBox) view.findViewById(R.id.checkBoxDefinition);
         searchView = (SearchView) view.findViewById(R.id.dbsearch);
         mNoLists = (TextView) view.findViewById(R.id.noresults);
-        mDividerView = (View) view.findViewById(R.id.dividerview);
+        mDividerView = view.findViewById(R.id.dividerview);
         return view;
     }
 
@@ -160,16 +155,23 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
 
             Log.i(TAG,"checkoption: " + mCheckedOption + ", currentactive: " + currentActiveTwitterSearchQuery);
             try {
-
-                if(mCheckedOption.equals("Tweet")) {
-                    mTwitterResults = savedInstanceState.getParcelableArrayList("mTwitterResults");
-                    receiveTwitterSearchResults(mTwitterResults,currentActiveTwitterSearchQuery);
-                } else if(mCheckedOption.equals("User")) {
-                    mTwitterUserResults = savedInstanceState.getParcelableArrayList("mTwitterUserResults");
-                    receiveTwitterUserSearchResults(mTwitterUserResults);
-                } else if(mCheckedOption.equals("Definition") || mCheckedOption.equals("Romaji")) {
-                    mDictionaryResults = savedInstanceState.getParcelableArrayList("mDictionaryResults");
-                    recieveDictionarySearchResults(mDictionaryResults);
+                switch (mCheckedOption) {
+                    case "Tweet":
+                        mTwitterResults = savedInstanceState.getParcelableArrayList("mTwitterResults");
+                        receiveTwitterSearchResults(mTwitterResults,currentActiveTwitterSearchQuery);
+                        break;
+                    case "User":
+                        mTwitterUserResults = savedInstanceState.getParcelableArrayList("mTwitterUserResults");
+                        receiveTwitterUserSearchResults(mTwitterUserResults);
+                        break;
+                    case "Definition":
+                        mDictionaryResults = savedInstanceState.getParcelableArrayList("mDictionaryResults");
+                        recieveDictionarySearchResults(mDictionaryResults);
+                        break;
+                    case "Romaji":
+                        mDictionaryResults = savedInstanceState.getParcelableArrayList("mDictionaryResults");
+                        recieveDictionarySearchResults(mDictionaryResults);
+                        break;
                 }
 
                 /* If the activity was destroyed and recreated during an ongoing search, show the progress bar
@@ -458,7 +460,6 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
             RxBus rxBus = new RxBus();
             mDictionaryResults = results;
             mDictionaryAdapter = new TweetBreakDownAdapter(getContext()
-                    ,mMetrics
                     ,mDictionaryResults
                     ,mActiveFavoriteStars
                     ,rxBus);
@@ -613,7 +614,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                 mRecyclerView.setAdapter(mTwitterAdapter);
             }
 
-            mDataSetMaxId = (Long) Long.valueOf(mTwitterResults.get(mTwitterResults.size()-1).getIdString());
+            mDataSetMaxId = Long.valueOf(mTwitterResults.get(mTwitterResults.size()-1).getIdString());
 
 
         } else {
@@ -850,7 +851,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
             , int ylocation) {
         RxBus rxBus = new RxBus();
 
-        ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getWordInterfaceInstance(getContext()).getWordListsForAWord(mActiveFavoriteStars,String.valueOf(wordEntry.getId()),1,null);
+        ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getWordInterfaceInstance(getContext()).getWordListsForAWord(mActiveFavoriteStars,String.valueOf(wordEntry.getId()),null);
         PopupWindow popupWindow =  ChooseFavoriteListsPopupWindow.createWordFavoritesPopup(getContext(),mMetrics,rxBus,availableFavoriteLists,wordEntry.getId());
         popupWindow.getContentView().measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));

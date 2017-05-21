@@ -46,20 +46,6 @@ public class ItemFavorites implements Parcelable {
         this.systemOrangeCount = 0;
         this.userListCount = 0;
     }
-
-
-    public ItemFavorites(int userListCount) {
-        this.systemBlueCount = 0;
-        this.systemRedCount = 0;
-        this.systemYellowCount = 0;
-        this.systemGreenCount = 0;
-        this.systemPurpleCount = 0;
-        this.systemOrangeCount = 0;
-
-        this.userListCount = userListCount;
-
-    }
-
     public int getSystemBlueCount() {
         if(systemBlueCount>0) {
             return 1;

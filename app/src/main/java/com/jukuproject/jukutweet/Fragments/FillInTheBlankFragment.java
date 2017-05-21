@@ -69,7 +69,6 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
     int displayWidth = 0;
     int displayMarginPadding = 30; //How much to pad the edge of the screen by when laying down the sentenceblocks (so the sentence doesn't overlap the screen or get cut up too much)
     int spinnerWidth = 200;
-    int spinnerHeight = 55;
     int redundentQuestionCounter = 0;
 
 
@@ -139,7 +138,6 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
         displayWidth = metrics.widthPixels;
         displayMarginPadding = (int) ((float) (displayWidth) * 0.055555556);
         spinnerWidth = (int) (180.0f * metrics.density + 0.5f);
-        spinnerHeight = (int) (37.0f * metrics.density + 0.5f);
 
         linearLayoutHorizontalLine = new LinearLayout(getContext());
         linearLayoutHorizontalLine.setOrientation(LinearLayout.HORIZONTAL);
@@ -599,7 +597,7 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
                     wordEntry.getFillinSentencesSpinner().setCorrectFirstTry(false);
 
                     if(BuildConfig.DEBUG){Log.d(TAG,"Incorrect spinner found!");}
-                    ((Spinner)linearLayoutVerticalParagraph.findViewWithTag(wordEntry.getStartIndex())).setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorJukuRed));
+                    linearLayoutVerticalParagraph.findViewWithTag(wordEntry.getStartIndex()).setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorJukuRed));
                     allSpinnersAreCorrect = false;
                 }
 

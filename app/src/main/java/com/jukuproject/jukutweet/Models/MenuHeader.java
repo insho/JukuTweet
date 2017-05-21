@@ -148,10 +148,6 @@ public class MenuHeader implements  Parcelable,Parent<MenuChild> {
         this.myList = myList;
     }
 
-    public Boolean isMyList() {
-        return myList;
-    }
-
     public Integer getStarColor() {
 
         switch (headerTitle) {

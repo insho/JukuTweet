@@ -115,12 +115,7 @@ public class CopyMyListItemsDialog extends DialogFragment {
             mCurrentList = getArguments().getParcelable("currentList");
             ArrayList<Integer> selectedEntries = getArguments().getIntegerArrayList("selectedEntries");
             kanjiString = getSelectedIntsAsString(selectedEntries);
-
-            int selectedEntryCount = 1;
-            if(selectedEntries!=null) {
-                selectedEntryCount = selectedEntries.size();
-            }
-            mFavoritesLists = InternalDB.getWordInterfaceInstance(getContext()).getWordListsForAWord(activeFavoriteStars,kanjiString,selectedEntryCount,mCurrentList);
+            mFavoritesLists = InternalDB.getWordInterfaceInstance(getContext()).getWordListsForAWord(activeFavoriteStars,kanjiString,mCurrentList);
         } else {
             mCurrentList = savedInstanceState.getParcelable("mCurrentList");
             kanjiString = savedInstanceState.getString("kanjiString");

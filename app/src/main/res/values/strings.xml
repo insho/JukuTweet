@@ -136,6 +136,9 @@ asdf
     <string name="menuoption_text_colors">"Colors: "</string>
 
 
+    <string name="pref_previously_started">"PrefsPreviouslyStarted"</string>
+
+
 
 
     <string-array name="entryvalues_list_favoritescount_kanji">
@@ -267,6 +270,12 @@ asdf
     <string name="menuoptionsten">10</string>
 
 
+
+    <string name="jukusetup_userid">843793669106909186</string>
+    <string name="jukusetup_name">JukuProject</string>
+    <string name="jukusetup_description">Japanese language learning</string>
+    <string name="jukusetup_screenname">jukuproject</string>
+    <string name="jukusetup_url">http://pbs.twimg.com/profile_images/843862051931983874/iac-8i4c_normal.jpg</string>
 
 
 </resources>

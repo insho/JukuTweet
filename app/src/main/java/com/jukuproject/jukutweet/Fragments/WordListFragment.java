@@ -52,10 +52,6 @@ public class WordListFragment extends Fragment {
     private SharedPrefManager sharedPrefManager;
     private TextView txtNoListsFound;
 
-    public static WordListFragment newInstance(Bundle bundle) {
-        return new WordListFragment();
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         //Call shared prefs to find out which star colors (i.e. favorites lists) to include

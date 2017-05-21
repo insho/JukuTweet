@@ -88,9 +88,9 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
 
 
             if(typeOfQuizThatWasCompleted.equals("Multiple Choice")) {
-                fragments[0] = (MultipleChoiceFragment)getSupportFragmentManager().getFragment(savedInstanceState, "tab1Container");
+                fragments[0] = getSupportFragmentManager().getFragment(savedInstanceState, "tab1Container");
             } else {
-                fragments[0] = (FillInTheBlankFragment)getSupportFragmentManager().getFragment(savedInstanceState, "tab1Container");
+                fragments[0] = getSupportFragmentManager().getFragment(savedInstanceState, "tab1Container");
             }
             mQuizPostQuizStatsPagerAdapter = new PostQuizStatsPagerAdapter(getSupportFragmentManager(),mAdapterTitles,fragments);
 
@@ -133,10 +133,10 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
                 case "Multiple Choice":
                     final ArrayList<WordEntry> datasetMultipleChoice = mIntent.getParcelableArrayListExtra("dataset");
                     if(mSingleUser) {
-                        fragments[0] = (MultipleChoiceFragment) MultipleChoiceFragment.newInstanceSingleUser(datasetMultipleChoice
+                        fragments[0] = MultipleChoiceFragment.newInstanceSingleUser(datasetMultipleChoice
                                 ,quizType,timerInteger,Integer.parseInt(quizSize),totalweight,dataType,colorString,mUserInfo);
                     } else {
-                        fragments[0] = (MultipleChoiceFragment) MultipleChoiceFragment.newInstance(datasetMultipleChoice
+                        fragments[0] = MultipleChoiceFragment.newInstance(datasetMultipleChoice
                                 ,quizType,timerInteger,Integer.parseInt(quizSize),totalweight,dataType,colorString,mMyListEntry);
                     }
 
@@ -509,7 +509,7 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
 
         if(findFragmentByPosition(0) != null
                 && findFragmentByPosition(0) instanceof MultipleChoiceFragment) {
-            getSupportFragmentManager().putFragment(outState, "tab1Container", (MultipleChoiceFragment)findFragmentByPosition(0));
+            getSupportFragmentManager().putFragment(outState, "tab1Container", findFragmentByPosition(0));
         }
         outState.putStringArray("adapterTitles", mAdapterTitles);
         outState.putString("typeOfQuizThatWasCompleted", typeOfQuizThatWasCompleted);

@@ -11,7 +11,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.jukuproject.jukutweet.BuildConfig;
@@ -34,15 +33,13 @@ public class MenuDropDownColorsPopupAdapter extends RecyclerView.Adapter<MenuDro
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
-        public TextView txtOption;
-        public AppCompatCheckBox chkBox;
-        public LinearLayout layoutMain;
+        private TextView txtOption;
+        private AppCompatCheckBox chkBox;
 
         public ViewHolder(View v) {
             super(v);
             txtOption = (TextView) v.findViewById(R.id.textBox);
             chkBox = (AppCompatCheckBox) v.findViewById(R.id.checkBox);
-            layoutMain = (LinearLayout) v.findViewById(R.id.itemLayout);
         }
     }
 

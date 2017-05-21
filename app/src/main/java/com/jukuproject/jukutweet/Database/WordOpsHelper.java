@@ -82,16 +82,15 @@ public class WordOpsHelper implements WordListOperationsInterface {
      * @see com.jukuproject.jukutweet.MainActivity#onEditMyListDialogPositiveClick(String listType, int, String, boolean)
      * @see com.jukuproject.jukutweet.MainActivity#deleteOrClearDialogFinal(String listType, Boolean, String, boolean)
      */
-    public boolean clearWordList(String listName, boolean isStarFavorite) {
+    public void clearWordList(String listName, boolean isStarFavorite) {
         try{
             if(isStarFavorite) {
                 sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES, InternalDB.Columns.TFAVORITES_COL0 + "= ? and " + InternalDB.Columns.TFAVORITES_COL1 + "= 1", new String[]{listName});
             } else {
                 sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES, InternalDB.Columns.TFAVORITES_COL0 + "= ? and " + InternalDB.Columns.TFAVORITES_COL1 + "= 0", new String[]{listName});
             }
-            return true;
         } catch(SQLiteException exception) {
-            return false;
+            Log.e(TAG,"wordopshelper clearWordList sqlite exception: " + exception.getCause());
         }
 
     }
@@ -106,13 +105,12 @@ public class WordOpsHelper implements WordListOperationsInterface {
      * @see com.jukuproject.jukutweet.MainActivity#onEditMyListDialogPositiveClick(String listType, int, String, boolean)
      * @see com.jukuproject.jukutweet.MainActivity#deleteOrClearDialogFinal(String listType, Boolean, String, boolean)
      */
-    public boolean deleteWordList(String listName) {
+    public void deleteWordList(String listName) {
         try{
             sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LISTS, InternalDB.Columns.TFAVORITES_COL0 + "= ?", new String[]{listName});
             sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES, InternalDB.Columns.TFAVORITES_COL0 + "= ? and " + InternalDB.Columns.TFAVORITES_COL1 + "= 0", new String[]{listName});
-            return true;
         } catch(SQLiteException exception) {
-            return false;
+            Log.e(TAG,"wordopshelper deleteWordList sqlite exception: " + exception.getCause());
         }
     }
 
@@ -240,20 +238,17 @@ public class WordOpsHelper implements WordListOperationsInterface {
      * Removes multiple words from a word list
      * @param concatenatedWordIds a string of wordIds concatenated together with commas (ex: 123,451,6532,23)
      * @param myListEntry MyList Object containing the name and sys variables for a WordList
-     * @return bool true if successful delete, false if error
      *
      * @see WordListBrowseFragment
      */
-    public boolean removeMultipleWordsFromWordList(String concatenatedWordIds, MyListEntry myListEntry) {
+    public void removeMultipleWordsFromWordList(String concatenatedWordIds, MyListEntry myListEntry) {
         try {
             sqlOpener.getWritableDatabase().execSQL("DELETE FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " WHERE " + InternalDB.Columns.TFAVORITES_COL0 + " = ? and "  + InternalDB.Columns.TFAVORITES_COL1 + " = ? and " + InternalDB.Columns.COL_ID + " in (" + concatenatedWordIds + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
-            return true;
         } catch (SQLiteException e) {
             Log.e(TAG, "removeMultipleWordsFromWordList sqlite exception: " + e);
         } catch (NullPointerException e) {
             Log.e(TAG, "removeMultipleWordsFromWordList something was null: " + e);
         }
-        return  false;
     }
 
     /**
@@ -643,13 +638,11 @@ public class WordOpsHelper implements WordListOperationsInterface {
      * @param concatenatedWordIds a string of wordIds concatenated together with commas (ex: 123,451,6532,23)
      * @return bool true if successful delete, false if error
      */
-    public boolean addMultipleWordsToWordList(MyListEntry myListEntry, String concatenatedWordIds) {
+    public void addMultipleWordsToWordList(MyListEntry myListEntry, String concatenatedWordIds) {
         try {
             sqlOpener.getWritableDatabase().execSQL("INSERT OR REPLACE INTO " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES +" SELECT DISTINCT [_id],? as [Name], ? as [Sys] FROM [Edict] WHERE [_id] > 0 and [_id] in (" + concatenatedWordIds + ")",new String[]{myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
-            return true;
         } catch (SQLiteException e){
             Log.e(TAG,"copyKanjiToList Sqlite exception: " + e);
-            return false;
         }
     }
 

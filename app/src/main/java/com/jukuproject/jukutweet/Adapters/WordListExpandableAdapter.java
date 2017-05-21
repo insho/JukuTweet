@@ -29,7 +29,7 @@ import java.util.ArrayList;
  * child group has the title "Browse/Edit", as well as a colorblock set breaking down the words contained in the list by color.
  */
 public class WordListExpandableAdapter extends BaseExpandableListAdapter {
-    private String TAG = "test-Ex_ListAdapter";
+
     private Context mContext;
     private ArrayList<MenuHeader> mMenuHeader;
     private int mTextsize;
@@ -175,11 +175,11 @@ public class WordListExpandableAdapter extends BaseExpandableListAdapter {
 
 
             //Hide the big color bar and color blocks
-            ((TextView) convertView.findViewById(R.id.lblcolorbar)).setVisibility(TextView.GONE);
-        ((TextView) convertView.findViewById(R.id.listitem_colors_1)).setVisibility(TextView.GONE);
-        ((TextView) convertView.findViewById(R.id.listitem_colors_2)).setVisibility(TextView.GONE);
-        ((TextView) convertView.findViewById(R.id.listitem_colors_3)).setVisibility(TextView.GONE);
-        ((TextView) convertView.findViewById(R.id.listitem_colors_4)).setVisibility(TextView.GONE);
+            convertView.findViewById(R.id.lblcolorbar).setVisibility(TextView.GONE);
+        convertView.findViewById(R.id.listitem_colors_1).setVisibility(TextView.GONE);
+        convertView.findViewById(R.id.listitem_colors_2).setVisibility(TextView.GONE);
+        convertView.findViewById(R.id.listitem_colors_3).setVisibility(TextView.GONE);
+        convertView.findViewById(R.id.listitem_colors_4).setVisibility(TextView.GONE);
 
             /* Handle MyList rows -- either systemlists (with colored favorites stars visible), or
              * user-created lists with no colored star  */

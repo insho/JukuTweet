@@ -168,7 +168,7 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
      * answered correctly or not
      */
     private class TweetWordsResultsAdapter extends ArrayAdapter<WordEntry> {
-        public TweetWordsResultsAdapter(Context context
+        private TweetWordsResultsAdapter(Context context
                 , ArrayList<WordEntry> wordEntries
         ) {
             super(context,0, wordEntries);
@@ -177,7 +177,7 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
         }
         private Context mContext;
         private ArrayList<WordEntry> mWordEntries;
-        int superadaptertextviewheightsize= 0;
+
         @Override
         public View getView(final int position, View v, ViewGroup parent) {
 

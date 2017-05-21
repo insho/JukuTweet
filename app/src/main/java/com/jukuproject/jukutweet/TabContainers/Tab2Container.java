@@ -58,13 +58,11 @@ public class Tab2Container extends BaseContainerFragment {
         }
     }
 
-    public boolean updateTweetListFragment() {
+    public void updateTweetListFragment() {
         try {
             ((TweetListFragment) getChildFragmentManager().findFragmentByTag("savedtweetsallfragment")).updateMyListAdapter();
-            return true;
         } catch (Exception e) {
             Log.e("Tab2Container","Could not find userListFragment");
-            return false;
         }
     }
     @Override

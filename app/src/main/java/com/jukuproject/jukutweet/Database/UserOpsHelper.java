@@ -21,6 +21,8 @@ import com.squareup.picasso.Target;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 
 
@@ -42,12 +44,12 @@ public class UserOpsHelper implements UserOperationsInterface {
 
     /**
      * Checks to see if user is already saved in table
-     * @param user user's twitter handle
+     * @param screenName user's twitter handle
      * @return boolean True if user already exists, false if user does not exist
      */
-    public boolean duplicateUser(String user) {
+    public boolean duplicateUser(String screenName) {
         String queryRecordExists = "Select _id From " + InternalDB.Tables.TABLE_USERS + " where " + InternalDB.Columns.TMAIN_COL0 + " = ? OR " + InternalDB.Columns.TMAIN_COL1 + " = ?" ;
-        Cursor c = sqlOpener.getReadableDatabase().rawQuery(queryRecordExists, new String[]{user});
+        Cursor c = sqlOpener.getReadableDatabase().rawQuery(queryRecordExists, new String[]{screenName});
         try {
             return c.moveToFirst();
         } catch (SQLiteException e) {
@@ -342,11 +344,10 @@ public class UserOpsHelper implements UserOperationsInterface {
      * against the saved data in the db
      * @param oldUserInfo old UserInfo object (saved info in db)
      * @param recentUserInfo new UserInfo object (pulled from tweet metadata)
-     * @return bool true if compare and update was succesful, false if error
      *
      * @see com.jukuproject.jukutweet.Fragments.UserTimeLineFragment#pullTimeLineData(UserInfo)
      */
-    public boolean compareUserInfoAndUpdate(UserInfo oldUserInfo, UserInfo recentUserInfo) {
+    public void compareUserInfoAndUpdate(UserInfo oldUserInfo, UserInfo recentUserInfo) {
 
         try {
             ContentValues values = new ContentValues();
@@ -376,12 +377,9 @@ public class UserOpsHelper implements UserOperationsInterface {
                     sqlOpener.getWritableDatabase().update(InternalDB.Tables.TABLE_USERS, values, InternalDB.Columns.TMAIN_COL0 + "= ?", new String[]{oldUserInfo.getScreenName()});
                 }
             }
-
-            return true;
         } catch (SQLiteException e) {
             Log.e(TAG,"compareUserInfo prob : " + e);
         }
-        return false;
     }
 
     /**
@@ -453,6 +451,34 @@ public class UserOpsHelper implements UserOperationsInterface {
     }
 
 
+    public void loadJukuIcon(final Context context, final String userId) {
+
+                try {
+                    File file = checkForImagePath(context, userId);
+                    InputStream inputStream  = context.getAssets().open("jukuproject_icon");
+
+                    if(!file.exists()) {
+                        FileOutputStream ostream = new FileOutputStream(file);
+                        copyFile(inputStream, ostream);
+                        inputStream.close();
+                        ostream.flush();
+                        ostream.close();
+                    }
+
+                    Uri uri = Uri.fromFile(file);
+                    addUserIconURItoDB(uri.toString(),userId);
+                } catch (IOException e) {
+                    Log.e("IOException", e.getLocalizedMessage());
+                }
+    }
+
+    private static void copyFile(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[1024];
+        int read;
+        while((read = in.read(buffer)) != -1){
+            out.write(buffer, 0, read);
+        }
+    }
 
     /**
      * Takes the url of an icon image from a UserInfo object, downloads the image with picasso

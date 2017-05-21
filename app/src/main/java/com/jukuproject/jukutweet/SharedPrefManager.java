@@ -44,13 +44,12 @@ public class SharedPrefManager {
      * @param context context
      * @return updated shared preference instance
      */
-    public static SharedPrefManager initialize(Context context){
+    public static void initialize(Context context){
         if(mSharedPrefManagerInstance == null)
         {
             mSharedPrefManagerInstance = new SharedPrefManager();
         }
         mSharedPrefManagerInstance.init(context);
-        return mSharedPrefManagerInstance;
     }
 
 
@@ -67,18 +66,10 @@ public class SharedPrefManager {
             float redthreshold = Float.parseFloat(prefs.getString("preference_redthreshold", ".3"));
             float yellowthreshold = Float.parseFloat(prefs.getString("preference_yellowthreshold", ".8"));
             mGreyThreshold = Integer.parseInt(prefs.getString("preference_greythreshold", "3"));
-            float greythresholdTweet = Float.parseFloat(prefs.getString("preference_greythreshold_tweet", ".3"));
-            float redthresholdTweet = Float.parseFloat(prefs.getString("preference_redthreshold_tweet", ".25"));
-            float yellowthresholdTweet = Float.parseFloat(prefs.getString("preference_yellowthreshold_tweet", ".40"));
-            float greenthresholdTweet = Float.parseFloat(prefs.getString("preference_greenthreshold_tweet", ".75"));
 
             mColorThresholds = new ColorThresholds(mGreyThreshold
                     ,redthreshold
-                    ,yellowthreshold
-                    ,greythresholdTweet
-                    ,redthresholdTweet
-                    ,yellowthresholdTweet
-                    ,greenthresholdTweet);
+                    ,yellowthreshold);
     }
 
     public ArrayList<String> getActiveFavoriteStars() {

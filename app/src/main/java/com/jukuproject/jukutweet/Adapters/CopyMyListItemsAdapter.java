@@ -31,7 +31,6 @@ public class CopyMyListItemsAdapter extends RecyclerView.Adapter<CopyMyListItems
     private Context mContext;
     private float mDensity;
     private RxBus mRxBus;
-    private String TAG = "TEST-copylistadap";
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 

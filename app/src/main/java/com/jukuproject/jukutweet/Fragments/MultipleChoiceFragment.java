@@ -91,8 +91,6 @@ public class MultipleChoiceFragment extends Fragment {
     Integer totalheightofanswergrid; // This designates the individual size of the "answer" rows when the phone is in horizontal mode. It gets passed to the adapter and used there. Ignored if =0;
 
     private ArrayList<MultChoiceResult> questionResults;
-
-    int widthofquestionpane = 0;
     private TextView txtTimer;
     public MultipleChoiceFragment() {
     }
@@ -205,7 +203,6 @@ public class MultipleChoiceFragment extends Fragment {
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
             mainView = LayoutInflater.from(getActivity()).inflate(R.layout.quizmultchoice, null);
 
-            widthofquestionpane = metrics.widthPixels;
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "Display width in px is " + metrics.widthPixels);
                 Log.d(TAG, "Display height in px is " + metrics.heightPixels);
@@ -220,7 +217,6 @@ public class MultipleChoiceFragment extends Fragment {
         } else {
             mainView = LayoutInflater.from(getActivity()).inflate(R.layout.quizmultchoice_l, null);
             totalheightofanswergrid = (int) ((float) (displayheight - actionBarHeight) - (float) (displayheight - actionBarHeight) * .115);
-            widthofquestionpane = (int) ((float) metrics.widthPixels / 2.0f);
         }
         answerGrid = (GridView) mainView.findViewById(R.id.gridView);
         txtQuestion = (TextView) mainView.findViewById(R.id.question);

@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import com.jukuproject.jukutweet.Fragments.StatsFragmentFillintheBlanks;
 import com.jukuproject.jukutweet.Fragments.StatsFragmentMultipleChoice;
 import com.jukuproject.jukutweet.Models.MultChoiceResult;
-import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.Tweet;
 import com.jukuproject.jukutweet.R;
 
@@ -27,60 +26,6 @@ public class PostQuizTab1Container extends BaseContainerFragment {
     }
 
     public PostQuizTab1Container() {}
-
-    public static PostQuizTab1Container newInstance()
-    {
-//        QuizTab1Container fragment = new QuizTab1Container();
-//        Bundle args = new Bundle();
-//        args.putString("mQuiz",mQuiz);
-//        return fragment;
-        return new PostQuizTab1Container();
-    }
-
-    public static PostQuizTab1Container newFillintheBlanksStatsInstance(ArrayList<Tweet> tweets
-            , String quizSize
-            , double totalWeight
-            , String colorString
-            , MyListEntry myListEntry
-    ) {
-
-        PostQuizTab1Container fragment = new PostQuizTab1Container();
-        Bundle args = new Bundle();
-        args.putString("mQuiz","FillintheBlanks");
-        args.putParcelableArrayList("tweets", tweets);
-        args.putString("quizSize",quizSize);
-        args.putDouble("totalWeight",totalWeight);
-        args.putString("colorString",colorString);
-        args.putParcelable("myListEntry",myListEntry);
-        fragment.setArguments(args);
-
-        return  fragment;
-    }
-
-    public static PostQuizTab1Container newMultipleChoiceStatsInstance(ArrayList<MultChoiceResult> dataset
-            , String quizType
-            , final MyListEntry myListEntry
-            , boolean isWordBuilder
-            , boolean isHighScore
-            , Integer wordbuilderScore
-            , int correct
-            , int total
-    ) {
-        PostQuizTab1Container fragment = new PostQuizTab1Container();
-        Bundle args = new Bundle();
-        args.putString("mQuiz","MultipleChoice");
-        args.putParcelableArrayList("dataset", dataset);
-        args.putString("quizType",quizType);
-        args.putParcelable("myListEntry",myListEntry);
-        args.putBoolean("isWordBuilder",isWordBuilder);
-        args.putBoolean("isHighScore",isHighScore);
-        args.putInt("wordbuilderScore",wordbuilderScore);
-        args.putInt("correct",correct);
-        args.putInt("total",total);
-
-        fragment.setArguments(args);
-        return  fragment;
-    }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {

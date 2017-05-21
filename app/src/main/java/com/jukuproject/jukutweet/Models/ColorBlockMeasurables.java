@@ -86,7 +86,7 @@ public class ColorBlockMeasurables implements Parcelable {
      * @param colorToRemove name of color to remove
      * @return updated array of selectedColorOptions
      */
-    public ArrayList<String> updateSelectedColorsRemove(String colorToRemove) {
+    public void updateSelectedColorsRemove(String colorToRemove) {
         if(selectedColorOptions == null) {
             setInitialSelectedColors();
         }
@@ -94,8 +94,6 @@ public class ColorBlockMeasurables implements Parcelable {
         if(selectedColorOptions.contains(colorToRemove)) {
             selectedColorOptions.remove(colorToRemove);
         }
-
-        return selectedColorOptions;
     }
 
     /**
@@ -103,7 +101,7 @@ public class ColorBlockMeasurables implements Parcelable {
      * @param colorToAdd name of color to add
      * @return updated array of selectedColorOptions
      */
-    public ArrayList<String> updateSelectedColorsAdd(String colorToAdd) {
+    public void updateSelectedColorsAdd(String colorToAdd) {
         if(selectedColorOptions == null) {
             setInitialSelectedColors();
         }
@@ -111,8 +109,6 @@ public class ColorBlockMeasurables implements Parcelable {
                 selectedColorOptions.add(colorToAdd);
 
         }
-
-        return selectedColorOptions;
     }
 
 
