@@ -5,6 +5,7 @@ import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -276,71 +277,93 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
 
         SQLiteDatabase db = InternalDB.getInstance(getBaseContext()).getWritableDatabase();
+
+        Cursor c = db.rawQuery(                            "SELECT  DISTINCT [Tweet_id]" +
+                ",[UserScreenName] " +
+                ",[UserName] " +
+                ",[Text]" +
+                ",[CreatedAt]  as [Date] " +
+                ",[ProfileImgFilePath] " +
+                " FROM "+ InternalDB.Tables.TABLE_SAVED_TWEETS + " " +
+                "",null);
+
+        if(c.getCount()>0) {
+            c.moveToFirst();
+            while (!c.isAfterLast()) {
+                Log.d(TAG,"------------------------------");
+                Log.d(TAG,"Tweet_id: "  + c.getString(0));
+                Log.d(TAG,"UserScreenName: "  + c.getString(1));
+                Log.d(TAG,"UserName: "  + c.getString(2));
+                Log.d(TAG,"Text: "  + c.getString(3));
+                Log.d(TAG,"CreatedAt: "  + c.getString(4));
+                Log.d(TAG,"ProfileImgFilePath: "  + c.getString(5));
+                c.moveToNext();
+            }
+            c.close();
+        }
+
+
+        Cursor d = db.rawQuery(                          " SELECT Tweet_id" +
+                ",Edict_id " +
+                ",[StartIndex]" +
+                ",[EndIndex]" +
+                "From " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + " " +
+                " WHERE [Edict_id] is not NULL and StartIndex is not NULL and EndIndex is not NULL and EndIndex > StartIndex  ORDER BY Tweet_id asc",null);
+
+        if(d.getCount()>0) {
+            d.moveToFirst();
+            while (!c.isAfterLast()) {
+                Log.d(TAG,"------------------------------");
+                Log.d(TAG,"Tweet_id: "  + d.getString(0));
+                Log.d(TAG,"Edict_id: "  + d.getString(1));
+                Log.d(TAG,"StartIndex: "  + d.getString(2));
+                Log.d(TAG,"EndIndex: "  + d.getString(3));
+
+                d.moveToNext();
+            }
+            d.close();
+        }
 //
-//        Cursor c = db.rawQuery(                        "Select distinct ScreenName" +
-//                ",IFNULL(Description,'') as [Description]" +
-//                ", IFNULL(ProfileImgUrl,'') as [ProfileImgUrl]" +
-//                ",UserId" +
-//                ", ProfileImgFilePath" +
-//                ", UserName " +
-//                "From " + InternalDB.Tables.TABLE_USERS + " WHERE UserName = 'JukuProject'" +
-//                "",null);
+//        db.execSQL("DELETE FROM JScoreboard");
 //
-//        if(c.getCount()>0) {
-//            c.moveToFirst();
-//            while (!c.isAfterLast()) {
-//                Log.d(TAG,"screenname: "  + c.getString(0));
-//                Log.d(TAG,"description: "  + c.getString(1));
-//                Log.d(TAG,"profileimgurl: "  + c.getString(2));
-//                Log.d(TAG,"userid: "  + c.getString(3));
-//                Log.d(TAG,"profilepath: "  + c.getString(4));
-//                Log.d(TAG,"username: "  + c.getString(5));
-//                c.moveToNext();
-//            }
-//            c.close();
-//        }
-
-
-        db.execSQL("DELETE FROM JScoreboard");
-
-    db.execSQL("INSERT INTO JScoreboard " +
-            "SELECT _id " +
-            ",ABS(RANDOM()) % (31- 17) + 17 as [Total] " +
-            ",ABS(RANDOM()) % (16- 4) + 4 as [Correct] " +
-            "FROM XRef  " +
-            "WHERE _id not in (SELECT DISTINCT _id FROM JScoreboard) " +
-            "ORDER BY RANDOM() LIMIT  1000");
-
-    db.execSQL("INSERT INTO JScoreboard " +
-            "SELECT _id " +
-            ",ABS(RANDOM()) % (16 - 14) + 14 as [Total] " +
-            ",ABS(RANDOM()) % (13- 11) + 11 as [Correct] " +
-            "FROM XRef  " +
-            "WHERE _id not in (SELECT DISTINCT _id FROM JScoreboard) " +
-            "ORDER BY RANDOM() LIMIT  1000");
-
-    db.execSQL("INSERT INTO JScoreboard " +
-            "SELECT _id " +
-            ",ABS(RANDOM()) % (9 - 8) + 8 as [Total] " +
-            ",ABS(RANDOM()) % (7- 2) + 2 as [Correct] " +
-            "FROM XRef  " +
-            "WHERE _id not in (SELECT DISTINCT _id FROM JScoreboard) " +
-            "ORDER BY RANDOM() LIMIT  1000");
-
-    db.execSQL("DELETE FROM JScoreboard where Total < Correct ");
-
-    //ADD FAVS LISTS....
-    db.execSQL("DELETE FROM JFavoritesLists ");
-    db.execSQL("INSERT INTO JFavoritesLists " +
-            "SELECT 'Quiz Words' as Name UNION " +
-            "SELECT 'JLPT Words' as Name UNION " +
-            "SELECT 'Words I Forget' as Name ");
-
-    db.execSQL("DELETE FROM JFavoritesTweetLists ");
-    db.execSQL("INSERT INTO JFavoritesTweetLists " +
-            "SELECT 'Super Cool Tweets' as Name UNION " +
-            "SELECT 'Tuesday Stuff' as Name UNION " +
-            "SELECT 'Other Tweets' as Name ");
+//    db.execSQL("INSERT INTO JScoreboard " +
+//            "SELECT _id " +
+//            ",ABS(RANDOM()) % (31- 17) + 17 as [Total] " +
+//            ",ABS(RANDOM()) % (16- 4) + 4 as [Correct] " +
+//            "FROM XRef  " +
+//            "WHERE _id not in (SELECT DISTINCT _id FROM JScoreboard) " +
+//            "ORDER BY RANDOM() LIMIT  1000");
+//
+//    db.execSQL("INSERT INTO JScoreboard " +
+//            "SELECT _id " +
+//            ",ABS(RANDOM()) % (16 - 14) + 14 as [Total] " +
+//            ",ABS(RANDOM()) % (13- 11) + 11 as [Correct] " +
+//            "FROM XRef  " +
+//            "WHERE _id not in (SELECT DISTINCT _id FROM JScoreboard) " +
+//            "ORDER BY RANDOM() LIMIT  1000");
+//
+//    db.execSQL("INSERT INTO JScoreboard " +
+//            "SELECT _id " +
+//            ",ABS(RANDOM()) % (9 - 8) + 8 as [Total] " +
+//            ",ABS(RANDOM()) % (7- 2) + 2 as [Correct] " +
+//            "FROM XRef  " +
+//            "WHERE _id not in (SELECT DISTINCT _id FROM JScoreboard) " +
+//            "ORDER BY RANDOM() LIMIT  1000");
+//
+//    db.execSQL("DELETE FROM JScoreboard where Total < Correct ");
+//
+//    //ADD FAVS LISTS....
+//    db.execSQL("DELETE FROM JFavoritesLists ");
+//    db.execSQL("INSERT INTO JFavoritesLists " +
+//            "SELECT 'Quiz Words' as Name UNION " +
+//            "SELECT 'JLPT Words' as Name UNION " +
+//            "SELECT 'Words I Forget' as Name ");
+//
+//    db.execSQL("DELETE FROM JFavoritesTweetLists ");
+//    db.execSQL("INSERT INTO JFavoritesTweetLists " +
+//            "SELECT 'Super Cool Tweets' as Name UNION " +
+//            "SELECT 'Tuesday Stuff' as Name UNION " +
+//            "SELECT 'Other Tweets' as Name ");
 
 }
     /**

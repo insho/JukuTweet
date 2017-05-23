@@ -216,7 +216,7 @@ public class MultipleChoiceFragment extends Fragment {
 
         } else {
             mainView = LayoutInflater.from(getActivity()).inflate(R.layout.quizmultchoice_l, null);
-            totalheightofanswergrid = (int) ((float) (displayheight - actionBarHeight) - (float) (displayheight - actionBarHeight) * .115);
+            totalheightofanswergrid = (int) ((float) (displayheight - actionBarHeight));
         }
         answerGrid = (GridView) mainView.findViewById(R.id.gridView);
         txtQuestion = (TextView) mainView.findViewById(R.id.question);
@@ -319,7 +319,9 @@ public class MultipleChoiceFragment extends Fragment {
         if(mQuizType.equals("Definition to Kanji")) {
             setTextHeightLoop(txtQuestion
                     ,currentCorrectAnswer.getDefinitionMultiLineString(10)
-                    ,getResources().getDisplayMetrics());
+                    ,getResources().getDisplayMetrics()
+                    ,getResources().getDimension(R.dimen.flashcard_width)
+                    ,getResources().getDimension(R.dimen.flashcard_height));
 
         }
 
@@ -789,6 +791,21 @@ public class MultipleChoiceFragment extends Fragment {
             setUpTimer((int) millstogo / 1000);
         }
     }
+
+
+    @Override
+    public void onPause() {
+        pauseTimer();
+        super.onPause();
+
+    }
+
+    @Override
+    public void onResume() {
+        resumeTimer();
+        super.onResume();
+    }
+
 
     @Override
     public void onSaveInstanceState(Bundle outState) {

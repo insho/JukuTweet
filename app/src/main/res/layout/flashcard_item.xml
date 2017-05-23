@@ -13,9 +13,9 @@
         xmlns:card_view="http://schemas.android.com/apk/res-auto"
         android:id="@+id/card_view"
 
-        android:layout_width="300dp"
+        android:layout_width="@dimen/flashcard_width"
         android:layout_centerHorizontal="true"
-        android:layout_height="400dp"
+        android:layout_height="@dimen/flashcard_height"
         android:layout_centerVertical="true"
         android:paddingBottom="30dp"
 

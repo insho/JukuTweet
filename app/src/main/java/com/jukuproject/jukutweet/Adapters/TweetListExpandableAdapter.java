@@ -26,6 +26,9 @@ import java.util.ArrayList;
  * Adapter for TweetList {@link com.jukuproject.jukutweet.Fragments.TweetListFragment}, with a parent group for each
  * Tweet list, and expandable child entries for the quiz options. The first row of each
  * child group has the title "Browse/Edit", as well as a colorblock set breaking down the words contained in the list by color.
+ *
+ * @see com.jukuproject.jukutweet.Fragments.TweetListFragment
+ * @see com.jukuproject.jukutweet.Fragments.TweetListSingleUserFragment
  */
 public class TweetListExpandableAdapter extends BaseExpandableListAdapter {
     private Context mContext;
@@ -210,7 +213,7 @@ public class TweetListExpandableAdapter extends BaseExpandableListAdapter {
             }
 
             /* Set the list name to be greyed out for empty lists */
-            if(measurables.getTotalCount()>0) {
+            if(measurables.getTweetCount()>0) {
                 lblListHeaderCount.setText("(" + measurables.getTotalCount() + ")");
                 lblListHeader.setAlpha(1.0f);
                 lblListHeaderCount.setAlpha(.8f);
@@ -268,7 +271,7 @@ public class TweetListExpandableAdapter extends BaseExpandableListAdapter {
 
 
 
-    public void setColorBlocks(ColorBlockMeasurables colorBlockMeasurables
+    private void setColorBlocks(ColorBlockMeasurables colorBlockMeasurables
             ,int availableWidth
             , TextView txtGrey
             , TextView txtRed

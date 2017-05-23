@@ -132,7 +132,7 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
                         @Override
                         public void call(Object event) {
 
-                            if(isUniqueClick(100) && event instanceof Integer) {
+                            if(isUniqueClick(50) && event instanceof Integer) {
 
                                 Integer id = (Integer) event;
 
@@ -161,7 +161,7 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
                     .subscribe(new Action1<Object>() {
                         @Override
                         public void call(Object event) {
-                            if(isUniqueClick(1000) && event instanceof WordEntry) {
+                            if(isUniqueClick(750) && event instanceof WordEntry) {
                                 WordEntry wordEntry = (WordEntry) event;
                                 WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(wordEntry);
                                 wordDetailPopupDialog.setTargetFragment(WordListBrowseFragment.this, 0);

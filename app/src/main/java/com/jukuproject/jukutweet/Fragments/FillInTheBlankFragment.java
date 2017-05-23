@@ -5,6 +5,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Parcel;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.text.Spannable;
@@ -195,7 +196,9 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
         if(redundentQuestionCounter>4) {
             mCallback.emergencyGoBackToMainActivity();
         } else if(disectedSavedTweet.size()==0) {
+            Log.e(TAG,"Saved tweets in fillintheblanks were empty! moving to next question, and pulling a new question");
             redundentQuestionCounter +=1;
+            replaceDataSet(tweet.getIdString(),currentDataSetindex);
             moveToNextQuestion();
         } else {
             currentLineWidth = 0;
@@ -684,21 +687,22 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
 
     private void insertTextWithLineSeperators(String textToInsert) {
         String remainingLineSepText = textToInsert;
+        if(BuildConfig.DEBUG) {Log.d(TAG, "initial text to insert: " + textToInsert);}
 
         while(remainingLineSepText.contains(System.getProperty("line.separator"))) {
+
             int lineSepEndIndex = remainingLineSepText.indexOf(System.getProperty("line.separator"));
+            if(BuildConfig.DEBUG) {Log.d(TAG, "BEGIN LOOP linesependindex: " + lineSepEndIndex + ", texttoinsert length: " + textToInsert.length());}
             String preLineSepTextToAdd = remainingLineSepText.substring(0,lineSepEndIndex);
-            addToLayout(new SpannableStringBuilder(preLineSepTextToAdd));
             if(BuildConfig.DEBUG) {Log.d(TAG,"ADding to layout pre line sep text: " + preLineSepTextToAdd);}
+            addToLayout(new SpannableStringBuilder(preLineSepTextToAdd));
 
             //Mimic the line seperator by creating a new line
             insertLineIntoParagraph();
 
             //Remaining text begins after the line seperatore, until the end of the stringbuilder
-            remainingLineSepText =  remainingLineSepText.substring(lineSepEndIndex + 1,textToInsert.length());
-            if(BuildConfig.DEBUG) {
-                Log.d(TAG, "remainingLineSepText: " + remainingLineSepText);
-            }
+            remainingLineSepText =  remainingLineSepText.substring(lineSepEndIndex + 1,remainingLineSepText.length());
+            if(BuildConfig.DEBUG) {Log.d(TAG, "remainingLineSepText: " + remainingLineSepText);}
         }
         if(remainingLineSepText.length()>0) {
             if(BuildConfig.DEBUG){Log.d(TAG,"final remainingLineSepText to add: " + remainingLineSepText);}
@@ -732,22 +736,7 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
     }
 
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
 
-        outState.putParcelableArrayList("mDataset", mDataset);
-        outState.putInt("mQuizSize", mQuizSize);
-        outState.putDouble("mTotalWeight", mTotalWeight);
-        outState.putString("mColorString", mColorString);
-        outState.putParcelable("mMyListEntry", mMyListEntry);
-        outState.putInt("currentTotal", currentTotal);
-        outState.putInt("currentCorrect",currentCorrect);
-        outState.putInt("currentLineWidth",currentLineWidth);
-        outState.putBoolean("mSingleUser",mSingleUser);
-        outState.putParcelable("mUserInfo",mUserInfo);
-        outState.putInt("currentDataSetindex",currentDataSetindex);
-    }
 
 
 private AdapterView.OnItemSelectedListener spinnerSelectedListener (final WordEntry wordEntry) {
@@ -776,6 +765,43 @@ private AdapterView.OnItemSelectedListener spinnerSelectedListener (final WordEn
         }
     };
 }
+
+
+        private void replaceDataSet(String currentTweetId, int currentDataSetIndex) {
+            Log.e(TAG,"REPLACING DATASETS");
+            ArrayList<Tweet> replacementDataSet = new ArrayList<>(mDataset);
+            replacementDataSet.remove(currentDataSetIndex);
+            for(Tweet tweet :replacementDataSet) {
+                if(!tweet.getIdString().equals(currentTweetId)
+                        && tweet.getWordEntries()!=null
+                        && tweet.getWordEntries().size()>0) {
+                    Parcel p = Parcel.obtain();
+                    p.writeValue(tweet);
+                    p.setDataPosition(0);
+                    Tweet replacementTweet = (Tweet)p.readValue(Tweet.class.getClassLoader());
+                    p.recycle();
+                    replacementDataSet.add(replacementTweet);
+                }
+            }
+            mDataset = replacementDataSet;
+        }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putParcelableArrayList("mDataset", mDataset);
+        outState.putInt("mQuizSize", mQuizSize);
+        outState.putDouble("mTotalWeight", mTotalWeight);
+        outState.putString("mColorString", mColorString);
+        outState.putParcelable("mMyListEntry", mMyListEntry);
+        outState.putInt("currentTotal", currentTotal);
+        outState.putInt("currentCorrect",currentCorrect);
+        outState.putInt("currentLineWidth",currentLineWidth);
+        outState.putBoolean("mSingleUser",mSingleUser);
+        outState.putParcelable("mUserInfo",mUserInfo);
+        outState.putInt("currentDataSetindex",currentDataSetindex);
+    }
 
 
 }

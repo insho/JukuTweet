@@ -388,12 +388,20 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
                         defarraylistview.setText(definition);
 
 
-                        setTextHeightLoop(defarraylistview,definition,getResources().getDisplayMetrics());
+                        setTextHeightLoop(defarraylistview
+                                ,definition
+                                ,getResources().getDisplayMetrics()
+                                ,getResources().getDimension(R.dimen.flashcard_width)
+                                ,getResources().getDimension(R.dimen.flashcard_height));
                     } else {
                         textMain.setVisibility(View.VISIBLE);
                         defarraylistview.setVisibility(View.GONE);
                         textMain.setText(definition);
-                        setTextHeightLoop(textMain,definition,getResources().getDisplayMetrics());
+                        setTextHeightLoop(textMain
+                                ,definition
+                                ,getResources().getDisplayMetrics()
+                                ,getResources().getDimension(R.dimen.flashcard_width)
+                                ,getResources().getDimension(R.dimen.flashcard_height));
                     }
 
 
@@ -416,7 +424,10 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
      */
     public static void setTextHeightLoop(TextView textView
             , String text
-            , DisplayMetrics metrics) {
+            , DisplayMetrics metrics
+            , float flashcardWidth
+            , float flashcardHeight
+    ) {
         Rect bounds = new Rect();
         Paint textPaint = textView.getPaint();
         textPaint.getTextBounds(text, 0, text.length(), bounds);
@@ -427,19 +438,18 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
         int  pxText = (int) (TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_SP, pxTextDP, metrics));
         int  pxCardSize = (int) (TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP, 400, metrics));
+                TypedValue.COMPLEX_UNIT_DIP, flashcardHeight, metrics));
 
         if(BuildConfig.DEBUG) {
             Log.d("TEST-txtheight","BOUNDS WIDTH: " + width);
             Log.d("TEST-txtheight","BOUNDS HEIGHT: " + height);
             Log.d("TEST-txtheight","MEASURE TEXT WIDTH: " + Math.round(textPaint.measureText(text)));
-            Log.d("TEST-txtheight","SPECIAL MEASURED TEXT HEIGHT: " + estimateHeightOfTextView(text,pxText,300,4));
+            Log.d("TEST-txtheight","SPECIAL MEASURED TEXT HEIGHT: " + estimateHeightOfTextView(text,pxText,(int)flashcardWidth,4));
             Log.d("TEST-txtheight","pxCardSize: " + pxCardSize);
             Log.d("TEST-txtheight","SETTING DEFINITION");
-
         }
-        int specialMethodTextHeight = estimateHeightOfTextView(text,pxText,300,4);
 
+        int specialMethodTextHeight = estimateHeightOfTextView(text,pxText,(int)flashcardWidth,4);
         while (specialMethodTextHeight > pxCardSize && pxTextDP>22) {
 
             pxTextDP -= 2;
@@ -449,7 +459,7 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
             pxText = (int) (TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP
                     , pxTextDP
                     , metrics));
-            specialMethodTextHeight = estimateHeightOfTextView(text,pxText,300,4);
+            specialMethodTextHeight = estimateHeightOfTextView(text,pxText,(int)flashcardWidth,4);
 
         }
     }

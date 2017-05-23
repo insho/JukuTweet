@@ -510,15 +510,30 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                                                       public void call(Object event) {
                 if (isUniqueClick(150) && event instanceof Integer) {
 
-               Integer tweetWordEntryIndex = (Integer) event;
-               //Activity windows height
-               int[] location = new int[2];
+                    Integer adapterPosition = (Integer) event;
+                    try {
 
-               TweetBreakDownAdapter.ViewHolder viewHolder = (TweetBreakDownAdapter.ViewHolder)mRecyclerView.getChildViewHolder(mRecyclerView.getChildAt(tweetWordEntryIndex));
-               mRecyclerView.getChildAt(tweetWordEntryIndex).getLocationInWindow(location);
-               Log.i(TAG,"location x: " + location[0] + ", y: " + location[1]);
-
-                showFavoriteListPopupWindow(viewHolder,disectedSavedTweet.get(tweetWordEntryIndex),metrics,location[1]);
+                        int recyclerChildToAdapterPosOffset = adapterPosition - mRecyclerView.getChildAdapterPosition(mRecyclerView.getChildAt(0));
+                        if(mRecyclerView.getChildAdapterPosition(mRecyclerView.getChildAt(recyclerChildToAdapterPosOffset)) == adapterPosition) {
+                            int[] location = new int[2];
+                            mRecyclerView.getChildAt(recyclerChildToAdapterPosOffset).getLocationInWindow(location);
+                            TweetBreakDownAdapter.ViewHolder viewHolder = (TweetBreakDownAdapter.ViewHolder)mRecyclerView.findViewHolderForAdapterPosition(adapterPosition);
+                            showFavoriteListPopupWindow(viewHolder,disectedSavedTweet.get(adapterPosition),metrics,location[1]);
+//                            Log.i(TAG,"ADAPTER POS: " + adapterPosition + " LAYOUT POS: " + viewHolder.getLayoutPosition() + ", tweet: " + mDataSet.get(adapterPosition).getText());
+                        }
+                    } catch (NullPointerException e) {
+                        Log.e(TAG,"UserTimeLine showtweetfavoritelist popup at location nullpointer: " + e.getCause());
+                    }
+//
+//               Integer tweetWordEntryIndex = (Integer) event;
+//               //Activity windows height
+//               int[] location = new int[2];
+//
+//               TweetBreakDownAdapter.ViewHolder viewHolder = (TweetBreakDownAdapter.ViewHolder)mRecyclerView.getChildViewHolder(mRecyclerView.getChildAt(tweetWordEntryIndex));
+//               mRecyclerView.getChildAt(tweetWordEntryIndex).getLocationInWindow(location);
+//               Log.i(TAG,"location x: " + location[0] + ", y: " + location[1]);
+//
+//                showFavoriteListPopupWindow(viewHolder,disectedSavedTweet.get(tweetWordEntryIndex),metrics,location[1]);
 
                     } else if (isUniqueClick(150) && event instanceof WordEntry) {
                WordEntry wordEntry = (WordEntry) event;

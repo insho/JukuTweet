@@ -183,20 +183,20 @@ public class MenuHeader implements  Parcelable,Parent<MenuChild> {
     public MenuHeader(Parcel in){
 
         this.headerTitle = in.readString();
-        this.colorBlockMeasurables = in.readParcelable(ColorBlockMeasurables.class.getClassLoader());
+        this.colorBlockMeasurables = in.readParcelable(getClass().getClassLoader());
         this.childOptions = in.createStringArrayList();
         this.showLblHeaderCount = in.readByte() != 0;
         this.myList = in.readByte() != 0;
         this.systemList = in.readByte() != 0;
-        this.myListEntry = in.readParcelable(MyListEntry.class.getClassLoader());
+        this.myListEntry = in.readParcelable(getClass().getClassLoader());
         this.isExpanded = in.readByte() != 0;
         menuChildren = new ArrayList<>();
 //        in.readTypedList(mStringList,MyString.CREATOR);
 //         in.readArrayList(MenuChild.class.getClassLoader());
-        in.readList(menuChildren, MenuChild.class.getClassLoader());
+        in.readList(menuChildren, getClass().getClassLoader());
 //        this.menuChildren = in.readArrayList(MenuChild.class.getClassLoader());
 
-        this.userInfo = in.readParcelable(UserInfo.class.getClassLoader());
+        this.userInfo = in.readParcelable(getClass().getClassLoader());
 
     }
 

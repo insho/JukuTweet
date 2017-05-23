@@ -129,6 +129,10 @@ public class QuizMenuDialog extends DialogFragment {
         txtView2 = (TextView) view.findViewById(R.id.btnRow2);
         txtView3 = (TextView) view.findViewById(R.id.btnRow3);
 
+        txtView1.setWidth(mAvailablePopupWidth);
+        txtView2.setWidth(mAvailablePopupWidth);
+        txtView3.setWidth(mAvailablePopupWidth);
+
         TextView txtViewRow1 = (TextView) view.findViewById(R.id.txtRow1);
         TextView txtViewRow2 = (TextView) view.findViewById(R.id.txtRow2);
         TextView txtViewRow3 = (TextView) view.findViewById(R.id.txtRow3);

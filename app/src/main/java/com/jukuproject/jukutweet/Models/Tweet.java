@@ -233,8 +233,8 @@ public class Tweet  implements Parcelable {
         entities = in.readParcelable(getClass().getClassLoader());
         wordEntries = new ArrayList<>();
 //            in.readTypedList(wordEntries,WordEntry.CREATOR);
-            in.readList(wordEntries,WordEntry.class.getClassLoader());
-        this.user = in.readParcelable(UserInfo.class.getClassLoader());
+            in.readList(wordEntries,getClass().getClassLoader());
+        this.user = in.readParcelable(getClass().getClassLoader());
     }
 
     public int describeContents(){

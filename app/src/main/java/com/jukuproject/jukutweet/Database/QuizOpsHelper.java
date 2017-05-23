@@ -157,17 +157,17 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                 ") ORDER BY RANDOM()  Limit " + limit + " ",null);
     }
 
-    /**
-     * Decides which WordEntries within a Tweet will be designated as "spinners", meaning that they will be
-     * pickable dropdowns in the FillintheBlanks quiz. More than one possible "spinner" word may appear in a tweet, so the number
-     * of spinners is assigned via a weighted average type deal, with a max of 3 spinners per question. The spinner is designated
-     * as such by turning the "isSpinner" boolean in the WordEntry object for the word to "true"
-     * @param db Sqlite db connection
-     * @param myListType tag designating the type of List, either Word or Tweet (to be passed on to getDummySpinnerOptions method)
-     * @param myListEntry List entry object (to be passed on to getDummySpinnerOptions method)
-     * @param tweet Tweet containg the words (to be passed on to getDummySpinnerOptions method)
-     * @param wordListEdictIds a concatenated string of edict ids for the words contained in the Tweet. Used to randomly assign the spinner
-     */
+//    /**
+//     * Decides which WordEntries within a Tweet will be designated as "spinners", meaning that they will be
+//     * pickable dropdowns in the FillintheBlanks quiz. More than one possible "spinner" word may appear in a tweet, so the number
+//     * of spinners is assigned via a weighted average type deal, with a max of 3 spinners per question. The spinner is designated
+//     * as such by turning the "isSpinner" boolean in the WordEntry object for the word to "true"
+//     * @param db Sqlite db connection
+//     * @param myListType tag designating the type of List, either Word or Tweet (to be passed on to getDummySpinnerOptions method)
+//     * @param myListEntry List entry object (to be passed on to getDummySpinnerOptions method)
+//     * @param tweet Tweet containg the words (to be passed on to getDummySpinnerOptions method)
+//     * @param wordListEdictIds a concatenated string of edict ids for the words contained in the Tweet. Used to randomly assign the spinner
+//     */
 //    public int setSpinnersForTweetWithMyListWords(SQLiteDatabase db
 //            , String myListType
 //            , MyListEntry myListEntry
@@ -203,104 +203,104 @@ public class QuizOpsHelper implements QuizOperationsInterface {
 //        return spinnerAddedCount;
 //    }
 
-    /**
-     * Pulls false options for a spinner dropdown object (in FillintheBlanks quiz)
-     * @param db sqlite database connection
-     * @param myListEntry MyList object
-     * @param wordEntry WordEntry object for "spinner" word
-     * @param mylistType tag designating the type of List, either Word or Tweet
-     * @return An array of dummy options for the spinner words in the FillintheBlanks Quiz
-     *
-     * @see com.jukuproject.jukutweet.Fragments.FillInTheBlankFragment
-     */
-    public ArrayList<String> getDummySpinnerOptions(SQLiteDatabase db
-            , MyListEntry myListEntry
-            , WordEntry wordEntry
-            , String mylistType) {
-        ArrayList<String> dummyOptions = new ArrayList<>();
-
-        try {
-            Cursor c;
-            if(mylistType.equals("Tweet")) {
-
-                c = db.rawQuery("SELECT [Kanji] " +
-                        "FROM " +
-                        "(" +
-                        "SELECT [Kanji] " +
-                        "FROM " +
-                        "(" +
-                        "Select DISTINCT [Kanji] " +
-                        "FROM [Edict] where [_id] in (" +
-                            "SELECT DISTINCT Edict_id as [_id] " +
-                            "FROM "+
-                                "( " +
-                                    "SELECT DISTINCT _id as Tweet_id " +
-                                    "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
-                                    " WHERE [Name] = ? and [Sys] = ? " +
-                                ") as x " +
-                            "LEFT JOIN "  +
-                                "( " +
-                                "SELECT DISTINCT Tweet_id,Edict_id " +
-                                "FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI + " " +
-                                "WHERE [_id] <> ? " +
-                                ")  as y " +
-                            " ON x.Tweet_id = y.Tweet_id " +
-                        " ORDER BY RANDOM()  LIMIT 8 " +
-                        ") OR [_id] in (" +
-                            "SELECT DISTINCT [_id] " +
-                            "FROM [XRef] " +
-                            "WHERE [_id] <> ? " +
-                            "ORDER BY RANDOM()  LIMIT 4" +
-                        ") " +
-                        "ORDER BY RANDOM() LIMIT 3)  " +
-                        "UNION " +
-                        "SELECT '" + wordEntry.getCoreKanjiBlock() + "' as [Kanji]) " +
-                        "ORDER BY RANDOM() ",new String[]{myListEntry.getListName()
-                        ,String.valueOf(myListEntry.getListsSys())
-                        ,String.valueOf(wordEntry.getId())
-                        ,String.valueOf(wordEntry.getId())});
-            } else {
-
-                c = db.rawQuery("SELECT [Kanji] " +
-                        "FROM " +
-                        "(" +
-                        "SELECT [Kanji] " +
-                        "FROM " +
-                        "(" +
-                            "Select DISTINCT [Kanji] " +
-                            "FROM [Edict] where [_id] in (" +
-                            "SELECT DISTINCT [_id] " +
-                            "FROM " +  InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
-                            " WHERE [Name] = ? and [Sys] = ? and [_id] <> ? " +
-                            "ORDER BY RANDOM()  LIMIT 8 " +
-                            ") OR [_id] in (" +
-                            "SELECT DISTINCT [_id] " +
-                            "FROM [XRef] " +
-                            "WHERE [_id] <> ? " +
-                            "ORDER BY RANDOM()  LIMIT 4" +
-                            ") ORDER BY RANDOM() LIMIT 3)  " +
-                        "UNION " +
-                        "SELECT '" + wordEntry.getCoreKanjiBlock() + "' as [Kanji]) " +
-                        "ORDER BY RANDOM() ",new String[]{myListEntry.getListName()
-                        ,String.valueOf(myListEntry.getListsSys())
-                        ,String.valueOf(wordEntry.getId())
-                        ,String.valueOf(wordEntry.getId())});
-            }
-            if(c.getCount()>0) {
-                c.moveToFirst();
-                while (!c.isAfterLast()) {
-                    dummyOptions.add(c.getString(0));
-                    c.moveToNext();
-                }
-                c.close();
-            }
-        } catch (SQLiteException e){
-            Log.e(TAG,"getDummySpinnerOptions Sqlite exception: " + e);
-        }
-
-        return dummyOptions;
-
-    }
+//    /**
+//     * Pulls false options for a spinner dropdown object (in FillintheBlanks quiz)
+//     * @param db sqlite database connection
+//     * @param myListEntry MyList object
+//     * @param wordEntry WordEntry object for "spinner" word
+//     * @param mylistType tag designating the type of List, either Word or Tweet
+//     * @return An array of dummy options for the spinner words in the FillintheBlanks Quiz
+//     *
+//     * @see com.jukuproject.jukutweet.Fragments.FillInTheBlankFragment
+//     */
+//    public ArrayList<String> getDummySpinnerOptions(SQLiteDatabase db
+//            , MyListEntry myListEntry
+//            , WordEntry wordEntry
+//            , String mylistType) {
+//        ArrayList<String> dummyOptions = new ArrayList<>();
+//
+//        try {
+//            Cursor c;
+//            if(mylistType.equals("Tweet")) {
+//
+//                c = db.rawQuery("SELECT [Kanji] " +
+//                        "FROM " +
+//                        "(" +
+//                        "SELECT [Kanji] " +
+//                        "FROM " +
+//                        "(" +
+//                        "Select DISTINCT [Kanji] " +
+//                        "FROM [Edict] where [_id] in (" +
+//                            "SELECT DISTINCT Edict_id as [_id] " +
+//                            "FROM "+
+//                                "( " +
+//                                    "SELECT DISTINCT _id as Tweet_id " +
+//                                    "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+//                                    " WHERE [Name] = ? and [Sys] = ? " +
+//                                ") as x " +
+//                            "LEFT JOIN "  +
+//                                "( " +
+//                                "SELECT DISTINCT Tweet_id,Edict_id " +
+//                                "FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI + " " +
+//                                "WHERE [_id] <> ? " +
+//                                ")  as y " +
+//                            " ON x.Tweet_id = y.Tweet_id " +
+//                        " ORDER BY RANDOM()  LIMIT 8 " +
+//                        ") OR [_id] in (" +
+//                            "SELECT DISTINCT [_id] " +
+//                            "FROM [XRef] " +
+//                            "WHERE [_id] <> ? " +
+//                            "ORDER BY RANDOM()  LIMIT 4" +
+//                        ") " +
+//                        "ORDER BY RANDOM() LIMIT 3)  " +
+//                        "UNION " +
+//                        "SELECT '" + wordEntry.getCoreKanjiBlock() + "' as [Kanji]) " +
+//                        "ORDER BY RANDOM() ",new String[]{myListEntry.getListName()
+//                        ,String.valueOf(myListEntry.getListsSys())
+//                        ,String.valueOf(wordEntry.getId())
+//                        ,String.valueOf(wordEntry.getId())});
+//            } else {
+//
+//                c = db.rawQuery("SELECT [Kanji] " +
+//                        "FROM " +
+//                        "(" +
+//                        "SELECT [Kanji] " +
+//                        "FROM " +
+//                        "(" +
+//                            "Select DISTINCT [Kanji] " +
+//                            "FROM [Edict] where [_id] in (" +
+//                            "SELECT DISTINCT [_id] " +
+//                            "FROM " +  InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
+//                            " WHERE [Name] = ? and [Sys] = ? and [_id] <> ? " +
+//                            "ORDER BY RANDOM()  LIMIT 8 " +
+//                            ") OR [_id] in (" +
+//                            "SELECT DISTINCT [_id] " +
+//                            "FROM [XRef] " +
+//                            "WHERE [_id] <> ? " +
+//                            "ORDER BY RANDOM()  LIMIT 4" +
+//                            ") ORDER BY RANDOM() LIMIT 3)  " +
+//                        "UNION " +
+//                        "SELECT '" + wordEntry.getCoreKanjiBlock() + "' as [Kanji]) " +
+//                        "ORDER BY RANDOM() ",new String[]{myListEntry.getListName()
+//                        ,String.valueOf(myListEntry.getListsSys())
+//                        ,String.valueOf(wordEntry.getId())
+//                        ,String.valueOf(wordEntry.getId())});
+//            }
+//            if(c.getCount()>0) {
+//                c.moveToFirst();
+//                while (!c.isAfterLast()) {
+//                    dummyOptions.add(c.getString(0));
+//                    c.moveToNext();
+//                }
+//                c.close();
+//            }
+//        } catch (SQLiteException e){
+//            Log.e(TAG,"getDummySpinnerOptions Sqlite exception: " + e);
+//        }
+//
+//        return dummyOptions;
+//
+//    }
 
 
 
@@ -323,7 +323,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                                     "( " +
                                     "SELECT DISTINCT _id as Tweet_id " +
                                     "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
-                                    " WHERE [Name] = ? and [Sys] = ? " +
+                                    " WHERE [Name] = ? and [Sys] = ?  and [_id] in (SELECT DISTINCT Tweet_id FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS + " ) " +
                                     ") as x " +
                                     "LEFT JOIN "  +
                                     "( " +
@@ -346,7 +346,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                                     "FROM [Edict] where [_id] in (" +
                                     "SELECT DISTINCT [_id] " +
                                     "FROM " +  InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
-                                    " WHERE [Name] = ? and [Sys] = ? " +
+                                    " WHERE [Name] = ? and [Sys] = ?  and [_id] in (SELECT DISTINCT Tweet_id FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS + " ) " +
                                     "ORDER BY RANDOM()  LIMIT 50 " +
                                     ") OR [_id] in (" +
                                     "SELECT DISTINCT [_id] " +
@@ -368,7 +368,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                                     "WHERE Tweet_id in (" +
                                                 "SELECT  DISTINCT _id as [Tweet_id]" +
                                                 "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
-                                                "WHERE [UserId] = ? " +
+                                                "WHERE [UserId] = ? and [_id] in (SELECT DISTINCT [Edict_id] FROM " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + ")" +
                                                 ")" +
                                     " ORDER BY RANDOM()  LIMIT 50 " +
                                 ") OR [_id] in (" +
@@ -631,7 +631,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                                 "and Tweet_id in (" +
                                 "SELECT DISTINCT _id as [Tweet_id]" +
                                 " FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES  + " " +
-                                " WHERE [Name] = ? and  [Sys] = ?   " +
+                                " WHERE [Name] = ? and  [Sys] = ?  and [_id] in (SELECT DISTINCT Tweet_id FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS + " ) " +
                                 ") " +
 
                                 ") as a " +
@@ -710,7 +710,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                                 "and Tweet_id in (" +
                                              "SELECT DISTINCT _id as [Tweet_id]" +
                                             " FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES  + " " +
-                                            " WHERE [Name] = ? and  [Sys] = ?   " +
+                                            " WHERE [Name] = ? and  [Sys] = ?  and [_id] in (SELECT DISTINCT Tweet_id FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS + " ) " +
                                 ") " +
 
                             ") as a " +
@@ -824,11 +824,8 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                     c.moveToNext();
                 }
 
-
-
                 /* Randomize dataset*/
                 Collections.shuffle(savedTweets);
-
 
             /* If there are not enough unique results to fill out the quiz size, start adding random
             entries from the dataset to itself until there are enough tweets . */
@@ -929,10 +926,10 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                                 ",[CoreKanjiBlock] " +
                                 "From " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + " " +
                                 " WHERE [Edict_id] is not NULL and StartIndex is not NULL and EndIndex is not NULL and EndIndex > StartIndex " +
-                                "and Tweet_id in (" +
+                                " and Tweet_id in (" +
                                     "SELECT  DISTINCT  _id as [Tweet_id]" +
                                     " FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
-                                    " WHERE [UserId] = ? " +
+                                    " WHERE [UserId] = ? and [_id] in (SELECT DISTINCT Tweet_id FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS + " ) " +
 
                                      ") " +
 
@@ -1015,10 +1012,8 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                                 "and Tweet_id in (" +
                                     "SELECT  DISTINCT  _id as [Tweet_id]" +
                                     "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
-                                    "WHERE [UserId] = ? " +
+                                    "WHERE [UserId] = ? and [_id] in (SELECT DISTINCT Tweet_id FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS + " ) " +
                                     ") " +
-
-
                                 ") as a " +
                                 "LEFT JOIN " +
                                 " (" +
@@ -1325,7 +1320,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                                                         "(" +
                                                             " SELECT DISTINCT [_id] " +
                                                             " FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES +  "  " +
-                                                            " WHERE [Name] = ?  and [Sys] = " + myListEntry.getListsSys() +" " +
+                                                            " WHERE [Name] = ?  and [Sys] = " + myListEntry.getListsSys() +" and [_id] in (SELECT DISTINCT Tweet_id FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS + " ) " +
                                                         ") as x " +
                                                         "LEFT JOIN " +
                                                         "(" +
@@ -1369,7 +1364,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                                     "WHERE [Edict_id] in (" +
                                          "SELECT DISTINCT [_id]" +
                                         " FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
-                                        " WHERE [Name] = ? and  [Sys] = "+ myListEntry.getListsSys() +"  " +
+                                        " WHERE [Name] = ? and  [Sys] = "+ myListEntry.getListsSys() +"  and [_id] in (SELECT DISTINCT Tweet_id FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS + " ) " +
                                              ") " +
                                         ") " +
                             ") as a " +
@@ -1457,7 +1452,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                             " WHERE [Edict_id] in (" +
                             "SELECT DISTINCT [_id]" +
                             " FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
-                            " WHERE [Name] = ? and  [Sys] = " + myListEntry.getListsSys() +"   " +
+                            " WHERE [Name] = ? and  [Sys] = " + myListEntry.getListsSys() +"  and [_id] in (SELECT DISTINCT Tweet_id FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS + " ) " +
                             ") " +
                             ") " +
                             ") as a " +
@@ -1641,7 +1636,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
             Cursor c = sqlOpener.getReadableDatabase().rawQuery(
                     "SELECT DISTINCT [_id]" +
                             " FROM " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " " +
-                            " WHERE [Name] = ? and [Sys] = ? ",new String[]{myListEntry.getListName()
+                            " WHERE [Name] = ? and [Sys] = ? ",new String[]{myListEntry.getListName() + " and [_id] in (SELECT DISTINCT Tweet_id FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS + " ) "
                             ,String.valueOf(myListEntry.getListsSys())});
             if(c.getCount()>0) {
                 c.moveToFirst();
@@ -1865,7 +1860,6 @@ public class QuizOpsHelper implements QuizOperationsInterface {
      * @param wordId id of word in question
      * @param total updated total questions involving that word
      * @param correct update total correct answers for the word
-     * @return bool true if insert was succesful, false if not
      */
     public void addWordScoreToScoreBoard(int wordId, int total, int correct) {
 

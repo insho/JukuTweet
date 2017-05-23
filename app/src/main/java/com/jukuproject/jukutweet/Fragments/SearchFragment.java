@@ -234,19 +234,16 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                         mDictionarySearchLayout.setVisibility(View.GONE);
                         if(checkBoxDictionary.isChecked() && checkBoxRomaji.isChecked()) {
                             showProgressBar(true);
-                            mDataSetMaxId = null;
-                            mPreviousMaxScrollPosition = 0;
+                            clearCurrentSearchResults();
                             mCallback.runDictionarySearch(query.trim(),"Kanji");
                         } else if(checkBoxDictionary.isChecked() && checkBoxDefinition.isChecked()) {
                             showProgressBar(true);
-                            mDataSetMaxId = null;
-                            mPreviousMaxScrollPosition = 0;
+                            clearCurrentSearchResults();
                             mCallback.runDictionarySearch(query.trim(),"Definition");
                         } else if(checkBoxTwitter.isChecked() && checkBoxRomaji.isChecked()) {
                             if(mCallback.isOnline()) {
                                 showProgressBar(true);
-                                mDataSetMaxId = null;
-                                mPreviousMaxScrollPosition = 0;
+                                clearCurrentSearchResults();
                                 currentActiveTwitterSearchQuery = query.trim();
                                 mCallback.runTwitterSearch(currentActiveTwitterSearchQuery,"User",mDataSetMaxId);
                             } else {
@@ -254,8 +251,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                             }
                         } else if(checkBoxTwitter.isChecked() && checkBoxDefinition.isChecked()) {
                             if(mCallback.isOnline()) {
-                                mDataSetMaxId = null;
-                                mPreviousMaxScrollPosition = 0;
+                                clearCurrentSearchResults();
                                 showProgressBar(true);
                                 currentActiveTwitterSearchQuery = query.trim();
                                 mCallback.runTwitterSearch(currentActiveTwitterSearchQuery,"Tweet",mDataSetMaxId);
@@ -305,6 +301,27 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
 
     }
 
+    /**
+     * Clears all possible "results" datasets and notifies
+     * the current adapter. This is called when user clicks "search"
+     * and the search begins, so that the previous search material disappears.
+     */
+    private void clearCurrentSearchResults(){
+        mDataSetMaxId = null;
+        mPreviousMaxScrollPosition = 0;
+        if(mTwitterResults!=null) {
+            mTwitterResults.clear();
+        }
+        if(mTwitterUserResults!=null) {
+            mTwitterUserResults.clear();
+        }
+        if(mDictionaryResults!=null) {
+            mDictionaryResults.clear();
+        }
+        if(mRecyclerView!=null && mRecyclerView.getAdapter()!=null) {
+            mRecyclerView.getAdapter().notifyDataSetChanged();
+        }
+    }
 
     private void setUpCheckBoxes() {
         checkBoxDictionary.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -469,15 +486,30 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
 
                     if (isUniqueClick(150) && event instanceof Integer) {
 
-                        Integer tweetWordEntryIndex = (Integer) event;
-                        //Activity windows height
-                        int[] location = new int[2];
+                        Integer adapterPosition = (Integer) event;
+                        try {
 
-                        TweetBreakDownAdapter.ViewHolder viewHolder = (TweetBreakDownAdapter.ViewHolder)mRecyclerView.getChildViewHolder(mRecyclerView.getChildAt(tweetWordEntryIndex));
-                        mRecyclerView.getChildAt(tweetWordEntryIndex).getLocationInWindow(location);
-                        Log.i(TAG,"location x: " + location[0] + ", y: " + location[1]);
+                            int recyclerChildToAdapterPosOffset = adapterPosition - mRecyclerView.getChildAdapterPosition(mRecyclerView.getChildAt(0));
+                            if(mRecyclerView.getChildAdapterPosition(mRecyclerView.getChildAt(recyclerChildToAdapterPosOffset)) == adapterPosition) {
+                                int[] location = new int[2];
+                                mRecyclerView.getChildAt(recyclerChildToAdapterPosOffset).getLocationInWindow(location);
+                                TweetBreakDownAdapter.ViewHolder viewHolder = (TweetBreakDownAdapter.ViewHolder)mRecyclerView.findViewHolderForAdapterPosition(adapterPosition);
+                                showFavoriteListPopupWindow(viewHolder,mDictionaryResults.get(adapterPosition),mMetrics,location[1]);
+//                            Log.i(TAG,"ADAPTER POS: " + adapterPosition + " LAYOUT POS: " + viewHolder.getLayoutPosition() + ", tweet: " + mDataSet.get(adapterPosition).getText());
+                            }
+                        } catch (NullPointerException e) {
+                            Log.e(TAG,"UserTimeLine showtweetfavoritelist popup at location nullpointer: " + e.getCause());
+                        }
 
-                        showFavoriteListPopupWindow(viewHolder,mDictionaryResults.get(tweetWordEntryIndex),mMetrics,location[1]);
+//                        Integer tweetWordEntryIndex = (Integer) event;
+//                        //Activity windows height
+//                        int[] location = new int[2];
+//
+//                        TweetBreakDownAdapter.ViewHolder viewHolder = (TweetBreakDownAdapter.ViewHolder)mRecyclerView.getChildViewHolder(mRecyclerView.getChildAt(tweetWordEntryIndex));
+//                        mRecyclerView.getChildAt(tweetWordEntryIndex).getLocationInWindow(location);
+//                        Log.i(TAG,"location x: " + location[0] + ", y: " + location[1]);
+//
+//                        showFavoriteListPopupWindow(viewHolder,mDictionaryResults.get(tweetWordEntryIndex),mMetrics,location[1]);
 
                     } else if (isUniqueClick(150) && event instanceof WordEntry) {
                         WordEntry wordEntry = (WordEntry) event;
@@ -579,34 +611,25 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
 
                         if (isUniqueClick(100) && event instanceof Integer) {
 
-                            Integer tweetWordEntryIndex = (Integer) event;
-                            //Activity windows height
-                            int[] location = new int[2];
+                            Integer adapterPosition = (Integer) event;
+                            try {
 
-                            UserTimeLineAdapter.ViewHolder viewHolder = (UserTimeLineAdapter.ViewHolder)mRecyclerView.getChildViewHolder(mRecyclerView.getChildAt(tweetWordEntryIndex));
-                            mRecyclerView.getChildAt(tweetWordEntryIndex).getLocationInWindow(location);
-//                    Log.i(TAG,"location x: " + location[0] + ", y: " + location[1]);
-
-                            showTweetFavoriteListPopupWindow(viewHolder,mTwitterResults.get(tweetWordEntryIndex),mMetrics,location[1]);
+                                int recyclerChildToAdapterPosOffset = adapterPosition - mRecyclerView.getChildAdapterPosition(mRecyclerView.getChildAt(0));
+                                if(mRecyclerView.getChildAdapterPosition(mRecyclerView.getChildAt(recyclerChildToAdapterPosOffset)) == adapterPosition) {
+                                    int[] location = new int[2];
+                                    mRecyclerView.getChildAt(recyclerChildToAdapterPosOffset).getLocationInWindow(location);
+                                    UserTimeLineAdapter.ViewHolder viewHolder = (UserTimeLineAdapter.ViewHolder)mRecyclerView.findViewHolderForAdapterPosition(adapterPosition);
+                                    showTweetFavoriteListPopupWindow(viewHolder,mTwitterResults.get(adapterPosition),mMetrics,location[1]);
+//                            Log.i(TAG,"ADAPTER POS: " + adapterPosition + " LAYOUT POS: " + viewHolder.getLayoutPosition() + ", tweet: " + mDataSet.get(adapterPosition).getText());
+                                }
+                            } catch (NullPointerException e) {
+                                Log.e(TAG,"UserTimeLine showtweetfavoritelist popup at location nullpointer: " + e.getCause());
+                            }
 
                         } else if(isUniqueClick(150) && event instanceof Tweet) {
                             final Tweet tweet = (Tweet) event;
                             saveOrDeleteTweet(tweet);
                         }
-//
-//                        if(isUniqueClick(1000) && event instanceof Tweet) {
-//                            final Tweet tweet = (Tweet) event;
-////                            if(tweet.getUser()!=null) {
-////                                mCallback.downloadTweetUserIcons(tweet.getUser());
-////                            }
-////                            if(InternalDB.getTweetInterfaceInstance(getContext()).tweetParsedKanjiExistsInDB(tweet) == 0) {
-////                                mCallback.parseAndSaveTweet(tweet);
-////                            } else {
-////                                Log.e(TAG,"Tweet parsed kanji exists code is funky");
-////                            }
-////                            mCallback.notifySavedTweetFragmentsChanged();
-//                            saveOrDeleteTweet(tweet);
-//                        }
 
                     }
 

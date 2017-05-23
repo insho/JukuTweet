@@ -188,7 +188,6 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
             txtNoTweetsFound.setVisibility(View.GONE);
 
             if(searchInProgress) {
-                showProgressBar(true);
                 mDataSet.clear();
                 runTwitterSearch(mWordEntry.getKanji());
 
@@ -670,7 +669,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         if(searchQuerySubscription !=null && !searchQuerySubscription.isUnsubscribed()) {
             searchQuerySubscription.unsubscribe();
         }
-
+        showProgressBar(true);
         String token = getResources().getString(R.string.access_token);
         String tokenSecret = getResources().getString(R.string.access_token_secret);
 
@@ -761,15 +760,19 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
                     public void call(Object event) {
                         if (isUniqueClick(1000) && event instanceof Integer) {
 
-                            Integer tweetWordEntryIndex = (Integer) event;
-                            //Activity windows height
-                            int[] location = new int[2];
+                            Integer adapterPosition = (Integer) event;
+                            try {
 
-                            UserTimeLineAdapter.ViewHolder viewHolder = (UserTimeLineAdapter.ViewHolder)mRecyclerView.getChildViewHolder(mRecyclerView.getChildAt(tweetWordEntryIndex));
-                            mRecyclerView.getChildAt(tweetWordEntryIndex).getLocationInWindow(location);
-//                    Log.i(TAG,"location x: " + location[0] + ", y: " + location[1]);
-
-                            showTweetFavoriteListPopupWindow(viewHolder,mDataSet.get(tweetWordEntryIndex),metrics,location[1]);
+                                int recyclerChildToAdapterPosOffset = adapterPosition - mRecyclerView.getChildAdapterPosition(mRecyclerView.getChildAt(0));
+                                if(mRecyclerView.getChildAdapterPosition(mRecyclerView.getChildAt(recyclerChildToAdapterPosOffset)) == adapterPosition) {
+                                    int[] location = new int[2];
+                                    mRecyclerView.getChildAt(recyclerChildToAdapterPosOffset).getLocationInWindow(location);
+                                    UserTimeLineAdapter.ViewHolder viewHolder = (UserTimeLineAdapter.ViewHolder)mRecyclerView.findViewHolderForAdapterPosition(adapterPosition);
+                                    showTweetFavoriteListPopupWindow(viewHolder,mDataSet.get(adapterPosition),metrics,location[1]);
+                                }
+                            } catch (NullPointerException e) {
+                                Log.e(TAG,"UserTimeLine showtweetfavoritelist popup at location nullpointer: " + e.getCause());
+                            }
 
                         } else if(isUniqueClick(150) && event instanceof Tweet) {
                             final Tweet tweet = (Tweet) event;

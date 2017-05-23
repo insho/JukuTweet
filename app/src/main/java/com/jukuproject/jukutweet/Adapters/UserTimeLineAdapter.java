@@ -149,7 +149,6 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
 
                 /* Check for, and save */
                     if(tweet.getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)) {
-
                         _rxbus.sendSaveTweet(holder.getAdapterPosition());
                     } else {
 

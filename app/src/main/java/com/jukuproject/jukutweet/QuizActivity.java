@@ -286,8 +286,8 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
      * Main Activity with a Toast notification
      */
     public void emergencyGoBackToMainActivity(){
-        Log.e(TAG,"Error unable to create quiz... ");
-        Toast.makeText(this, "Error. Unable to create quiz.", Toast.LENGTH_SHORT).show();
+        Log.e(TAG,"Error unable to continue quiz... ");
+        Toast.makeText(this, "Error. Unable to continue quiz.", Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(getBaseContext(), MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         intent.putExtra("fragmentWasChanged", true);
@@ -496,6 +496,8 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
     public void downloadTweetUserIcons(UserInfo userInfo) {
         InternalDB.getUserInterfaceInstance(getBaseContext()).downloadTweetUserIcon(getBaseContext(),userInfo.getProfileImageUrl(),userInfo.getUserId());
     }
+
+
 
     @Override
     protected void onDestroy() {

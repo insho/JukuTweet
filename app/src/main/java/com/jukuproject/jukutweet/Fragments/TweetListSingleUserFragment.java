@@ -96,8 +96,10 @@ public class TweetListSingleUserFragment extends Fragment {
                                         int groupPosition, long id) {
                 ColorBlockMeasurables headerColorBlockMeasurables = mMenuHeader.get(groupPosition).getColorBlockMeasurables();
                 //If the list being clicked on is empty, show (or hide) the "(empty)" header label
-                if(headerColorBlockMeasurables.getTotalCount() == 0
-                        && headerColorBlockMeasurables.getTweetCount()==0) {
+                if(headerColorBlockMeasurables==null
+                        || headerColorBlockMeasurables.getTweetCount()==null ||
+                        (headerColorBlockMeasurables.getTotalCount() == 0
+                        && headerColorBlockMeasurables.getTweetCount()==0)) {
                     TextView lblListHeaderCount = (TextView) v.findViewById(R.id.lblListHeaderCount);
                     if (lblListHeaderCount.getVisibility() == TextView.VISIBLE && lblListHeaderCount.getText().toString().length() > 0) {
                         lblListHeaderCount.setVisibility(TextView.GONE);
@@ -158,69 +160,72 @@ public class TweetListSingleUserFragment extends Fragment {
                             .make(layoutMain, "Tweets are saved, but vocab has not been extracted from them. Go to Browse/Edit " +
                                     "and click on a tweet to create the vocab for it. ", Snackbar.LENGTH_LONG);
                     snackbar.show();
-                }
-                switch (childOption) {
-                    case "Browse/Edit":
+                } else {
+
+                    switch (childOption) {
+                        case "Browse/Edit":
                             TweetListBrowseFragment fragment = TweetListBrowseFragment.newInstance(mUserInfo);
                             ((BaseContainerFragment)getParentFragment()).replaceFragment(fragment, true,"savedtweetsbrowseSingleUser");
-                        break;
+                            break;
 
-                    case "Flash Cards":
-                        if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
-                            QuizMenuDialog.newSingleUserInstance("flashcards"
-                                    ,0
-                                    ,lastExpandedPosition
-                                    ,mUserInfo
-                                    ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
-                                    ,getdimenscore(.5f)).show(getActivity().getSupportFragmentManager()
-                                    ,"dialogQuizMenu");
+                        case "Flash Cards":
+                            if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
+                                QuizMenuDialog.newSingleUserInstance("flashcards"
+                                        ,0
+                                        ,lastExpandedPosition
+                                        ,mUserInfo
+                                        ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
+                                        ,getdimenscore(.5f)).show(getActivity().getSupportFragmentManager()
+                                        ,"dialogQuizMenu");
+                                mCallback.showFab(false);
+                            }
+                            break;
+
+                        case "Multiple Choice":
+                            if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
+                                QuizMenuDialog.newSingleUserInstance("multiplechoice"
+                                        ,0
+                                        ,lastExpandedPosition
+                                        ,mUserInfo
+                                        ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
+                                        ,getdimenscore(.5f)).show(getActivity().getSupportFragmentManager(),"dialogQuizMenu");
+                            }
+
+
+                            break;
+
+                        case "Fill in the Blanks":
+                            Log.i(TAG,"mUserInfo: " + mUserInfo.getUserId());
+                            if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
+                                QuizMenuDialog.newSingleUserInstance("fillintheblanks"
+                                        ,0
+                                        ,lastExpandedPosition
+                                        ,mUserInfo
+                                        ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
+                                        ,getdimenscore(.5f)).show(getActivity().getSupportFragmentManager(),"dialogQuizMenu");
+                            }
+
+                            break;
+                        case "Stats":
+
+                            View colorBlockMinWidthEstimateView = getActivity().getLayoutInflater().inflate(R.layout.expandablelistadapter_listitem, null);
+                            DisplayMetrics metrics = new DisplayMetrics();
+                            getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+                            float metricsDensity = metrics.density;
+
+                            ColorBlockMeasurables colorBlockMeasurablesSingleList = prepareColorBlockDataForAList(getContext(),mUserInfo,true,colorBlockMinWidthEstimateView,metricsDensity);
+                            StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newSingleUserTweetsInstance(mUserInfo
+                                    , 10
+                                    ,colorBlockMeasurablesSingleList);
+                            ((BaseContainerFragment)getParentFragment()).replaceFragment(statsFragmentProgress, true,"singleUserStats");
                             mCallback.showFab(false);
-                        }
-                        break;
+                            break;
 
-                    case "Multiple Choice":
-                        if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
-                            QuizMenuDialog.newSingleUserInstance("multiplechoice"
-                                    ,0
-                                    ,lastExpandedPosition
-                                    ,mUserInfo
-                                    ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
-                                    ,getdimenscore(.5f)).show(getActivity().getSupportFragmentManager(),"dialogQuizMenu");
-                        }
-
-
-                        break;
-
-                    case "Fill in the Blanks":
-                        Log.i(TAG,"mUserInfo: " + mUserInfo.getUserId());
-                        if(getFragmentManager().findFragmentByTag("quizmenu") == null || !getFragmentManager().findFragmentByTag("quizmenu").isAdded()) {
-                            QuizMenuDialog.newSingleUserInstance("fillintheblanks"
-                                    ,0
-                                    ,lastExpandedPosition
-                                    ,mUserInfo
-                                    ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
-                                    ,getdimenscore(.5f)).show(getActivity().getSupportFragmentManager(),"dialogQuizMenu");
-                        }
-
-                        break;
-                    case "Stats":
-
-                        View colorBlockMinWidthEstimateView = getActivity().getLayoutInflater().inflate(R.layout.expandablelistadapter_listitem, null);
-                        DisplayMetrics metrics = new DisplayMetrics();
-                        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
-                        float metricsDensity = metrics.density;
-
-                        ColorBlockMeasurables colorBlockMeasurablesSingleList = prepareColorBlockDataForAList(getContext(),mUserInfo,true,colorBlockMinWidthEstimateView,metricsDensity);
-                        StatsFragmentProgress statsFragmentProgress = StatsFragmentProgress.newSingleUserTweetsInstance(mUserInfo
-                                , 10
-                                ,colorBlockMeasurablesSingleList);
-                        ((BaseContainerFragment)getParentFragment()).replaceFragment(statsFragmentProgress, true,"singleUserStats");
-                        mCallback.showFab(false);
-                        break;
-
-                    default:
-                        break;
+                        default:
+                            break;
+                    }
                 }
+
                 return false;
             }
         });
@@ -291,7 +296,6 @@ public class TweetListSingleUserFragment extends Fragment {
 
                     /* Set the first available non-empty list to be automatically expanded when
                       fragment is created. This is achieved by making it the "lastexpandedposition" from the get-go */
-                    Log.i(TAG,"lastexpanded on setup: " +  lastExpandedPosition + "c.getInt: " + c.getInt(2) + ", size: " + mMenuHeader.size());
                     if(lastExpandedPosition<0 && c.getInt(2)>0) {
                         lastExpandedPosition = mMenuHeader.size();
                     }

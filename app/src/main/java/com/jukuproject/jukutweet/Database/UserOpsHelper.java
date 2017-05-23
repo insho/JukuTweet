@@ -279,6 +279,7 @@ public class UserOpsHelper implements UserOperationsInterface {
                         "SELECT  DISTINCT [UserId]" +
                         ", _id as [Tweet_id]" +
                         "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
+                        "WHERE _id in (SELECT DISTINCT Tweet_id FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS + " ) " +
                         ") as TweetLists " +
                         " LEFT JOIN " +
                         " ( " +
@@ -304,8 +305,6 @@ public class UserOpsHelper implements UserOperationsInterface {
                         " GROUP BY [_id]" +
                         ") as b " +
                         "ON a.[Edict_id] = b.[Edict_id] " +
-
-
 
                         " ) as TweetKanji " +
                         "On TweetLists.Tweet_id = TweetKanji.Tweet_id " +

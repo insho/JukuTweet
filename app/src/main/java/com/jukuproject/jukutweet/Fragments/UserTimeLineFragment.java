@@ -442,15 +442,23 @@ public class UserTimeLineFragment extends Fragment {
 
                 if (isUniqueClick(1000) && event instanceof Integer) {
 
-                    Integer tweetWordEntryIndex = (Integer) event;
-                    //Activity windows height
-                    int[] location = new int[2];
+                    Integer adapterPosition = (Integer) event;
 
-                    UserTimeLineAdapter.ViewHolder viewHolder = (UserTimeLineAdapter.ViewHolder)mRecyclerView.getChildViewHolder(mRecyclerView.getChildAt(tweetWordEntryIndex));
-                    mRecyclerView.getChildAt(tweetWordEntryIndex).getLocationInWindow(location);
-//                    Log.i(TAG,"location x: " + location[0] + ", y: " + location[1]);
+                    /*Try to get the viewholder for the row of the index passed back from the UserTimeLineAdapter,
+                    * and pass that into the "ShowFavoriteListPopupWindow" with the propper location adjustments on the screen. */
+                    try {
 
-                    showTweetFavoriteListPopupWindow(viewHolder,mDataSet.get(tweetWordEntryIndex),mMetrics,location[1]);
+                        int recyclerChildToAdapterPosOffset = adapterPosition - mRecyclerView.getChildAdapterPosition(mRecyclerView.getChildAt(0));
+                        if(mRecyclerView.getChildAdapterPosition(mRecyclerView.getChildAt(recyclerChildToAdapterPosOffset)) == adapterPosition) {
+                            int[] location = new int[2];
+                            mRecyclerView.getChildAt(recyclerChildToAdapterPosOffset).getLocationInWindow(location);
+                            UserTimeLineAdapter.ViewHolder viewHolder = (UserTimeLineAdapter.ViewHolder)mRecyclerView.findViewHolderForAdapterPosition(adapterPosition);
+                            showTweetFavoriteListPopupWindow(viewHolder,mDataSet.get(adapterPosition),mMetrics,location[1]);
+//                            Log.i(TAG,"ADAPTER POS: " + adapterPosition + " LAYOUT POS: " + viewHolder.getLayoutPosition() + ", tweet: " + mDataSet.get(adapterPosition).getText());
+                        }
+                    } catch (NullPointerException e) {
+                        Log.e(TAG,"UserTimeLine showtweetfavoritelist popup at location nullpointer: " + e.getCause());
+                    }
 
                 } else if(isUniqueClick(150) && event instanceof Tweet) {
                     final Tweet tweet = (Tweet) event;
@@ -554,15 +562,18 @@ public class UserTimeLineFragment extends Fragment {
 
         //Overrun at bottom of screen
         while(ylocation + holder.imgStar.getMeasuredHeight() - yadjust + popupMeasuredHeight >displayheight) {
-//            Log.i(TAG,"SCREEN OVERRUN BOTTOM - " + (ylocation + holder.imgStar.getMeasuredHeight() - yadjust + popupMeasuredHeight)
-//                    + " to display: " + displayheight + ",, reduce yadjust " + yadjust + " - " + (yadjust+10));
+            Log.i(TAG,"SCREEN OVERRUN BOTTOM - " + (ylocation + holder.imgStar.getMeasuredHeight() - yadjust + popupMeasuredHeight)
+                    + " to display: " + displayheight + ",, reduce yadjust " + yadjust + " - " + (yadjust+10));
             yadjust += 10;
         }
 
 //        //Overrun at bottom of screen
-        while(ylocation + holder.imgStar.getMeasuredHeight() - yadjust < 0) {
-//            Log.i(TAG,"SCREEN OVERRUN TOP - increase yadjust " + yadjust + " - " + (yadjust-10));
-            yadjust -= 10;
+        if(ylocation + holder.imgStar.getMeasuredHeight() - yadjust < 0) {
+            while(ylocation + holder.imgStar.getMeasuredHeight() - yadjust < 0) {
+                Log.i(TAG,"SCREEN OVERRUN TOP - increase yadjust " + yadjust + " - " + (yadjust-10));
+                yadjust -= 10;
+            }
+            yadjust -= 30;
         }
 
 

@@ -265,7 +265,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
      */
     public ArrayList<MyListEntry> getWordListsForAWord(ArrayList<String> activeFavoriteStars
             , String concatenatedWordIds
-            , int countOfWordIds
+
             , @Nullable MyListEntry entryToExclude) {
         ArrayList<MyListEntry> myListEntries = new ArrayList<>();
         try {
