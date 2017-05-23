@@ -238,6 +238,11 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
 
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
+                    try {
+                        ((MultipleChoiceFragment) findFragmentByPosition(0)).setTimerNull();
+                    } catch (NullPointerException e) {
+                        Log.e(TAG,"Pause timer from quizactivity nullpointer: " + e);
+                    }
 
                     Intent intent = new Intent(getBaseContext(), MainActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

@@ -838,7 +838,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                         for(int i= 0;i<tmpSavedTweets.size() && savedTweets.size()<resultLimit;i++) {
                             //Create deep copy of Tweet via parcel
                             Parcel p = Parcel.obtain();
-                            p.writeValue(tmpSavedTweets.get(0));
+                            p.writeValue(tmpSavedTweets.get(i));
                             p.setDataPosition(0);
                             Tweet randomTweet = (Tweet)p.readValue(Tweet.class.getClassLoader());
                             p.recycle();
@@ -1135,7 +1135,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                         for(int i= 0;i<tmpSavedTweets.size() && savedTweets.size()<resultLimit;i++) {
                             //Create deep copy of Tweet via parcel
                             Parcel p = Parcel.obtain();
-                            p.writeValue(tmpSavedTweets.get(0));
+                            p.writeValue(tmpSavedTweets.get(i));
                             p.setDataPosition(0);
                             Tweet randomTweet = (Tweet)p.readValue(Tweet.class.getClassLoader());
                             p.recycle();
@@ -1579,7 +1579,7 @@ public class QuizOpsHelper implements QuizOperationsInterface {
                         for(int i= 0;i<tmpSavedTweets.size() && savedTweets.size()<resultLimit;i++) {
                             //Create deep copy of Tweet via parcel
                             Parcel p = Parcel.obtain();
-                            p.writeValue(tmpSavedTweets.get(0));
+                            p.writeValue(tmpSavedTweets.get(i));
                             p.setDataPosition(0);
                             Tweet randomTweet = (Tweet)p.readValue(Tweet.class.getClassLoader());
                             p.recycle();

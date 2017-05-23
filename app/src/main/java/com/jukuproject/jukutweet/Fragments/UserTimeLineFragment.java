@@ -440,7 +440,7 @@ public class UserTimeLineFragment extends Fragment {
             @Override
             public void call(Object event) {
 
-                if (isUniqueClick(1000) && event instanceof Integer) {
+                if (event instanceof Integer && isUniqueClick(1000)) {
 
                     Integer adapterPosition = (Integer) event;
 
@@ -460,7 +460,7 @@ public class UserTimeLineFragment extends Fragment {
                         Log.e(TAG,"UserTimeLine showtweetfavoritelist popup at location nullpointer: " + e.getCause());
                     }
 
-                } else if(isUniqueClick(150) && event instanceof Tweet) {
+                } else if(event instanceof Tweet && isUniqueClick(100)) {
                     final Tweet tweet = (Tweet) event;
                     saveOrDeleteTweet(tweet);
                 }

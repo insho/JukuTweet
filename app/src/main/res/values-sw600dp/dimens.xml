@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="flashcard_width">550dp</dimen>
+    <dimen name="flashcard_height">733dp</dimen>
+
+</resources>

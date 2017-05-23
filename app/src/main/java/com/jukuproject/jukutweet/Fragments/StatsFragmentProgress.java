@@ -381,7 +381,9 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
      * @param userInfo UserInfo of user whose icon will be downloaded
      */
     public void downloadTweetUserIcons(UserInfo userInfo) {
-        mCallback.downloadTweetUserIcons(userInfo);
+        if(!InternalDB.getUserInterfaceInstance(getContext()).duplicateUser(userInfo.getUserId())) {
+            mCallback.downloadTweetUserIcons(userInfo);
+        }
     }
 
     /**

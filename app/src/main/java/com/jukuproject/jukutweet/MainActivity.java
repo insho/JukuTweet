@@ -1,12 +1,9 @@
 package com.jukuproject.jukutweet;
 
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -66,7 +63,6 @@ import com.jukuproject.jukutweet.TabContainers.Tab2Container;
 import com.jukuproject.jukutweet.TabContainers.Tab3Container;
 import com.jukuproject.jukutweet.TabContainers.Tab4Container;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -163,6 +159,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
             PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
 
+            // If it is the first time the user is opening the app, add JukuProject as a user in the userlist
             boolean previouslyStarted = sharedPref.getBoolean(getString(R.string.pref_previously_started), false);
             if(!previouslyStarted) {
                 SharedPreferences.Editor edit = sharedPref.edit();
@@ -226,7 +223,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 if(mViewPager != null) {
                    if(mViewPager.getCurrentItem() == 0 && isTopShowing(0)) {
                         showAddUserDialog();
-                        showRoomSetUp();
+
                     }
                    else if(mViewPager.getCurrentItem() == 1 && isTopShowing(1)) {
                        showAddMyListDialog("TweetList");
@@ -265,107 +262,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
     }
 
-    private void showRoomSetUp() {
-        ContextWrapper cw = new ContextWrapper(getBaseContext());
-        File directory = cw.getDir("icons", Context.MODE_PRIVATE);
-        File lister = directory.getAbsoluteFile();
-        for (String list : lister.list())
-        {
-            Log.i(TAG,"FILE: " + list);
-        }
 
-
-
-        SQLiteDatabase db = InternalDB.getInstance(getBaseContext()).getWritableDatabase();
-
-        Cursor c = db.rawQuery(                            "SELECT  DISTINCT [Tweet_id]" +
-                ",[UserScreenName] " +
-                ",[UserName] " +
-                ",[Text]" +
-                ",[CreatedAt]  as [Date] " +
-                ",[ProfileImgFilePath] " +
-                " FROM "+ InternalDB.Tables.TABLE_SAVED_TWEETS + " " +
-                "",null);
-
-        if(c.getCount()>0) {
-            c.moveToFirst();
-            while (!c.isAfterLast()) {
-                Log.d(TAG,"------------------------------");
-                Log.d(TAG,"Tweet_id: "  + c.getString(0));
-                Log.d(TAG,"UserScreenName: "  + c.getString(1));
-                Log.d(TAG,"UserName: "  + c.getString(2));
-                Log.d(TAG,"Text: "  + c.getString(3));
-                Log.d(TAG,"CreatedAt: "  + c.getString(4));
-                Log.d(TAG,"ProfileImgFilePath: "  + c.getString(5));
-                c.moveToNext();
-            }
-            c.close();
-        }
-
-
-        Cursor d = db.rawQuery(                          " SELECT Tweet_id" +
-                ",Edict_id " +
-                ",[StartIndex]" +
-                ",[EndIndex]" +
-                "From " + InternalDB.Tables.TABLE_SAVED_TWEET_KANJI  + " " +
-                " WHERE [Edict_id] is not NULL and StartIndex is not NULL and EndIndex is not NULL and EndIndex > StartIndex  ORDER BY Tweet_id asc",null);
-
-        if(d.getCount()>0) {
-            d.moveToFirst();
-            while (!c.isAfterLast()) {
-                Log.d(TAG,"------------------------------");
-                Log.d(TAG,"Tweet_id: "  + d.getString(0));
-                Log.d(TAG,"Edict_id: "  + d.getString(1));
-                Log.d(TAG,"StartIndex: "  + d.getString(2));
-                Log.d(TAG,"EndIndex: "  + d.getString(3));
-
-                d.moveToNext();
-            }
-            d.close();
-        }
-//
-//        db.execSQL("DELETE FROM JScoreboard");
-//
-//    db.execSQL("INSERT INTO JScoreboard " +
-//            "SELECT _id " +
-//            ",ABS(RANDOM()) % (31- 17) + 17 as [Total] " +
-//            ",ABS(RANDOM()) % (16- 4) + 4 as [Correct] " +
-//            "FROM XRef  " +
-//            "WHERE _id not in (SELECT DISTINCT _id FROM JScoreboard) " +
-//            "ORDER BY RANDOM() LIMIT  1000");
-//
-//    db.execSQL("INSERT INTO JScoreboard " +
-//            "SELECT _id " +
-//            ",ABS(RANDOM()) % (16 - 14) + 14 as [Total] " +
-//            ",ABS(RANDOM()) % (13- 11) + 11 as [Correct] " +
-//            "FROM XRef  " +
-//            "WHERE _id not in (SELECT DISTINCT _id FROM JScoreboard) " +
-//            "ORDER BY RANDOM() LIMIT  1000");
-//
-//    db.execSQL("INSERT INTO JScoreboard " +
-//            "SELECT _id " +
-//            ",ABS(RANDOM()) % (9 - 8) + 8 as [Total] " +
-//            ",ABS(RANDOM()) % (7- 2) + 2 as [Correct] " +
-//            "FROM XRef  " +
-//            "WHERE _id not in (SELECT DISTINCT _id FROM JScoreboard) " +
-//            "ORDER BY RANDOM() LIMIT  1000");
-//
-//    db.execSQL("DELETE FROM JScoreboard where Total < Correct ");
-//
-//    //ADD FAVS LISTS....
-//    db.execSQL("DELETE FROM JFavoritesLists ");
-//    db.execSQL("INSERT INTO JFavoritesLists " +
-//            "SELECT 'Quiz Words' as Name UNION " +
-//            "SELECT 'JLPT Words' as Name UNION " +
-//            "SELECT 'Words I Forget' as Name ");
-//
-//    db.execSQL("DELETE FROM JFavoritesTweetLists ");
-//    db.execSQL("INSERT INTO JFavoritesTweetLists " +
-//            "SELECT 'Super Cool Tweets' as Name UNION " +
-//            "SELECT 'Tuesday Stuff' as Name UNION " +
-//            "SELECT 'Other Tweets' as Name ");
-
-}
     /**
      * Each tab "bucket" has its own fab action and actionbar text/back button display depending
      * on where the user is navigating within the tab bucket. This method initializes the fab/action bar
@@ -734,6 +631,11 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                             /* If process is unable to get userInfo, save the screenName only as a placeholder to be accessed later */
                             if(!InternalDB.getUserInterfaceInstance(getBaseContext()).duplicateUser(screenName)) {
                                 InternalDB.getUserInterfaceInstance(getBaseContext()).saveUserWithoutData(screenName);
+                                try {
+                                    ((Tab1Container) findFragmentByPosition(0)).updateUserListFragment();
+                                } catch (NullPointerException ee) {
+                                    Log.e(TAG,"nullpointer error onAddUserDialogPOsitiveclick " + ee.getCause());
+                                }
                             }
                             userInfoSubscription = null;
                             Log.d(TAG,"ERROR CAUSE: " + e.getCause());
@@ -2372,6 +2274,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
      * @see com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog#runTwitterSearch(String)
      */
     public void downloadTweetUserIcons(UserInfo userInfo) {
+        Log.i(TAG,"in download tweet user icons");
         InternalDB.getUserInterfaceInstance(getBaseContext()).downloadTweetUserIcon(getBaseContext(),userInfo.getProfileImageUrl(),userInfo.getUserId());
     }
 

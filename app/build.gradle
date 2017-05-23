@@ -24,7 +24,7 @@ android {
 
             buildConfigField "String", "TWEET_API_KEY", "\"ShdILC9tL1Vi4w4FnU8GnZquN\""
             buildConfigField "String", "TWEET_API_SECRET", "\"5osILKfW5bCyOyWDIIaCNa2QHPaEfLHuwoTKDqJNlZPVGBOsFf\""
-            buildConfigField "boolean", "DEBUG", "true"
+            buildConfigField "boolean", "DEBUG", "false"
         }
     }
 }

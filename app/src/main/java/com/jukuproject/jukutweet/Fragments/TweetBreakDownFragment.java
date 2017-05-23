@@ -208,8 +208,9 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
     if(mSavedTweet && mTweet.getWordEntries()!=null) {
 
         //If the user icon was not saved, save it
+
         if(mTweet.getUser()!=null
-                && !InternalDB.getUserInterfaceInstance(getContext()).duplicateUser(mTweet.getUser().getUserId())) {
+                && mCallback.isOnline()) {
             mCallback.downloadTweetUserIcons(mTweet.getUser());
         }
 
@@ -508,7 +509,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
         mRxBus.toClickObserverable().subscribe(new Action1<Object>() {
                                                       @Override
                                                       public void call(Object event) {
-                if (isUniqueClick(150) && event instanceof Integer) {
+                if (event instanceof Integer && isUniqueClick(150) ) {
 
                     Integer adapterPosition = (Integer) event;
                     try {
@@ -535,7 +536,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
 //
 //                showFavoriteListPopupWindow(viewHolder,disectedSavedTweet.get(tweetWordEntryIndex),metrics,location[1]);
 
-                    } else if (isUniqueClick(150) && event instanceof WordEntry) {
+                    } else if (event instanceof WordEntry && isUniqueClick(150) ) {
                WordEntry wordEntry = (WordEntry) event;
                updateWordEntryFavoritesForOtherTabs(wordEntry);
 
@@ -545,7 +546,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
             mRxBus.toLongClickObserverable().subscribe(new Action1<Object>() {
                 @Override
                 public void call(Object event) {
-                    if (isUniqueClick(1000) && event instanceof WordEntry) {
+                    if (event instanceof WordEntry && isUniqueClick(1000)) {
                         WordEntry wordEntry = (WordEntry) event;
                         WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(wordEntry);
                         wordDetailPopupDialog.setTargetFragment(TweetBreakDownFragment.this, 0);

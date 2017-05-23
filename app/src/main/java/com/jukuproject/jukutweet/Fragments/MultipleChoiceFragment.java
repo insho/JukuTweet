@@ -769,16 +769,24 @@ public class MultipleChoiceFragment extends Fragment {
 
 
                 public void onFinish() {
+
                     millstogo = 0;
                     isCorrectFirstTry = false;
                       gradeQuestionResult();
-
                 }
             }.start();
 
         }
     }
 
+
+    public void setTimerNull(){
+        if(coundDownTimer != null) {
+            coundDownTimer.cancel();
+            coundDownTimer = null;
+        }
+
+    }
 
     public void pauseTimer() {
         if(mQuizTimer>0 && coundDownTimer != null) {
@@ -802,7 +810,10 @@ public class MultipleChoiceFragment extends Fragment {
 
     @Override
     public void onResume() {
-        resumeTimer();
+        if(millstogo>0) {
+            resumeTimer();
+        }
+
         super.onResume();
     }
 

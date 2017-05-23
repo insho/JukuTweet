@@ -484,7 +484,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                 @Override
                 public void call(Object event) {
 
-                    if (isUniqueClick(150) && event instanceof Integer) {
+                    if (event instanceof Integer && isUniqueClick(150) ) {
 
                         Integer adapterPosition = (Integer) event;
                         try {
@@ -511,7 +511,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
 //
 //                        showFavoriteListPopupWindow(viewHolder,mDictionaryResults.get(tweetWordEntryIndex),mMetrics,location[1]);
 
-                    } else if (isUniqueClick(150) && event instanceof WordEntry) {
+                    } else if (event instanceof WordEntry && isUniqueClick(150)) {
                         WordEntry wordEntry = (WordEntry) event;
                         updateWordEntryFavoritesForOtherTabs(wordEntry);
 
@@ -580,7 +580,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                             @Override
                             public void call(Object event) {
 
-                                if(isUniqueClick(1000) && event instanceof Tweet) {
+                                if(event instanceof Tweet && isUniqueClick(1000)) {
                                     Tweet tweet = (Tweet) event;
                                     TweetBreakDownFragment fragment = TweetBreakDownFragment.newInstanceTimeLine(tweet);
                                     ((BaseContainerFragment)getParentFragment()).addFragment(fragment, true,"tweetbreakdownSearch");
@@ -595,7 +595,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                             @Override
                             public void call(Object event) {
 
-                                if(isUniqueClick(1000) && event instanceof UserInfo) {
+                                if(event instanceof UserInfo && isUniqueClick(1000)) {
                                     UserInfo userInfo = (UserInfo) event;
                                     mCallback.showAddUserCheckDialog(userInfo);
                                 }
@@ -609,7 +609,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                     @Override
                     public void call(Object event) {
 
-                        if (isUniqueClick(100) && event instanceof Integer) {
+                        if ( event instanceof Integer && isUniqueClick(100)) {
 
                             Integer adapterPosition = (Integer) event;
                             try {
@@ -626,7 +626,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                                 Log.e(TAG,"UserTimeLine showtweetfavoritelist popup at location nullpointer: " + e.getCause());
                             }
 
-                        } else if(isUniqueClick(150) && event instanceof Tweet) {
+                        } else if(event instanceof Tweet && isUniqueClick(150)) {
                             final Tweet tweet = (Tweet) event;
                             saveOrDeleteTweet(tweet);
                         }
@@ -677,7 +677,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                         @Override
                         public void call(Object event) {
 
-                            if(isUniqueClick(1000) && event instanceof UserInfo) {
+                            if(event instanceof UserInfo && isUniqueClick(1000)) {
                                 UserInfo userInfo = (UserInfo) event;
                                 if(getFragmentManager().findFragmentByTag("dialogAddCheck") == null || !getFragmentManager().findFragmentByTag("dialogAddCheck").isAdded()) {
                                     AddUserCheckDialog.newInstance(userInfo).show(getFragmentManager(),"dialogAddCheck");
@@ -820,7 +820,9 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
      * @param userInfo UserInfo of user whose icon will be downloaded
      */
     public void downloadTweetUserIcons(UserInfo userInfo) {
-        mCallback.downloadTweetUserIcons(userInfo);
+        if(!InternalDB.getUserInterfaceInstance(getContext()).duplicateUser(userInfo.getUserId())) {
+            mCallback.downloadTweetUserIcons(userInfo);
+        }
     }
 
 
@@ -841,6 +843,7 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
             if(savedOrDeleteResultCode==1) {
                 if(tweet.getUser()!=null
                         && !InternalDB.getUserInterfaceInstance(getContext()).duplicateUser(tweet.getUser().getUserId())) {
+                    Log.i(TAG,"USER ICON IMAGE THING: " + tweet.getUser().getProfileImageUrl());
                     mCallback.downloadTweetUserIcons(tweet.getUser());
                 }
 

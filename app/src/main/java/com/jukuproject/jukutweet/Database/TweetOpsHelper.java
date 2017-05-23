@@ -2135,6 +2135,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                                     "Select _id as Tweet_Id " +
                                     "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES +
                                     " WHERE ([Name] = ? and [Sys] = " + myListEntry.getListsSys()  + ") and _id in (SELECT DISTINCT Tweet_id FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS + " ) " +
+                                " ) as a " +
                                 "Left JOIN " +
                                 "(" +
                                     "Select DISTINCT Tweet_id" +
@@ -2188,7 +2189,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                                 " WHERE [Tweet_id] in (" +
                                         "SELECT DISTINCT _id as  Tweet_id " +
                                         "FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " " +
-                                        " WHERE [Name] = ? and [Sys] = " + myListEntry.getListsSys()  + " " +
+                                        " WHERE [Name] = ? and [Sys] = " + myListEntry.getListsSys()  + " and _id in (SELECT DISTINCT Tweet_id FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS + " ) " +
                                         ")" +
                             ") as a " +
                             "LEFT JOIN "  +
@@ -2479,13 +2480,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
                 saveTweetToDB(tweet.getUser(),tweet);
                 resultCode = 1;
             } else if(!tweetIsInFavorites && tweetIsInDB) {
-
                 deleteTweetFromAllLists(tweet.getIdString());
-//                sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_SAVED_TWEETS, InternalDB.Columns.TSAVEDTWEET_COL2 + "= ? ", new String[]{tweet.getIdString()});
-//                sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_SAVED_TWEET_KANJI,InternalDB.Columns.TSAVEDTWEET_COL2 + "= ? ", new String[]{tweet.getIdString()});
-//                sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_SAVED_TWEET_USERMENTIONS,InternalDB.Columns.TSAVEDTWEET_COL2 + "= ? ", new String[]{tweet.getIdString()});
-//                sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_SAVED_TWEET_URLS,InternalDB.Columns.TSAVEDTWEET_COL2 + "= ? ", new String[]{tweet.getIdString()});
-//                sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES,InternalDB.Columns.COL_ID + "= ? ", new String[]{tweet.getIdString()});
                 resultCode = 2;
             } else {
                 resultCode = 0;

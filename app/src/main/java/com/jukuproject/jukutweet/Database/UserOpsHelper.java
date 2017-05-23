@@ -449,7 +449,12 @@ public class UserOpsHelper implements UserOperationsInterface {
         });
     }
 
-
+    /**
+     * When the app starts for the very first time, the JukuProject userinfo should be loaded as a saved user in the {@link com.jukuproject.jukutweet.Fragments.UserListFragment}.
+     * This loads the accompanying icon from the assets file to the internal sd card in the "icons" folder
+     * @param context context
+     * @param userId userid string
+     */
     public void loadJukuIcon(final Context context, final String userId) {
 
                 try {
@@ -490,6 +495,7 @@ public class UserOpsHelper implements UserOperationsInterface {
      * @see com.jukuproject.jukutweet.PostQuizStatsActivity#downloadTweetUserIcons(UserInfo)
      */
     public void downloadTweetUserIcon(final Context context, String imageUrl, final String userId) {
+
         Picasso.with(context).load(imageUrl).into(new Target() {
             @Override
             public void onBitmapLoaded(final Bitmap bitmap, Picasso.LoadedFrom from) {
@@ -504,14 +510,15 @@ public class UserOpsHelper implements UserOperationsInterface {
                                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, ostream);
                                 ostream.flush();
                                 ostream.close();
+                            } else {
+                                Log.e(TAG,"File already exists!");
                             }
                             //If no saved users exist for this tweet, go ahead and update all tweets for this user
-                            if(!duplicateUser(userId)) {
-                                Uri uri = Uri.fromFile(file);
-                                addTweetIconURItoDB(uri.toString(),userId);
-                            }
+                            Uri uri = Uri.fromFile(file);
+                            addTweetIconURItoDB(uri.toString(),userId);
+
                         } catch (IOException e) {
-                            Log.e("IOException", e.getLocalizedMessage());
+                            Log.e(TAG, "IOException: " + e.getLocalizedMessage());
                         }
                     }
                 }).start();
@@ -519,7 +526,7 @@ public class UserOpsHelper implements UserOperationsInterface {
             }
             @Override
             public void onBitmapFailed(Drawable errorDrawable) {
-
+                Log.e(TAG,"bitmap load failed");
             }
 
             @Override
@@ -541,7 +548,7 @@ public class UserOpsHelper implements UserOperationsInterface {
         if (!directory.exists()) {
             directory.mkdir();
         }
-        if(BuildConfig.DEBUG){Log.i(TAG,"URI directory: " + directory.getAbsolutePath() + ", FILE: " + userId +".png" );}
+        if(BuildConfig.DEBUG){Log.d(TAG,"URI directory: " + directory.getAbsolutePath() + ", FILE: " + userId +".png" );}
         return new File(directory, userId + ".png");
     }
 

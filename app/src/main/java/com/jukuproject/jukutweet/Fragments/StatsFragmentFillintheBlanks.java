@@ -15,6 +15,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.jukuproject.jukutweet.Adapters.PostQuizStatsFillintheBlankAdapter;
+import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
 import com.jukuproject.jukutweet.Interfaces.PostQuizFragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
@@ -196,7 +197,9 @@ public class StatsFragmentFillintheBlanks extends Fragment implements WordEntryF
      * @param userInfo UserInfo of user whose icon will be downloaded
      */
     public void downloadTweetUserIcons(UserInfo userInfo) {
-        mCallback.downloadTweetUserIcons(userInfo);
+        if(!InternalDB.getUserInterfaceInstance(getContext()).duplicateUser(userInfo.getUserId())) {
+            mCallback.downloadTweetUserIcons(userInfo);
+        }
     }
 
     @Override

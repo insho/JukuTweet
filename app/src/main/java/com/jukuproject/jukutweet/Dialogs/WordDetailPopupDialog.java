@@ -569,7 +569,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
                     mAdapter = new UserTimeLineAdapter(getContext(), mRxBus, mDataSet, mActiveTweetFavoriteStars,mWordEntry.getKanji(),false);
                     mRecyclerView.setAdapter(mAdapter);
 
-                    if(mDataSet.size()>=0) {
+                    if(mDataSet.size()>0) {
                         showRecyclerView(true);
                     } else {
                         showRecyclerView(false);
@@ -758,7 +758,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
 
                     @Override
                     public void call(Object event) {
-                        if (isUniqueClick(1000) && event instanceof Integer) {
+                        if (event instanceof Integer && isUniqueClick(1000)) {
 
                             Integer adapterPosition = (Integer) event;
                             try {
@@ -774,7 +774,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
                                 Log.e(TAG,"UserTimeLine showtweetfavoritelist popup at location nullpointer: " + e.getCause());
                             }
 
-                        } else if(isUniqueClick(150) && event instanceof Tweet) {
+                        } else if(event instanceof Tweet && isUniqueClick(150)) {
                             final Tweet tweet = (Tweet) event;
                             saveOrDeleteTweet(tweet);
                         }
