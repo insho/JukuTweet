@@ -1,7 +1,6 @@
 package com.jukuproject.jukutweet.Adapters;
 
 import android.content.Context;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -16,6 +15,7 @@ import android.widget.TextView;
 
 import com.jukuproject.jukutweet.ChooseFavoriteListsPopupWindow;
 import com.jukuproject.jukutweet.Database.InternalDB;
+import com.jukuproject.jukutweet.FavoritesColors;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.R;
@@ -88,31 +88,9 @@ public class ChooseFavoritesAdapter extends RecyclerView.Adapter<ChooseFavorites
                 0,
                 (int) (2.0f * mDensity + 0.5f));
 
+        //If favorite list is a system list, add a colored star before the listname label
         if(initialMyListEntry.getListsSys() == 1){
-
-            switch (initialMyListEntry.getListName()) {
-                case "Blue":
-                    holder.imageButton.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuBlue));
-                    break;
-                case "Green":
-                    holder.imageButton.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuGreen));
-                    break;
-                case "Red":
-                    holder.imageButton.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuRed));
-                    break;
-                case "Yellow":
-                    holder.imageButton.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuYellow));
-                    break;
-                case "Purple":
-                    holder.imageButton.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuPurple));
-                    break;
-                case "Orange":
-                    holder.imageButton.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuOrange));
-                    break;
-                default:
-                    break;
-            }
-
+            FavoritesColors.setFavoritesButtonColorFilter(mContext,holder.imageButton,initialMyListEntry.getListName());
             holder.checkbox.setText(null);
             holder.textView.setText(mContext.getString(R.string.favorites_text));
             holder.textView.setVisibility(View.VISIBLE);
@@ -148,6 +126,16 @@ public class ChooseFavoritesAdapter extends RecyclerView.Adapter<ChooseFavorites
         return mMyListEntries.size();
     }
 
+
+    /**
+     * When row is selected, the MyList is added immediately to the database as a favorite for this word, and
+     * confirmation is sent back via RxBus to the {@link ChooseFavoriteListsPopupWindow}.
+     * where the WordEntry for that list can be updated accordingly (this occurs because if the user long-clicks the word and the
+     *  {@link com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog} comes up, the star in the popup should reflect the change that
+     *  occured in this adapter. The {@link com.jukuproject.jukutweet.Models.WordEntry} object itself is the repository of the favorites info.
+     * @param holder Viewholder
+     * @param myListEntry MyList object with info for a particular favorite list
+     */
     private void rowSelected(ViewHolder holder, MyListEntry myListEntry) {
 
         //If initially not selected, set selected
@@ -155,7 +143,7 @@ public class ChooseFavoritesAdapter extends RecyclerView.Adapter<ChooseFavorites
             if(InternalDB.getWordInterfaceInstance(mContext).addWordToWordList(mKanjiId,myListEntry.getListName(),myListEntry.getListsSys())) {
                 holder.checkbox.setChecked(true);
                 myListEntry.setSelectionLevel(1);
-                /* Send the updated mylistentry back to the tweetbreakdown adapter, where the WordEntry.ItemFavorites object
+                /* Send the updated mylistentry back to the ChooseFavoriteListsPopupWindow, where the WordEntry.ItemFavorites object
                 *  and the star button will be updated to reflect the addition */
                 mRxBusTweetBreakdownAdapter.send(myListEntry);
             } else {
@@ -165,7 +153,7 @@ public class ChooseFavoritesAdapter extends RecyclerView.Adapter<ChooseFavorites
             if(InternalDB.getWordInterfaceInstance(mContext).removeWordFromWordList(mKanjiId,myListEntry.getListName(),myListEntry.getListsSys())) {
                 holder.checkbox.setChecked(false);
                 myListEntry.setSelectionLevel(0);
-                /* Send the updated mylistentry back to the tweetbreakdown adapter, where the WordEntry.ItemFavorites object
+                /* Send the updated mylistentry back to the ChooseFavoriteListsPopupWindow, where the WordEntry.ItemFavorites object
                 *  and the star button will be updated to reflect the subtraction */
                 mRxBusTweetBreakdownAdapter.send(myListEntry);
             } else {

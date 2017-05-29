@@ -171,6 +171,11 @@ public class StatsFragmentFillintheBlanks extends Fragment implements WordEntryF
         }
     }
 
+    /**
+     * If a word entry has been saved to a new word list in the {@link WordDetailPopupDialog}, the message is relayed back to
+     * this method, which updates the  {@link com.jukuproject.jukutweet.Models.ItemFavorites} in the dataset to reflect the change
+     * @param wordEntry WordEntry that was added to/removed from a new list
+     */
     public void updateWordEntryItemFavorites(WordEntry wordEntry) {
         for(Tweet tweet: mDataset) {
             if(tweet.getWordEntries()!=null && tweet.getWordEntries().contains(wordEntry)) {

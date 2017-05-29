@@ -60,7 +60,6 @@ public class MultipleChoiceAdapter extends ArrayAdapter<WordEntry> {
         } else if (mGradeCorrectAnswerId != null && mGradeCorrectAnswerId.equals(wordEntry.getId())) {
             answer.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorJukuGreen));
         } else {
-
             answer.setText(replacedDefinition(wordEntry.getQuizAnswer(mQuizType)));
             answer.setTag(wordEntry.getId());
         }
@@ -79,7 +78,7 @@ public class MultipleChoiceAdapter extends ArrayAdapter<WordEntry> {
      * @param sentence Raw definition
      * @return The more beautiful definition
      */
-    public String replacedDefinition(String sentence) {
+    private String replacedDefinition(String sentence) {
 
         //Capitalize first letter of sentence
         if(sentence.length()>1) {

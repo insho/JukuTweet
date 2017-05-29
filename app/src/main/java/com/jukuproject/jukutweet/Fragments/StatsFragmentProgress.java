@@ -4,7 +4,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.text.SpannableString;
 import android.text.style.UnderlineSpan;
 import android.util.DisplayMetrics;
@@ -18,9 +17,11 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.jukuproject.jukutweet.Adapters.StatsTopAndBottomAdapter;
+import com.jukuproject.jukutweet.Adapters.TweetListExpandableAdapter;
 import com.jukuproject.jukutweet.Adapters.WordListExpandableAdapter;
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Dialogs.WordDetailPopupDialog;
+import com.jukuproject.jukutweet.FavoritesColors;
 import com.jukuproject.jukutweet.Interfaces.PostQuizFragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Interfaces.WordEntryFavoritesChangedListener;
@@ -46,14 +47,12 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
     String TAG = "Test-stats2";
     private PostQuizFragmentInteractionListener mCallback;
     private long mLastClickTime = 0;
-//    private String mQuizType;
     private MyListEntry mMyListEntry;
     private ColorBlockMeasurables mColorBlockMeasurables;
     int mTopCountLimit;
     private boolean mIsTweetList;
     private boolean mIsSingleUserTweetList;
     private UserInfo mUserInfo;
-//    FragmentInteractionListener mCallback;
 
     ListView bottomFiveList;
     TextView txtTopFive;
@@ -62,6 +61,7 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
     TextView textViewColorBlock_red;
     TextView textViewColorBlock_yellow;
     TextView textViewColorBlock_green;
+    TextView textViewColorBlock_empty;
     TextView txtTitle;
     TextView txtCompletePercent;
     ImageButton imageButton;
@@ -138,6 +138,7 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
         textViewColorBlock_red = (TextView) v.findViewById(R.id.listitem_colors_2);
         textViewColorBlock_yellow = (TextView) v.findViewById(R.id.listitem_colors_3);
         textViewColorBlock_green = (TextView) v.findViewById(R.id.listitem_colors_4);
+        textViewColorBlock_empty = (TextView) v.findViewById(R.id.listitem_colors_5);
 
         txtTitle = (TextView) v.findViewById(R.id.textViewTitle);
         txtCompletePercent = (TextView) v.findViewById(R.id.textViewBlockProgress);
@@ -210,30 +211,7 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
                 imageButton.setClickable(false);
                 imageButton.setImageResource(R.drawable.ic_star_black);
                 imageButton.setVisibility(ImageButton.VISIBLE);
-
-                switch (mMyListEntry.getListName()) {
-                    case "Blue":
-                        imageButton.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuBlue));
-                        break;
-                    case "Yellow":
-                        imageButton.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuYellow));
-                        break;
-                    case "Red":
-                        imageButton.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuRed));
-                        break;
-                    case "Green":
-                        imageButton.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuGreen));
-                        break;
-                    case "Purple":
-                        imageButton.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuPurple));
-                        break;
-                    case "Orange":
-                        imageButton.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuOrange));
-                        break;
-                    default:
-                        break;
-                }
-
+                FavoritesColors.setFavoritesButtonColorFilter(getContext(), imageButton, mMyListEntry.getListName());
             } else {
                 titleString = mMyListEntry.getListName();
 
@@ -263,13 +241,31 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
-        WordListExpandableAdapter.setColorBlocks(getContext()
-                ,mColorBlockMeasurables
-                ,metrics.widthPixels/2
-                ,textViewColorBlock_grey
-                ,textViewColorBlock_red
-                ,textViewColorBlock_yellow
-                ,textViewColorBlock_green);
+        // Assign color blocks below the list title
+        if(mIsTweetList) {
+            textViewColorBlock_empty.setVisibility(View.VISIBLE);
+            TweetListExpandableAdapter.setTweetColorBlocks(getContext()
+                    ,mColorBlockMeasurables
+                    ,metrics.widthPixels/2
+                    ,textViewColorBlock_grey
+                    ,textViewColorBlock_red
+                    ,textViewColorBlock_yellow
+                    ,textViewColorBlock_green
+                    ,textViewColorBlock_empty);
+
+
+        } else {
+            textViewColorBlock_empty.setVisibility(View.GONE);
+            WordListExpandableAdapter.setColorBlocks(getContext()
+                    ,mColorBlockMeasurables
+                    ,metrics.widthPixels/2
+                    ,textViewColorBlock_grey
+                    ,textViewColorBlock_red
+                    ,textViewColorBlock_yellow
+                    ,textViewColorBlock_green);
+
+
+        }
 
         RxBus rxBus = new RxBus();
         adapter_bottom = new StatsTopAndBottomAdapter(getContext(),mBottomFiveDataSet,colorThresholds,rxBus);
@@ -289,8 +285,6 @@ public class StatsFragmentProgress extends Fragment implements WordEntryFavorite
                             WordDetailPopupDialog wordDetailPopupDialog = WordDetailPopupDialog.newInstance(wordEntry);
                             wordDetailPopupDialog.setTargetFragment(StatsFragmentProgress.this, 0);
                             wordDetailPopupDialog.show(getFragmentManager(),"wordDetailPopup");
-
-//                            WordDetailPopupDialog.newWordListInstance(wordEntry).show(getFragmentManager(),"wordDetailPopup");
                         }
 
                     }

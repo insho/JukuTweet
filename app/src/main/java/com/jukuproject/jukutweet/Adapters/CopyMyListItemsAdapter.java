@@ -1,7 +1,6 @@
 package com.jukuproject.jukutweet.Adapters;
 
 import android.content.Context;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.RecyclerView;
 import android.util.TypedValue;
@@ -13,6 +12,7 @@ import android.widget.GridLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.jukuproject.jukutweet.FavoritesColors;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.R;
@@ -24,7 +24,6 @@ import java.util.ArrayList;
  *
  * @see com.jukuproject.jukutweet.Dialogs.CopyMyListItemsDialog
  */
-
 public class CopyMyListItemsAdapter extends RecyclerView.Adapter<CopyMyListItemsAdapter.ViewHolder> {
 
     private ArrayList<MyListEntry> mMyListEntries;
@@ -75,44 +74,17 @@ public class CopyMyListItemsAdapter extends RecyclerView.Adapter<CopyMyListItems
 
         if(initialMyListEntry.getSelectionLevel()>=1){
             holder.checkbox.setChecked(true);
-//            holder.checkbox.setAlpha(1.0f);
-//        } else if(initialMyListEntry.getSelectionLevel()==2) {
-//            holder.checkbox.setChecked(true);
-//            holder.checkbox.setAlpha(.4f);
         } else {
             holder.checkbox.setChecked(false);
-//            holder.checkbox.setAlpha(1.0f);
         }
         holder.imageButton.setPadding(0,
                 (int) (2.0f * mDensity + 0.5f),
                 0,
                 (int) (2.0f * mDensity + 0.5f));
 
+        //If favorite list is a system list, add a colored star before the listname label
         if(initialMyListEntry.getListsSys() == 1){
-
-            switch (initialMyListEntry.getListName()) {
-                case "Blue":
-                    holder.imageButton.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuBlue));
-                    break;
-                case "Green":
-                    holder.imageButton.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuGreen));
-                    break;
-                case "Red":
-                    holder.imageButton.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuRed));
-                    break;
-                case "Yellow":
-                    holder.imageButton.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuYellow));
-                    break;
-                case "Purple":
-                    holder.imageButton.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuPurple));
-                    break;
-                case "Orange":
-                    holder.imageButton.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuOrange));
-                    break;
-                default:
-                    break;
-            }
-
+            FavoritesColors.setFavoritesButtonColorFilter(mContext,holder.imageButton,initialMyListEntry.getListName());
             holder.checkbox.setText(null);
             holder.textView.setText(mContext.getString(R.string.favorites_text));
             holder.textView.setVisibility(View.VISIBLE);
@@ -156,13 +128,9 @@ public class CopyMyListItemsAdapter extends RecyclerView.Adapter<CopyMyListItems
         if(myListEntry.getSelectionLevel() != 1) {
             holder.checkbox.setChecked(true);
             myListEntry.setSelectionLevel(1);
-//            holder.checkbox.setAlpha(1.0f);
-
         } else {
             holder.checkbox.setChecked(false);
             myListEntry.setSelectionLevel(0);
-//            holder.checkbox.setAlpha(1.0f);
-
         }
         mRxBus.send(myListEntry);
     }

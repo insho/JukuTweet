@@ -10,7 +10,10 @@ import android.view.ViewGroup;
 import com.jukuproject.jukutweet.Fragments.TweetListFragment;
 import com.jukuproject.jukutweet.R;
 
-
+/**
+ * Fragment container for bucket 2. It's top level frag is : {@link TweetListFragment}
+ * @see BaseContainerFragment
+ */
 public class Tab2Container extends BaseContainerFragment {
 
     private boolean mIsViewInited;

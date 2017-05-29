@@ -67,13 +67,11 @@ public class MultipleChoiceFragment extends Fragment {
     WordEntry currentCorrectAnswer;
     ArrayList<WordEntry> questionSet; //set of word entries for the current question (5 incorrect WordEntries and 1 Correct one from the mDataset)
 
-
     TextView txtQuestion;
     TextView txtFurigana;
     TextView txtTotal;
     TextView txtScore;
     TextView txtPlusMinus;
-
 
     CountDownTimer coundDownTimer;
     long millstogo; //milliseconds left on the timer
@@ -239,20 +237,16 @@ public class MultipleChoiceFragment extends Fragment {
                 wrongAnswerIds = new ArrayList<>();
             }
 
-
             /* Get next question from wordEntry pool, and add it as the
             first question of the set */
-
             currentCorrectAnswer = getRandomWordEntry(mDataset, mTotalWeight, previousId);
             previousId = currentCorrectAnswer.getId();
             questionSet.add(currentCorrectAnswer);
 
 
             /* Get a set of word entries to fill out the rest of the options in the multiple choice grid */
-
             questionSet.addAll(getIncorrectAnswerSet(getContext()
                     , mMyListType
-//                    , mMyListEntry
                     , SharedPrefManager.getInstance(getContext()).getColorThresholds()
                     , mColorString
                     , currentCorrectAnswer
@@ -261,12 +255,6 @@ public class MultipleChoiceFragment extends Fragment {
             Collections.shuffle(questionSet);
         }
 
-
-
-
-//        Log.i("TEST", "ELLAPSED TIME TOTAL questionSet.addall: " + (System.currentTimeMillis() - startTime) / 1000.0f);
-
-
         String stringPlusMinus;
         if (currentPlusMinus >= 0) {
             stringPlusMinus = "+" + String.valueOf(currentPlusMinus);
@@ -274,15 +262,9 @@ public class MultipleChoiceFragment extends Fragment {
             stringPlusMinus = String.valueOf(currentPlusMinus);
         }
 
-
         txtFurigana.setVisibility(View.INVISIBLE);
 
-        //Update the Top LEFT
-
-//            GridLayout gridTop = (GridLayout) mainView.findViewById(R.id.gridTop);
-
-
-                Log.d(TAG,"mQuizTimer: " + mQuizTimer + ", millstogo: " + millstogo);
+        if(BuildConfig.DEBUG){Log.d(TAG,"mQuizTimer: " + mQuizTimer + ", millstogo: " + millstogo);}
         if (mQuizTimer > 0 && millstogo > 0) {
             setUpTimer((int) millstogo / 1000);
             millstogo = 0;
@@ -309,23 +291,19 @@ public class MultipleChoiceFragment extends Fragment {
         answerGrid.setAdapter(adapter);
 
         txtQuestion.setText(currentCorrectAnswer.getQuizQuestion(mQuizType));
-
-
-
-
-//        int defsizelevel = 44;
         txtQuestion.setTextSize(TypedValue.COMPLEX_UNIT_SP, 44);
 
+        /* If the question pane is showing a definition, decrease the size of the definition
+        * so it fits within the question window */
         if(mQuizType.equals("Definition to Kanji")) {
             setTextHeightLoop(txtQuestion
                     ,currentCorrectAnswer.getDefinitionMultiLineString(10)
                     ,getResources().getDisplayMetrics()
                     ,getResources().getDimension(R.dimen.flashcard_width)
                     ,getResources().getDimension(R.dimen.flashcard_height));
-
         }
 
-
+        //Show kana below question on a single click (unless it's a definition)
         txtQuestion.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -350,14 +328,9 @@ public class MultipleChoiceFragment extends Fragment {
 
             public void onItemClick(AdapterView parent, View v, int position, long id) {
 
-                //Pull answer that user gave from the array of values (at [type of answer][gridview position of user click])
-
                 //THE ANSWER WAS CORRECT
                 if (questionSet.get(position).getId().equals(currentCorrectAnswer.getId())) {
-
                     gradeQuestionResult();
-
-
                 } else {
 
                     // Find the clicked textview and change the background color (Red)
@@ -377,7 +350,8 @@ public class MultipleChoiceFragment extends Fragment {
                         }
                     };
 
-                    ////We're wrapping these commands in a runnable, because we want to delay their execution with the handler
+                    /*We're wrapping these commands in a runnable, because we want to delay their execution with the handler,
+                     So that user sees the green/red highlight for a bit */
                     Handler myHandler = new Handler();
                     myHandler.postDelayed(mMyRunnable, 200); //runnable contents will be delivered after delay
                 }
@@ -387,7 +361,10 @@ public class MultipleChoiceFragment extends Fragment {
 
     }
 
-
+    /**
+     * When the correct answer is selected, change row color for that answer to green, update the
+     * db with the new score for that WordEntry, and move to the next question
+     */
     public void gradeQuestionResult() {
         //Cancel the timer if it exists
         if (coundDownTimer != null) {
@@ -432,8 +409,8 @@ public class MultipleChoiceFragment extends Fragment {
                     InternalDB.getQuizInterfaceInstance(getContext()).addWordScoreToScoreBoard(currentCorrectAnswer.getId(), currentCorrectAnswer.getTotal(), currentCorrectAnswer.getCorrect());
                 }
 
-                //String that gets passed to tab 2 (and displayed there)
-                //It changes depending on quiz type
+                /* The type of "hashmap" result, which is displayed in the PostQuizStatsMultipleChoiceAdapter, varies
+                * depending on the type of quiz that was run.*/
                 String hashmapResult;
                 switch (mQuizType) {
                     case "Kanji to Definition":
@@ -461,9 +438,7 @@ public class MultipleChoiceFragment extends Fragment {
                         StringBuilder stringBuilder = new StringBuilder();
                         SpannableString sentenceStart = new SpannableString(currentCorrectAnswer.getKanji());
 
-
                         stringBuilder.append(sentenceStart);
-
                         for (int i = 1; i <= 6; i++) {
                             String s = "(" + String.valueOf(i) + ")";
                             String sNext = "(" + String.valueOf(i + 1) + ")";
@@ -556,7 +531,15 @@ public class MultipleChoiceFragment extends Fragment {
 
     }
 
-
+    /**
+     * This pulls a word entry from the dataset pool to become the next question in the quiz. It's done this
+     * way instead of cycling sequentially through the dataset, because some words (depending on their score, and
+     * the weight the user has chosen in the Preferences fragment) should appear more often than others.
+     * @param wordEntries Set of WordEntries to choose from (dataset pool)
+     * @param totalWeight Total weightsum for all words in the set
+     * @param previousId  Edict id for previous question. To try to avoid having multiple consecutive identical questions
+     * @return The new, somewhat randomly-chosen word entry
+     */
     public static WordEntry getRandomWordEntry(ArrayList<WordEntry> wordEntries, double totalWeight, @Nullable Integer previousId) {
         final String TAG = "TEST-Multchoice";
         if (previousId == null) {
@@ -601,7 +584,21 @@ public class MultipleChoiceFragment extends Fragment {
     }
 
 
-    //Pull and initialize the other rows (the wrong answers)
+    /**
+     * Once the correct WordEntry answer has been decided on for a new quiz question (via {@link #getRandomWordEntry(ArrayList, double, Integer)}),
+     * this pulls a set of "dummy" false answers to display with the correct one in the answer grid.
+     *
+     * Note: if the user has chosen "difficult answers" in the Prefs fragment, for Kanji/Kana quizzes, the false answers will
+     * resemble the correct ones and make for a harder quiz
+     *
+     * @param mContext context
+     * @param myListType Type of list (Tweet, Word)
+     * @param colorThresholds thresholds for assigning colors to quiz scores
+     * @param colorString concatenated comma delimited string of acceptable colors to include
+     * @param correctWordEntry the correct word entry (so it is not included again)
+     * @param quizType the type of quiz (kanji -> kana , etc)
+     * @return Array of false answers
+     */
     private ArrayList<WordEntry> getIncorrectAnswerSet(Context mContext
             , String myListType
             , ColorThresholds colorThresholds
@@ -614,7 +611,6 @@ public class MultipleChoiceFragment extends Fragment {
         /*If the user has chosen difficult incorrect answers setting, break up the kanji/furigana correct answer
          into pieces, search for words that contain those pieces, and user these as the incorrect answers. This will
          result in incorrect answers that are more difficult to solve. */
-        Log.i(TAG,"DIFFICULTE ANSWERS: " + SharedPrefManager.getInstance(mContext).getmDifficultAnswers());
         if (SharedPrefManager.getInstance(mContext).getmDifficultAnswers() && (!quizType.equals("Kanji to Definition"))) { //If we are choosing comparable answers and the answers are either 1: kanji to furigana, or 2: furigana to kanji
 
             Log.d("TEST-multchoice","DIFFICULT ANSWER WORD BREAKUP");
@@ -719,7 +715,11 @@ public class MultipleChoiceFragment extends Fragment {
         return incorrectAnswerSet;
     }
 
-
+    /**
+     * Concatenates a string array into a comma-delimited string
+     * @param list Stirng array to concatenate
+     * @return comma delimited string
+     */
     public static String getSelectedItemsAsString(ArrayList<String> list) {
         StringBuilder sb = new StringBuilder();
         boolean foundOne = false;
@@ -747,9 +747,10 @@ public class MultipleChoiceFragment extends Fragment {
     }
 
 
-
-
-
+    /**
+     * Creates a countdown timer for timed quizzes
+     * @param timerseconds number of allowable seconds for the each quiz question to be completed
+     */
     public void setUpTimer(@Nullable Integer timerseconds){
 
         if(timerseconds == null) {

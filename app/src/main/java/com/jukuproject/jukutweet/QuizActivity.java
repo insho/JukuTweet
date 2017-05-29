@@ -392,33 +392,17 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
         finish();
     }
 
-//    public void showPostQuizStatsMultipleChoiceForSingleUsersTweets(ArrayList<MultChoiceResult> dataset
-//            , String quizType
-//            , final UserInfo userInfo
-//            , boolean isWordBuilder
-//            , boolean isHighScore
-//            , Integer wordbuilderScore
-//            , int correct
-//            , int total) {
-//
-//        Intent intent = getPostQuizStatsGenericIntent();
-//
-//        intent.putExtra("userInfo",userInfo);
-//        intent.putExtra("isTweetList",true);
-//
-//        intent.putExtra("typeOfQuizThatWasCompleted","Multiple Choice"); //The type of quiz that was chosen inthe menu
-//        intent.putExtra("quizType",quizType);
-//        intent.putExtra("mDataSetMultipleChoice",dataset);
-//        intent.putExtra("mCorrect",correct);
-//        intent.putExtra("mTotal",total);
-//        intent.putExtra("mWordbuilderScore",wordbuilderScore);
-//        intent.putExtra("mIsHighScore",isHighScore);
-//        intent.putExtra("mIsWordBuilder",isWordBuilder);
-//
-//        startActivity(intent);
-//        finish();
-//    }
-
+    /**
+     * Recieves callback from fill in the blanks quiz activity when the quiz is finished,
+     * and uses {@link #getPostQuizStatsGenericIntent()} to create an intent that sends user
+     * to {@link PostQuizStatsActivity}.
+     * @param dataset List of Fill in the Blanks results for the quiz
+     * @param listInformation List entry information for the calling Tweet/Word list. If the quiz was initiated from a Word or Tweet list,
+     *                        the object will be a {@link MyListEntry}. If it was initiated from a Single User's Saved Tweets List, it will
+     *                        be a {@link UserInfo} object
+     * @param correct number of correct answers
+     * @param total total number of questions
+     */
     public void showPostQuizStatsFillintheBlanks(ArrayList<Tweet> dataset
             , Object listInformation
             , int correct
@@ -443,27 +427,6 @@ public class QuizActivity extends AppCompatActivity implements  QuizFragmentInte
         finish();
 
     }
-
-//    public void showPostQuizStatsFillintheBlanksForSingleUsersTweets(ArrayList<Tweet> dataset
-//            , UserInfo userInfo
-//            , int correct
-//            , int total) {
-//
-//        Intent intent = getPostQuizStatsGenericIntent();
-//
-//        if(BuildConfig.DEBUG){Log.d(TAG,"showPostQuizStatsFillintheBlanksForSingleUsersTweets USERINFO is null? " + (userInfo==null));};
-//        intent.putExtra("typeOfQuizThatWasCompleted","Fill in the Blanks"); //The type of quiz that was chosen inthe menu
-//        intent.putExtra("tabNumber", 0);
-//        intent.putExtra("userInfo",userInfo);
-//        intent.putExtra("singleUser",true);
-//
-//        intent.putExtra("mDataSetFillintheBlanks",dataset);
-//        intent.putExtra("mCorrect",correct);
-//        intent.putExtra("mTotal",total);
-//
-//        startActivity(intent);
-//        finish();
-//    }
 
     /**
      * Creates the basic intent sending user to {@link PostQuizStatsActivity} that all of the

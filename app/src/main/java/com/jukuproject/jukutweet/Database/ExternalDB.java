@@ -130,10 +130,6 @@ public class ExternalDB extends SQLiteOpenHelper {
         }
     }
 
-
-
-
-
 }
 
 

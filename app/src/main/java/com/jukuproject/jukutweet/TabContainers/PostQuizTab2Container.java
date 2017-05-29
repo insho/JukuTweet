@@ -13,12 +13,13 @@ import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.R;
 
-//TODO -- possibly consolidate these into one?
+/**
+ * Fragment container for PostQuizStats {@link StatsFragmentProgress} in {@link com.jukuproject.jukutweet.PostQuizStatsActivity]}
+ * @see BaseContainerFragment
+ */
 public class PostQuizTab2Container extends BaseContainerFragment {
 
     private boolean mIsViewInited;
-//    private ColorBlockMeasurables mColorBlockMeasurables;
-//    private MyListEntry mMyListEntry;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {

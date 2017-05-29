@@ -275,8 +275,6 @@ public class TweetListFragment extends Fragment {
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
         float metricsDensity = metrics.density;
-//        mMenuHeader = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListMenuHeaders(colorThresholds,null,getContext()
-//        ,colorBlockMinWidthEstimateView,childOptions,availableFavoritesStars,metricsDensity);
         Cursor c = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListColorBlocksCursor(colorThresholds,null);
 
         if(c.getCount()>0) {
@@ -336,7 +334,6 @@ public class TweetListFragment extends Fragment {
 
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
-//        return Math.round((float)metrics.widthPixels*(float).5);
         if(metrics.heightPixels>metrics.widthPixels) {
             return Math.round((float)metrics.widthPixels*multiplier);
         } else {

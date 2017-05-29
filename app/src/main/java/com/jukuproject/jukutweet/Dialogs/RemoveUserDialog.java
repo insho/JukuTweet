@@ -14,6 +14,9 @@ import com.jukuproject.jukutweet.Interfaces.DialogRemoveUserInteractionListener;
 import com.jukuproject.jukutweet.Models.UserInfo;
 import com.jukuproject.jukutweet.R;
 
+/***
+ * Dialog for removing one of the "followed" users from the UserList
+ */
 public class RemoveUserDialog extends DialogFragment {
 
     public DialogRemoveUserInteractionListener mRemoveUserDialogListener;

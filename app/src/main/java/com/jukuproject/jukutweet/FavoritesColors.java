@@ -1,8 +1,9 @@
 package com.jukuproject.jukutweet;
 
 import android.content.Context;
-import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.widget.ImageButton;
 
 import com.jukuproject.jukutweet.Database.InternalDB;
 import com.jukuproject.jukutweet.Models.ItemFavorites;
@@ -47,7 +48,14 @@ public class FavoritesColors {
         }
     }
 
-    @Nullable
+    /**
+     * Assigns a color to the favorites star.
+     * @param itemFavorites {@link ItemFavorites} object for a word
+     * @param preferenceFavorites array of current "activated" system list names
+     * @return the color (int) that the current star imagebutton should be tinted
+     *
+     * @see #getFavoritesStarColor(ArrayList, ItemFavorites)
+     */
     public static Integer assignStarColor(ItemFavorites itemFavorites, ArrayList<String> preferenceFavorites ) {
 
         if(itemFavorites.shouldOpenFavoritePopup(preferenceFavorites) &&
@@ -277,7 +285,7 @@ public class FavoritesColors {
      * @param options array of possible next color entries that a favorites star could toggle to
      * @return the name of the next available color entry
      */
-    public static String findNextFavoritesColor(ArrayList<String> preferenceFavorites,String[] options) {
+    private static String findNextFavoritesColor(ArrayList<String> preferenceFavorites,String[] options) {
         for (String option: options) {
             if(preferenceFavorites.contains(option)) {
                 return option;
@@ -285,6 +293,40 @@ public class FavoritesColors {
         }
         return "Black";
     }
+
+    /**
+     * Adds matching color filter to the favorites star image button of a system list
+     *
+     * @see com.jukuproject.jukutweet.Adapters.ChooseFavoritesAdapter
+     * @see com.jukuproject.jukutweet.Adapters.ChooseFavoritesTweetAdapter
+     * @see com.jukuproject.jukutweet.Adapters.CopyMyListItemsAdapter
+     * */
+    public static void setFavoritesButtonColorFilter(Context context, ImageButton imageButton, String listName) {
+
+        switch (listName) {
+            case "Blue":
+                imageButton.setColorFilter(ContextCompat.getColor(context, R.color.colorJukuBlue));
+                break;
+            case "Green":
+                imageButton.setColorFilter(ContextCompat.getColor(context, R.color.colorJukuGreen));
+                break;
+            case "Red":
+                imageButton.setColorFilter(ContextCompat.getColor(context, R.color.colorJukuRed));
+                break;
+            case "Yellow":
+                imageButton.setColorFilter(ContextCompat.getColor(context, R.color.colorJukuYellow));
+                break;
+            case "Purple":
+                imageButton.setColorFilter(ContextCompat.getColor(context, R.color.colorJukuPurple));
+                break;
+            case "Orange":
+                imageButton.setColorFilter(ContextCompat.getColor(context, R.color.colorJukuOrange));
+                break;
+            default:
+                break;
+        }
+    }
+
 
 
 }

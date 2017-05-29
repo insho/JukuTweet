@@ -65,7 +65,8 @@ public class UserTimeLineFragment extends Fragment {
     private DisplayMetrics mMetrics;
     private Long mDataSetMaxId;
     private Integer mPreviousMaxScrollPosition =0;
-    /* Holds a list of tweets that have been favorited (in any/all lists). Used to check
+
+    /* tweetIdStringsInFavorites holds a list of tweets that have been favorited (in any/all lists). Used to check
     * whether or not a tweet needs to have favorites assigned to it. This exists
     * so that we dont' have to make a sql query for each Tweet that gets returned from
     * the api lookup */
@@ -76,16 +77,10 @@ public class UserTimeLineFragment extends Fragment {
     private Subscription timerSubscription;
     private LinearLayoutManager mLayoutManager;
     private Boolean searchInProgress = false;
-//    private int userCreatedListCount;
-//    private TweetBreakDownFragment mTweetBreakDownFragment;
-
     private static final String TAG = "TEST-TimeLineFrag";
 
     public UserTimeLineFragment() {}
 
-    /**
-     * Returns a new instance of UserListFragment
-     */
     public static UserTimeLineFragment newInstance(UserInfo userInfo) {
         UserTimeLineFragment fragment = new UserTimeLineFragment();
         Bundle args = new Bundle();
@@ -130,13 +125,8 @@ public class UserTimeLineFragment extends Fragment {
             searchInProgress = savedInstanceState.getBoolean("searchInProgress");
         }
         tweetIdStringsInFavorites = InternalDB.getTweetInterfaceInstance(getContext()).getStarFavoriteDataForAUsersTweets(mUserInfo.getUserId());
-//        userCreatedListCount = InternalDB.getTweetInterfaceInstance(getContext()).getUserCreatedTweetListCount();
-
         mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
-
-
-
 
         /* Listen for the user scrolling to the final position in the scrollview. IF it happens, load more
         * userinfo items into the adapter */
@@ -314,7 +304,6 @@ public class UserTimeLineFragment extends Fragment {
                             if(timerSubscription!=null) {
                                 timerSubscription.unsubscribe();
                             }
-//                            if(mDataSet.size() == 0) {
 
                                 for(Tweet tweet : timeline) {
                                     Log.d(TAG,"timeline urls: " + tweet.getEntities().getUrls());
@@ -354,7 +343,6 @@ public class UserTimeLineFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-//        setRetainInstance(true);
         try {
             mCallback = (FragmentInteractionListener) context;
         } catch (ClassCastException e) {
@@ -401,6 +389,7 @@ public class UserTimeLineFragment extends Fragment {
         super.onPause();
     }
 
+
     public void setUpAdapter() {
 
         UserTimeLineAdapter mAdapter = new UserTimeLineAdapter(getContext(),_rxBus, mDataSet,mActiveTweetFavoriteStars,null,true);
@@ -410,7 +399,9 @@ public class UserTimeLineFragment extends Fragment {
             InternalDB.getUserInterfaceInstance(getContext()).updateUserInfo(mDataSet.get(0).getUser());
         }
 
-
+        /* If the recieved object is a TWEET, meaning an ordinary click of the usertimeline, send
+        * the user to the TweetBreakDownFragment for that tweet. If the recieved object is a TweetUserMention link,
+        * instead open the AddUserCheckDialog for that mentioned user */
         _rxBus.toClickObserverable()
                 .subscribe(new Action1<Object>() {
                     @Override
@@ -454,7 +445,6 @@ public class UserTimeLineFragment extends Fragment {
                             mRecyclerView.getChildAt(recyclerChildToAdapterPosOffset).getLocationInWindow(location);
                             UserTimeLineAdapter.ViewHolder viewHolder = (UserTimeLineAdapter.ViewHolder)mRecyclerView.findViewHolderForAdapterPosition(adapterPosition);
                             showTweetFavoriteListPopupWindow(viewHolder,mDataSet.get(adapterPosition),mMetrics,location[1]);
-//                            Log.i(TAG,"ADAPTER POS: " + adapterPosition + " LAYOUT POS: " + viewHolder.getLayoutPosition() + ", tweet: " + mDataSet.get(adapterPosition).getText());
                         }
                     } catch (NullPointerException e) {
                         Log.e(TAG,"UserTimeLine showtweetfavoritelist popup at location nullpointer: " + e.getCause());
@@ -470,8 +460,8 @@ public class UserTimeLineFragment extends Fragment {
 
         });
 
-
-
+        /* If the adapter is being set up after adding more items to the timeline, scroll to the
+            previous max position */
         if(mDataSet !=null && mDataSet.size()>0) {
             mRecyclerView.setAdapter(mAdapter);
             if(mDataSet.size()-1>mPreviousMaxScrollPosition ) {
@@ -497,22 +487,18 @@ public class UserTimeLineFragment extends Fragment {
             Log.i(TAG,"ENTERING saveOrDeleteTweet");
             //If tweet was not in the saved tweets database, and was then successfully saved, download tweet icon
             int savedOrDeleteResultCode = InternalDB.getTweetInterfaceInstance(getContext()).saveOrDeleteTweet(tweet);
-            Log.i(TAG,"saveOrDeleteTweet returned result code: " + savedOrDeleteResultCode);
             if(savedOrDeleteResultCode==1) {
-
-
                 if(tweet.getUser()!=null
                         && !InternalDB.getUserInterfaceInstance(getContext()).duplicateUser(tweet.getUser().getUserId())) {
                     mCallback.downloadTweetUserIcons(tweet.getUser());
-                    Log.i(TAG,"saveOrDeleteTweet download tweet icon");
                 }
+
                 //Try to parse and insert Tweet Kanji if they do not already exist
                 if(InternalDB.getTweetInterfaceInstance(getContext()).tweetParsedKanjiExistsInDB(tweet) == 0) {
                     mCallback.parseAndSaveTweet(tweet);
                 }
             }
             if(savedOrDeleteResultCode>=1) {
-                Log.i(TAG,"saveOrDeleteTweet notify changed...");
                 mCallback.notifySavedTweetFragmentsChanged();
             }
 
@@ -525,7 +511,20 @@ public class UserTimeLineFragment extends Fragment {
         }
     }
 
-
+    /**
+     * Displays {@link ChooseFavoriteListsPopupWindow} when the tweet list favorite star is long-clicked (
+     * or short-clicked if the tweet already belongs to multiple lists). Allows user to add/remove the tweet
+     * from favorite lists via the popup window.
+     *
+     * The popup is centered on the star if possible. However, if the list overruns the screen on the top/bottom, the
+     * popup must be shifted up or down to fit on the screen (also the popup's height is capped at half the screen). So ylocation,
+     * displaymetrics and imgbutton height are used to calculate where and how much a large popup should shift if necessary
+     *
+     * @param holder ViewHolder of row containing the star that was clicked. Used to located/change the star imagebutton
+     * @param mTweet Tweet object for the row
+     * @param mMetrics display metrics (containing screen width/height etc)
+     * @param ylocation ylocation on the screen of the top of the FavoritesListsPopup
+     */
     public void showTweetFavoriteListPopupWindow(final UserTimeLineAdapter.ViewHolder holder
             ,final Tweet mTweet
             , DisplayMetrics mMetrics
@@ -533,9 +532,7 @@ public class UserTimeLineFragment extends Fragment {
 
         RxBus rxBus = new RxBus();
         ArrayList<MyListEntry> availableFavoriteLists = InternalDB.getTweetInterfaceInstance(getContext()).getTweetListsForTweet(mActiveTweetFavoriteStars,mTweet.getIdString(),null);
-
         PopupWindow popupWindow = ChooseFavoriteListsPopupWindow.createTweetFavoritesPopup(getContext(),mMetrics,rxBus,availableFavoriteLists,mTweet.getIdString(), mTweet.getUser().getUserId());
-
         popupWindow.getContentView().measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
 
@@ -562,23 +559,22 @@ public class UserTimeLineFragment extends Fragment {
 
         //Overrun at bottom of screen
         while(ylocation + holder.imgStar.getMeasuredHeight() - yadjust + popupMeasuredHeight >displayheight) {
-            Log.i(TAG,"SCREEN OVERRUN BOTTOM - " + (ylocation + holder.imgStar.getMeasuredHeight() - yadjust + popupMeasuredHeight)
-                    + " to display: " + displayheight + ",, reduce yadjust " + yadjust + " - " + (yadjust+10));
             yadjust += 10;
         }
 
 //        //Overrun at bottom of screen
         if(ylocation + holder.imgStar.getMeasuredHeight() - yadjust < 0) {
             while(ylocation + holder.imgStar.getMeasuredHeight() - yadjust < 0) {
-                Log.i(TAG,"SCREEN OVERRUN TOP - increase yadjust " + yadjust + " - " + (yadjust-10));
                 yadjust -= 10;
             }
             yadjust -= 30;
         }
 
 
-        Log.d("TEST","pop width: " + popupWindow.getContentView().getMeasuredWidth() + " height: " + popupWindow.getContentView().getMeasuredHeight());
-        Log.d("TEST","xadjust: " + xadjust + ", yadjust: " + yadjust);
+        if(BuildConfig.DEBUG) {
+            Log.d(TAG,"pop width: " + popupWindow.getContentView().getMeasuredWidth() + " height: " + popupWindow.getContentView().getMeasuredHeight());
+            Log.d(TAG,"xadjust: " + xadjust + ", yadjust: " + yadjust);
+        }
 
 
         popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {

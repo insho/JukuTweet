@@ -24,27 +24,10 @@ public interface QuizFragmentInteractionListener {
             , int correct
             , int total);
 
-
-//    void showPostQuizStatsMultipleChoiceForSingleUsersTweets(ArrayList<MultChoiceResult> dataset
-//            , String quizType
-//            , final UserInfo userInfo
-//            , boolean isWordBuilder
-//            , boolean isHighScore
-//            , Integer wordbuilderScore
-//            , int correct
-//            , int total);
-
-
     void showPostQuizStatsFillintheBlanks(ArrayList<Tweet> dataset
             , Object listInformation
             , int correct
             , int total);
-
-//
-//    void showPostQuizStatsFillintheBlanksForSingleUsersTweets(ArrayList<Tweet> dataset
-//            , UserInfo userInfo
-//            , int correct
-//            , int total);
 
     void emergencyGoBackToMainActivity();
     void downloadTweetUserIcons(UserInfo userInfo);

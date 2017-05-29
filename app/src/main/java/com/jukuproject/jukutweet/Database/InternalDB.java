@@ -23,10 +23,10 @@ public class InternalDB extends SQLiteOpenHelper
 
 {
 
-    public static TweetListOperationsInterface tweetOpsHelper;
-    public static UserOperationsInterface userOpsHelper;
-    public static QuizOperationsInterface quizOpsHelper;
-    public static WordListOperationsInterface wordOpsHelper;
+    private static TweetListOperationsInterface tweetOpsHelper;
+    private static UserOperationsInterface userOpsHelper;
+    private static QuizOperationsInterface quizOpsHelper;
+    private static WordListOperationsInterface wordOpsHelper;
 
     private static InternalDB sInstance;
     public static  String DB_NAME =  "JQuiz";
@@ -350,7 +350,12 @@ public class InternalDB extends SQLiteOpenHelper
                 }
                 c.close();
 
-                //Add to Romaji HashMap
+                /* Add Romaji and hiragana/katakana translations to hashmap
+                * Note!: Hiragana and Katakana arrays have MORE ENTRIES than the Romaji array. They
+                * will all match up perfectly (in terms of Japanese/English translation) up to the end of the Romaji array.
+                * After that they diverge. So it is important to use the romaji array as the one being iterated-through below, and
+                * not one of the other arrays.
+                * */
                 for(int i=0;i<romaji.size();i++) {
                     ArrayList<String> tmp;
                     if(romajiMap.containsKey(romaji.get(i))){

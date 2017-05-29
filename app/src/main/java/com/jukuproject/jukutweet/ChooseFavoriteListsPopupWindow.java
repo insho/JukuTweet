@@ -27,17 +27,18 @@ import java.util.ArrayList;
  */
 public class ChooseFavoriteListsPopupWindow {
 
-
+    /**
+     * Creates the generic popup window from which the Word and Tweet ChooseFavorites popups will be created
+     * @param context Context
+     * @param favoritesLists Array of possible favorite lists to add the word/tweet to
+     * @param displayMetrics display metrics
+     * @return ChooseFavorites popup window
+     */
     private static PopupWindow genericPopupWindow(Context context, ArrayList<MyListEntry>  favoritesLists, DisplayMetrics displayMetrics) {
         PopupWindow popupWindow = new PopupWindow(context);
 
         popupWindow.setFocusable(true);
         popupWindow.setClippingEnabled(false);
-//        if(context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
-//            popupWindow.setWidth(Math.round((float) displayMetrics.widthPixels * (float) .45));
-//        } else {
-//            popupWindow.setWidth(Math.round((float) displayMetrics.widthPixels * (float) 0.26));
-//        }
         popupWindow.setWidth(ViewGroup.LayoutParams.WRAP_CONTENT);
         if(favoritesLists.size()>10) {
             popupWindow.setHeight((int)((float)displayMetrics.heightPixels/2.0f));
@@ -49,8 +50,16 @@ public class ChooseFavoriteListsPopupWindow {
         return popupWindow;
     }
 
-
-
+    /**
+     * Creates the favorite lists popup window for a WordEntry, in which the user can
+     * add a Word to various WordLists
+     * @param context Context
+     * @param metrics display metrics
+     * @param rxBus RxBus back to calling fragment, so that changes to favorite lists can be passed along
+     * @param favoritesLists Array of possible favorite lists to add the word to
+     * @param kanjiId current word id
+     * @return ChooseFavorites popup window
+     */
     public static PopupWindow createWordFavoritesPopup(Context context, DisplayMetrics metrics, RxBus rxBus , ArrayList<MyListEntry> favoritesLists,int kanjiId) {
 
         View view = LayoutInflater.from(context).inflate(R.layout.popup_choosefavorites, null);
@@ -70,7 +79,17 @@ public class ChooseFavoriteListsPopupWindow {
         return popupWindow;
     }
 
-
+    /**
+     * Creates the favorite lists popup window for a Tweet, in which the user can
+     * add a Tweet to various TweetLists
+     * @param context Context
+     * @param metrics display metrics
+     * @param rxBus RxBus back to calling fragment, so that changes to favorite lists can be passed along
+     * @param favoritesLists Array of possible favorite lists to add the tweet to
+     * @param tweetIdString tweetid
+     * @param userIdString userid
+     * @return ChooseFavorites popup window
+     */
     public static PopupWindow createTweetFavoritesPopup(Context context
             , DisplayMetrics metrics
             , RxBus rxBus

@@ -317,13 +317,6 @@ public class TweetListSingleUserFragment extends Fragment {
         c.close();
     }
 
-
-
-    @Override
-    public void onResume() {
-        super.onResume();
-    }
-
     /**
      * Maximum width of the color bars in the MenuExpandableListAdapter. Right that vlue is set
      * to half of the screenwidth

@@ -24,7 +24,7 @@ public class MenuDropDownPopupAdapter extends RecyclerView.Adapter<MenuDropDownP
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
-        public TextView txtOption;
+        private TextView txtOption;
 
         public ViewHolder(View v) {
             super(v);

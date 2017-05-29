@@ -85,7 +85,6 @@ public class PostQuizStatsMultipleChoiceAdapter extends ArrayAdapter<ArrayList<M
                 }
             });
         } else {
-//                final String text = arrayList.get(1);
             final String questionNumber = multChoiceResult.getCurrentTotal() + " - ";
 
             if (convertView == null) {

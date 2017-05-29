@@ -40,7 +40,6 @@ import java.util.Arrays;
  * Shows lists of saved vocabulary (both user-created lists and system defaults). Click
  * on a list to show sub-options ("Browse","Multiple Choice", "Stats" etc)
  */
-
 public class WordListFragment extends Fragment {
 
     String TAG = "WordListFragment";
@@ -349,9 +348,7 @@ public class WordListFragment extends Fragment {
         } else {
             return Math.round((float)metrics.heightPixels*(float).5);
         }
-
     }
-
 
     /**
      * Returns the minimum possible width of a "colorblock" textview, given the text that must

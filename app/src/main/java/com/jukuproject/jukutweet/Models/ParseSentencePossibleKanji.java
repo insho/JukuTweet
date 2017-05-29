@@ -4,7 +4,11 @@ import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
 
-
+/**
+ * Used in {@link com.jukuproject.jukutweet.TweetParser}  to track a possible kanji "chunk"
+ * as it passes through the various chains of logic that determine if it is a legit kanji, and if so,
+ * attaches an edict_id to it
+ */
 public class ParseSentencePossibleKanji {
 
     private Integer positionInSentence;

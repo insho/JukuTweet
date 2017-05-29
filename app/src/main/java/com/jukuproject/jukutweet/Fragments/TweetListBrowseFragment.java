@@ -13,6 +13,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupWindow;
@@ -26,6 +27,7 @@ import com.jukuproject.jukutweet.Dialogs.CopySavedTweetsDialog;
 import com.jukuproject.jukutweet.Interfaces.FragmentInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Interfaces.TweetListOperationsInterface;
+import com.jukuproject.jukutweet.MainActivity;
 import com.jukuproject.jukutweet.Models.ColorThresholds;
 import com.jukuproject.jukutweet.Models.MyListEntry;
 import com.jukuproject.jukutweet.Models.Tweet;
@@ -72,7 +74,6 @@ public class TweetListBrowseFragment extends Fragment {
 
         Bundle args = new Bundle();
         args.putParcelable("mylistentry", myListEntry);
-//        args.putParcelable("colorBlockMeasurables",colorBlockMeasurables);
         fragment.setArguments(args);
         return fragment;
     }
@@ -89,6 +90,18 @@ public class TweetListBrowseFragment extends Fragment {
         args.putParcelable("userInfo",userInfo);
         fragment.setArguments(args);
         return fragment;
+    }
+
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        try {
+            mCallback = (FragmentInteractionListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()
+                    + " must implement OnHeadlineSelectedListener");
+        }
     }
 
     @Override
@@ -135,13 +148,12 @@ public class TweetListBrowseFragment extends Fragment {
 
     }
 
-//    @Override
-//    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
-//        super.onViewStateRestored(savedInstanceState);
-//
-//        //TODO Put something in place to repull data on resume...
-//    }
-
+    /**
+     * If saved fragments have changed (tweets added/deleted) in the MainActivity, this is called to update
+     * the current dataset
+     *
+     * @see MainActivity#notifySavedTweetFragmentsChanged()
+     */
     public void updateMyListAdapter() {
         if (mMyListEntry != null) {
             mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mMyListEntry,mColorThresholds);
@@ -154,7 +166,6 @@ public class TweetListBrowseFragment extends Fragment {
 
     public void setUpAdapter(){
 
-//        mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         //Create UserListAdapter and attach rxBus click listeners to it
@@ -221,49 +232,30 @@ public class TweetListBrowseFragment extends Fragment {
 
     }
 
+    /**
+     * Displays {@link CopySavedTweetsDialog} when user presses copy button in navigation bar. This is a callback
+     * from {@link MainActivity#onOptionsItemSelected(MenuItem)}
+     */
     public void showCopyTweetsDialog(){
         if(getActivity().getSupportFragmentManager().findFragmentByTag("dialogCopyTweet") == null || !getActivity().getSupportFragmentManager().findFragmentByTag("dialogCopyTweet").isAdded()) {
             CopySavedTweetsDialog.newInstance(mMyListEntry,mSelectedEntries).show(getActivity().getSupportFragmentManager(),"dialogCopyTweet");
         }
     }
 
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        try {
-            mCallback = (FragmentInteractionListener) context;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString()
-                    + " must implement OnHeadlineSelectedListener");
-        }
-    }
-
     /**
-     * Checks how many milliseconds have elapsed since the last time "mLastClickTime" was updated
-     * If enough time has elapsed, returns True and updates mLastClickTime.
-     * This is to stop unwanted rapid clicks of the same button
-     * @param elapsedMilliSeconds threshold of elapsed milliseconds before a new button click is allowed
-     * @return bool True if enough time has elapsed, false if not
+     * Clears selected entries when user presses cancel button in navigation bar. This is a callback
+     * from {@link MainActivity#onOptionsItemSelected(MenuItem)}
      */
-    public boolean isUniqueClick(int elapsedMilliSeconds) {
-        if(SystemClock.elapsedRealtime() - mLastClickTime > elapsedMilliSeconds) {
-            mLastClickTime = SystemClock.elapsedRealtime();
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-
     public void deselectAll(){
         mSelectedEntries.clear();
         mAdapter.notifyDataSetChanged();
     }
 
+    /**
+     * Selects all items when user presses select-all button in navigation bar. This is a callback
+     * from {@link MainActivity#onOptionsItemSelected(MenuItem)}
+     */
     public void selectAll() {
-
-//        //If every word item is already selected, deselect all
         if(mSelectedEntries.size() != mDataset.size()) {
             mSelectedEntries.clear();
             for(Tweet entry : mDataset) {
@@ -272,112 +264,16 @@ public class TweetListBrowseFragment extends Fragment {
             mAdapter.notifyDataSetChanged();
         }
     }
-//
-//    public void addTweetOrUpdateTweetEntryItemFavorites(Tweet updatedTweet) {
-//        boolean tweetExistsinList = InternalDB.getTweetInterfaceInstance(getContext()).myListContainsTweet(mMyListEntry,updatedTweet);
-//        boolean tweetEntryFound = false;
-//
-//        Log.i(TAG,"ADDING TWEET EXISTS DEAL: " + tweetExistsinList);
-//        for(Tweet datasetTweetEntry : mDataset) {
-//            if(datasetTweetEntry.getIdString().equals(updatedTweet.getIdString())) {
-//                tweetEntryFound = true;
-//                if(!tweetExistsinList) {
-//                    //If the word that appeared in the popup window no longer is contained in this list, remove it
-//                    Log.i(TAG,"dataset removing tweet in browse tweets yo");
-//                    mDataset.remove(datasetTweetEntry);
-//                    if(mDataset.size()==0) {
-//                        //Kick the user back to the main menu if the word that was removed was the last word in the list
-//                        mCallback.onBackPressed();
-//                    } else {
-//                        //Remove word entry from selected entries if applicable
-//                        if(mSelectedEntries.contains(datasetTweetEntry.getIdString())) {
-//                            mSelectedEntries.remove(datasetTweetEntry.getIdString());
-//                        }
-//                        if(mSelectedEntries.size()==0) {
-//                            if(mUserInfo!=null) {
-//                                mCallback.showMenuMyListBrowse(false,0);
-//                            } else {
-//                                mCallback.showMenuMyListBrowse(false,1);
-//                            }
-//                        }
-//
-//                        mAdapter.notifyDataSetChanged();
-//                    }
-//                } else {
-//                    datasetTweetEntry.setItemFavorites(updatedTweet.getItemFavorites());
-//                    mAdapter.notifyDataSetChanged();
-//                }
-//
-//            }
-//        }
-//
-//        //If no word entry was found in the list and the word should be there, add the word to the list
-//        if(tweetExistsinList && !tweetEntryFound) {
-//            mDataset.add(updatedTweet);
-//            mAdapter.notifyDataSetChanged();
-//        }
-//    }
 
-
-//    public void addTweetOrUpdateTweetEntryItemFavorites(String concatenatedTweetIds) {
-////        for(Tweet updatedTweet : updatedTweets) {
-//
-//
-////            Log.i(TAG,"ADD OR UPDATE: " + updatedTweets.size() + ", tweetExistsinList: " + tweetExistsinList  );
-//            for(Tweet datasetTweetEntry : mDataset) {
-//                boolean tweetEntryFound = false;
-//                if(concatenatedTweetIds.equals(datasetTweetEntry.getIdString()) || concatenatedTweetIds.contains(datasetTweetEntry.getIdString())) {
-//                    tweetEntryFound = true;
-//
-//                    boolean tweetExistsinList = InternalDB.getTweetInterfaceInstance(getContext()).myListContainsTweet(mMyListEntry,datasetTweetEntry.getIdString());
-//                    Log.i(TAG,"HEEERE");
-//
-//                    if(!tweetExistsinList) {
-//                        Log.i(TAG,"HEEERE2");
-//                        //If the word that appeared in the popup window no longer is contained in this list, remove it
-//                        mDataset.remove(datasetTweetEntry);
-//                        if(mDataset.size()==0) {
-//                            //Kick the user back to the main menu if the word that was removed was the last word in the list
-//                            mCallback.onBackPressed();
-//                        } else {
-//                            //Remove word entry from selected entries if applicable
-//                            if(mSelectedEntries.contains(datasetTweetEntry.getIdString())) {
-//                                mSelectedEntries.remove(datasetTweetEntry.getIdString());
-//                            }
-//                            if(mSelectedEntries.size()==0) {
-//                                if(mUserInfo!=null) {
-//                                    mCallback.showMenuMyListBrowse(false,0);
-//                                } else {
-//                                    mCallback.showMenuMyListBrowse(false,1);
-//                                }
-//                            }
-//
-//                            mAdapter.notifyDataSetChanged();
-//                        }
-//                    } else {
-//                        Tweet updatedTweet = InternalDB.getTweetInterfaceInstance(getContext()).getTweetFromATweetId(datasetTweetEntry.getIdString(),mColorThresholds);
-//                        datasetTweetEntry.setItemFavorites(updatedTweet.getItemFavorites());
-//                        mAdapter.notifyDataSetChanged();
-//                    }
-//
-//                }
-//
-//                //If no word entry was found in the list and the word should be there, add the word to the list
-//                if(!tweetEntryFound) {
-//                    boolean tweetExistsinList = InternalDB.getTweetInterfaceInstance(getContext()).myListContainsTweet(mMyListEntry,datasetTweetEntry.getIdString());
-//                    Tweet updatedTweet = InternalDB.getTweetInterfaceInstance(getContext()).getTweetFromATweetId(datasetTweetEntry.getIdString(),mColorThresholds);
-//                    if(tweetExistsinList) {
-//                        mDataset.add(updatedTweet);
-//                    }
-//                }
-//        }
-//
-//
-////        }
-//        mAdapter.notifyDataSetChanged();
-//
-//    }
-
+    /**
+     * This performs the transaction when user has chosen tweets to move/copy in the {@link com.jukuproject.jukutweet.Dialogs.CopySavedTweetsDialog}.
+     * Tweets are saved to the chosen lists, and removed (if the user so chose) from this list, and then the table refreshed
+     *
+     * @param tweetIds Tweet ids to move/copy
+     * @param listsToCopyTo Tweet Lists to move/copy to
+     * @param move bool true to move the lists (removing them from the current list as well), or just to copy to other lists
+     * @param currentList The current MyList object
+     */
     public void saveAndUpdateTweets(String tweetIds,ArrayList<MyListEntry> listsToCopyTo, boolean move,MyListEntry currentList) {
         TweetListOperationsInterface helperTweetOps = InternalDB.getTweetInterfaceInstance(getContext());
         try {
@@ -402,10 +298,16 @@ public class TweetListBrowseFragment extends Fragment {
             Log.e(TAG,"SQLiteException in WordListBrowseFragment saveAndUpdateMyLists : " + e);
             Toast.makeText(getContext(), "Unable to update lists", Toast.LENGTH_SHORT).show();
         }
-
-
-
     }
+
+    /**
+     * Performs "delete tweet" transaction when user has chosen to MOVE the selected tweets from the current
+     * tweet list. THis deletes the tweets in the current list after they've been copied.
+     * @param bulkTweetIds concatenated comma delimited string of tweet ids
+     * @param currentList the current mylist from which the tweets are being deleted
+     *
+     * @see CopySavedTweetsDialog
+     */
     public void removeTweetFromList(String bulkTweetIds, MyListEntry currentList){
         try {
             InternalDB.getTweetInterfaceInstance(getContext()).removeMultipleTweetsFromTweetList(bulkTweetIds,currentList);
@@ -414,18 +316,7 @@ public class TweetListBrowseFragment extends Fragment {
             mSelectedEntries.clear();
             mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mMyListEntry,mColorThresholds);
             mAdapter.swapDataSet(mDataset);
-
-
-//            if(mSelectedEntries.size()==1) {
-//                for(Tweet tweet : mDataset) {
-//                    if(tweet.getIdString().equals(mSelectedEntries.get(0))) {
-//                        mCallback.notifySavedTweetFragmentsChanged(tweet.getIdString());
-//                    }
-//                }
-//
-//            } else {
-                mCallback.notifySavedTweetFragmentsChanged();
-//            }
+            mCallback.notifySavedTweetFragmentsChanged();
 
         } catch (NullPointerException e) {
             Log.e(TAG,"Nullpointer in TweetListBrowseFragment removeTweetFromList : " + e);
@@ -436,27 +327,13 @@ public class TweetListBrowseFragment extends Fragment {
         }
     }
 
-
-
+    /**
+     * Performs "delete tweet" transaction when user deletes a selected tweet or tweets by pressing the trash icon
+     * in the navbar. This is a callback from {@link MainActivity#onOptionsItemSelected(MenuItem)}
+     */
     public void removeTweetFromList(){
         try {
-        Log.i(TAG,"HEEREE IN removeTweetFromList");
             final String tweetIds = joinSelectedStrings(mSelectedEntries);
-
-
-//            if(mSelectedEntries.size()==1) {
-//                Log.i(TAG,"HEEREE IN x");
-//
-//                for(Tweet tweet : mDataset) {
-//                    Log.i(TAG,"HEEREE IN y");
-//                    if(tweet.getIdString().equals(mSelectedEntries.get(0))) {
-//                        mCallback.notifySavedTweetFragmentsChanged(tweet.getIdString());
-//                    }
-//                }
-//
-//            } else {
-
-//            }
 
             if(mMyListEntry!=null) {
                 InternalDB.getTweetInterfaceInstance(getContext()).removeMultipleTweetsFromTweetList(tweetIds,mMyListEntry);
@@ -465,8 +342,6 @@ public class TweetListBrowseFragment extends Fragment {
                 mSingleUserUndoPairs = InternalDB.getTweetInterfaceInstance(getContext()).removeTweetsFromAllTweetLists(tweetIds);
                 mDataset = InternalDB.getTweetInterfaceInstance(getContext()).getTweetsForSavedTweetsList(mUserInfo,mColorThresholds);
             }
-
-
 
             mCallback.notifySavedTweetFragmentsChanged();
 
@@ -483,6 +358,11 @@ public class TweetListBrowseFragment extends Fragment {
         }
     }
 
+    /**
+     * Joins an array of strings into a single comma-delimited string
+     * @param list string array to flatten into a comma-delimited string
+     * @return comma delimited string
+     */
     public static String joinSelectedStrings(ArrayList<String> list ) {
         StringBuilder sb = new StringBuilder();
 
@@ -495,7 +375,12 @@ public class TweetListBrowseFragment extends Fragment {
         return sb.toString();
     }
 
-
+    /**
+     * Shows the "undo changes" popup window after user deletes selected rows. The window stays visible for 3 seconds,
+     * giving the user a chance to click on the "undo" button and reverse the changes.
+     * @param bulkTweetIds concatenate (and comma seperated) string of tweet ids to move
+     * @param currentList The current my list that is being browsed
+     */
     public void showUndoPopupTweets(final String bulkTweetIds, final MyListEntry currentList) {
 
         DisplayMetrics metrics = new DisplayMetrics();
@@ -577,6 +462,29 @@ public class TweetListBrowseFragment extends Fragment {
     }
 
 
+    /**
+     * Checks how many milliseconds have elapsed since the last time "mLastClickTime" was updated
+     * If enough time has elapsed, returns True and updates mLastClickTime.
+     * This is to stop unwanted rapid clicks of the same button
+     * @param elapsedMilliSeconds threshold of elapsed milliseconds before a new button click is allowed
+     * @return bool True if enough time has elapsed, false if not
+     */
+    public boolean isUniqueClick(int elapsedMilliSeconds) {
+        if(SystemClock.elapsedRealtime() - mLastClickTime > elapsedMilliSeconds) {
+            mLastClickTime = SystemClock.elapsedRealtime();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Displays the actionbar icon set for selecting/copying/deleting items from a tweet list,
+     * either for a single user saved tweets (UserInfo) or tweetlist (MyListEntry)
+     * @param show bool true for show the array in navbar, false for hide
+     *
+     * @see MainActivity#showMenuMyListBrowse(boolean, int)
+     */
     private void showMenuMyListBrowse(boolean show) {
         if(mUserInfo!=null) {
             mCallback.showMenuMyListBrowse(show,0);

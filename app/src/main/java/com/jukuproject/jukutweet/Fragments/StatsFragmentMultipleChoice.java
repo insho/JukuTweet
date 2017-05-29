@@ -170,8 +170,6 @@ public class StatsFragmentMultipleChoice extends Fragment implements WordEntryFa
                 }
 
                 textScore.setText(getString(R.string.score,mCorrect,mTotal));
-//                textScore.setText(String.valueOf(mCorrect) + "/" + String.valueOf(mTotal));
-//                String txtpercentage =   String.valueOf((int)percentage) + "%";
                 textPercentage.setText(getString(R.string.percentage,(int)percentage));
 
 
@@ -201,7 +199,11 @@ public class StatsFragmentMultipleChoice extends Fragment implements WordEntryFa
         }
     }
 
-
+    /**
+     * If a word entry has been saved to a new word list in the {@link WordDetailPopupDialog}, the message is relayed back to
+     * this method, which updates the  {@link com.jukuproject.jukutweet.Models.ItemFavorites} in the dataset to reflect the change
+     * @param wordEntry WordEntry that was added to/removed from a new list
+     */
     public void updateWordEntryItemFavorites(WordEntry wordEntry) {
         for(MultChoiceResult multChoiceResult: mDataset) {
             if(multChoiceResult.getWordEntry()!=null && multChoiceResult.getWordEntry().getId().equals(wordEntry.getId())) {

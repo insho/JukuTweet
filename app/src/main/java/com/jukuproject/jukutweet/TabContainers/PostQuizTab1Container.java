@@ -14,7 +14,10 @@ import com.jukuproject.jukutweet.R;
 
 import java.util.ArrayList;
 
-//TODO -- possibly consolidate these into one?
+/**
+ * Fragment container for PostQuizStats {@link StatsFragmentMultipleChoice} and {@link StatsFragmentFillintheBlanks}
+ * @see BaseContainerFragment
+ */
 public class PostQuizTab1Container extends BaseContainerFragment {
 
     private boolean mIsViewInited;
@@ -70,7 +73,6 @@ public class PostQuizTab1Container extends BaseContainerFragment {
 
                 break;
             default:
-//                replaceFragment(multipleChoiceFragment, false,"multipleChoiceFragment");
                 break;
 
         }

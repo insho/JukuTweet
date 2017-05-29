@@ -8,8 +8,14 @@ import java.text.NumberFormat;
 import java.util.Locale;
 
 /**
- * Created by JukuProject on 3/20/2017.
- * Represents data for a single twitter user in the InternalDB database
+ * Represents data for a single twitter user from the Twitter API call
+ *
+ * @see com.jukuproject.jukutweet.Fragments.UserListFragment
+ * @see com.jukuproject.jukutweet.Fragments.UserTimeLineFragment
+ * @see com.jukuproject.jukutweet.Dialogs.AddUserDialog
+ * @see com.jukuproject.jukutweet.Dialogs.AddUserCheckDialog
+ *
+ * etc etc
  */
 
 public class UserInfo implements Parcelable  {

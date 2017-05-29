@@ -42,7 +42,6 @@ import java.util.Collections;
  * Displays a deck of flashcards that user can swipe through, corresponding to a list of WordEntry ({@link WordEntry}) objects.
  * Double-tap or swipe up/down to show "reverse side" of card. Long click to show {@link WordDetailPopupDialog} for card entry
  */
-
 public class FlashCardsFragment extends Fragment implements WordEntryFavoritesChangedListener {
 
     String TAG = "Test-FlashCards";
@@ -176,6 +175,7 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
                 return true;
             }
 
+            // Shows WordDetailPopupDialog
             @Override
             public void onLongPress(MotionEvent e) {
                 super.onLongPress(e);
@@ -311,9 +311,7 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
                 public void onPageScrollStateChanged(int arg0) {
                 }
 
-
             });
-
 
             return page;
         }
@@ -379,7 +377,7 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
                     break;
                 case "Definition":
 
-                    String definition = wordEntry.getFlashCardDefinitionMultiLineString(6);
+                    String definition = wordEntry.getDefinitionMultiLineString(6);
                     textFurigana.setVisibility(View.GONE);
 
                     if(wordEntry.getDefinition().contains("(2)")) {
@@ -484,7 +482,6 @@ public class FlashCardsFragment extends Fragment implements WordEntryFavoritesCh
         myTextPaint.setTextSize(textSize);
         Layout.Alignment alignment = Layout.Alignment.ALIGN_NORMAL;
         float spacingMultiplier = 1;
-//        float spacingAddition = padding;
         boolean includePadding = padding != 0;
         StaticLayout myStaticLayout = new StaticLayout(text, myTextPaint, deviceWidth, alignment, spacingMultiplier, padding, includePadding);
         return myStaticLayout.getHeight();

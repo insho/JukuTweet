@@ -6,7 +6,6 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -33,9 +32,7 @@ public class WordListExpandableAdapter extends BaseExpandableListAdapter {
     private Context mContext;
     private ArrayList<MenuHeader> mMenuHeader;
     private int mTextsize;
-
-    /* Maximum width that the color blocks can occupy on the screen(in total) */
-    private final int mMaxWidthForColorBlocks;
+    private final int mMaxWidthForColorBlocks; // Maximum width that the color blocks can occupy on the screen(in total)
 
 
     public WordListExpandableAdapter(Context context
@@ -114,8 +111,6 @@ public class WordListExpandableAdapter extends BaseExpandableListAdapter {
             textViewColorBlock_yellow.setVisibility(View.GONE);
             textViewColorBlock_green.setVisibility(View.GONE);
         }
-
-
         return layout;
     }
 
@@ -143,8 +138,6 @@ public class WordListExpandableAdapter extends BaseExpandableListAdapter {
     public View getGroupView(int groupPosition, boolean isExpanded,
                              View convertView, ViewGroup parent) {
 
-//        int availableWidth = mMaxWidthForColorBlocks;
-
         if (convertView == null) {
             LayoutInflater infalInflater = (LayoutInflater) this.mContext
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -155,15 +148,13 @@ public class WordListExpandableAdapter extends BaseExpandableListAdapter {
 
         TextView lblListHeader = (TextView) convertView.findViewById(R.id.lblListHeader);
         lblListHeader.setAlpha(1.0f);
-//        if(BuildConfig.DEBUG){Log.d(TAG,"headerTitle: --" + mMenuHeader.get(groupPosition).getHeaderTitle() + "--" );}
+
         if(mTextsize >0){
             lblListHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP, mTextsize);
         }
 
-//        LinearLayout background = (LinearLayout) convertView.findViewById(R.id.balls2);
         lblListHeader.setBackgroundColor(ContextCompat.getColor(mContext, android.R.color.white));
         lblListHeader.setTextColor(ContextCompat.getColor(mContext, android.R.color.black));
-//        background.setBackgroundColor(ContextCompat.getColor(mContext, android.R.color.white));
         lblListHeader.setGravity(Gravity.START);
 
         TextView lblColorBar = (TextView) convertView.findViewById(R.id.lblcolorbar);
@@ -173,9 +164,8 @@ public class WordListExpandableAdapter extends BaseExpandableListAdapter {
         * kanji grouped by COLOR (grey, red, yellow, green) -- the entire row should be taken up by one big color block
         * drawable, with the count of entries for that color in the middle. No title, no label. */
 
-
-            //Hide the big color bar and color blocks
-            convertView.findViewById(R.id.lblcolorbar).setVisibility(TextView.GONE);
+        //Hide the big color bar and color blocks
+        convertView.findViewById(R.id.lblcolorbar).setVisibility(TextView.GONE);
         convertView.findViewById(R.id.listitem_colors_1).setVisibility(TextView.GONE);
         convertView.findViewById(R.id.listitem_colors_2).setVisibility(TextView.GONE);
         convertView.findViewById(R.id.listitem_colors_3).setVisibility(TextView.GONE);
@@ -205,7 +195,6 @@ public class WordListExpandableAdapter extends BaseExpandableListAdapter {
 
                     /* Set the list name to be greyed out for empty lists */
                     if(measurables.getTotalCount()>0) {
-//                        if(BuildConfig.DEBUG){Log.d(TAG,"setting counts...");}
                         lblListHeaderCount.setText("(" + measurables.getTotalCount() + ")");
                         lblListHeader.setAlpha(1.0f);
                         lblListHeaderCount.setAlpha(.8f);
@@ -246,9 +235,6 @@ public class WordListExpandableAdapter extends BaseExpandableListAdapter {
                     }
 
                 }
-
-
-//        if(BuildConfig.DEBUG){Log.d(TAG,"dimenscore at end of group: " + availableWidth);}
         return convertView;
     }
 
@@ -264,7 +250,13 @@ public class WordListExpandableAdapter extends BaseExpandableListAdapter {
     }
 
 
-    //TODO consolidate with post quiz stats 2
+    /**
+     * Uses ColorBlockMeasurables object to assign proportional widths to a group of colored
+     * textviews, creating the "color blocks" for the word list. They represent the words contained in
+     * the word list, broken down by color (assigned by quiz score). More words of that color-rank == larger color block
+     * StatsFragmentProgress also uses this to create a colorblock set for a list
+     * @see com.jukuproject.jukutweet.Fragments.StatsFragmentProgress
+     * */
     public static void setColorBlocks(Context context
             ,ColorBlockMeasurables colorBlockMeasurables
             ,int availableWidth
@@ -314,19 +306,12 @@ public class WordListExpandableAdapter extends BaseExpandableListAdapter {
             txtGrey.setText(String.valueOf(colorBlockMeasurables.getTotalCount()));
             txtGrey.setVisibility(View.VISIBLE);
             txtGrey.setMinimumWidth(availableWidth);
-            Log.d("Test-colorblock","Setting minimum available width to be max...");
         } else {
 
             int availableWidthRemaining = availableWidth;
             if(colorBlockMeasurables.getGreyCount()>0){
                 txtGrey.setText(String.valueOf(colorBlockMeasurables.getGreyCount()));
                 int dimenscore = colorBlockMeasurables.getGreyDimenscore(availableWidth);
-//                if(BuildConfig.DEBUG) {
-//                    Log.i("Test-colorblock","dimenscoretotal: " + availableWidth);
-//                    Log.i("Test-colorblock","grey/count: " + colorBlockMeasurables.getGreyCount() + "/" + colorBlockMeasurables.getTotalCount());
-//                    Log.i("Test-colorblock","((float) grey / (float) count): " + ((float) colorBlockMeasurables.getGreyCount() / (float) colorBlockMeasurables.getTotalCount()));
-//                    Log.i("Test-colorblock","Rounded score: " + dimenscore);
-//                }
                 availableWidthRemaining = availableWidth-dimenscore;
                 txtGrey.setMinimumWidth(dimenscore);
                 txtGrey.setVisibility(View.VISIBLE);
@@ -335,12 +320,6 @@ public class WordListExpandableAdapter extends BaseExpandableListAdapter {
             if(colorBlockMeasurables.getRedCount()>0){
                 txtRed.setText(String.valueOf(colorBlockMeasurables.getRedCount()));
                 int dimenscore = colorBlockMeasurables.getRedDimenscore(availableWidth,availableWidthRemaining);
-//                if(BuildConfig.DEBUG) {
-//                    Log.i("Test-colorblock","dimenscoretotal: " + availableWidth);
-//                    Log.i("Test-colorblock","red/count: " + colorBlockMeasurables.getRedCount() + "/" + colorBlockMeasurables.getTotalCount());
-//                    Log.i("Test-colorblock","((float) red / (float) count): " + ((float) colorBlockMeasurables.getRedCount() / (float) colorBlockMeasurables.getTotalCount()));
-//                    Log.i("Test-colorblock","Rounded score: " + dimenscore);
-//                }
                 availableWidthRemaining = availableWidthRemaining -dimenscore;
                 txtRed.setMinimumWidth(dimenscore);
                 txtRed.setVisibility(View.VISIBLE);
@@ -359,18 +338,13 @@ public class WordListExpandableAdapter extends BaseExpandableListAdapter {
             if(colorBlockMeasurables.getGreenCount()>0){
                 txtGreen.setText(String.valueOf(colorBlockMeasurables.getGreenCount()));
                 int dimenscore = colorBlockMeasurables.getGreenDimenscore(availableWidth,availableWidthRemaining);
-//                if(BuildConfig.DEBUG) {
-//                    Log.i("Test-colorblock","dimenscoretotal: " + availableWidth);
-//                    Log.i("Test-colorblock","grey/count: " + colorBlockMeasurables.getGreenCount() + "/" + colorBlockMeasurables.getTotalCount());
-//                    Log.i("Test-colorblock","((float) grey / (float) count): " + ((float) colorBlockMeasurables.getGreenCount() / (float) colorBlockMeasurables.getTotalCount()));
-//                    Log.i("Test-colorblock","Rounded score: " + dimenscore);
-//
-//                }
                 txtGreen.setMinimumWidth(dimenscore);
                 txtGreen.setVisibility(View.VISIBLE);
             }
         }
 
+        /* If the list is entirely empty, and yet is open, show the
+        * colorblock with a white background and "empty" as text inside. */
         if (colorBlockMeasurables.getTotalCount() == 0) {
             txtGrey.setVisibility(View.VISIBLE);
             if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {

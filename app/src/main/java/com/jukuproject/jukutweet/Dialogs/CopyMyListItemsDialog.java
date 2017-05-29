@@ -59,7 +59,6 @@ public class CopyMyListItemsDialog extends DialogFragment {
         }
     }
 
-
     public static CopyMyListItemsDialog newInstance(MyListEntry currentList, ArrayList<Integer> selectedEntries) {
 
         CopyMyListItemsDialog frag = new CopyMyListItemsDialog();

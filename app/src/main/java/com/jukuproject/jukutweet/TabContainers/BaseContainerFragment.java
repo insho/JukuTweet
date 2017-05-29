@@ -7,8 +7,12 @@ import android.util.Log;
 
 import com.jukuproject.jukutweet.R;
 
+/**
+ * Basic "ground floor" fragment that is the initial fragment added to the Tab Buckets in the {@link com.jukuproject.jukutweet.SectionsPagerAdapter} in
+ * the {@link com.jukuproject.jukutweet.MainActivity} and {@link com.jukuproject.jukutweet.PostQuizStatsActivity}. This way,
+ * fragment transactions on sub-fragments and the fragment stack for each bucket can be run through this fragment
+ */
 public class BaseContainerFragment extends Fragment {
-
 
     /**
      * Replace current fragment in the tab bucket

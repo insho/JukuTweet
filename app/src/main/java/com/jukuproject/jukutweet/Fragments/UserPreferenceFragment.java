@@ -40,17 +40,6 @@ public class UserPreferenceFragment extends PreferenceFragment {
 
         addPreferencesFromResource(R.xml.preferences);
 
-//        final CheckBoxPreference countMultipleChoiceScores = (CheckBoxPreference) findPreference("includemultiplechoicecores");
-//        countMultipleChoiceScores.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-//            @Override
-//            public boolean onPreferenceChange(Preference preference, Object newValue) {
-//
-//                return false;
-//            }
-//        });
-//        final CheckBoxPreference countFillintheBlanksScores = (CheckBoxPreference) findPreference("includefillinsentencesscores");
-
-
         final MultiSelectListPreference listfavoritlists = (MultiSelectListPreference) findPreference("list_favoriteslistcount");
 
         final Drawable star = ContextCompat.getDrawable(getActivity(), R.drawable.ic_star_black);
@@ -165,7 +154,6 @@ public class UserPreferenceFragment extends PreferenceFragment {
         final ListPreference listPreference = (ListPreference) findPreference("sliderMultiplier");
         sliderMultiplier = prefs.getString("sliderMultiplier", "3");
 
-        // THIS IS REQUIRED IF YOU DON'T HAVE 'entries' and 'entryValues' in your XML
         setListPreferenceData(listPreference,sliderMultiplier);
         listPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
@@ -193,6 +181,12 @@ public class UserPreferenceFragment extends PreferenceFragment {
 
     }
 
+    /**
+     * Used for the "sliderMultiplier" preference, to translate one of the values in the slider
+     * to an integer value that can be set as a default value
+     * @param lp the ListPreference object for the slider
+     * @param defaultValue default value key
+     */
     protected static void setListPreferenceData(ListPreference lp,String defaultValue) {
         CharSequence entries[] = { "1","2","3","4","5"};
         CharSequence entryvalues[] = { "1","2","3","4","5"};

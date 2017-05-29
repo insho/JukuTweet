@@ -21,11 +21,7 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
         super(fm);
         this.mCurrentTabs = currentTabs;
     }
-//
-//    public SectionsPagerAdapter2SavedInstance(FragmentManager fm, String[] currentTabs, Fragment[] savedFragments) {
-//        super(fm);
-//        this.mCurrentTabs = currentTabs;
-//    }
+
 
     @Override
     public Fragment getItem(int position) {

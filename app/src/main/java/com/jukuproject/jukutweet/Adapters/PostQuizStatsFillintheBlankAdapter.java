@@ -43,19 +43,16 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
-        public TextView txtRowNumber;
-        public TextView txtSentence;
-        public ListView lstSentenceWords;
+        private TextView txtRowNumber;
+        private TextView txtSentence;
+        private ListView lstSentenceWords;
 
         public ViewHolder(View v) {
             super(v);
-
             txtRowNumber = (TextView) v.findViewById(R.id.textViewFillInStats_RowNumber);
             txtSentence = (TextView) v.findViewById(R.id.textViewFillInStats_Sentence);
             lstSentenceWords = (ListView) v.findViewById(R.id.listViewFillInStats_SentenceWords);
         }
-
-
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
@@ -69,17 +66,12 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
         this.mRxBus = rxBus;
     }
 
-    // Create new views (invoked by the layout manager)
     @Override
     public PostQuizStatsFillintheBlankAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
                                                                          int viewType) {
-        // create a new view
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.fillinsentences_stats_listitem, parent, false);
-        // set the view's size, margins, paddings and layout parameters
         return new ViewHolder(v);
     }
-
-
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
@@ -165,7 +157,9 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
 
     /**
      * Adapter for sub-list of spinner words within each tweet in the quiz, and whether they were
-     * answered correctly or not
+     * answered correctly or not. The PostQuizStatsFillintheBlankAdapter contains both a line for
+     * the tweet's text (with colored span and such), AND this adapter below it, showing all the correct/incorrect
+     * answers within the tweet
      */
     private class TweetWordsResultsAdapter extends ArrayAdapter<WordEntry> {
         private TweetWordsResultsAdapter(Context context
@@ -195,7 +189,6 @@ public class PostQuizStatsFillintheBlankAdapter extends RecyclerView.Adapter<Pos
                 } else {
                     textWord.setTextColor(ContextCompat.getColor(mContext, R.color.colorJukuRed));
                 }
-
 
             textWord.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
             textWord.setFocusable(false);

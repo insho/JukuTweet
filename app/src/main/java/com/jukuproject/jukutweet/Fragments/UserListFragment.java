@@ -77,7 +77,7 @@ public class UserListFragment extends Fragment {
 
     }
 
-    /* Pulls list of followed twitter users from db and fills the adapter with them */
+    /* Pulls list of twitter users from db and fills the adapter with them */
     public void updateAdapter(@Nullable ArrayList<MenuHeader> menuHeaders) {
 
             if(menuHeaders==null) {

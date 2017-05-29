@@ -10,7 +10,6 @@ import java.util.ArrayList;
  * WordLists in {@link com.jukuproject.jukutweet.Fragments.WordListFragment}, {@link com.jukuproject.jukutweet.Dialogs.QuizMenuDialog}, and in the {@link com.jukuproject.jukutweet.Fragments.StatsFragmentProgress}, etc.
  * Counts of the words associated with the list broken down by color. Widths of the color blocks.
  */
-
 public class ColorBlockMeasurables implements Parcelable {
 
     private int greyCount;
@@ -25,19 +24,8 @@ public class ColorBlockMeasurables implements Parcelable {
     private Integer emptyMinWidth;
     private ArrayList<String> selectedColorOptions;
     private Integer tweetCount;
-//    private String title;
-
 
     public ColorBlockMeasurables() {}
-
-
-//    public String getTitle() {
-//        return title;
-//    }
-//
-//    public void setTitle(String title) {
-//        this.title = title;
-//    }
 
     /**
      * Sets up the selectedColorOptions list for the {@link com.jukuproject.jukutweet.Dialogs.QuizMenuDialog} colorblock dropdown
@@ -84,7 +72,6 @@ public class ColorBlockMeasurables implements Parcelable {
     /**
      * Removes a color from the selected color list when the user de-selects the color in the {@link com.jukuproject.jukutweet.Dialogs.QuizMenuDialog} dropdown
      * @param colorToRemove name of color to remove
-     * @return updated array of selectedColorOptions
      */
     public void updateSelectedColorsRemove(String colorToRemove) {
         if(selectedColorOptions == null) {
@@ -99,7 +86,6 @@ public class ColorBlockMeasurables implements Parcelable {
     /**
      * Adds a color to the selected color list when the user selects the color in the {@link com.jukuproject.jukutweet.Dialogs.QuizMenuDialog} dropdown
      * @param colorToAdd name of color to add
-     * @return updated array of selectedColorOptions
      */
     public void updateSelectedColorsAdd(String colorToAdd) {
         if(selectedColorOptions == null) {

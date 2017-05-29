@@ -114,7 +114,8 @@ public class TweetListExpandableAdapter extends BaseExpandableListAdapter {
                 tweetIconText.setVisibility(View.GONE);
             }
 
-            setColorBlocks(mMenuHeader.get(groupPosition).getColorBlockMeasurables()
+            setTweetColorBlocks(mContext
+                    ,mMenuHeader.get(groupPosition).getColorBlockMeasurables()
                     ,availableWidth
                     ,textViewColorBlock_grey
                     ,textViewColorBlock_red
@@ -270,8 +271,17 @@ public class TweetListExpandableAdapter extends BaseExpandableListAdapter {
     }
 
 
-
-    private void setColorBlocks(ColorBlockMeasurables colorBlockMeasurables
+    /**
+     * Uses ColorBlockMeasurables object to assign proportional widths to a group of colored
+     * textviews, creating the "color blocks" for the tweet list. They represent the words contained in
+     * the tweetlist, broken down by color (assigned by quiz score). More words of that color-rank == larger color block
+     *
+     * Note: Similar to setColorBlocks in {@link WordListExpandableAdapter}, except this version
+     * for tweets also includes an extra "Empty" block, for tweets that have been saved, but whose words
+     * are not yet parsed and saved
+     * */
+    public static void setTweetColorBlocks(Context context
+            ,ColorBlockMeasurables colorBlockMeasurables
             ,int availableWidth
             , TextView txtGrey
             , TextView txtRed
@@ -279,29 +289,29 @@ public class TweetListExpandableAdapter extends BaseExpandableListAdapter {
             , TextView txtGreen
             , TextView txtEmpty) {
 
-        Drawable drawablecolorblock1 = ContextCompat.getDrawable(mContext, R.drawable.colorblock);
-        Drawable drawablecolorblock2 = ContextCompat.getDrawable(mContext, R.drawable.colorblock);
-        Drawable drawablecolorblock3 = ContextCompat.getDrawable(mContext, R.drawable.colorblock);
-        Drawable drawablecolorblock4 = ContextCompat.getDrawable(mContext, R.drawable.colorblock);
+        Drawable drawablecolorblock1 = ContextCompat.getDrawable(context, R.drawable.colorblock);
+        Drawable drawablecolorblock2 = ContextCompat.getDrawable(context, R.drawable.colorblock);
+        Drawable drawablecolorblock3 = ContextCompat.getDrawable(context, R.drawable.colorblock);
+        Drawable drawablecolorblock4 = ContextCompat.getDrawable(context, R.drawable.colorblock);
 
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            drawablecolorblock1.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuGrey), PorterDuff.Mode.MULTIPLY);
+            drawablecolorblock1.setColorFilter(ContextCompat.getColor(context, R.color.colorJukuGrey), PorterDuff.Mode.MULTIPLY);
             txtGrey.setBackground(drawablecolorblock1);
-            drawablecolorblock2.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuRed), PorterDuff.Mode.MULTIPLY);
+            drawablecolorblock2.setColorFilter(ContextCompat.getColor(context, R.color.colorJukuRed), PorterDuff.Mode.MULTIPLY);
             txtRed.setBackground(drawablecolorblock2);
-            drawablecolorblock3.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuYellow), PorterDuff.Mode.MULTIPLY);
+            drawablecolorblock3.setColorFilter(ContextCompat.getColor(context, R.color.colorJukuYellow), PorterDuff.Mode.MULTIPLY);
             txtYellow.setBackground(drawablecolorblock3);
-            drawablecolorblock4.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuGreen), PorterDuff.Mode.MULTIPLY);
+            drawablecolorblock4.setColorFilter(ContextCompat.getColor(context, R.color.colorJukuGreen), PorterDuff.Mode.MULTIPLY);
             txtGreen.setBackground(drawablecolorblock4);
 
         } else {
-            drawablecolorblock1.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuGrey), PorterDuff.Mode.MULTIPLY);
+            drawablecolorblock1.setColorFilter(ContextCompat.getColor(context, R.color.colorJukuGrey), PorterDuff.Mode.MULTIPLY);
             txtGrey.setBackgroundDrawable(drawablecolorblock1);
-            drawablecolorblock2.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuRed), PorterDuff.Mode.MULTIPLY);
+            drawablecolorblock2.setColorFilter(ContextCompat.getColor(context, R.color.colorJukuRed), PorterDuff.Mode.MULTIPLY);
             txtRed.setBackgroundDrawable(drawablecolorblock2);
-            drawablecolorblock3.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuYellow), PorterDuff.Mode.MULTIPLY);
+            drawablecolorblock3.setColorFilter(ContextCompat.getColor(context, R.color.colorJukuYellow), PorterDuff.Mode.MULTIPLY);
             txtYellow.setBackgroundDrawable(drawablecolorblock3);
-            drawablecolorblock4.setColorFilter(ContextCompat.getColor(mContext, R.color.colorJukuGreen), PorterDuff.Mode.MULTIPLY);
+            drawablecolorblock4.setColorFilter(ContextCompat.getColor(context, R.color.colorJukuGreen), PorterDuff.Mode.MULTIPLY);
             txtGreen.setBackgroundDrawable(drawablecolorblock4);
         }
 
@@ -382,16 +392,16 @@ public class TweetListExpandableAdapter extends BaseExpandableListAdapter {
         if (colorBlockMeasurables.getTotalCount() == 0) {
             txtGrey.setVisibility(View.VISIBLE);
             if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                drawablecolorblock1.setColorFilter(ContextCompat.getColor(mContext, android.R.color.white), PorterDuff.Mode.MULTIPLY);
+                drawablecolorblock1.setColorFilter(ContextCompat.getColor(context, android.R.color.white), PorterDuff.Mode.MULTIPLY);
                 txtGrey.setBackground(drawablecolorblock1);
             } else {
-                drawablecolorblock1.setColorFilter(ContextCompat.getColor(mContext, android.R.color.white), PorterDuff.Mode.MULTIPLY);
+                drawablecolorblock1.setColorFilter(ContextCompat.getColor(context, android.R.color.white), PorterDuff.Mode.MULTIPLY);
                 txtGrey.setBackgroundDrawable(drawablecolorblock1);
             }
             if(colorBlockMeasurables.getTweetCount()>0) {
-                txtGrey.setText(mContext.getString(R.string.dotdotdot));
+                txtGrey.setText(context.getString(R.string.dotdotdot));
             } else {
-                txtGrey.setText(mContext.getString(R.string.empty));
+                txtGrey.setText(context.getString(R.string.empty));
             }
             txtRed.setVisibility(View.GONE);
             txtYellow.setVisibility(View.GONE);

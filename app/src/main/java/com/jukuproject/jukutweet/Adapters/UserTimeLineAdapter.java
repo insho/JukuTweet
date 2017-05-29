@@ -61,7 +61,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
         private TextView txtUserName;
         private TextView txtUserScreenName;
         public ImageButton imgStar;
-        public FrameLayout imgStarLayout;
+        private FrameLayout imgStarLayout;
         private ImageButton imgReTweeted;
         private ImageButton imgFavorited;
         private ImageView image;
@@ -79,7 +79,6 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
             imgStar = (ImageButton) v.findViewById(R.id.favorite);
             image = (ImageView) v.findViewById(R.id.image);
             imgStarLayout = (FrameLayout) v.findViewById(R.id.timelineStarLayout);
-
 
         }
     }
@@ -172,8 +171,6 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                 }
             });
 
-
-
             holder.imgStarLayout.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
@@ -231,9 +228,6 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                     _rxbus.send(mDataset.get(holder.getAdapterPosition()));
                 }
             };
-
-//            ForegroundColorSpan regularColorSpan = new ForegroundColorSpan(ContextCompat.getColor(mContext,android.R.color.black));
-
                 text.setSpan(longClick, 0, text.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
 
             if(getTweet(position).getEntities()!= null && getTweet(position).getEntities().getUrls() != null ) {
@@ -289,30 +283,17 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                             ds.setAlpha(90);
                         }
                     };
-
-//                    ClickableSpan userMentionClickableSpan = new ClickableSpan() {
-//                        @Override
-//                        public void onClick(View textView) {
-//                            Log.d(TAG,"BALLS");
-//                            _rxbus.send(userMentionses);
-//                        }
-//
-//                        @Override
-//                        public void updateDrawState(TextPaint ds) {
-//                            super.updateDrawState(ds);
-//                            ds.setColor(ContextCompat.getColor(mContext,R.color.colorAccent));
-//
-//                            ds.setUnderlineText(false);
-//
-//                        }
-//                    };
                     text.setSpan(userMentionForegroundSpan, startingLinkPos, startingLinkPos + userMentionToLinkify.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 
                 }
 
             }
 
+            /* In the Search Fragment or WordDetail SavedTweets/SearchTweets fragments,
+            * if result dataset includes the focused tweet (which it should...), highlight that
+            * tweet yellow wherever it appears in the tweet text */
             if(getTweet(holder.getAdapterPosition()).getWordEntries()!=null){
+                //Find focused word in saved tweet and highlight
                 for(WordEntry wordEntry : getTweet(holder.getAdapterPosition()).getWordEntries()) {
                     if(wordEntry.getKanji().equals(mFocusedWord) ) {
                         try {
@@ -326,6 +307,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
                 }
             } else if(mFocusedWord!=null && text.toString().contains(mFocusedWord)) {
 
+                // Find all instances of focused word in the tweet text and highlight them
                 int index = 0;
                 while(index<text.toString().length() && text.toString().substring(index,text.toString().length()).contains(mFocusedWord)) {
                     int startIndex = text.toString().substring(0,index).length() + text.toString().substring(index,text.toString().length()).indexOf(mFocusedWord);
@@ -371,7 +353,7 @@ public class UserTimeLineAdapter extends RecyclerView.Adapter<UserTimeLineAdapte
     }
 
 
-    public Tweet getTweet(int position) {
+    private Tweet getTweet(int position) {
         return mDataset.get(position);
     }
 

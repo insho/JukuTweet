@@ -31,9 +31,6 @@ import rx.functions.Action1;
 
 import static com.jukuproject.jukutweet.Fragments.TweetListBrowseFragment.joinSelectedStrings;
 
-//import android.app.DialogFragment;
-//import com.jukuproject.jukutweet.Interfaces.MyListCopyDialogListener;
-
 /**
  * Dialog for "following" a new twitter user. New user name is entered into edittext
  * and then input into the database
@@ -74,10 +71,8 @@ public class CopySavedTweetsDialog extends DialogFragment {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-//        final UserInfo userInfo = getArguments().getParcelable("userInfo");
 
         ArrayList<String> mActiveFavoriteTweetStars = SharedPrefManager.getInstance(getContext()).getActiveTweetFavoriteStars();
-
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = getActivity().getLayoutInflater();
 
@@ -91,8 +86,7 @@ public class CopySavedTweetsDialog extends DialogFragment {
         setButtonActive(move,false);
 
 
-        /** Add the "Move / Copy"  buttons*/
-
+        /* Add the "Move / Copy"  buttons*/
         move.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -188,18 +182,6 @@ public class CopySavedTweetsDialog extends DialogFragment {
         }
 
     }
-//    //TODO CONSOLIDATE WITH TWINs (? IN COPYMYLISTITEMSDIALOG AND COPY TWEETS DIALOG
-//    public String joinSelectedStrings(ArrayList<String> list ) {
-//        StringBuilder sb = new StringBuilder();
-//
-//        for (int i = 0; i < list.size(); ++i) {
-//            if (i>0) {
-//                sb.append(", ");
-//            }
-//            sb.append(list.get(i));
-//        }
-//        return sb.toString();
-//    }
 
     /**
      * Checks how many milliseconds have elapsed since the last time "mLastClickTime" was updated

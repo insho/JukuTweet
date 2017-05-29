@@ -177,12 +177,10 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
         txtSentence.setVisibility(View.VISIBLE);
         txtSentence.setText(mTweet.getText());
 
-
         try {
             SpannableString textTweetURL = new SpannableString("Go To Tweet");
             String tweetURL = "http://twitter.com/" + mTweet.getUser().getUserId() + "/statuses/" + mTweet.getIdString();
             textTweetURL.setSpan(new URLSpan(tweetURL), 0, textTweetURL.length(), 0);
-//            txtGoToTweet.setText(textTweetURL);
             txtGoToTweet.setMovementMethod(LinkMovementMethod.getInstance());
             txtGoToTweet.setText(textTweetURL, TextView.BufferType.SPANNABLE);
         } catch (NullPointerException e) {
@@ -214,11 +212,8 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
             mCallback.downloadTweetUserIcons(mTweet.getUser());
         }
 
-
-
             /* If it is a previously saved tweet, the favorite list information for the WordEntries in the
-         tweet will not have been previously attached. So attach them now: */
-
+             tweet will not have been previously attached. So attach them now: */
             for(WordEntry wordEntry : mTweet.getWordEntries()) {
                 Cursor c = InternalDB.getWordInterfaceInstance(getContext()).getWordEntryForWordId(wordEntry.getId(),colorThresholds);
                 if(c.getCount()>0) {
@@ -300,19 +295,19 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                     public void onError(Throwable error) {
                         Log.e(TAG,"ERROR IN PARSE SENTENCE OBSERVABLE: " + error);
                         showProgressBar(false);
-//                        linearLayoutVerticalMain.setVisibility(View.GONE);
                         mRecyclerView.setVisibility(View.GONE);
                         txtNoLists.setVisibility(View.VISIBLE);
                         txtNoLists.setText(getString(R.string.tweetbreak_unabletoparse));
                         txtNoLists.setTextColor(ContextCompat.getColor(getContext(),android.R.color.holo_red_dark));
                     }
                 });
-
-
         }
     }
 
-
+    /**
+     * Adds the favorites tweet icon (star is a misnomer... they used to be stars, now they are bird-outlines..) to the
+     * upper right hand corner of the tweet view at the top of the screen, so user can save a tweet to the db from this fragment
+     */
     private void setUpFavoritesStar() {
         //Try to fill in user info at the top
         try {
@@ -355,8 +350,6 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                     @Override
                     public void onClick(View v) {
                         if(BuildConfig.DEBUG){Log.d(TAG,"mActiveFavoriteStars: " + mActiveTweetFavoriteStars);}
-
-
 
                         if(mTweet.getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)) {
                             showTweetFavoriteListPopupWindow();
@@ -401,8 +394,15 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
     }
 
 
-
-
+    /**
+     * Once the {@link TweetParser} has successfully parsed the tweet, this displays the WordEntry objects
+     * contained within the tweet, both by showing them as WordEntry objects in the {@link TweetBreakDownAdapter}, as well as
+     * using their locations in the tweet to make clickable word spans for the words that open the {@link WordDetailPopupDialog} on click.
+     * It also linkifies links and user_mentions
+     *
+     * @param disectedSavedTweet WordEntry objects, one for each found word in the tweet
+     * @param txtSentence entire sentence
+     */
     public void showDisectedTweet(final ArrayList<WordEntry> disectedSavedTweet, TextView txtSentence ) {
 
         final DisplayMetrics metrics = new DisplayMetrics();
@@ -433,14 +433,11 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                             urlToLinkify = url.getUrl();
                         }
                         int startingLinkPos = mTweet.getText().indexOf(urlToLinkify,indices[0]);
-
                         text.setSpan(new URLSpan(url.getUrl()), startingLinkPos, startingLinkPos + urlToLinkify.length(), 0);
-
-
                     }
-
                 }
 
+                //Linkify user mentions in the tweet
                 if(mTweet.getEntities() != null && mTweet.getEntities().getUser_mentions()!=null) {
 
 
@@ -474,6 +471,7 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
 
                 }
 
+                //Linkify word entries and color them
                 for(final WordEntry wordEntry : disectedSavedTweet) {
 
                     ClickableSpan kanjiClick = new ClickableSpan() {
@@ -520,21 +518,10 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                             mRecyclerView.getChildAt(recyclerChildToAdapterPosOffset).getLocationInWindow(location);
                             TweetBreakDownAdapter.ViewHolder viewHolder = (TweetBreakDownAdapter.ViewHolder)mRecyclerView.findViewHolderForAdapterPosition(adapterPosition);
                             showFavoriteListPopupWindow(viewHolder,disectedSavedTweet.get(adapterPosition),metrics,location[1]);
-//                            Log.i(TAG,"ADAPTER POS: " + adapterPosition + " LAYOUT POS: " + viewHolder.getLayoutPosition() + ", tweet: " + mDataSet.get(adapterPosition).getText());
                         }
                     } catch (NullPointerException e) {
                         Log.e(TAG,"UserTimeLine showtweetfavoritelist popup at location nullpointer: " + e.getCause());
                     }
-//
-//               Integer tweetWordEntryIndex = (Integer) event;
-//               //Activity windows height
-//               int[] location = new int[2];
-//
-//               TweetBreakDownAdapter.ViewHolder viewHolder = (TweetBreakDownAdapter.ViewHolder)mRecyclerView.getChildViewHolder(mRecyclerView.getChildAt(tweetWordEntryIndex));
-//               mRecyclerView.getChildAt(tweetWordEntryIndex).getLocationInWindow(location);
-//               Log.i(TAG,"location x: " + location[0] + ", y: " + location[1]);
-//
-//                showFavoriteListPopupWindow(viewHolder,disectedSavedTweet.get(tweetWordEntryIndex),metrics,location[1]);
 
                     } else if (event instanceof WordEntry && isUniqueClick(150) ) {
                WordEntry wordEntry = (WordEntry) event;
@@ -555,16 +542,12 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
                 }
             });
 
-
-
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.setVerticalScrollBarEnabled(true);
 
     }
-
-
 
 
     /**
@@ -723,14 +706,11 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
 
         //Overrun at bottom of screen
         while(ylocation + holder.imgStar.getMeasuredHeight() - yadjust + popupMeasuredHeight >displayheight) {
-//            Log.i(TAG,"SCREEN OVERRUN BOTTOM - " + (ylocation + holder.imgStar.getMeasuredHeight() - yadjust + popupMeasuredHeight)
-//                    + " to display: " + displayheight + ",, reduce yadjust " + yadjust + " - " + (yadjust+10));
             yadjust += 10;
         }
 
 //        //Overrun at bottom of screen
         while(ylocation + holder.imgStar.getMeasuredHeight() - yadjust < 0) {
-//            Log.i(TAG,"SCREEN OVERRUN TOP - increase yadjust " + yadjust + " - " + (yadjust-10));
             yadjust -= 10;
         }
 

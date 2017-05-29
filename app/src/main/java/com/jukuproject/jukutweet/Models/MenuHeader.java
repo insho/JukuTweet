@@ -67,7 +67,6 @@ public class MenuHeader implements  Parcelable,Parent<MenuChild> {
         this.showLblHeaderCount = false;
         this.myList = false;
         this.systemList = false;
-//        this.colorList = false;
         this.isExpanded = false;
 
     }
@@ -191,11 +190,7 @@ public class MenuHeader implements  Parcelable,Parent<MenuChild> {
         this.myListEntry = in.readParcelable(getClass().getClassLoader());
         this.isExpanded = in.readByte() != 0;
         menuChildren = new ArrayList<>();
-//        in.readTypedList(mStringList,MyString.CREATOR);
-//         in.readArrayList(MenuChild.class.getClassLoader());
         in.readList(menuChildren, getClass().getClassLoader());
-//        this.menuChildren = in.readArrayList(MenuChild.class.getClassLoader());
-
         this.userInfo = in.readParcelable(getClass().getClassLoader());
 
     }

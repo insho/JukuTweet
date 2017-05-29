@@ -25,7 +25,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 
-
 /**
  * Collection of internal sqlite database calls related to User operations (adding users, removing, etc).
  *
@@ -137,7 +136,7 @@ public class UserOpsHelper implements UserOperationsInterface {
      * @param URI URI of saved image
      * @param userId userId of user
      */
-    public void addUserIconURItoDB(String URI, String userId) {
+    private void addUserIconURItoDB(String URI, String userId) {
         try {
         ContentValues values = new ContentValues();
         values.put(InternalDB.Columns.TMAIN_COL6, URI);
@@ -153,7 +152,7 @@ public class UserOpsHelper implements UserOperationsInterface {
      * @param URI URI of saved image
      * @param userId userId of user
      */
-    public void addTweetIconURItoDB(String URI, String userId) {
+    private void addTweetIconURItoDB(String URI, String userId) {
         try {
             ContentValues values = new ContentValues();
             values.put(InternalDB.Columns.TMAIN_COL6, URI);
@@ -163,7 +162,6 @@ public class UserOpsHelper implements UserOperationsInterface {
             Log.e(TAG,"addUserIconURItoDB sqlite problem: " + e);
         }
     }
-
 
 
     /**

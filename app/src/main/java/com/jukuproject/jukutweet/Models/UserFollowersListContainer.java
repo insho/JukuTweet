@@ -3,7 +3,6 @@ package com.jukuproject.jukutweet.Models;
 import java.util.List;
 
 /**
- * Created by JukuProject on 3/20/2017.
  * Represents data for a single twitter user in the InternalDB database
  */
 

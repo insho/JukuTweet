@@ -3,9 +3,6 @@ package com.jukuproject.jukutweet.Dialogs;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.PorterDuff;
-import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
@@ -22,7 +19,6 @@ import android.widget.TextView;
 
 import com.jukuproject.jukutweet.Adapters.MenuDropDownColorsPopupAdapter;
 import com.jukuproject.jukutweet.Adapters.MenuDropDownPopupAdapter;
-import com.jukuproject.jukutweet.BuildConfig;
 import com.jukuproject.jukutweet.Interfaces.QuizMenuDialogInteractionListener;
 import com.jukuproject.jukutweet.Interfaces.RxBus;
 import com.jukuproject.jukutweet.Models.ColorBlockMeasurables;
@@ -35,6 +31,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import rx.functions.Action1;
+
+import static com.jukuproject.jukutweet.Adapters.WordListExpandableAdapter.setColorBlocks;
 
 /**
  * Popup dialog with option spinners for a quiz (or flashcards)
@@ -253,7 +251,8 @@ public class QuizMenuDialog extends DialogFragment {
         textViewColorBlock_green.setGravity(Gravity.CENTER);
 
         if(mColorBlockMeasurables.getTotalCount()>0) {
-            setColorBlocks(mColorBlockMeasurables
+            setColorBlocks(getContext()
+                    ,mColorBlockMeasurables
                     ,mAvailablePopupWidth
                     ,textViewColorBlock_grey
                     ,textViewColorBlock_red
@@ -452,131 +451,131 @@ public class QuizMenuDialog extends DialogFragment {
         return popupWindow;
     }
 
-    /**
-     * Sets up the colorblocks that appear as the select colors "button" which is really
-     * just a linear layout with textviews representing available word colors
-     * @param colorBlockMeasurables color block measurable object for the given set (with counts etc)
-     * @param availableWidth maximum available width for the group of colorblocks
-     * @param txtGrey  textView representing the "grey" colorblock
-     * @param txtRed textView representing the "red" colorblock
-     * @param txtYellow textView representing the "yellow" colorblock
-     * @param txtGreen textView representing the "green" colorblock
-     */
-    public void setColorBlocks(ColorBlockMeasurables colorBlockMeasurables
-            ,int availableWidth
-            , TextView txtGrey
-            , TextView txtRed
-            , TextView txtYellow
-            , TextView txtGreen) {
-
-        Drawable drawablecolorblock1 = ContextCompat.getDrawable(getContext(), R.drawable.colorblock);
-        Drawable drawablecolorblock2 = ContextCompat.getDrawable(getContext(), R.drawable.colorblock);
-        Drawable drawablecolorblock3 = ContextCompat.getDrawable(getContext(), R.drawable.colorblock);
-        Drawable drawablecolorblock4 = ContextCompat.getDrawable(getContext(), R.drawable.colorblock);
-
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            drawablecolorblock1.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuGrey), PorterDuff.Mode.MULTIPLY);
-            txtGrey.setBackground(drawablecolorblock1);
-            drawablecolorblock2.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuRed), PorterDuff.Mode.MULTIPLY);
-            txtRed.setBackground(drawablecolorblock2);
-            drawablecolorblock3.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuYellow), PorterDuff.Mode.MULTIPLY);
-            txtYellow.setBackground(drawablecolorblock3);
-            drawablecolorblock4.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuGreen), PorterDuff.Mode.MULTIPLY);
-            txtGreen.setBackground(drawablecolorblock4);
-        } else {
-            drawablecolorblock1.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuGrey), PorterDuff.Mode.MULTIPLY);
-            txtGrey.setBackgroundDrawable(drawablecolorblock1);
-            drawablecolorblock2.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuRed), PorterDuff.Mode.MULTIPLY);
-            txtRed.setBackgroundDrawable(drawablecolorblock2);
-            drawablecolorblock3.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuYellow), PorterDuff.Mode.MULTIPLY);
-            txtYellow.setBackgroundDrawable(drawablecolorblock3);
-            drawablecolorblock4.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuGreen), PorterDuff.Mode.MULTIPLY);
-            txtGreen.setBackgroundDrawable(drawablecolorblock4);
-        }
-
-        txtGrey.setVisibility(View.GONE);
-        txtRed.setVisibility(View.GONE);
-        txtYellow.setVisibility(View.GONE);
-        txtGreen.setVisibility(View.GONE);
-
-        txtRed.setText(String.valueOf(colorBlockMeasurables.getRedCount()));
-        txtYellow.setText(String.valueOf(colorBlockMeasurables.getYellowCount()));
-        txtGreen.setText(String.valueOf(colorBlockMeasurables.getGreenCount()));
-
-        if (colorBlockMeasurables.getRedCount()
-                + colorBlockMeasurables.getYellowCount()
-                + colorBlockMeasurables.getGreenCount() == 0) {
-            txtGrey.setText(String.valueOf(colorBlockMeasurables.getTotalCount()));
-            txtGrey.setVisibility(View.VISIBLE);
-            txtGrey.setMinimumWidth(availableWidth);
-
-        } else {
-
-            int availableWidthRemaining = availableWidth;
-            if(colorBlockMeasurables.getGreyCount()>0){
-                txtGrey.setText(String.valueOf(colorBlockMeasurables.getGreyCount()));
-                int dimenscore = colorBlockMeasurables.getGreyDimenscore(availableWidth);
-                if(BuildConfig.DEBUG) {
-                    Log.i(TAG,"dimenscoretotal: " + availableWidth);
-                    Log.i(TAG,"grey/count: " + colorBlockMeasurables.getGreyCount() + "/" + colorBlockMeasurables.getTotalCount());
-                    Log.i(TAG,"((float) grey / (float) count): " + ((float) colorBlockMeasurables.getGreyCount() / (float) colorBlockMeasurables.getTotalCount()));
-                    Log.i(TAG,"Rounded score: " + dimenscore);
-                }
-                availableWidthRemaining = availableWidth-dimenscore;
-                txtGrey.setMinimumWidth(dimenscore);
-                txtGrey.setVisibility(View.VISIBLE);
-            }
-
-            if(colorBlockMeasurables.getRedCount()>0){
-                txtRed.setText(String.valueOf(colorBlockMeasurables.getRedCount()));
-                int dimenscore = colorBlockMeasurables.getRedDimenscore(availableWidth,availableWidthRemaining);
-
-                availableWidthRemaining = availableWidthRemaining -dimenscore;
-                txtRed.setMinimumWidth(dimenscore);
-                txtRed.setVisibility(View.VISIBLE);
-
-            }
-
-            if(colorBlockMeasurables.getYellowCount()>0){
-                txtYellow.setText(String.valueOf(colorBlockMeasurables.getYellowCount()));
-                int dimenscore = colorBlockMeasurables.getYellowDimenscore(availableWidth,availableWidthRemaining);
-                availableWidthRemaining = availableWidthRemaining -dimenscore;
-                txtYellow.setMinimumWidth(dimenscore);
-                txtYellow.setVisibility(View.VISIBLE);
-
-            }
-
-            if(colorBlockMeasurables.getGreenCount()>0){
-                txtGreen.setText(String.valueOf(colorBlockMeasurables.getGreenCount()));
-                int dimenscore = colorBlockMeasurables.getGreenDimenscore(availableWidth,availableWidthRemaining);
-                if(BuildConfig.DEBUG) {
-                    Log.i(TAG,"dimenscoretotal: " + availableWidth);
-                    Log.i(TAG,"grey/count: " + colorBlockMeasurables.getGreenCount() + "/" + colorBlockMeasurables.getTotalCount());
-                    Log.i(TAG,"((float) grey / (float) count): " + ((float) colorBlockMeasurables.getGreenCount() / (float) colorBlockMeasurables.getTotalCount()));
-                    Log.i(TAG,"Rounded score: " + dimenscore);
-
-                }
-                txtGreen.setMinimumWidth(dimenscore);
-                txtGreen.setVisibility(View.VISIBLE);
-            }
-        }
-
-        if (colorBlockMeasurables.getTotalCount() == 0) {
-            txtGrey.setVisibility(View.VISIBLE);
-            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                drawablecolorblock1.setColorFilter(ContextCompat.getColor(getContext(), android.R.color.white), PorterDuff.Mode.MULTIPLY);
-                txtGrey.setBackground(drawablecolorblock1);
-            } else {
-                drawablecolorblock1.setColorFilter(ContextCompat.getColor(getContext(), android.R.color.white), PorterDuff.Mode.MULTIPLY);
-                txtGrey.setBackgroundDrawable(drawablecolorblock1);
-            }
-            txtGrey.setText(getContext().getString(R.string.empty));
-            txtRed.setVisibility(View.GONE);
-            txtYellow.setVisibility(View.GONE);
-            txtGreen.setVisibility(View.GONE);
-        }
-
-    }
+//    /**
+//     * Sets up the colorblocks that appear as the select colors "button" which is really
+//     * just a linear layout with textviews representing available word colors
+//     * @param colorBlockMeasurables color block measurable object for the given set (with counts etc)
+//     * @param availableWidth maximum available width for the group of colorblocks
+//     * @param txtGrey  textView representing the "grey" colorblock
+//     * @param txtRed textView representing the "red" colorblock
+//     * @param txtYellow textView representing the "yellow" colorblock
+//     * @param txtGreen textView representing the "green" colorblock
+//     */
+//    public void setColorBlocks(ColorBlockMeasurables colorBlockMeasurables
+//            ,int availableWidth
+//            , TextView txtGrey
+//            , TextView txtRed
+//            , TextView txtYellow
+//            , TextView txtGreen) {
+//
+//        Drawable drawablecolorblock1 = ContextCompat.getDrawable(getContext(), R.drawable.colorblock);
+//        Drawable drawablecolorblock2 = ContextCompat.getDrawable(getContext(), R.drawable.colorblock);
+//        Drawable drawablecolorblock3 = ContextCompat.getDrawable(getContext(), R.drawable.colorblock);
+//        Drawable drawablecolorblock4 = ContextCompat.getDrawable(getContext(), R.drawable.colorblock);
+//
+//        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+//            drawablecolorblock1.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuGrey), PorterDuff.Mode.MULTIPLY);
+//            txtGrey.setBackground(drawablecolorblock1);
+//            drawablecolorblock2.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuRed), PorterDuff.Mode.MULTIPLY);
+//            txtRed.setBackground(drawablecolorblock2);
+//            drawablecolorblock3.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuYellow), PorterDuff.Mode.MULTIPLY);
+//            txtYellow.setBackground(drawablecolorblock3);
+//            drawablecolorblock4.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuGreen), PorterDuff.Mode.MULTIPLY);
+//            txtGreen.setBackground(drawablecolorblock4);
+//        } else {
+//            drawablecolorblock1.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuGrey), PorterDuff.Mode.MULTIPLY);
+//            txtGrey.setBackgroundDrawable(drawablecolorblock1);
+//            drawablecolorblock2.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuRed), PorterDuff.Mode.MULTIPLY);
+//            txtRed.setBackgroundDrawable(drawablecolorblock2);
+//            drawablecolorblock3.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuYellow), PorterDuff.Mode.MULTIPLY);
+//            txtYellow.setBackgroundDrawable(drawablecolorblock3);
+//            drawablecolorblock4.setColorFilter(ContextCompat.getColor(getContext(), R.color.colorJukuGreen), PorterDuff.Mode.MULTIPLY);
+//            txtGreen.setBackgroundDrawable(drawablecolorblock4);
+//        }
+//
+//        txtGrey.setVisibility(View.GONE);
+//        txtRed.setVisibility(View.GONE);
+//        txtYellow.setVisibility(View.GONE);
+//        txtGreen.setVisibility(View.GONE);
+//
+//        txtRed.setText(String.valueOf(colorBlockMeasurables.getRedCount()));
+//        txtYellow.setText(String.valueOf(colorBlockMeasurables.getYellowCount()));
+//        txtGreen.setText(String.valueOf(colorBlockMeasurables.getGreenCount()));
+//
+//        if (colorBlockMeasurables.getRedCount()
+//                + colorBlockMeasurables.getYellowCount()
+//                + colorBlockMeasurables.getGreenCount() == 0) {
+//            txtGrey.setText(String.valueOf(colorBlockMeasurables.getTotalCount()));
+//            txtGrey.setVisibility(View.VISIBLE);
+//            txtGrey.setMinimumWidth(availableWidth);
+//
+//        } else {
+//
+//            int availableWidthRemaining = availableWidth;
+//            if(colorBlockMeasurables.getGreyCount()>0){
+//                txtGrey.setText(String.valueOf(colorBlockMeasurables.getGreyCount()));
+//                int dimenscore = colorBlockMeasurables.getGreyDimenscore(availableWidth);
+//                if(BuildConfig.DEBUG) {
+//                    Log.i(TAG,"dimenscoretotal: " + availableWidth);
+//                    Log.i(TAG,"grey/count: " + colorBlockMeasurables.getGreyCount() + "/" + colorBlockMeasurables.getTotalCount());
+//                    Log.i(TAG,"((float) grey / (float) count): " + ((float) colorBlockMeasurables.getGreyCount() / (float) colorBlockMeasurables.getTotalCount()));
+//                    Log.i(TAG,"Rounded score: " + dimenscore);
+//                }
+//                availableWidthRemaining = availableWidth-dimenscore;
+//                txtGrey.setMinimumWidth(dimenscore);
+//                txtGrey.setVisibility(View.VISIBLE);
+//            }
+//
+//            if(colorBlockMeasurables.getRedCount()>0){
+//                txtRed.setText(String.valueOf(colorBlockMeasurables.getRedCount()));
+//                int dimenscore = colorBlockMeasurables.getRedDimenscore(availableWidth,availableWidthRemaining);
+//
+//                availableWidthRemaining = availableWidthRemaining -dimenscore;
+//                txtRed.setMinimumWidth(dimenscore);
+//                txtRed.setVisibility(View.VISIBLE);
+//
+//            }
+//
+//            if(colorBlockMeasurables.getYellowCount()>0){
+//                txtYellow.setText(String.valueOf(colorBlockMeasurables.getYellowCount()));
+//                int dimenscore = colorBlockMeasurables.getYellowDimenscore(availableWidth,availableWidthRemaining);
+//                availableWidthRemaining = availableWidthRemaining -dimenscore;
+//                txtYellow.setMinimumWidth(dimenscore);
+//                txtYellow.setVisibility(View.VISIBLE);
+//
+//            }
+//
+//            if(colorBlockMeasurables.getGreenCount()>0){
+//                txtGreen.setText(String.valueOf(colorBlockMeasurables.getGreenCount()));
+//                int dimenscore = colorBlockMeasurables.getGreenDimenscore(availableWidth,availableWidthRemaining);
+//                if(BuildConfig.DEBUG) {
+//                    Log.i(TAG,"dimenscoretotal: " + availableWidth);
+//                    Log.i(TAG,"grey/count: " + colorBlockMeasurables.getGreenCount() + "/" + colorBlockMeasurables.getTotalCount());
+//                    Log.i(TAG,"((float) grey / (float) count): " + ((float) colorBlockMeasurables.getGreenCount() / (float) colorBlockMeasurables.getTotalCount()));
+//                    Log.i(TAG,"Rounded score: " + dimenscore);
+//
+//                }
+//                txtGreen.setMinimumWidth(dimenscore);
+//                txtGreen.setVisibility(View.VISIBLE);
+//            }
+//        }
+//
+//        if (colorBlockMeasurables.getTotalCount() == 0) {
+//            txtGrey.setVisibility(View.VISIBLE);
+//            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+//                drawablecolorblock1.setColorFilter(ContextCompat.getColor(getContext(), android.R.color.white), PorterDuff.Mode.MULTIPLY);
+//                txtGrey.setBackground(drawablecolorblock1);
+//            } else {
+//                drawablecolorblock1.setColorFilter(ContextCompat.getColor(getContext(), android.R.color.white), PorterDuff.Mode.MULTIPLY);
+//                txtGrey.setBackgroundDrawable(drawablecolorblock1);
+//            }
+//            txtGrey.setText(getContext().getString(R.string.empty));
+//            txtRed.setVisibility(View.GONE);
+//            txtYellow.setVisibility(View.GONE);
+//            txtGreen.setVisibility(View.GONE);
+//        }
+//
+//    }
 
     /**
      * When use clicks on a color in the {@link #popupWindowColors()}, if the color is

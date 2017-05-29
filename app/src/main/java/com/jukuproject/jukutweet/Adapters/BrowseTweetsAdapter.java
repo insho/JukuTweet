@@ -117,7 +117,7 @@ public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapte
         }
 
 
-        /* IF the activity is being recreated, set any entries in the selectedEntries
+        /* If the activity is being recreated, set any entries in the selectedEntries
         * list to be selected again */
         if(mSelectedEntries!=null && mSelectedEntries.contains(tweet.getIdString())){
             holder.layoutMain.setSelected(true);
@@ -204,6 +204,13 @@ public class BrowseTweetsAdapter extends RecyclerView.Adapter<BrowseTweetsAdapte
         return mDataset.size();
     }
 
+
+    /**
+     * Updates the dataset and selected entries with new items when, for instance,
+     * kanji are removed from a list in {@link com.jukuproject.jukutweet.Fragments.TweetListBrowseFragment}
+     *
+     * @param updatedDataSet new dataset
+     */
     public void swapDataSet(ArrayList<Tweet> updatedDataSet) {
         this.mDataset = updatedDataSet;
         notifyDataSetChanged();

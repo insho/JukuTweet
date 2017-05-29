@@ -80,10 +80,7 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
     /* keep from constantly recieving button clicks through the RxBus */
     private long mLastClickTime = 0;
     private String mCursorString = "-1";
-
     private LinearLayoutManager mLayoutManager;
-
-
     private RxBus _rxBus = new RxBus();
 
     public UserDetailPopupDialog() {}
@@ -154,9 +151,6 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
         mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-
-
-
         /* Listen for the user scrolling to the final position in the scrollview. IF it happens, load more
         * userinfo items into the adapter */
         if (android.os.Build.VERSION.SDK_INT >= 23) {
@@ -206,12 +200,6 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
             } catch (Exception e) {
                 Log.e(TAG,"loadbestfit failed: " + e);
             }
-
-
-
-
-
-
 
 
         if(mUserInfo.getProfileImageUrl()!=null) {
@@ -301,6 +289,10 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
         }
     }
 
+    /**
+     * Tracks the user holding and dragging the Popup window. If they drag far enough down
+     * the screen the popup will dismiss
+     */
     public boolean onTouch(View view, MotionEvent event) {
 
         // Get finger position on screen
@@ -392,6 +384,11 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
         return true; //gestureDetector.onTouchEvent(event);
     }
 
+    /**
+     * Sends dialog layout off the bottom of the screen in an animation and
+     * dismisses the dialog
+     * @param currentPosition position on the screen
+     */
     private void closeDownAndDismissDialog(int currentPosition) {
         isClosing = true;
 
@@ -421,10 +418,6 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
 
             @Override
             public void onAnimationEnd(Animator animator) {
-
-//                popupWindow.dismiss();
-                if(BuildConfig.DEBUG){Log.d(TAG,") Blue: popupWindow.dismiss A");}
-
                 //reset the position variables
                 previousFingerPosition = 0;
                 baseLayoutPosition = 0;
@@ -433,7 +426,6 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
                 isScrollingDown = false;
                 dismiss();
                 mCallback.showFab(true);
-//                mCallback.onBackPressed();
             }
         });
         positionAnimator.start();
@@ -483,8 +475,17 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
 
     }
 
-
-
+    /**
+     * Makes twitter API call to get a list of followers for a twitter user, and can make the call again
+     * to get more followers and add them to the dataset when (app) user has scrolled to the bottom of the list
+     * @param userInfo UserInfo for twitter user whose followers are being queried
+     * @param cursorString position within return dataset of last follower that was pulled. Used to add more
+     *                     followers to an existing dataset, but feeding the last follower's id into this param, the API will
+     *                     return a set of ids after that one
+     * @param limit         max number of follower to pull
+     * @param prevMaxPosition previous max row position within the return dataset, used to scroll back to this position when
+     *                        adding/updating the dataset with another batch of followers
+     */
     public void pullFollowerUserInfoList(final UserInfo userInfo,String cursorString,int limit,final int prevMaxPosition){
 
         if(mCallback.isOnline()) {
@@ -575,7 +576,17 @@ public class UserDetailPopupDialog extends DialogFragment implements View.OnTouc
 
 
 
-
+    /**
+     * Makes twitter API call to get a list of friends for a twitter user, and can make the call again
+     * to get more friends and add them to the dataset when (app) user has scrolled to the bottom of the list
+     * @param userInfo UserInfo for twitter user whose friends are being queried
+     * @param cursorString position within return dataset of last follower that was pulled. Used to add more
+     *                     friends to an existing dataset, but feeding the last follower's id into this param, the API will
+     *                     return a set of ids after that one
+     * @param limit         max number of follower to pull
+     * @param prevMaxPosition previous max row position within the return dataset, used to scroll back to this position when
+     *                        adding/updating the dataset with another batch of friends
+     */
     public void pullFriendsUserInfoList(final UserInfo userInfo,String cursorString,int limit,final int prevMaxPosition){
 
         if(mCallback.isOnline()) {

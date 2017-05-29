@@ -76,7 +76,6 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
     private String currentSearchText;
     private String currentActiveTwitterSearchQuery; // twitter query that resulted in current result set (can be different than currentSearchText if user has changed it)
 
-
     private String mCheckedOption;
     private ArrayList<WordEntry> mDictionaryResults;
     private ArrayList<Tweet> mTwitterResults;
@@ -323,6 +322,11 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
         }
     }
 
+    /**
+     * Sets up the four checkboxes that define what kind of search
+     * will be conducted. There are two rows of checkboxes. Definition/Romaji and Tweet/User
+     * If one is checked its partner must be unchecked.
+     */
     private void setUpCheckBoxes() {
         checkBoxDictionary.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -495,22 +499,10 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                                 mRecyclerView.getChildAt(recyclerChildToAdapterPosOffset).getLocationInWindow(location);
                                 TweetBreakDownAdapter.ViewHolder viewHolder = (TweetBreakDownAdapter.ViewHolder)mRecyclerView.findViewHolderForAdapterPosition(adapterPosition);
                                 showFavoriteListPopupWindow(viewHolder,mDictionaryResults.get(adapterPosition),mMetrics,location[1]);
-//                            Log.i(TAG,"ADAPTER POS: " + adapterPosition + " LAYOUT POS: " + viewHolder.getLayoutPosition() + ", tweet: " + mDataSet.get(adapterPosition).getText());
                             }
                         } catch (NullPointerException e) {
                             Log.e(TAG,"UserTimeLine showtweetfavoritelist popup at location nullpointer: " + e.getCause());
                         }
-
-//                        Integer tweetWordEntryIndex = (Integer) event;
-//                        //Activity windows height
-//                        int[] location = new int[2];
-//
-//                        TweetBreakDownAdapter.ViewHolder viewHolder = (TweetBreakDownAdapter.ViewHolder)mRecyclerView.getChildViewHolder(mRecyclerView.getChildAt(tweetWordEntryIndex));
-//                        mRecyclerView.getChildAt(tweetWordEntryIndex).getLocationInWindow(location);
-//                        Log.i(TAG,"location x: " + location[0] + ", y: " + location[1]);
-//
-//                        showFavoriteListPopupWindow(viewHolder,mDictionaryResults.get(tweetWordEntryIndex),mMetrics,location[1]);
-
                     } else if (event instanceof WordEntry && isUniqueClick(150)) {
                         WordEntry wordEntry = (WordEntry) event;
                         updateWordEntryFavoritesForOtherTabs(wordEntry);
@@ -573,8 +565,6 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                         ,queryText
                         ,true);
 
-
-
                 _rxBus.toClickObserverable()
                         .subscribe(new Action1<Object>() {
                             @Override
@@ -620,7 +610,6 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                                     mRecyclerView.getChildAt(recyclerChildToAdapterPosOffset).getLocationInWindow(location);
                                     UserTimeLineAdapter.ViewHolder viewHolder = (UserTimeLineAdapter.ViewHolder)mRecyclerView.findViewHolderForAdapterPosition(adapterPosition);
                                     showTweetFavoriteListPopupWindow(viewHolder,mTwitterResults.get(adapterPosition),mMetrics,location[1]);
-//                            Log.i(TAG,"ADAPTER POS: " + adapterPosition + " LAYOUT POS: " + viewHolder.getLayoutPosition() + ", tweet: " + mDataSet.get(adapterPosition).getText());
                                 }
                             } catch (NullPointerException e) {
                                 Log.e(TAG,"UserTimeLine showtweetfavoritelist popup at location nullpointer: " + e.getCause());
@@ -905,14 +894,11 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
 
         //Overrun at bottom of screen
         while(ylocation + holder.imgStar.getMeasuredHeight() - yadjust + popupMeasuredHeight >displayheight) {
-//            Log.i(TAG,"SCREEN OVERRUN BOTTOM - " + (ylocation + holder.imgStar.getMeasuredHeight() - yadjust + popupMeasuredHeight)
-//                    + " to display: " + displayheight + ",, reduce yadjust " + yadjust + " - " + (yadjust+10));
             yadjust += 10;
         }
 
 //        //Overrun at bottom of screen
         while(ylocation + holder.imgStar.getMeasuredHeight() - yadjust < 0) {
-//            Log.i(TAG,"SCREEN OVERRUN TOP - increase yadjust " + yadjust + " - " + (yadjust-10));
             yadjust -= 10;
         }
 
@@ -992,7 +978,20 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
 
     }
 
-
+    /**
+     * Displays {@link ChooseFavoriteListsPopupWindow} when the tweet list favorite star is long-clicked (
+     * or short-clicked if the tweet already belongs to multiple lists). Allows user to add/remove the tweet
+     * from favorite lists via the popup window.
+     *
+     * The popup is centered on the star if possible. However, if the list overruns the screen on the top/bottom, the
+     * popup must be shifted up or down to fit on the screen (also the popup's height is capped at half the screen). So ylocation,
+     * displaymetrics and imgbutton height are used to calculate where and how much a large popup should shift if necessary
+     *
+     * @param holder ViewHolder of row containing the star that was clicked. Used to located/change the star imagebutton
+     * @param mTweet Tweet object for the row
+     * @param mMetrics display metrics (containing screen width/height etc)
+     * @param ylocation ylocation on the screen of the top of the FavoritesListsPopup
+     */
     public void showTweetFavoriteListPopupWindow(final UserTimeLineAdapter.ViewHolder holder
             ,final Tweet mTweet
             , DisplayMetrics mMetrics
@@ -1029,22 +1028,18 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
 
         //Overrun at bottom of screen
         while(ylocation + holder.imgStar.getMeasuredHeight() - yadjust + popupMeasuredHeight >displayheight) {
-//            Log.i(TAG,"SCREEN OVERRUN BOTTOM - " + (ylocation + holder.imgStar.getMeasuredHeight() - yadjust + popupMeasuredHeight)
-//                    + " to display: " + displayheight + ",, reduce yadjust " + yadjust + " - " + (yadjust+10));
             yadjust += 10;
         }
 
 //        //Overrun at bottom of screen
         while(ylocation + holder.imgStar.getMeasuredHeight() - yadjust < 0) {
-//            Log.i(TAG,"SCREEN OVERRUN TOP - increase yadjust " + yadjust + " - " + (yadjust-10));
             yadjust -= 10;
         }
 
-
-
-        Log.d("TEST","pop width: " + popupWindow.getContentView().getMeasuredWidth() + " height: " + popupWindow.getContentView().getMeasuredHeight());
-        Log.d("TEST","xadjust: " + xadjust + ", yadjust: " + yadjust);
-
+        if(BuildConfig.DEBUG) {
+            Log.d("TEST","pop width: " + popupWindow.getContentView().getMeasuredWidth() + " height: " + popupWindow.getContentView().getMeasuredHeight());
+            Log.d("TEST","xadjust: " + xadjust + ", yadjust: " + yadjust);
+        }
 
         popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
             @Override
@@ -1103,7 +1098,6 @@ public class SearchFragment extends Fragment implements WordEntryFavoritesChange
                             mTweet.getItemFavorites().subtractFromUserListCount(1);
                         }
                     }
-
 
 
                     if(mTweet.getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)

@@ -124,7 +124,6 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
                     Log.d(TAG, "should open: " + mWords.get(holder.getAdapterPosition()).getItemFavorites().shouldOpenFavoritePopup(mActiveFavoriteStars));
                 }
                 if(mWords.get(holder.getAdapterPosition()).getItemFavorites().shouldOpenFavoritePopup(mActiveFavoriteStars)) {
-//                    showFavoriteListPopupWindow(holder);
                     mRxBus.send(holder.getAdapterPosition());
                 } else {
                     if(FavoritesColors.onFavoriteStarToggle(mContext,mActiveFavoriteStars,mWords.get(holder.getAdapterPosition()))) {
@@ -148,10 +147,7 @@ public class TweetBreakDownAdapter extends RecyclerView.Adapter<TweetBreakDownAd
         holder.imgStarLayout.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-
                 mRxBus.send(holder.getAdapterPosition());
-//                showFavoriteListPopupWindow(holder);
-
                 return true;
             }
         });

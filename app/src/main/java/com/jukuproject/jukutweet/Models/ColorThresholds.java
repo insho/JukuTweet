@@ -1,8 +1,8 @@
 package com.jukuproject.jukutweet.Models;
 
 /**
- * Created by JClassic on 3/23/2017.
- * Object holding prefence data, which is just really annoying to pass through adapters
+ * Object holding user preference data for color thresholds. These are the thresholds that determine
+ * what color is assigned to a word based on its quiz score.
  */
 
 public class ColorThresholds {

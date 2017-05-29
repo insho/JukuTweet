@@ -5,9 +5,6 @@ import android.util.Log;
 /**
  * Container for User profile banner image sizes and information (pulled from twitter API)
  */
-
-
-
 public class UserProfileBanner {
 
     private BannerCollection sizes;

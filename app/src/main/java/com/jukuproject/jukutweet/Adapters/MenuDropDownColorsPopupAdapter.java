@@ -126,7 +126,7 @@ public class MenuDropDownColorsPopupAdapter extends RecyclerView.Adapter<MenuDro
      * @param dropDownMenuOptions Array of DropDownMenuOptions, one for each colorblock group in the dropdown.
      * @return count of color groups that are currently selected
      */
-    public static int getTotalSelectedColors(ArrayList<DropDownMenuOption> dropDownMenuOptions) {
+    private static int getTotalSelectedColors(ArrayList<DropDownMenuOption> dropDownMenuOptions) {
         int totalSelectedColors = 0;
         for (DropDownMenuOption dropDownMenuOption : dropDownMenuOptions) {
             if(dropDownMenuOption.isColorSelected()){

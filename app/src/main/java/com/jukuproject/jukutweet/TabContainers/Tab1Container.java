@@ -10,7 +10,10 @@ import android.view.ViewGroup;
 import com.jukuproject.jukutweet.Fragments.UserListFragment;
 import com.jukuproject.jukutweet.R;
 
-//TODO -- possibly consolidate these into one?
+/**
+ * Fragment container for bucket 1. It's top level frag is : {@link UserListFragment}
+ * @see BaseContainerFragment
+ */
 public class Tab1Container extends BaseContainerFragment {
 
     private boolean mIsViewInited;

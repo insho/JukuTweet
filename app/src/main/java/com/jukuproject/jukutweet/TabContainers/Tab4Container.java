@@ -9,14 +9,16 @@ import android.view.ViewGroup;
 import com.jukuproject.jukutweet.Fragments.SearchFragment;
 import com.jukuproject.jukutweet.R;
 
-
+/**
+ * Fragment container for bucket 4. It's top level frag is : {@link SearchFragment}
+ * @see BaseContainerFragment
+ */
 public class Tab4Container extends BaseContainerFragment {
 
     private boolean mIsViewInited;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-//        Log.e("test", "tab 2 oncreateview");
         return inflater.inflate(R.layout.container_fragment, null);
     }
 
@@ -24,10 +26,6 @@ public class Tab4Container extends BaseContainerFragment {
     }
 
     public static Tab4Container newInstance() {
-//        Tab2Container fragment = new Tab2Container();
-//        Bundle args = new Bundle();
-//        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-//        fragment.setArguments(args);
         return new Tab4Container();
     }
 
@@ -38,7 +36,7 @@ public class Tab4Container extends BaseContainerFragment {
         if(savedInstanceState != null) {
             mIsViewInited = savedInstanceState.getBoolean("mIsViewInited",false);
         }
-//        Log.e("test", "tab 1 container on activity created");
+
         if (!mIsViewInited) {
             mIsViewInited = true;
             initView();
@@ -55,7 +53,5 @@ public class Tab4Container extends BaseContainerFragment {
         super.onSaveInstanceState(outState);
 
         outState.putBoolean("mIsViewInited", mIsViewInited);
-
-
     }
 }

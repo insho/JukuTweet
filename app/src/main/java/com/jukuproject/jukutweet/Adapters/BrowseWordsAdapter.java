@@ -138,6 +138,13 @@ public class BrowseWordsAdapter extends RecyclerView.Adapter<BrowseWordsAdapter.
         return mWords.size();
     }
 
+    /**
+     * Updates the dataset and selected entries with new items when, for instance,
+     * kanji are removed from a list in {@link com.jukuproject.jukutweet.Fragments.WordListBrowseFragment}
+     *
+     * @param updatedDataSet new dataset
+     * @param updatedSelectedEntries new set of selected entries
+     */
     public void swapDataSet(ArrayList<WordEntry> updatedDataSet,ArrayList<Integer> updatedSelectedEntries) {
         this.mWords = updatedDataSet;
         this.mSelectedEntries = updatedSelectedEntries;

@@ -253,7 +253,6 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
      * if swipe is far enough down the screen.
      * @param view mainlayout view
      * @param event motion event (up, down, round and round, etc)
-     * @return
      */
     public boolean onTouch(View view, MotionEvent event) {
 
@@ -373,8 +372,6 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
 
             @Override
             public void onAnimationEnd(Animator animator) {
-
-//                popupWindow.dismiss();
                 if(BuildConfig.DEBUG){Log.d(TAG,") Blue: popupWindow.dismiss A");}
 
                 //reset the position variables
@@ -383,9 +380,7 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
                 isClosing = false;
                 isScrollingUp = false;
                 isScrollingDown = false;
-//                mCallback.onBackPressed();
                 dismiss();
-//                mCallback.showFab(true);
             }
         });
         positionAnimator.start();
@@ -951,6 +946,20 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
 
     }
 
+    /**
+     * Displays {@link ChooseFavoriteListsPopupWindow} when the tweet list favorite star is long-clicked (
+     * or short-clicked if the tweet already belongs to multiple lists). Allows user to add/remove the tweet
+     * from favorite lists via the popup window.
+     *
+     * The popup is centered on the star if possible. However, if the list overruns the screen on the top/bottom, the
+     * popup must be shifted up or down to fit on the screen (also the popup's height is capped at half the screen). So ylocation,
+     * displaymetrics and imgbutton height are used to calculate where and how much a large popup should shift if necessary
+     *
+     * @param holder ViewHolder of row containing the star that was clicked. Used to located/change the star imagebutton
+     * @param mTweet Tweet object for the row
+     * @param mMetrics display metrics (containing screen width/height etc)
+     * @param ylocation ylocation on the screen of the top of the FavoritesListsPopup
+     */
     public void showTweetFavoriteListPopupWindow(final UserTimeLineAdapter.ViewHolder holder
             ,final Tweet mTweet
             , DisplayMetrics mMetrics
@@ -987,14 +996,11 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
 
         //Overrun at bottom of screen
         while(ylocation + holder.imgStar.getMeasuredHeight() - yadjust + popupMeasuredHeight >displayheight) {
-//            Log.i(TAG,"SCREEN OVERRUN BOTTOM - " + (ylocation + holder.imgStar.getMeasuredHeight() - yadjust + popupMeasuredHeight)
-//                    + " to display: " + displayheight + ",, reduce yadjust " + yadjust + " - " + (yadjust+10));
             yadjust += 10;
         }
 
-//        //Overrun at bottom of screen
+        //Overrun at bottom of screen
         while(ylocation + holder.imgStar.getMeasuredHeight() - yadjust < 0) {
-//            Log.i(TAG,"SCREEN OVERRUN TOP - increase yadjust " + yadjust + " - " + (yadjust-10));
             yadjust -= 10;
         }
 
@@ -1006,9 +1012,6 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
         popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
             @Override
             public void onDismiss() {
-
-
-
                 /*Check to see if tweet must be deleted from db. Delete if necessary.
                             * Likewise adds a tweet to the db if it has just been added to a favorites list.
                             * This bit MUST come after the favorite star toggle, because it determines whether to
@@ -1023,13 +1026,13 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
             @Override
             public void call(Object event) {
 
-                                    /* Recieve a MyListEntry (containing an updated list entry for this row kanji) from
-                                    * the ChooseFavoritesAdapter in the ChooseFavorites popup window */
+                /* Recieve a MyListEntry (containing an updated list entry for this row tweet) from
+                 * the ChooseFavoritesAdapter in the ChooseFavorites popup window */
                 if(event instanceof MyListEntry) {
                     MyListEntry myListEntry = (MyListEntry) event;
 
-                                        /* Ascertain the type of list that the kanji was added to (or subtracted from),
-                                        and update that list's count */
+                    /* Ascertain the type of list that the tweet was added to (or subtracted from),
+                    and update that list's count */
                     if(myListEntry.getListsSys() == 1) {
                         switch (myListEntry.getListName()) {
                             case "Blue":
@@ -1060,8 +1063,6 @@ public class WordDetailPopupDialog extends DialogFragment implements View.OnTouc
                             mTweet.getItemFavorites().subtractFromUserListCount(1);
                         }
                     }
-
-
 
                     if(mTweet.getItemFavorites().shouldOpenFavoritePopup(mActiveTweetFavoriteStars)
                             && mTweet.getItemFavorites().systemListCount(mActiveTweetFavoriteStars) >1) {

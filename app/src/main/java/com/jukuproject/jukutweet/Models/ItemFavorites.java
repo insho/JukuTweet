@@ -8,7 +8,6 @@ import java.util.ArrayList;
 /**
  * Tracks which favorites lists contain a given {@link WordEntry} OR {@link Tweet}
  */
-
 public class ItemFavorites implements Parcelable {
 
     private int systemBlueCount;
@@ -125,14 +124,6 @@ public class ItemFavorites implements Parcelable {
     public void setSystemPurpleCount(int systemPurpleCount) {
         this.systemPurpleCount = systemPurpleCount;
     }
-
-
-
-
-
-
-
-
 
     /**
      * Determines whether, on a favorites star being clicked, the star should toggle

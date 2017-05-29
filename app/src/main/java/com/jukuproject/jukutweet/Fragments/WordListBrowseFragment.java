@@ -56,6 +56,7 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
     String TAG = "TEST-Wordbrowse";
     private RxBus mRxBus = new RxBus();
     private RecyclerView mRecyclerView;
+
     /*Tracks elapsed time since last click of a recyclerview row. Used to
     * keep from constantly recieving button clicks through the RxBus */
     private long mLastClickTime = 0;
@@ -222,10 +223,6 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
         }
     }
 
-
-
-
-
     /**
      * Recieves result of {@link com.jukuproject.jukutweet.Dialogs.CopyMyListItemsDialog} , passed from {@link com.jukuproject.jukutweet.MainActivity#saveAndUpdateMyLists(String, ArrayList, boolean, MyListEntry)}.
      * This method is where the changes are entered into the database, the recycler is refreshed, and the user notified
@@ -280,21 +277,7 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
                     ,null
                     ,null);
 
-            /*Notify other tabs that a word has been removed.
-            * If there is only one word, update the lists for that word entry. If
-            * there are more, however, (Because there could be hundreds), have the tabs update themselves entirely
-            */
-//            if(mSelectedEntries.size()==1) {
-//                for(WordEntry wordEntry : mWords) {
-//                    if(wordEntry.getId().equals(mSelectedEntries.get(0))) {
-//                        updateWordEntryFavoritesForOtherTabs(wordEntry);
-//                    }
-//                }
-//
-//            } else {
-                mCallback.notifySavedWordFragmentsChanged(getSelectedIntsAsString(mSelectedEntries));
-//            }
-
+            mCallback.notifySavedWordFragmentsChanged(getSelectedIntsAsString(mSelectedEntries));
             mSelectedEntries.clear();
             mAdapter.swapDataSet(mWords,mSelectedEntries);
         } catch (NullPointerException e) {
@@ -325,17 +308,7 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
                     ,null
                     ,null);
 
-//            if(mSelectedEntries.size()==1) {
-//                for(WordEntry wordEntry : mWords) {
-//                    if(wordEntry.getId().equals(mSelectedEntries.get(0))) {
-//                        updateWordEntryFavoritesForOtherTabs(wordEntry);
-//                    }
-//                }
-//
-//            } else {
-                mCallback.notifySavedWordFragmentsChanged(getSelectedIntsAsString(mSelectedEntries));
-//            }
-
+            mCallback.notifySavedWordFragmentsChanged(getSelectedIntsAsString(mSelectedEntries));
 
             mSelectedEntries.clear();
             mAdapter.swapDataSet(mWords,mSelectedEntries);
@@ -391,17 +364,7 @@ public class WordListBrowseFragment extends Fragment implements WordEntryFavorit
                             ,null
                             ,null);
 
-//                    if(mSelectedEntries.size()==1) {
-//                        for(WordEntry wordEntry : mWords) {
-//                            if(wordEntry.getId().equals(mSelectedEntries.get(0))) {
-//                                updateWordEntryFavoritesForOtherTabs(wordEntry);
-//                            }
-//                        }
-//
-//                    } else {
-                        mCallback.notifySavedWordFragmentsChanged(getSelectedIntsAsString(mSelectedEntries));
-//                    }
-
+                    mCallback.notifySavedWordFragmentsChanged(getSelectedIntsAsString(mSelectedEntries));
                     mSelectedEntries.clear();
                     mAdapter.swapDataSet(mWords,mSelectedEntries);
 

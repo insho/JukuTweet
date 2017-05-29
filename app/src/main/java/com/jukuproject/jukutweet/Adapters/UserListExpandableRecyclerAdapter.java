@@ -70,7 +70,7 @@ public class UserListExpandableRecyclerAdapter extends ExpandableRecyclerAdapter
 
 
 
-
+    //Holds user info -- icon, screenname, description etc
     public class ParentOptionViewHolder extends ParentViewHolder {
 
         private TextView mTxtUserName;
@@ -165,16 +165,15 @@ public class UserListExpandableRecyclerAdapter extends ExpandableRecyclerAdapter
         }
     }
 
+    //Displays child options ("view saved tweets", "view timeline")
     public class ChildOptionViewHolder extends ChildViewHolder {
 
-//        private LinearLayout mLayout;
         private TextView mTxtListChild;
         private ImageButton mTweetIcon;
         private TextView mTweetIconText;
 
         public ChildOptionViewHolder(View itemView) {
             super(itemView);
-//            mLayout = (LinearLayout) itemView.findViewById(R.id.layoutcontainer);
             mTxtListChild = (TextView) itemView.findViewById(R.id.lblListItem);
             mTweetIcon = (ImageButton) itemView.findViewById(R.id.tweet_icon);
             mTweetIconText = (TextView) itemView.findViewById(R.id.tweet_title);

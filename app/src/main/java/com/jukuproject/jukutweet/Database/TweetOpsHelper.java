@@ -151,29 +151,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
         }
     }
 
-//    public Boolean myListContainsTweet(MyListEntry myListEntry, String tweetid) {
-//
-//        SQLiteDatabase db = sqlOpener.getWritableDatabase();
-//        String queryRecordExists = "Select _id From " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES + " where " + InternalDB.Columns.COL_ID + " = ? AND " + InternalDB.Columns.TFAVORITES_COL0 + " = ? AND " + InternalDB.Columns.TFAVORITES_COL1 + " = ?" ;
-//        try {
-//            Cursor c = db.rawQuery(queryRecordExists, new String[]{tweetid,myListEntry.getListName(),String.valueOf(myListEntry.getListsSys())});
-//            if (c.getCount()>0) {
-//                c.close();
-//                return true;
-//            } else {
-//                c.close();
-//                return false;
-//            }
-//        } catch (NullPointerException e) {
-//            Log.e(TAG,"myListContainsTweet nullpointer exception: " + e);
-//        } catch (SQLiteException e) {
-//            Log.e(TAG,"myListContainsTweet Sqlite exception: " + e);
-//        }
-//        return true;
-//
-//    }
-
-
     /**
      * Changes the system Tweet List that a tweet is associated with (when the user clicks on the favorites star next to
      * the tweet). Toggles from Black-> through various available colors -> black again.
@@ -328,48 +305,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
             return undoArray;
     }
 
-//    /**
-//     * Deletes Tweet entries and Saved Kanji for a Tweet from the database
-//     * @param concatenatedTweetIds a string of tweetIds concatenated together with commas (ex: 123,451,6532,23)
-//     */
-//    private void deleteTweetIfNecessary(String concatenatedTweetIds) {
-//        sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES," _id in ( " +
-//                "SELECT x.Tweet_id " +
-//                "FROM " +
-//                "(" +
-//                    "Select Tweet_id "    +
-//                    " FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS +
-//                    " WHERE " + InternalDB.Columns.TSAVEDTWEET_COL2 + " in (" + concatenatedTweetIds + ")" +
-//                " ) as x " +
-//                " LEFT JOIN " +
-//                "(" +
-//                    "Select _id as Tweet_id "    +
-//                    " FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES +
-//                    " WHERE " + InternalDB.Columns.COL_ID + " in (" + concatenatedTweetIds + ")" +
-//                " ) as y " +
-//                " ON x.Tweet_id = y.Tweet_id " +
-//                " WHERE y.Tweet_id is NULL " +
-//                " ) ",null);
-//
-//        sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_SAVED_TWEET_KANJI," Tweet_id in ( " +
-//                "SELECT x.Tweet_id " +
-//                "FROM " +
-//                "(" +
-//                    "Select Tweet_id "    +
-//                    " FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS +
-//                    " WHERE " + InternalDB.Columns.TSAVEDTWEET_COL2 + " in (" + concatenatedTweetIds + ")" +
-//                " ) as x " +
-//                " LEFT JOIN " +
-//                "(" +
-//                    "Select _id as Tweet_id "    +
-//                    " FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES +
-//                    " WHERE " + InternalDB.Columns.COL_ID + " in (" + concatenatedTweetIds + ")" +
-//                " ) as y " +
-//                " ON x.Tweet_id = y.Tweet_id " +
-//                " WHERE y.Tweet_id is NULL " +
-//                " ) ",null);
-//    }
-
     /**
      * Deletes Tweet entries and Saved Kanji for a Tweet from the database
      * @param concatenatedTweetIds a string of tweetIds concatenated together with commas (ex: 123,451,6532,23)
@@ -430,61 +365,6 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
             if(stringBuilder.length()>0) {
                 deleteTweetFromAllLists(stringBuilder.toString());
             }
-//
-//            sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES," _id in ( " +
-//                    "SELECT x.Tweet_id " +
-//                    "FROM " +
-//                    "(" +
-//                    "Select DISTINCT Tweet_id "    +
-//                    " FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS +
-//                    " WHERE " + InternalDB.Columns.TSAVEDTWEET_COL2 + " in (" + concatenatedTweetIds + ")" +
-//                    " ) as x " +
-//                    " LEFT JOIN " +
-//                    "(" +
-//                    "Select DISTINCT _id as Tweet_id "    +
-//                    " FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES +
-//                    " WHERE " + InternalDB.Columns.COL_ID + " in (" + concatenatedTweetIds + ")" +
-//                    " ) as y " +
-//                    " ON x.Tweet_id = y.Tweet_id " +
-//                    " WHERE y.Tweet_id is NULL " +
-//
-//                    " UNION " +
-//
-//                    "SELECT x.Tweet_id " +
-//                    "FROM " +
-//                    "(" +
-//                    "Select DISTINCT _id as Tweet_id "    +
-//                    " FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES +
-//                    " WHERE " + InternalDB.Columns.COL_ID + " in (" + concatenatedTweetIds + ")" +
-//                    " ) as x " +
-//                    " LEFT JOIN " +
-//                    "(" +
-//                    "Select DISTINCT Tweet_id "    +
-//                    " FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS +
-//                    " WHERE " + InternalDB.Columns.TSAVEDTWEET_COL2 + " in (" + concatenatedTweetIds + ")" +
-//                    " ) as y " +
-//                    " ON x.Tweet_id = y.Tweet_id " +
-//                    " WHERE y.Tweet_id is NULL " +
-//
-//                " ) ",null);
-//
-//            sqlOpener.getWritableDatabase().delete(InternalDB.Tables.TABLE_SAVED_TWEET_KANJI," Tweet_id in ( " +
-//                "SELECT x.Tweet_id " +
-//                "FROM " +
-//                "(" +
-//                    "Select Tweet_id "    +
-//                    " FROM " + InternalDB.Tables.TABLE_SAVED_TWEETS +
-//                    " WHERE " + InternalDB.Columns.TSAVEDTWEET_COL2 + " in (" + concatenatedTweetIds + ")" +
-//                " ) as x " +
-//                " LEFT JOIN " +
-//                "(" +
-//                    "Select _id as Tweet_id "    +
-//                    " FROM " + InternalDB.Tables.TABLE_FAVORITES_LISTS_TWEETS_ENTRIES +
-//                    " WHERE " + InternalDB.Columns.COL_ID + " in (" + concatenatedTweetIds + ")" +
-//                " ) as y " +
-//                " ON x.Tweet_id = y.Tweet_id " +
-//                " WHERE y.Tweet_id is NULL " +
-//                " ) ",null);
 
     } catch (SQLiteException e) {
         Log.e(TAG, "deleteTweetIfNecessary sqlite exception: " + e);
@@ -891,7 +771,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      * @param tweet Tweet in question
      * @return resultvalue: -1 for error, otherwise the count of instance of the tweet in the database
      */
-    public int tweetExistsInDB(Tweet tweet) {
+    private int tweetExistsInDB(Tweet tweet) {
 
         int resultCode = -1;
         try {
@@ -919,7 +799,7 @@ public class TweetOpsHelper implements TweetListOperationsInterface {
      * @param tweet Tweet object, with all tweet info
      * @return returnvalue int, -1 for error, otherwise the index value of final inserted row
      */
-    public int saveTweetToDB(UserInfo userInfo, Tweet tweet){
+    private int saveTweetToDB(UserInfo userInfo, Tweet tweet){
         int resultCode = -1;
         try {
 

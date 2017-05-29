@@ -10,7 +10,10 @@ import android.view.ViewGroup;
 import com.jukuproject.jukutweet.Fragments.WordListFragment;
 import com.jukuproject.jukutweet.R;
 
-
+/**
+ * Fragment container for bucket 3. It's top level frag is : {@link WordListFragment}
+ * @see BaseContainerFragment
+ */
 public class Tab3Container extends BaseContainerFragment {
 
     private boolean mIsViewInited;

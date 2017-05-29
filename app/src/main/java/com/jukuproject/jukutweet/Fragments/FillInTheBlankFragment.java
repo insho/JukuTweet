@@ -52,31 +52,28 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
 
     String TAG = "TEST-fillinblank";
 
-    int currentTotal = 0; //CURRENT number of questions asked
-    int currentCorrect = 0; //CURRENT numer of tweets where all answers were correct on the firt try
-    int currentDataSetindex = 0; //Current position within dataset (reset to 0 when shuffling)
+    private int currentTotal = 0; //CURRENT number of questions asked
+    private int currentCorrect = 0; //CURRENT numer of tweets where all answers were correct on the firt try
+    private int currentDataSetindex = 0; //Current position within dataset (reset to 0 when shuffling)
 
-    QuizFragmentInteractionListener mCallback;
-    ArrayList<Tweet> mDataset;
-    Integer mQuizSize;
-    double mTotalWeight;
-    MyListEntry mMyListEntry;
-    String mColorString;
+    private QuizFragmentInteractionListener mCallback;
+    private ArrayList<Tweet> mDataset;
+    private Integer mQuizSize;
+    private double mTotalWeight;
+    private MyListEntry mMyListEntry;
+    private String mColorString;
     private UserInfo mUserInfo;
-
     private boolean mSingleUser; //Designates whether the quiz activity is from a single user saved tweets (true), or a tweet/word list (false)
-    //    private Integer tabStripHeight;
-    int currentLineWidth = 0;
-    int displayWidth = 0;
-    int displayMarginPadding = 30; //How much to pad the edge of the screen by when laying down the sentenceblocks (so the sentence doesn't overlap the screen or get cut up too much)
-    int spinnerWidth = 200;
-    int redundentQuestionCounter = 0;
+    private int currentLineWidth = 0;
+    private int displayWidth = 0;
+    private int displayMarginPadding = 30; //How much to pad the edge of the screen by when laying down the sentenceblocks (so the sentence doesn't overlap the screen or get cut up too much)
+    private int spinnerWidth = 200;
+    private int redundentQuestionCounter = 0;
 
-
-    LinearLayout linearLayoutVerticalParagraph;  //This is the main linear layout, that we will fill row by row with horizontal linear layouts, which are     // in turn filled with vertical layouts (with furigana on top and japanese on bottom)
-    LinearLayout linearLayoutHorizontalLine; //one of these layouts for each line in the vertical paragraph
-    TextView scoreButton;
-    TextView txtQuestionNumber;
+    private LinearLayout linearLayoutVerticalParagraph;  //This is the main linear layout, that we will fill row by row with horizontal linear layouts, which are     // in turn filled with vertical layouts (with furigana on top and japanese on bottom)
+    private LinearLayout linearLayoutHorizontalLine; //one of these layouts for each line in the vertical paragraph
+    private TextView scoreButton;
+    private TextView txtQuestionNumber;
 
     public FillInTheBlankFragment() {}
 
@@ -187,12 +184,23 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
     }
 
 
-
-
-    public void setUpQuestion(Tweet tweet) {
+    /**
+     * Sets up a fresh question, creating a set of textviews for the contents of the tweet(broken
+     * down into "spinners" that the user interacts with to pick the right answer, WordEntries that
+     * are not part of the quiz but can be clicked on to show the {@link WordDetailPopupDialog}, and misc text) and
+     * arraying these textviews in the linearLayoutVerticalParagraph view so that the
+     * tweet is recreated
+     * @param tweet Tweet that is being used as the quiz question
+     */
+    private void setUpQuestion(Tweet tweet) {
         String sentence = tweet.getText();
         ArrayList<WordEntry> disectedSavedTweet = tweet.getWordEntries();
 
+        /*In the case that the tweet does not, for some reason, have any words
+          associated with it, more to the next tweet in the dataset and add a new tweet
+          at the end to keep the total question numbers correct. If, for whatever reason,
+          the process keeps spinning through the process of trying to get a fresh question, the
+          user will be kicked back to the main menu with an error message */
         if(redundentQuestionCounter>4) {
             mCallback.emergencyGoBackToMainActivity();
         } else if(disectedSavedTweet.size()==0) {
@@ -207,10 +215,10 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
             linearLayoutHorizontalLine.setLayoutParams(new ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT));
-        /* Set tweet color spans. If the saved Tweet object includes a "colorIndex" object (
-        * which comes from the savedTweetKanji table and contains the id, positions and color designation
-        * of each kanji in the TWeet), replace the normal Tweet text with colored spans for those kanji */
 
+            /* Set tweet color spans. If the saved Tweet object includes a "colorIndex" object (
+            * which comes from the savedTweetKanji table and contains the id, positions and color designation
+            * of each kanji in the TWeet), replace the normal Tweet text with colored spans for those kanji */
             try {
 
                 int startIndex = 0;
@@ -315,8 +323,14 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
     }
 
 
-
-
+    /**
+     * Takes a piece of the tweet and adds it to linearLayoutHorizontalLine as a textView.
+     *
+     * Note: It gets tricky if the text that is being added is longer than the edge of the screen. In this case, it will
+     * be broken into two textviews, one will be added to the current view in teh paragraph, then a new line
+     * will be created, and the remainder will be added
+     * @param text text to be added to the layout
+     */
     public void addToLayout(final SpannableStringBuilder text) {
 
          if(BuildConfig.DEBUG) {Log.d(TAG, "Adding to layout  " +
@@ -433,14 +447,47 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
             }
     }
 
+    /**
+     * Like {@link #addToLayout(SpannableStringBuilder)}, but handles a specific situation in which
+     * the text to be added to the linearLayoutHorizontalLine contains line seperators. This process
+     * finds them and mimicks them by forcing a new line in the paragraph via {@link #insertLineIntoParagraph()}. Otherwise
+     * the final result looks all screwy.
+     * @param textToInsert text to be added to the layout
+     */
+    private void insertTextWithLineSeperators(String textToInsert) {
+        String remainingLineSepText = textToInsert;
+        if(BuildConfig.DEBUG) {Log.d(TAG, "initial text to insert: " + textToInsert);}
+
+        while(remainingLineSepText.contains(System.getProperty("line.separator"))) {
+
+            int lineSepEndIndex = remainingLineSepText.indexOf(System.getProperty("line.separator"));
+            if(BuildConfig.DEBUG) {Log.d(TAG, "BEGIN LOOP linesependindex: " + lineSepEndIndex + ", texttoinsert length: " + textToInsert.length());}
+            String preLineSepTextToAdd = remainingLineSepText.substring(0,lineSepEndIndex);
+            if(BuildConfig.DEBUG) {Log.d(TAG,"ADding to layout pre line sep text: " + preLineSepTextToAdd);}
+            addToLayout(new SpannableStringBuilder(preLineSepTextToAdd));
+
+            //Mimic the line seperator by creating a new line
+            insertLineIntoParagraph();
+
+            //Remaining text begins after the line seperatore, until the end of the stringbuilder
+            remainingLineSepText =  remainingLineSepText.substring(lineSepEndIndex + 1,remainingLineSepText.length());
+            if(BuildConfig.DEBUG) {Log.d(TAG, "remainingLineSepText: " + remainingLineSepText);}
+        }
+        if(remainingLineSepText.length()>0) {
+            if(BuildConfig.DEBUG){Log.d(TAG,"final remainingLineSepText to add: " + remainingLineSepText);}
+            addToLayout(new SpannableStringBuilder(remainingLineSepText));
+        }
+    }
 
 
-
-
-
-
-
-    public void addSpinnerToLayout(final WordEntry wordEntry) {
+    /**
+     * Adds the "question" word entry to the linearLayoutHorizontalLine as a "spinner" which can
+     * be clicked on to show a dropdown with 4 options to choose from, one of which is the correct
+     * Kanji.
+     *
+     * @param wordEntry WordEntry object for the question/spinner word
+     */
+    private void addSpinnerToLayout(final WordEntry wordEntry) {
 
         if (currentLineWidth + spinnerWidth > displayWidth) {
             if(BuildConfig.DEBUG) {
@@ -459,6 +506,9 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
         spinner.setLayoutParams(new ViewGroup.LayoutParams(spinnerWidth, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         if(BuildConfig.DEBUG){Log.d(TAG,"spinnerdata: " + wordEntry.getKanji() + ", " + spinnerData.hasBeenAnswered() + ", " + spinnerData.isCorrect());}
+
+        /* If the activity is being recreated and a spinner has already been answered, correct or not,
+        * color the spinner accordingly and, if it was correct, disallow further editing */
         if (spinnerData.hasBeenAnswered()) {
             if(spinnerData.isCorrect()) {
 
@@ -482,7 +532,7 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
             }
 
         } else {
-
+            // Otherwise cretae a fresh spinner for the word
             ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, spinnerData.getOptions()); //selected item will look like a spinner set from XML
             spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinner.setAdapter(spinnerArrayAdapter);
@@ -505,6 +555,15 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
     }
 
 
+    /**
+     * Adds a linearLayoutHorizontalLine view, which should be full of textviews representing
+     * part of the tweet, to the linearLayoutVerticalParagraph. Effectively adding a line of text
+     * in the tweet to the paragraph as a whole, BUT only if the total line width exceeds the edge of the screen.
+     * Otherwise the insert is not necessary and more textviews can be added to the linearLayoutHorizontalLine
+     *
+     * @param totallinewidth total estimated width of the views in the linearLayoutHorizontalLine
+     * @param displaywidth total screenwidth
+     */
     public void insertLineIntoParagraph(int totallinewidth, int displaywidth) {
 
         if (displaywidth == 0) {
@@ -529,6 +588,13 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
         }
     }
 
+    /**
+     * Adds a linearLayoutHorizontalLine view to the linearLayoutVerticalParagraph, effectively adding a line of text
+     * in the tweet to the paragraph as a whole.
+     *
+     * Like {@link #insertLineIntoParagraph(int, int)}, but this forces the text to be entered and a new line to be
+     * created no matter what
+     */
     public void insertLineIntoParagraph() {
 
             final LinearLayout tmplinearLayout = linearLayoutHorizontalLine;
@@ -546,7 +612,14 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
             }
     }
 
-    public int getEstimatedTextViewWidth(String text) {
+
+
+    /**
+     * Estimates the width on screen for a textview containing a string of text
+     * @param text text to include in textview
+     * @return width on screen of textview containing text
+     */
+    private int getEstimatedTextViewWidth(String text) {
         TextView textView_Test = new TextView(getContext());
         textView_Test.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -569,8 +642,18 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
         return Math.round(textPaint.measureText(text));
     }
 
-
-    public void scoreTheSpinners(){
+    /**
+     * When the "Score" button is pressed, each "spinner" word in the tweet is graded against the
+     * current chosen answer in the spinner dropdown item. Then the quiz moves to a new question or the user
+     * is forced to correct the incorrect spinners, which have been colored red.
+     *
+     * The scoring is done inside the Tweet Object. The Tweet object contains a list of WordEntry objects for
+     * each of the parsed words in the tweet, and each {@link WordEntry} contains a {@link FillinSentencesSpinner} object,
+     * which tracks the correct/incorrect answers and whether that spinner has been answered, etc. So this cycles through the
+     * tweet, finds spinner WordEntries, and grades them (also updateing the FillinSentencesSpinner object they contain).
+     *
+     */
+    private void scoreTheSpinners(){
         boolean allSpinnersAreCorrect = true;
         int tweetWasAnsweredCorrectlyFirstTry = 1;
         for (WordEntry wordEntry : mDataset.get(currentDataSetindex).getWordEntries()) {
@@ -646,19 +729,12 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
         }
     }
 
-    public void updateWordEntryItemFavorites(WordEntry wordEntry) {
-        for(Tweet tweet: mDataset) {
-            if(tweet.getWordEntries()!=null && tweet.getWordEntries().contains(wordEntry)) {
-                for(WordEntry tweetWordEntry : tweet.getWordEntries()) {
-                    if(tweetWordEntry.getId().equals(wordEntry.getId())) {
-                        wordEntry.setItemFavorites(wordEntry.getItemFavorites());
-                    }
-                }
-            }
-        }
-    }
-
-    public void moveToNextQuestion() {
+    /**
+     * Either moves to the next question with {@link #setUpQuestion(Tweet)}, or on to
+     * the PostQuizStats if there are no more questions (or kicks back to main activity if there
+     * was an error)
+     */
+    private void moveToNextQuestion() {
 
         currentDataSetindex += 1;
         //Move to stats if we have reached the end of the quiz
@@ -685,33 +761,26 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
 
     }
 
-    private void insertTextWithLineSeperators(String textToInsert) {
-        String remainingLineSepText = textToInsert;
-        if(BuildConfig.DEBUG) {Log.d(TAG, "initial text to insert: " + textToInsert);}
-
-        while(remainingLineSepText.contains(System.getProperty("line.separator"))) {
-
-            int lineSepEndIndex = remainingLineSepText.indexOf(System.getProperty("line.separator"));
-            if(BuildConfig.DEBUG) {Log.d(TAG, "BEGIN LOOP linesependindex: " + lineSepEndIndex + ", texttoinsert length: " + textToInsert.length());}
-            String preLineSepTextToAdd = remainingLineSepText.substring(0,lineSepEndIndex);
-            if(BuildConfig.DEBUG) {Log.d(TAG,"ADding to layout pre line sep text: " + preLineSepTextToAdd);}
-            addToLayout(new SpannableStringBuilder(preLineSepTextToAdd));
-
-            //Mimic the line seperator by creating a new line
-            insertLineIntoParagraph();
-
-            //Remaining text begins after the line seperatore, until the end of the stringbuilder
-            remainingLineSepText =  remainingLineSepText.substring(lineSepEndIndex + 1,remainingLineSepText.length());
-            if(BuildConfig.DEBUG) {Log.d(TAG, "remainingLineSepText: " + remainingLineSepText);}
-        }
-        if(remainingLineSepText.length()>0) {
-            if(BuildConfig.DEBUG){Log.d(TAG,"final remainingLineSepText to add: " + remainingLineSepText);}
-            addToLayout(new SpannableStringBuilder(remainingLineSepText));
-        }
-    }
 
     public void updateWordEntryFavoritesForOtherTabs(WordEntry wordEntry) {}
     public void notifySavedTweetFragmentsChanged(){}
+
+    /**
+     * If a word entry has been saved to a new word list in the {@link WordDetailPopupDialog}, the message is relayed back to
+     * this method, which updates the  {@link com.jukuproject.jukutweet.Models.ItemFavorites} in the dataset to reflect the change
+     * @param wordEntry WordEntry that was added to/removed from a new list
+     */
+    public void updateWordEntryItemFavorites(WordEntry wordEntry) {
+        for(Tweet tweet: mDataset) {
+            if(tweet.getWordEntries()!=null && tweet.getWordEntries().contains(wordEntry)) {
+                for(WordEntry tweetWordEntry : tweet.getWordEntries()) {
+                    if(tweetWordEntry.getId().equals(wordEntry.getId())) {
+                        wordEntry.setItemFavorites(wordEntry.getItemFavorites());
+                    }
+                }
+            }
+        }
+    }
 
     /**
      * If a tweet has been saved in {@link WordDetailPopupDialog}, and the user for that tweet
@@ -736,10 +805,15 @@ public class FillInTheBlankFragment extends Fragment implements WordEntryFavorit
     }
 
 
-
-
-
-private AdapterView.OnItemSelectedListener spinnerSelectedListener (final WordEntry wordEntry) {
+    /**
+     * Listener updating the word entry's {@link FillinSentencesSpinner} object when the user has
+     * selected a dropdown option for one of the spinners. AND, if the question has already been scored with some
+     * incorrect spinners, automatically try to score the spinners again (this way user doens't have to click "score" button
+     * any more after the first try if they got it wrong).
+     * @param wordEntry WordEntry associated with the spinner
+     * @return OnItemSelectedListener for the spinner
+     */
+    private AdapterView.OnItemSelectedListener spinnerSelectedListener (final WordEntry wordEntry) {
     return new AdapterView.OnItemSelectedListener() {
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -766,8 +840,15 @@ private AdapterView.OnItemSelectedListener spinnerSelectedListener (final WordEn
     };
 }
 
-
-        private void replaceDataSet(String currentTweetId, int currentDataSetIndex) {
+    /**
+     * The way the process is set up, there should be exactly the right amount of Tweets in the dataset to
+     * create the number of quiz questions. So if there is an error with a tweet for some reason, another random
+     * tweet from the dataset is added to the end of a duplicate set, and the duplicate replaces the current dataset, so that
+     * the total number of questions remains constant. Then the dataset index is advanced by one, and nobody is the wiser.
+     * @param currentTweetId Tweet id of the current tweet which had some kind of problem (like no attached word entries? etc)
+     * @param currentDataSetIndex The current index of the problem tweet
+     */
+    private void replaceDataSet(String currentTweetId, int currentDataSetIndex) {
             Log.e(TAG,"REPLACING DATASETS");
             ArrayList<Tweet> replacementDataSet = new ArrayList<>(mDataset);
             replacementDataSet.remove(currentDataSetIndex);

@@ -223,57 +223,56 @@ public class WordEntry implements Parcelable {
     }
 
 
-    //TODO comment this out, and put try catch
-    public String getFlashCardDefinitionMultiLineString(int limit) {
-        StringBuilder stringBuilder = new StringBuilder();
-
-        if(definition != null) {
-            for (int i=1; i<=limit; i++) {
-                String s = "(" + String.valueOf(i) + ")";
-                String sNext = "(" + String.valueOf(i+1) + ")";
-                int slength = s.length();
-                if(definition.contains(s)){
-                    int endIndex = definition.length();
-                    if(definition.contains(sNext)){ //If we can find the next "(#)" in the string, we'll use it as this definition's end point
-                        endIndex =  definition.indexOf(sNext);
-                    }
-
-                    String sentence = definition.substring(definition.indexOf(s)+slength, endIndex);
-                    //Capitalize it
-                    if(sentence.length()>1) {
-                        sentence = sentence.substring(0, 1).toUpperCase() + sentence.substring(1).toLowerCase();
-                    }
-                    if(i>1) {
-                        stringBuilder.append(System.getProperty("line.separator"));
-                        stringBuilder.append("\u2022 ");
-                    } else  if(definition.contains("(2)")) {
-                        stringBuilder.append("\u2022 ");
-                    }
-
-                    stringBuilder.append(sentence);
-                } else if (i==1) { //if the thing doesn't contain a "(1)", just print the whole definition in line 1 of the array.
-                    String sentence = definition;
-                    if(sentence.length()>1) {
-                        sentence = definition.substring(0, 1).toUpperCase() + definition.substring(1).toLowerCase();
-
-                    }
-                    if(definition.contains("(2)")) {
-                        stringBuilder.append("\u2022 ");
-                    }
-                    stringBuilder.append(sentence);
-                }
-
-            }
-        }
-
-        return stringBuilder.toString();
-    }
+//    public String getFlashCardDefinitionMultiLineString(int limit) {
+//        StringBuilder stringBuilder = new StringBuilder();
+//
+//        if(definition != null) {
+//            for (int i=1; i<=limit; i++) {
+//                String s = "(" + String.valueOf(i) + ")";
+//                String sNext = "(" + String.valueOf(i+1) + ")";
+//                int slength = s.length();
+//                if(definition.contains(s)){
+//                    int endIndex = definition.length();
+//                    if(definition.contains(sNext)){ //If we can find the next "(#)" in the string, we'll use it as this definition's end point
+//                        endIndex =  definition.indexOf(sNext);
+//                    }
+//
+//                    String sentence = definition.substring(definition.indexOf(s)+slength, endIndex);
+//                    //Capitalize it
+//                    if(sentence.length()>1) {
+//                        sentence = sentence.substring(0, 1).toUpperCase() + sentence.substring(1).toLowerCase();
+//                    }
+//                    if(i>1) {
+//                        stringBuilder.append(System.getProperty("line.separator"));
+//                        stringBuilder.append("\u2022 ");
+//                    } else  if(definition.contains("(2)")) {
+//                        stringBuilder.append("\u2022 ");
+//                    }
+//
+//                    stringBuilder.append(sentence);
+//                } else if (i==1) { //if the thing doesn't contain a "(1)", just print the whole definition in line 1 of the array.
+//                    String sentence = definition;
+//                    if(sentence.length()>1) {
+//                        sentence = definition.substring(0, 1).toUpperCase() + definition.substring(1).toLowerCase();
+//
+//                    }
+//                    if(definition.contains("(2)")) {
+//                        stringBuilder.append("\u2022 ");
+//                    }
+//                    stringBuilder.append(sentence);
+//                }
+//
+//            }
+//        }
+//
+//        return stringBuilder.toString();
+//    }
 
     /**
      * Assigns a color to the WordEntry based on the percentage of its quiz scores
      * @param colorThresholds Color Threshold object containing percentage thresholds used to assign the color
      */
-    public void createColorForWord(ColorThresholds colorThresholds) {
+    private void createColorForWord(ColorThresholds colorThresholds) {
         if (total != null && correct != null) {
             if (total < colorThresholds.getGreyThreshold()) {
                 color = "Grey";

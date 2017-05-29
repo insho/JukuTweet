@@ -129,9 +129,7 @@ public class AddUserCheckDialog extends DialogFragment {
         TextView txtFollowers = (TextView) dialogView.findViewById(R.id.txtFollowers);
         txtFollowers.setText(userInfo.getFollowerCountString());
 
-
-
-        builder.setView(dialogView);
+      builder.setView(dialogView);
 
 
         /* Checks for a valid input, and if one exists, passes click event through DialogInterface

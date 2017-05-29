@@ -76,7 +76,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
      * @param listName list to clear
      * @param isStarFavorite boolean, true if the list is a "system list", meaning it is a colored star favorites list.
      *                       System have a 1 in the "system" column of JFavorites, and this must be accounted for in the delete statement.
-     * @return boolean true if successful, false if not
      *
      * @see com.jukuproject.jukutweet.Dialogs.EditMyListDialog
      * @see com.jukuproject.jukutweet.MainActivity#onEditMyListDialogPositiveClick(String listType, int, String, boolean)
@@ -97,9 +96,7 @@ public class WordOpsHelper implements WordListOperationsInterface {
 
     /**
      * Removes a list from the JFavoritesList table and all associated rows from JFavorites Table
-     *
      * @param listName name of list to remove
-     * @return boolean true if successful, false if not
      *
      * @see com.jukuproject.jukutweet.Dialogs.EditMyListDialog
      * @see com.jukuproject.jukutweet.MainActivity#onEditMyListDialogPositiveClick(String listType, int, String, boolean)
@@ -636,7 +633,6 @@ public class WordOpsHelper implements WordListOperationsInterface {
      * Inserts multiple words into a given word list
      * @param myListEntry MyList Object containing the name and sys variables for a WordList
      * @param concatenatedWordIds a string of wordIds concatenated together with commas (ex: 123,451,6532,23)
-     * @return bool true if successful delete, false if error
      */
     public void addMultipleWordsToWordList(MyListEntry myListEntry, String concatenatedWordIds) {
         try {
@@ -1000,7 +996,10 @@ public class WordOpsHelper implements WordListOperationsInterface {
 
     /**
      * Dictionary search query for a list of wordIds. Used in {@link com.jukuproject.jukutweet.Fragments.SearchFragment} process.
-     * @param hiraganaKatakanaPlaceholders
+     * @param hiraganaKatakanaPlaceholders If a kanji in the Edict dictionary exactly matches one of the possible "translations"
+     *                                     that was created in the {@link com.jukuproject.jukutweet.MainActivity#convertRomajitoKanjiOptions(String, StringBuilder)},
+     *                                     it should be ordered first in the search results. So the array of kanji options is passed through to this param and matched
+     *                                     against db options to created a better order
      * @param wordIds String of concatenated word ids for which the WordEntries will be created
      * @param colorThresholds Collection of thresholds which together determine what color to assign to a word/tweet based on its quiz scores
      * @return list of WordEntry objects, result set of the search
@@ -1265,6 +1264,15 @@ public class WordOpsHelper implements WordListOperationsInterface {
         return wordEntries;
     }
 
+    /**
+     * Takes an array of possible Kanji--> Romaji translations from a search, and finds
+     * the Edict Word_id for them if possible
+     * @param possibleHiraganaSearchQueries array of possible Romajia--> Hiragana translations
+     * @param possibleKatakanaSearchQueries array of possible Romajia--> Katakana translations
+     * @return concatenated, comma-delimited string of edict _ids
+     *
+     * @see com.jukuproject.jukutweet.MainActivity#querytheDictionary(String, String)
+     */
     public String getWordIdsForRomajiMatches(ArrayList<String> possibleHiraganaSearchQueries
     ,ArrayList<String> possibleKatakanaSearchQueries) {
         StringBuilder idStringBuilder = new StringBuilder();
@@ -1322,6 +1330,14 @@ public class WordOpsHelper implements WordListOperationsInterface {
         return idStringBuilder.toString();
     }
 
+    /**
+     * Looks for edict matches for a Japanese (not Romaji) dictionary search, and
+     * creates an array of possible edict ids for matching words
+     * @param kanji Japanese search query
+     * @return concatenated, comma-delimited string of edict _ids
+     *
+     * @see com.jukuproject.jukutweet.MainActivity#querytheDictionary(String, String)
+     */
     public String getWordIdsForKanjiMatch(String kanji) {
         StringBuilder idStringBuilder = new StringBuilder();
         try {
@@ -1369,6 +1385,14 @@ public class WordOpsHelper implements WordListOperationsInterface {
         return idStringBuilder.toString();
     }
 
+
+    /**
+     * Looks for matches with the query string and the definition of a word in the Edict dictionary
+     * @param query English definition query
+     * @return concatenated, comma-delimited string of edict _ids
+     *
+     * @see com.jukuproject.jukutweet.MainActivity#querytheDictionary(String, String)
+     */
     public String getWordIdsForDefinitionMatch(String query) {
         StringBuilder idStringBuilder = new StringBuilder();
         try {
@@ -1431,7 +1455,15 @@ public class WordOpsHelper implements WordListOperationsInterface {
         return idStringBuilder.toString();
     }
 
-
+    /***
+     * Checks if a word entry is contained in a given wordlist. Used when updating a wordlistbrowse Fragment
+     * dataset after changes to a words favorite list associations either in the dataset or elsewhere in the app
+     * @param myListEntry WordList
+     * @param wordEntry Word
+     * @return bool true if the word is contained in the list, false if not
+     *
+     * @see WordListBrowseFragment#updateWordEntryItemFavorites(WordEntry)
+     */
     public Boolean myListContainsWordEntry(MyListEntry myListEntry, WordEntry wordEntry) {
 
             String queryRecordExists = "Select _id From " + InternalDB.Tables.TABLE_FAVORITES_LIST_ENTRIES + " where " + InternalDB.Columns.COL_ID + " = ? AND " + InternalDB.Columns.TFAVORITES_COL0 + " = ? AND " + InternalDB.Columns.TFAVORITES_COL1 + " = ?" ;
