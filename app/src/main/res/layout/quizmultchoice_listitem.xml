@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--THIS IS THE GRIDVIEW IN THE MULTIPLE CHOICE QUIZ-->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/text1"
+    android:ellipsize="end"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/colorPrimary"
+    android:textColor="@android:color/white"
+    android:gravity="center"
+    android:textAppearance="?android:attr/textAppearanceSmall"
+    android:textSize="18sp" />

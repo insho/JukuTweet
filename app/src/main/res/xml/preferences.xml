@@ -1,0 +1,99 @@
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    >
+
+    <PreferenceCategory
+        android:title="Kanji Color Thresholds">
+
+            <EditTextPreference
+                android:key="preference_greythreshold"
+                android:title="Grey Threshold"
+                android:summary="Number of views before word stops being grey"
+                android:dialogTitle="Grey Threshold"
+                android:defaultValue="3"
+                android:inputType="number"/>
+
+            <EditTextPreference
+                android:key="preference_redthreshold"
+                android:title="Yellow Threshold"
+                android:summary="% correct necessary for a word to become yellow"
+                android:dialogTitle="Yellow Threshold"
+
+                android:inputType="numberDecimal"
+                android:defaultValue=".3"/>
+
+            <EditTextPreference
+                android:key="preference_yellowthreshold"
+                android:title="Green Threshold"
+                android:summary="% correct necessary for a word to become green"
+                android:dialogTitle="Green Threshold"
+                android:inputType="numberDecimal"
+
+                android:defaultValue=".8"/>
+
+
+
+    </PreferenceCategory>
+
+
+    <PreferenceCategory
+        android:title="Scoring">
+        <CheckBoxPreference
+            android:key="includemultiplechoicecores"
+            android:layout="?android:attr/preferenceLayoutChild"
+            android:title="Count Multiple Choice Scores"
+            android:defaultValue="true"
+
+            android:summary="Multiple Choice scores will  count toward word/block/level percentages or totals"/>
+
+        <CheckBoxPreference
+            android:key="includefillinsentencesscores"
+            android:layout="?android:attr/preferenceLayoutChild"
+            android:title="Count Fill in the Blanks Scores"
+            android:defaultValue="true"
+            android:summary="Fill in the Blanks scores will count toward word/block/level percentages or totals"/>
+        <MultiSelectListPreference
+            android:persistent="true"
+            android:key="list_favoriteslistcount"
+            android:title="@string/list_favoriteslistcount"
+            android:entries="@array/entryvalues_list_favoritescount_kanji"
+        android:defaultValue="@array/entryvalues_list_favoritescount_kanji_default"
+            android:entryValues="@array/entryvalues_list_favoritescount_kanji"
+            android:dialogTitle="@string/dialog_title_list_favoritescount"
+            />
+
+
+        <MultiSelectListPreference
+            android:persistent="true"
+            android:key="list_favoriteslistcount_tweet"
+            android:title="@string/list_favoriteslistcount_tweet"
+
+
+            android:entries="@array/entryvalues_list_favoritescount_tweet"
+            android:defaultValue="@array/entryvalues_list_favoritescount_tweet_default"
+            android:entryValues="@array/entryvalues_list_favoritescount_tweet"
+            android:dialogTitle="@string/dialog_title_list_favoritescount_tweet"
+            />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="Misc.">
+
+        <CheckBoxPreference
+        android:key="preference_difficultanswers"
+        android:layout="?android:attr/preferenceLayoutChild"
+        android:title="Trickier Multiple Choice"
+        android:defaultValue="false"
+
+            android:summary="If checked, the false kanji/kana multiple choice options will more resemble the correct answer. Makes the whole thing trickier."/>
+
+        <ListPreference
+            android:key="sliderMultiplier"
+            android:summary="The higher this number, the more frequently red and yellow words will appear in quizzes"
+            android:title="Emphasize Red and Yellow Words"/>
+
+
+    </PreferenceCategory>
+
+</PreferenceScreen>
