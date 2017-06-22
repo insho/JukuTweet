@@ -27,6 +27,7 @@ public class InternalDB extends SQLiteOpenHelper
     private static UserOperationsInterface userOpsHelper;
     private static QuizOperationsInterface quizOpsHelper;
     private static WordListOperationsInterface wordOpsHelper;
+    private SQLiteDatabase testDB;
 
     private static InternalDB sInstance;
     public static  String DB_NAME =  "JQuiz";
@@ -81,49 +82,72 @@ public class InternalDB extends SQLiteOpenHelper
 
     }
 
-
     public static synchronized InternalDB getInstance(Context context) {
         if (sInstance == null) {
-            sInstance = new InternalDB(context.getApplicationContext());
+            InternalDB internalDB = new InternalDB(context);
+            internalDB.setDB(internalDB.getWritableDatabase());
+            sInstance = internalDB;
         }
+        return sInstance;
+    }
+
+    public static synchronized InternalDB getTestInstance(Context context, SQLiteDatabase testDB) {
+        if (sInstance == null) {
+            InternalDB internalDB = new InternalDB(context);
+            sInstance = internalDB;
+        }
+        sInstance.setDB(testDB);
         return sInstance;
     }
 
     public static synchronized WordListOperationsInterface getWordInterfaceInstance(Context context) {
         if (wordOpsHelper == null) {
-            wordOpsHelper = new WordOpsHelper(InternalDB.getInstance(context.getApplicationContext()));
+            wordOpsHelper = new WordOpsHelper(InternalDB.getInstance(context));
         }
         return wordOpsHelper;
     }
 
 
+    @Override
+    public SQLiteDatabase getWritableDatabase() {
+
+        if(testDB==null) {
+            return super.getWritableDatabase();
+        }
+            return testDB;
+
+    }
+
     public static synchronized TweetListOperationsInterface getTweetInterfaceInstance(Context context) {
         if (tweetOpsHelper == null) {
-            tweetOpsHelper = new TweetOpsHelper(InternalDB.getInstance(context.getApplicationContext()));
+            tweetOpsHelper = new TweetOpsHelper(InternalDB.getInstance(context));
         }
         return tweetOpsHelper;
     }
 
     public static synchronized UserOperationsInterface getUserInterfaceInstance(Context context) {
         if (userOpsHelper == null) {
-            userOpsHelper  = new UserOpsHelper(InternalDB.getInstance(context.getApplicationContext()));
+            userOpsHelper  = new UserOpsHelper(InternalDB.getInstance(context));
         }
         return userOpsHelper ;
     }
 
     public static synchronized QuizOperationsInterface getQuizInterfaceInstance(Context context) {
         if (quizOpsHelper == null) {
-            quizOpsHelper  = new QuizOpsHelper(InternalDB.getInstance(context.getApplicationContext()));
+            quizOpsHelper  = new QuizOpsHelper(InternalDB.getInstance(context));
         }
         return quizOpsHelper ;
     }
 
-    public InternalDB(Context context) {
+    private InternalDB(Context context) {
         super(context, DATABASE_NAME, null, DB_VERSION);
         tweetOpsHelper = new TweetOpsHelper(this);
+
     }
 
-
+    private void setDB(SQLiteDatabase db) {
+        this.testDB = db;
+    }
 
     @Override
     public void onCreate(SQLiteDatabase sqlDB) {

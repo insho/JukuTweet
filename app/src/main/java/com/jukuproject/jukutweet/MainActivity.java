@@ -2208,7 +2208,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                     }
 
                     ColorThresholds colorThresholds = SharedPrefManager.getInstance(getBaseContext()).getColorThresholds();
-                    return TweetParser.getInstance().parseSentence(getBaseContext()
+                    return new TweetParser().parseSentence(getBaseContext()
+                            ,InternalDB.getInstance(getBaseContext())
                             ,tweet.getText()
                             ,spansToExclude
                             ,colorThresholds);

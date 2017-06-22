@@ -37,20 +37,21 @@ public class TweetParser {
     private HashMap<String, String> VerbChunksAndPositions = new HashMap<>();
     private ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence;
     private final int minKanjiLengthtoSplit = 2; //Smallest # of characters in a kanji combo for the kanji breakup builder to try splitting
+    private InternalDB internalDB;
 
-    public static TweetParser getInstance() {
-        return new TweetParser();
-    }
 
     public ArrayList<WordEntry> parseSentence(Context context
+            ,InternalDB internalDBInstance
             ,String entireSentence
             , ArrayList<String> spansToExclude
             ,ColorThresholds colorThresholds
     ) {
         this.mContext = context;
+        this.internalDB = internalDBInstance;
         this.entireSentence = entireSentence;
         this.mColorThresholds = colorThresholds;
-        this.wordLoader = InternalDB.getInstance(mContext).getWordLists();
+        this.wordLoader = internalDB.getWordLists();
+
         possibleKanjiInSentence = findCoreKanjiBlocksInSentence(entireSentence,wordLoader,spansToExclude);
 
         if(BuildConfig.DEBUG){
@@ -71,20 +72,15 @@ public class TweetParser {
         return compileFinalSentenceMap(cleanKanjiIds);
     }
 
-
-
-
-
     /** Creates an array list of core kanji in the sentence and their positions.
      *  The result array is built by adding different combinations of hiragana/katakana/symbols to these core kanji .
      *
      * @param entireSentence Sentence or piece of text to be split
      * @param wordLoader Arrays and Maps of hiragana/katakana/symbols/verbendings. Used to determine whether a character (or possible verb ending) is a Kanji or conjugated verb.
-    //     * @param kanjPositionArray Position indexes of the "spinner" kanji for each question (if this is a FillinSentences Activity). These kanji are known initially
      *                          so it is unnecessary to break them down or match them against the dictionary
      * @return An array list of ParseSentencePossibleKanji, representing the core of each possible kanji in the sentence
      */
-    private static ArrayList<ParseSentencePossibleKanji> findCoreKanjiBlocksInSentence(String entireSentence, WordLoader wordLoader, ArrayList<String> spansToExclude) {
+    public static ArrayList<ParseSentencePossibleKanji> findCoreKanjiBlocksInSentence(String entireSentence, WordLoader wordLoader, ArrayList<String> spansToExclude) {
         ArrayList<Integer> IndexPositionsToExclude = getExcludedSpanIndexes(entireSentence,spansToExclude);
         ArrayList<ParseSentencePossibleKanji> possibleKanjiInSentence = new ArrayList<>();
         StringBuilder builder = new StringBuilder();
@@ -465,7 +461,7 @@ public class TweetParser {
      * @return Cursor
      */
     private Cursor cursorMatchStringAgainstDB(String kanji) {
-        return InternalDB.getInstance(mContext).getWritableDatabase().rawQuery("SELECT [_id],[Kanji] FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{kanji});
+        return internalDB.getWritableDatabase().rawQuery("SELECT [_id],[Kanji] FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{kanji});
     }
 
     /**
@@ -492,7 +488,7 @@ public class TweetParser {
                 if (possibleKanji.getPrefixes().size() > 0) {
 
                     for (int xx = 0; xx < possibleKanji.getPrefixes().size(); xx++) {
-                        Cursor dd = InternalDB.getInstance(mContext).getWritableDatabase().rawQuery("SELECT [Kanji],_id FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{possibleKanji.getPrefixes().get(xx) + firstkanji});
+                        Cursor dd = internalDB.getWritableDatabase().rawQuery("SELECT [Kanji],_id FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{possibleKanji.getPrefixes().get(xx) + firstkanji});
                         if(BuildConfig.DEBUG){
                             Log.d(TAG,"BREAKUP(1) (prefix) trying: " + possibleKanji.getPrefixes().get(xx) + firstkanji);
                             Log.d(TAG, "BREAKUP(1) SELECT [Kanji] FROM [Edict_FTS] WHERE [Kanji] MATCH " + possibleKanji.getPrefixes().get(xx) + firstkanji + ":count: " + dd.getCount());
@@ -580,7 +576,7 @@ public class TweetParser {
                                 String conjugation = wordLoader.getVerbEndingsConjugation().get(k);
                                 if (conjugation.equalsIgnoreCase(possibleKanji.getSuffixes().get(x))) {
                                     if(BuildConfig.DEBUG){Log.d(TAG, "Kanjifinal POSSIBLE BREAKUP(1) Verb match: " + lastkanji + possibleKanji.getSuffixes().get(x));}
-                                    Cursor cursorMatchVerbInDB = InternalDB.getInstance(mContext).getWritableDatabase().rawQuery("SELECT[Kanji] FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{lastkanji + root});
+                                    Cursor cursorMatchVerbInDB = internalDB.getWritableDatabase().rawQuery("SELECT[Kanji] FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{lastkanji + root});
                                     if(cursorMatchVerbInDB.getCount() > 0) {
                                         if((lastkanji + root).length() >= matchCombination.getMatches().get(matchCombination.getMatches().size() - 1).length()) {
                                             if (BuildConfig.DEBUG) {
@@ -695,7 +691,7 @@ public class TweetParser {
             if(BuildConfig.DEBUG){Log.d(TAG, "checking kanji: " + possibleKanji.getVerbCombos().get(x));}
 
             try {
-            Cursor f = InternalDB.getInstance(mContext).getWritableDatabase().rawQuery("SELECT [_id] FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{kanji});
+            Cursor f = internalDB.getWritableDatabase().rawQuery("SELECT [_id] FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{kanji});
             if (f.getCount() > 0) {
                 f.moveToFirst();
                 if(BuildConfig.DEBUG){
@@ -816,7 +812,7 @@ public class TweetParser {
         for(int index = 0; index < cleanKanjiIDs.size(); index ++) {
             if(BuildConfig.DEBUG){Log.d(TAG, "clean_int: " + cleanKanjiIDs.get(index));}
 
-            Cursor c = InternalDB.getWordInterfaceInstance(mContext).getWordEntryForWordId(cleanKanjiIDs.get(index),mColorThresholds);
+            Cursor c = InternalDB.getWordInterfaceInstance(mContext).getWordEntryForWordId(internalDB.getWritableDatabase(),cleanKanjiIDs.get(index),mColorThresholds);
 
             if (c.getCount() > 0) {
                 c.moveToFirst();
@@ -965,7 +961,7 @@ public class TweetParser {
 
             for (int i = 0; i < prefixsuffixKanjiCombos.size(); i++) {
                 try{
-                    Cursor cursorKanjiMatch = InternalDB.getInstance(mContext).getWritableDatabase().rawQuery("SELECT [Kanji] FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{prefixsuffixKanjiCombos.get(i)});
+                    Cursor cursorKanjiMatch = internalDB.getWritableDatabase().rawQuery("SELECT [Kanji] FROM [Edict] WHERE _id in(SELECT docid FROM [Edict_FTS] WHERE [Kanji] MATCH ?)  ORDER BY [Common] LIMIT 1", new String[]{prefixsuffixKanjiCombos.get(i)});
                     if(BuildConfig.DEBUG){Log.d(TAG, "Prefix/Suffix Query: (" + possibleKanji.getKanji() + ") MATCH " + prefixsuffixKanjiCombos.get(i));}
                     if (cursorKanjiMatch.getCount() > 0 ) {
                         cursorKanjiMatch.moveToFirst();

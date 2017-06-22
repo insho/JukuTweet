@@ -215,7 +215,8 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
             /* If it is a previously saved tweet, the favorite list information for the WordEntries in the
              tweet will not have been previously attached. So attach them now: */
             for(WordEntry wordEntry : mTweet.getWordEntries()) {
-                Cursor c = InternalDB.getWordInterfaceInstance(getContext()).getWordEntryForWordId(wordEntry.getId(),colorThresholds);
+
+                Cursor c = InternalDB.getWordInterfaceInstance(getContext()).getWordEntryForWordId(InternalDB.getInstance(getContext()).getWritableDatabase(),wordEntry.getId(),colorThresholds);
                 if(c.getCount()>0) {
                     c.moveToFirst();
                     wordEntry.setItemFavorites(new ItemFavorites(c.getInt(5)
@@ -258,7 +259,8 @@ public class TweetBreakDownFragment extends Fragment implements WordEntryFavorit
         Single<ArrayList<WordEntry>> disectTweet = Single.fromCallable(new Callable<ArrayList<WordEntry>>() {
             @Override
             public ArrayList<WordEntry> call() throws Exception {
-                return TweetParser.getInstance().parseSentence(getContext()
+                return new TweetParser().parseSentence(getContext()
+                        ,InternalDB.getInstance(getContext())
                         ,sentence
                         ,spansToExclude
                         ,colorThresholds);

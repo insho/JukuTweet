@@ -2,6 +2,7 @@ package com.jukuproject.jukutweet.Database;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
@@ -650,8 +651,8 @@ public class WordOpsHelper implements WordListOperationsInterface {
      *
      * @see com.jukuproject.jukutweet.TweetParser
      */
-    public Cursor getWordEntryForWordId(int kanjiId, ColorThresholds colorThresholds) {
-        return sqlOpener.getWritableDatabase().rawQuery("SELECT [Kanji]" +
+    public Cursor getWordEntryForWordId(SQLiteDatabase db, int kanjiId, ColorThresholds colorThresholds) {
+        return db.rawQuery("SELECT [Kanji]" +
                 ",(CASE WHEN Furigana is null then '' else Furigana  end) as [Furigana]" +
                 ",[Definition]" +
                 ",[Total]" +

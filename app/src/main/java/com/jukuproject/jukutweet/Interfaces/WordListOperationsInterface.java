@@ -1,6 +1,7 @@
 package com.jukuproject.jukutweet.Interfaces;
 
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.Nullable;
 
 import com.jukuproject.jukutweet.Models.ColorThresholds;
@@ -38,7 +39,7 @@ public interface WordListOperationsInterface {
             , @Nullable Integer resultLimit);
     void addMultipleWordsToWordList(MyListEntry myListEntry, String concatenatedWordIds);
     Cursor getWordListColorBlockCursor(ColorThresholds colorThresholds, MyListEntry myListEntry);
-    Cursor getWordEntryForWordId(int kanjiId, ColorThresholds colorThresholds);
+    Cursor getWordEntryForWordId(SQLiteDatabase db, int kanjiId, ColorThresholds colorThresholds);
     ArrayList<WordEntry> getTopFiveWordEntries(String topOrBottom
             ,@Nullable  ArrayList<Integer> idsToExclude
             ,MyListEntry myListEntry
